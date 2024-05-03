@@ -359,7 +359,7 @@ class RoomService
         );
 
         return [
-            'edges' => array_map(
+            'edges' => array_values(array_filter(array_map(
                 function (array $member): ?ChatRoomMemberEdge {
                     $user = $this->entitiesBuilder->single($member['member_guid']);
                     if (!$user) {
@@ -379,7 +379,7 @@ class RoomService
                     );
                 },
                 $members
-            ),
+            ))),
             'hasMore' => $hasMore
         ];
     }
@@ -399,7 +399,7 @@ class RoomService
         foreach ($this->roomRepository->getAllRoomMembers(roomGuid: $roomGuid, user: $user, excludeSelf: $excludeSelf) as $member) {
             $user = $this->entitiesBuilder->single($member['member_guid']);
             if (!$user) {
-                return null;
+                continue;
             }
 
             yield new ChatRoomMemberEdge(
@@ -471,9 +471,9 @@ class RoomService
                     user: $loggedInUser
                 ),
                 chatRoomNotificationStatus:
-                    $chatRoomMemberSettings['notifications_status'] ?
+                    isset($chatRoomMemberSettings['notifications_status']) ?
                         constant(ChatRoomNotificationStatusEnum::class . '::' . $chatRoomMemberSettings['notifications_status']) :
-                        ChatRoomNotificationStatusEnum::MUTED,
+                        ChatRoomNotificationStatusEnum::ALL,
             ),
             cursor: $chatRoomListItem->lastMessageCreatedTimestamp ?
                 base64_encode((string)$chatRoomListItem->lastMessageCreatedTimestamp) :
@@ -884,7 +884,7 @@ class RoomService
             }
 
             return $member->getName();
-        }, array_slice($memberGuids, 0, 2));
+        }, array_slice($memberGuids, 0, 3));
 
         $namesCount = count($names);
 

@@ -438,7 +438,7 @@ class RoomRepository extends AbstractRepository
         $stmt = $this->mysqlClientReaderHandler->select()
             ->columns([
                 'm.*',
-                'notifications_status' => new RawExp('COALESCE(rms.notifications_status, "MUTED")'),
+                'notifications_status' => new RawExp('COALESCE(rms.notifications_status, "ALL")'),
             ])
             ->from(new RawExp("($q) as m"))
             ->leftJoinRaw(
@@ -1091,7 +1091,8 @@ class RoomRepository extends AbstractRepository
                 'joined_timestamp' => 'gm.created_timestamp',
             ])
             ->from(new RawExp(self::TABLE_NAME . ' as r'))
-            ->joinRaw(new RawExp('minds_group_membership as gm'), 'r.group_guid = gm.group_guid');
+            ->joinRaw(new RawExp('minds_group_membership as gm'), 'r.group_guid = gm.group_guid')
+            ->where('gm.membership_level', Operator::GTE, 1);
 
         return $membersQuery->union($groupsQuery);
     }

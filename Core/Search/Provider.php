@@ -13,7 +13,9 @@ use Minds\Core\ActivityPub\Services\ProcessActorService;
 use Minds\Core\Di;
 use Minds\Core\Feeds\Elastic;
 use Minds\Core\Boost\V3\Manager as BoostManager;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Search\Controllers\SearchController;
+use Minds\Core\Search\Helpers\DirectMatchInjector;
 
 class Provider extends Di\Provider
 {
@@ -46,6 +48,12 @@ class Provider extends Di\Provider
                 entitiesBuilder: $di->get('EntitiesBuilder'),
                 boostManager: $di->get(BoostManager::class),
                 processActorService: $di->get(ProcessActorService::class),
+            );
+        });
+
+        $this->di->bind(DirectMatchInjector::class, function (Di\Di $di): DirectMatchInjector {
+            return new DirectMatchInjector(
+                entitiesBuilder: $di->get(EntitiesBuilder::class)
             );
         });
     }

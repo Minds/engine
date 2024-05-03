@@ -11,10 +11,19 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Interfaces;
 use Minds\Api\Factory;
-use Minds\Entities;
+use Minds\Core\Log\Logger;
+use Minds\Core\Search\Helpers\DirectMatchInjector;
 
 class suggest implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
+    public function __construct(
+        private ?DirectMatchInjector $directMatchInjector = null,
+        private ?Logger $logger = null
+    ) {
+        $this->directMatchInjector ??= Di::_()->get(DirectMatchInjector::class);
+        $this->logger ??= Di::_()->get('Logger');
+    }
+
     /**
      * Equivalent to HTTP GET method
      * @param  array $pages
@@ -32,6 +41,8 @@ class suggest implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
 
         $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 12;
+        $includeNsfw = isset($_GET['include_nsfw']) ? $_GET['include_nsfw'] === '1' : false;
+
         //$hydrate = isset($_GET['hydrate']) && $_GET['hydrate'];
         $hydrate = true;
 
@@ -59,13 +70,25 @@ class suggest implements Interfaces\Api, Interfaces\ApiIgnorePam
                 }
                 
                 if ($guids) {
-                    $entities = array_filter(Di::_()->get('EntitiesBuilder')->get([ 'guids' => $guids ]) ?: [], function ($entity) {
-                        if (count($entity->getNsfw())) {
+                    $entities = array_filter(Di::_()->get('EntitiesBuilder')->get([ 'guids' => $guids ]) ?: [], function ($entity) use ($includeNsfw) {
+                        if (!$includeNsfw && count($entity->getNsfw())) {
                             return false;
                         }
                         return true;
                     });
                     $entities = Factory::exportable(array_values($entities));
+                }
+            }
+
+            if ($entityType === 'user') {
+                try {
+                    $entities = $this->directMatchInjector->injectDirectUserMatch(
+                        entities: $entities,
+                        query: $query,
+                        includeNsfw: $includeNsfw
+                    );
+                } catch(\Exception $e) {
+                    $this->logger->error($e);
                 }
             }
 
