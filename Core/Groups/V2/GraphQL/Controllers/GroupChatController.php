@@ -23,8 +23,8 @@ class GroupChatController
 
     /**
      * Creates a new group chat room.
-     * @param string $groupGuid
-     * @return ChatRoomEdge
+     * @param string $groupGuid - The group guid.
+     * @return ChatRoomEdge - The chat room edge.
      * @throws GraphQLException
      * @throws InvalidChatRoomTypeException
      * @throws ServerErrorException
@@ -43,8 +43,8 @@ class GroupChatController
 
     /**
      * Deletes group chat rooms.
-     * @param string $groupGuid
-     * @return bool
+     * @param string $groupGuid - The group guid.
+     * @return bool - True if successful.
      * @throws GraphQLException
      * @throws ServerErrorException
      */

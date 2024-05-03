@@ -650,9 +650,10 @@ class RoomService
     }
 
     /**
-     * @param int $roomGuid
-     * @param User $user
-     * @return bool
+     * Delete a chat room by room GUID.
+     * @param int $roomGuid - The room GUID.
+     * @param User $user - The user requesting deletion.
+     * @return bool - True if the chat room was deleted.
      * @throws GraphQLException
      * @throws ServerErrorException
      */
@@ -672,6 +673,14 @@ class RoomService
         return $this->deleteChatRoom($chatRoomEdge->getNode()->chatRoom, $user);
     }
 
+    /**
+     * Delete a chat room.
+     * @param ChatRoom $chatRoom - The chat room.
+     * @param User $user - The user requesting deletion.
+     * @return bool - True if the chat room was deleted.
+     * @throws GraphQLException
+     * @throws ServerErrorException
+     */
     public function deleteChatRoom(
         ChatRoom $chatRoom,
         User $user

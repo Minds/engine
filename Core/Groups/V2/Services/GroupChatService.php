@@ -28,7 +28,7 @@ class GroupChatService
 
     /**
      * Create group chat room.
-     * @param integer $groupGuid - Group guid.
+     * @param int $groupGuid - Group guid.
      * @param User $user - User entity.
      * @throws GraphQLException - on error.
      * @return ChatRoomEdge - Chat room edge.
@@ -57,7 +57,7 @@ class GroupChatService
 
     /**
      * Delete all chat rooms for a group.
-     * @param integer $groupGuid - Group guid.
+     * @param int $groupGuid - Group guid.
      * @param User $user - User entity.
      * @throws GraphQLException - on error.
      * @return bool - True on success.
@@ -100,7 +100,7 @@ class GroupChatService
     }
 
     /**
-     * Update conversation disabled state.
+     * Update a Group's conversation disabled state.
      * @param Group $group - Group entity.
      * @param boolean $state - State to set.
      * @return void
