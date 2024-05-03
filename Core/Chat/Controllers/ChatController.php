@@ -387,7 +387,7 @@ class ChatController
         string $roomGuid,
         #[InjectUser] User $loggedInUser
     ): bool {
-        return $this->roomService->deleteChatRoom(
+        return $this->roomService->deleteChatRoomByRoomGuid(
             roomGuid: (int) $roomGuid,
             user: $loggedInUser
         );

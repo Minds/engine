@@ -657,7 +657,7 @@ class ChatControllerSpec extends ObjectBehavior
     public function it_should_delete_chat_room(
         User $loggedInUserMock
     ): void {
-        $this->roomServiceMock->deleteChatRoom(
+        $this->roomServiceMock->deleteChatRoomByRoomGuid(
             123,
             $loggedInUserMock
         )

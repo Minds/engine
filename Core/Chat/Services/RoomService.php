@@ -65,7 +65,7 @@ class RoomService
     ): ChatRoomEdge {
         if ($roomType === ChatRoomTypeEnum::GROUP_OWNED) {
             // Check if a group room already exists
-            $rooms = $this->roomRepository->getGroupRooms($groupGuid);
+            $rooms = $this->getRoomsByGroup($groupGuid);
 
             if ($rooms) {
                 $chatRoom = $rooms[0];
@@ -656,7 +656,7 @@ class RoomService
      * @throws GraphQLException
      * @throws ServerErrorException
      */
-    public function deleteChatRoom(
+    public function deleteChatRoomByRoomGuid(
         int $roomGuid,
         User $user
     ): bool {
@@ -665,21 +665,33 @@ class RoomService
             loggedInUser: $user
         );
 
+        if (!$chatRoomEdge?->getNode()?->chatRoom) {
+            throw new GraphQLException(message: "Chat room could not be found.", code: 404);
+        }
+
+        return $this->deleteChatRoom($chatRoomEdge->getNode()->chatRoom, $user);
+    }
+
+    public function deleteChatRoom(
+        ChatRoom $chatRoom,
+        User $user
+    ): bool {
         if (!$this->roomRepository->isUserRoomOwner(
-            roomGuid: $roomGuid,
+            roomGuid: $chatRoom->guid,
             user: $user
         )) {
             throw new GraphQLException(message: "You are not the owner of this chat.", code: 403);
         }
 
         $this->roomRepository->beginTransaction();
+
         try {
-            $results = $this->roomRepository->deleteRoom($roomGuid);
+            $results = $this->roomRepository->deleteRoom($chatRoom->guid);
             $this->roomRepository->commitTransaction();
 
             $this->analyticsDelegate->onChatRoomDelete(
                 actor: $user,
-                chatRoom: $chatRoomEdge->getNode()->chatRoom
+                chatRoom: $chatRoom
             );
 
             return $results;
@@ -774,7 +786,7 @@ class RoomService
             first: 1
         )['edges'][0]->getNode()->getGuid();
 
-        if (!$this->deleteChatRoom(
+        if (!$this->deleteChatRoomByRoomGuid(
             roomGuid: $roomGuid,
             user: $user
         )) {
@@ -817,6 +829,22 @@ class RoomService
             memberGuid: (int) $user->getGuid(),
             notificationStatus: $notificationStatus
         );
+    }
+
+    /**
+     * Get chat rooms by group guid.
+     * @param integer $groupGuid - Group guid.
+     * @return array - Chat rooms.
+     */
+    public function getRoomsByGroup(int $groupGuid): array
+    {
+        $chatRooms = $this->roomRepository->getGroupRooms($groupGuid);
+
+        if (!count($chatRooms)) {
+            return [];
+        }
+
+        return $chatRooms;
     }
 
     /**
