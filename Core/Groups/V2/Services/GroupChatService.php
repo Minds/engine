@@ -50,7 +50,9 @@ class GroupChatService
             groupGuid: $groupGuid
         );
 
-        $this->updateConversationDisabledState($group, false);
+        if ($group->getOwnerGuid() === $user->getGuid() && $group->isConversationDisabled()) {
+            $this->updateConversationDisabledState($group, false);
+        }
 
         return $chatRoom;
     }

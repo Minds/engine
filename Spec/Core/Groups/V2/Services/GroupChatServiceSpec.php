@@ -62,6 +62,9 @@ class GroupChatServiceSpec extends ObjectBehavior
         ChatRoomEdge $chatRoomEdge
     ): void {
         $groupGuid = Guid::build();
+        $groupOwnerGuid = Guid::build();
+        $loggedInUserGuid = $groupOwnerGuid; // group owner.
+        $isConversationAlreadyDisabled = true;
 
         $this->entitiesBuilderMock->single($groupGuid)
             ->shouldBeCalled()
@@ -79,6 +82,18 @@ class GroupChatServiceSpec extends ObjectBehavior
         $group->setConversationDisabled(false)
             ->shouldBeCalled();
 
+        $group->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn($groupOwnerGuid);
+
+        $loggedInUser->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($loggedInUserGuid);
+
+        $group->isConversationDisabled()
+            ->shouldBeCalled()
+            ->willReturn($isConversationAlreadyDisabled);
+
         $this->saveActionMock->setEntity($group)
             ->shouldBeCalled()
             ->willReturn($this->saveActionMock);
@@ -89,6 +104,91 @@ class GroupChatServiceSpec extends ObjectBehavior
 
         $this->saveActionMock->save()
             ->shouldBeCalled();
+
+        $this->createGroupChatRoom($groupGuid, $loggedInUser)
+            ->shouldReturn($chatRoomEdge);
+    }
+
+    public function it_should_call_to_create_a_group_chat_room_and_not_update_disabled_state_if_not_owner(
+        Group $group,
+        User $loggedInUser,
+        ChatRoomEdge $chatRoomEdge
+    ): void {
+        $groupGuid = Guid::build();
+        $groupOwnerGuid = Guid::build();
+        $loggedInUserGuid = Guid::build(); // not group owner.
+
+        $this->entitiesBuilderMock->single($groupGuid)
+            ->shouldBeCalled()
+            ->willReturn($group);
+
+        $this->chatRoomServiceMock->createRoom(
+            user: $loggedInUser,
+            otherMemberGuids: [],
+            roomType: ChatRoomTypeEnum::GROUP_OWNED,
+            groupGuid: $groupGuid
+        )
+            ->shouldBeCalled()
+            ->willReturn($chatRoomEdge);
+
+        $group->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn($groupOwnerGuid);
+
+        $loggedInUser->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($loggedInUserGuid);
+
+        $group->setConversationDisabled(false)
+            ->shouldNotBeCalled();
+
+        $this->saveActionMock->save()
+            ->shouldNotBeCalled();
+
+        $this->createGroupChatRoom($groupGuid, $loggedInUser)
+            ->shouldReturn($chatRoomEdge);
+    }
+
+    public function it_should_call_to_create_a_group_chat_room_and_not_update_disabled_state_if_conversation_enabled(
+        Group $group,
+        User $loggedInUser,
+        ChatRoomEdge $chatRoomEdge
+    ): void {
+        $groupGuid = Guid::build();
+        $groupOwnerGuid = Guid::build();
+        $loggedInUserGuid = $groupOwnerGuid; // group owner.
+        $isConversationAlreadyDisabled = false;
+
+        $this->entitiesBuilderMock->single($groupGuid)
+            ->shouldBeCalled()
+            ->willReturn($group);
+
+        $this->chatRoomServiceMock->createRoom(
+            user: $loggedInUser,
+            otherMemberGuids: [],
+            roomType: ChatRoomTypeEnum::GROUP_OWNED,
+            groupGuid: $groupGuid
+        )
+            ->shouldBeCalled()
+            ->willReturn($chatRoomEdge);
+
+        $group->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn($groupOwnerGuid);
+
+        $loggedInUser->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($loggedInUserGuid);
+
+        $group->isConversationDisabled()
+            ->shouldBeCalled()
+            ->willReturn($isConversationAlreadyDisabled);
+
+        $group->setConversationDisabled(false)
+            ->shouldNotBeCalled();
+
+        $this->saveActionMock->save()
+            ->shouldNotBeCalled();
 
         $this->createGroupChatRoom($groupGuid, $loggedInUser)
             ->shouldReturn($chatRoomEdge);
