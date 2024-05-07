@@ -12,8 +12,7 @@ class PersonalApiKeyAuthService
     public function __construct(
         private PersonalApiKeyRepository $repository,
         private PersonalApiKeyHashingService $hashingService
-    )
-    {
+    ) {
         
     }
 

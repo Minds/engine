@@ -22,8 +22,7 @@ class PersonalApiTokenMiddleware implements MiddlewareInterface
     public function __construct(
         private ?PersonalApiKeyAuthService $personalApiKeyAuthService = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
-    )
-    {
+    ) {
         $this->personalApiKeyAuthService ??= Di::_()->get(PersonalApiKeyAuthService::class);
         $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
     }

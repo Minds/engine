@@ -72,7 +72,7 @@ class SessionMiddleware implements MiddlewareInterface
 
             return $handler->handle(
                 $request
-                    ->withAttribute(RequestAttributeEnum::SCOPES,  $user ? [ ApiScopeEnum::ALL ] : []) // ALLOW ALL scopes
+                    ->withAttribute(RequestAttributeEnum::SCOPES, $user ? [ ApiScopeEnum::ALL ] : []) // ALLOW ALL scopes
                     ->withAttribute($this->attributeName, $user)
             );
         }

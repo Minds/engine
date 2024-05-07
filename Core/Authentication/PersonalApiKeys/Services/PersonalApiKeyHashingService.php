@@ -5,11 +5,9 @@ use Minds\Core\Config\Config;
 
 class PersonalApiKeyHashingService
 {
-
     public function __construct(
         private Config $config,
-    )
-    {
+    ) {
     }
 
     /**
@@ -31,7 +29,7 @@ class PersonalApiKeyHashingService
     }
 
     /**
-     * Returns the key that will hash the secrets. 
+     * Returns the key that will hash the secrets.
      * This is, for now, the same key as we use for sessions
      */
     private function getHmacKey(): string

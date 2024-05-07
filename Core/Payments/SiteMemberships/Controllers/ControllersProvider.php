@@ -53,5 +53,10 @@ class ControllersProvider extends Provider
                 siteMembershipSubscriptionsService: $di->get(SiteMembershipSubscriptionsService::class)
             )
         );
+
+        $this->di->bind(
+            SiteMembershipBatchPsrController::class,
+            fn (Di $di) => new SiteMembershipBatchPsrController(),
+        );
     }
 }

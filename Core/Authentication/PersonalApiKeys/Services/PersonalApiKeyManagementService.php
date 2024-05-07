@@ -1,7 +1,6 @@
 <?php
 namespace Minds\Core\Authentication\PersonalApiKeys\Services;
 
-use DateTime;
 use DateTimeImmutable;
 use Minds\Core\Authentication\PersonalApiKeys\PersonalApiKey;
 use Minds\Core\Authentication\PersonalApiKeys\Repositories\PersonalApiKeyRepository;
@@ -21,15 +20,14 @@ class PersonalApiKeyManagementService
      */
     public function getList(
         User $user,
-    ): array
-    {
+    ): array {
         return $this->repository->getList($user->getGuid());
     }
 
     /**
      * Creates a new Personal Api Key.
      * The secret will only ever be returned once from this function. We do not store the secret,
-     * only a hash which we check against. 
+     * only a hash which we check against.
      */
     public function create(
         User $user,

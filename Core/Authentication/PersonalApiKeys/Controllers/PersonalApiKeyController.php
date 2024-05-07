@@ -1,9 +1,9 @@
 <?php
 namespace Minds\Core\Authentication\PersonalApiKeys\Controllers;
 
-use Minds\Core\Authentication\PersonalApiKeys\Enums\PersonalApiKeyScopeEnum;
 use Minds\Core\Authentication\PersonalApiKeys\PersonalApiKey;
 use Minds\Core\Authentication\PersonalApiKeys\Services\PersonalApiKeyManagementService;
+use Minds\Core\Router\Enums\ApiScopeEnum;
 use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
@@ -24,8 +24,7 @@ class PersonalApiKeyController
     #[Logged]
     public function listPersonalApiKeys(
         #[InjectUser] User $loggedInUser,
-    ): array
-    {
+    ): array {
         return $this->managementService->getList(user: $loggedInUser);
     }
 
@@ -34,14 +33,13 @@ class PersonalApiKeyController
     public function getPersonalApiKey(
         string $id,
         #[InjectUser] User $loggedInUser,
-    ): ?PersonalApiKey
-    {
+    ): ?PersonalApiKey {
         return $this->managementService->getById(id: $id, user: $loggedInUser);
     }
 
 
     /**
-     * @param PersonalApiKeyScopeEnum[] $scopes
+     * @param ApiScopeEnum[] $scopes
      */
     #[Mutation]
     #[Logged]
@@ -64,8 +62,7 @@ class PersonalApiKeyController
     public function deletePersonalApiKey(
         string $id,
         #[InjectUser] User $loggedInUser,
-    ): bool
-    {
+    ): bool {
         return $this->managementService->deleteById($id, $loggedInUser);
     }
 

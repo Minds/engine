@@ -9,5 +9,5 @@ class RequestAttributeEnum
     const PERSONAL_API_KEY = 'personal_api_key';
     const SCOPES = 'scopes';
     const USER = '_user';
-    CONST REQUEST_HANDLER = '_request-handler';
+    const REQUEST_HANDLER = '_request-handler';
 }

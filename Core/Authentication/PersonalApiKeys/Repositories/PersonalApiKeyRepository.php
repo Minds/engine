@@ -77,8 +77,7 @@ class PersonalApiKeyRepository extends AbstractRepository
      */
     public function getList(
         int $ownerGuid,
-    ): array
-    {
+    ): array {
         $query = $this->buildReadBaseQuery()
             ->where('owner_guid', Operator::EQ, new RawExp(':owner_guid'));
 
@@ -98,7 +97,7 @@ class PersonalApiKeyRepository extends AbstractRepository
     /**
      * Returns a single api key, if it exists
      */
-    public function getById(string $id,int $ownerGuid,): ?PersonalApiKey
+    public function getById(string $id, int $ownerGuid): ?PersonalApiKey
     {
         $query = $this->buildReadBaseQuery()
             ->where('owner_guid', Operator::EQ, new RawExp(':owner_guid'))
@@ -193,10 +192,11 @@ class PersonalApiKeyRepository extends AbstractRepository
             ownerGuid: (int) $row['owner_guid'],
             secretHash: $row['secret_hash'],
             name: $row['name'],
-            scopes: $row['scopes'] ? array_map(fn($scope) => constant(ApiScopeEnum::class . '::' . $scope), explode(',', $row['scopes'])) : [],
+            scopes: $row['scopes'] ? array_map(fn ($scope) => constant(ApiScopeEnum::class . '::' . $scope), explode(',', $row['scopes'])) : [],
             timeCreated: new DateTimeImmutable($row['created_timestamp']),
             timeExpires: isset($row['expires_timestamp']) ? new DateTimeImmutable($row['expires_timestamp']) : null,
-        );;
+        );
+        ;
     }
 
     /**

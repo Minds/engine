@@ -2,7 +2,6 @@
 namespace Minds\Core\Authentication\PersonalApiKeys;
 
 use DateTimeImmutable;
-use Minds\Core\Authentication\PersonalApiKeys\Enums\PersonalApiKeyScopeEnum;
 use Minds\Core\Router\Enums\ApiScopeEnum;
 use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\Type;

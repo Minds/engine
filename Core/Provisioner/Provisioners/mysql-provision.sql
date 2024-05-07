@@ -1043,7 +1043,7 @@ CREATE TABLE IF NOT EXISTS minds_personal_api_keys (
 CREATE TABLE IF NOT EXISTS minds_personal_api_key_scopes (
     tenant_id int,
     id varchar(32),
-    scope text,
-    PRIMARY KEY (tenant_id, id),
+    scope varchar(64),
+    PRIMARY KEY (tenant_id, id, scope),
     FOREIGN KEY (tenant_id, id) REFERENCES minds_personal_api_keys(tenant_id,id)
 );

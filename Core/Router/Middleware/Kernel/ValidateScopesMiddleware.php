@@ -15,7 +15,6 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class ValidateScopesMiddleware implements MiddlewareInterface
 {
-
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $requestHandler = $request->getAttribute(RequestAttributeEnum::REQUEST_HANDLER);
@@ -24,7 +23,7 @@ class ValidateScopesMiddleware implements MiddlewareInterface
             $allocatedScopes = $request->getAttribute(RequestAttributeEnum::SCOPES);
 
             foreach ($allocatedScopes as $allocatedScope) {
-                if (in_array($allocatedScope, $requiredScopes)) {
+                if (in_array($allocatedScope, $requiredScopes, true)) {
                     return $handler
                         ->handle($request);
                 }
