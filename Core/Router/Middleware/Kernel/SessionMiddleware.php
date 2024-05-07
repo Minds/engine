@@ -7,6 +7,8 @@
 namespace Minds\Core\Router\Middleware\Kernel;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Router\Enums\ApiScopeEnum;
+use Minds\Core\Router\Enums\RequestAttributeEnum;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Session;
 use Minds\Core\Sessions\Manager;
@@ -21,7 +23,7 @@ class SessionMiddleware implements MiddlewareInterface
     protected $session;
 
     /** @var string */
-    protected $attributeName = '_user';
+    protected $attributeName = RequestAttributeEnum::USER;
 
     /**
      * SessionMiddleware constructor.
@@ -66,9 +68,12 @@ class SessionMiddleware implements MiddlewareInterface
                 // Proceed with no session...
             }
 
+            $user = Session::getLoggedinUser() ?: null;
+
             return $handler->handle(
                 $request
-                    ->withAttribute($this->attributeName, Session::getLoggedinUser() ?: null)
+                    ->withAttribute(RequestAttributeEnum::SCOPES,  $user ? [ ApiScopeEnum::ALL ] : []) // ALLOW ALL scopes
+                    ->withAttribute($this->attributeName, $user)
             );
         }
 

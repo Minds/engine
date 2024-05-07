@@ -6,6 +6,7 @@
 
 namespace Minds\Core\Router\Middleware;
 
+use Minds\Core\Router\Enums\RequestAttributeEnum;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Security\XSRF;
@@ -18,16 +19,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 class AdminMiddleware implements MiddlewareInterface
 {
     /** @var string */
-    protected $attributeName = '_user';
-
-    /** @var callable */
-    private $xsrfValidateRequest;
-
-    public function __construct(
-        $xsrfValidateRequest = null
-    ) {
-        $this->xsrfValidateRequest = $xsrfValidateRequest ?: [XSRF::class, 'validateRequest'];
-    }
+    protected $attributeName = RequestAttributeEnum::USER;
 
     /**
      * @param string $attributeName
@@ -54,8 +46,7 @@ class AdminMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         if (
-            !$request->getAttribute($this->attributeName) ||
-            !call_user_func($this->xsrfValidateRequest, $request)
+            !$request->getAttribute($this->attributeName)
         ) {
             throw new UnauthorizedException();
         }

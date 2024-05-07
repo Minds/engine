@@ -6,6 +6,8 @@
 
 namespace Minds\Core\Router\Middleware\Kernel;
 
+use Minds\Core\Router\Enums\ApiScopeEnum;
+use Minds\Core\Router\Enums\RequestAttributeEnum;
 use Minds\Core\Session;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -40,9 +42,12 @@ class OauthMiddleware implements MiddlewareInterface
         if (!$request->getAttribute($this->attributeName)) {
             Session::withRouterRequest($request, new Response());
 
+            $user = Session::getLoggedinUser() ?: null;
+
             return $handler->handle(
                 $request
-                    ->withAttribute($this->attributeName, Session::getLoggedinUser() ?: null)
+                    ->withAttribute(RequestAttributeEnum::SCOPES,  $user ? [ ApiScopeEnum::ALL ] : []) // ALLOW ALL scopes
+                    ->withAttribute($this->attributeName, $user)
             );
         }
 
