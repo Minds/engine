@@ -15,13 +15,14 @@ use Minds\Exceptions\ServerErrorException;
 class NotificationFactory
 {
     public function __construct(
-        private readonly EntitiesBuilder $entitiesBuilder
+        private readonly EntitiesBuilder $entitiesBuilder,
     ) {
     }
 
     public function createNotification(
         string $notificationClass,
-        ChatMessage|ChatRoom $chatEntity,
+        ChatMessage $chatEntity,
+        ChatRoom $chatRoom,
     ): AbstractChatNotification {
         $sender = $this->entitiesBuilder->single($chatEntity->getOwnerGuid());
 
@@ -32,10 +33,12 @@ class NotificationFactory
         return match ($notificationClass) {
             PlainTextMessageNotification::class => (new PlainTextMessageNotification())->fromEntity(
                 chatMessage: $chatEntity,
+                chatRoom: $chatRoom,
                 sender: $sender,
             ),
             RichEmbedMessageNotification::class => (new RichEmbedMessageNotification())->fromEntity(
                 chatMessage: $chatEntity,
+                chatRoom: $chatRoom,
                 sender: $sender
             ),
             default => throw new \InvalidArgumentException('Invalid notification class'),

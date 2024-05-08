@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Chat\Notifications\Models;
 
 use Minds\Core\Chat\Entities\ChatMessage;
+use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
@@ -121,11 +122,12 @@ class PlainTextMessageNotification extends AbstractChatNotification
 
     public function fromEntity(
         ChatMessage $chatMessage,
+        ChatRoom $chatRoom,
         User $sender
     ): self {
         return new self(
             chatRoomGuid: $chatMessage->roomGuid,
-            title: $sender->getName(),
+            title: $chatRoom->name ?: $sender->getName(),
             body: $chatMessage->plainText,
             icon: $sender->getIconURL('large')
         );

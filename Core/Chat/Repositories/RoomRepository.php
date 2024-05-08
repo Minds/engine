@@ -50,7 +50,7 @@ class RoomRepository extends AbstractRepository
         $stmt = $this->mysqlClientWriterHandler->insert()
             ->into(self::TABLE_NAME)
             ->set([
-                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'tenant_id' => $this->getTenantId(),
                 'room_guid' => $roomGuid,
                 'room_type' => $roomType->name,
                 'created_by_user_guid' => $createdByGuid,
@@ -99,7 +99,7 @@ class RoomRepository extends AbstractRepository
         $stmt = $this->mysqlClientWriterHandler->insert()
             ->into(self::MEMBERS_TABLE_NAME)
             ->set([
-                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'tenant_id' => $this->getTenantId(),
                 'room_guid' => $roomGuid,
                 'member_guid' => $memberGuid,
                 'status' => $status->name,
@@ -127,7 +127,7 @@ class RoomRepository extends AbstractRepository
      * @param int|null $lastMessageCreatedAtTimestamp
      * @param int|null $roomCreatedAtTimestamp
      * @param int|null $roomGuid
-     * @return array{items: ChatRoomListItem[], hasMore: bool}
+     * @return array{chatRooms: ChatRoomListItem[], hasMore: bool}
      * @throws ServerErrorException
      */
     public function getRoomsByMember(
@@ -153,13 +153,27 @@ class RoomRepository extends AbstractRepository
                         ELSE 0
                     END
                     AS unread_messages_count
-                ") // For temporary performance gains, we will just return a maximum count of 1
+                "), // For temporary performance gains, we will just return a maximum count of 1
+                'member_guids' => 'm_guids.member_guids',
             ])
             ->from(new RawExp(self::TABLE_NAME . " as r"))
+            // Inner join against the membership union
             ->joinRaw(
-                new RawExp(self::MEMBERS_TABLE_NAME . " as m"),
+                function (SelectQuery $subQuery): void {
+                    $q = $this->buildRoomMembershipQuery()->build(false);
+
+                    $subQuery->columns([
+                        'tenant_id',
+                        'room_guid',
+                        'member_guid',
+                        'status',
+                    ])
+                    ->from(new RawExp("($q) as m"))
+                    ->alias('m');
+                },
                 'r.room_guid = m.room_guid AND r.tenant_id = m.tenant_id AND m.member_guid = :member_guid',
             )
+            // Get last message
             ->leftJoinRaw(
                 function (SelectQuery $subQuery): void {
                     $subQuery
@@ -191,9 +205,24 @@ class RoomRepository extends AbstractRepository
                 },
                 "last_msg.room_guid = r.room_guid AND last_msg.tenant_id = r.tenant_id"
             )
+            // Get the read receipts
             ->leftJoinRaw(
                 new RawExp(ReceiptRepository::TABLE_NAME . " as rct"),
                 'r.room_guid = rct.room_guid AND r.tenant_id = rct.tenant_id AND rct.member_guid = m.member_guid',
+            )
+            // Get guids of group members (excluding group owned)
+            ->leftJoinRaw(
+                function (SelectQuery $subQuery): void {
+                    $subQuery->columns([
+                        'tenant_id',
+                        'room_guid',
+                        'member_guids' => new RawExp('GROUP_CONCAT(member_guid)'),
+                    ])
+                    ->from(self::MEMBERS_TABLE_NAME)
+                    ->groupBy('tenant_id', 'room_guid')
+                    ->alias('m_guids');
+                },
+                'r.room_guid = m_guids.room_guid AND r.tenant_id = m_guids.tenant_id',
             )
             ->where('r.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->whereWithNamedParameters('m.status', Operator::IN, 'status', count($targetMemberStatuses))
@@ -226,7 +255,7 @@ class RoomRepository extends AbstractRepository
                 $stmt,
                 array_merge(
                     [
-                        'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                        'tenant_id' => $this->getTenantId(),
                         'member_guid' => $user->getGuid(),
                         'status' => $targetMemberStatuses,
                     ],
@@ -261,56 +290,13 @@ class RoomRepository extends AbstractRepository
                     lastMessagePlainText: $row['last_msg_plain_text'],
                     lastMessageCreatedTimestamp: $row['last_msg_created_timestamp'] ? strtotime($row['last_msg_created_timestamp']) : null,
                     unreadMessagesCount: (int) $row['unread_messages_count'],
+                    memberGuids: $row['member_guids'] ? explode(',', $row['member_guids']) : [],
                 );
             }
 
             return $results;
         } catch (PDOException $e) {
             throw new ServerErrorException('Failed to fetch chat rooms', previous: $e);
-        }
-    }
-
-    /**
-     * @param User $user
-     * @return iterable<string>
-     * @throws ServerErrorException
-     */
-    public function getRoomGuidsByMember(
-        User $user,
-    ): iterable {
-        $stmt = $this->mysqlClientReaderHandler->select()
-            ->columns([
-                'r.room_guid'
-            ])
-            ->from(new RawExp(self::TABLE_NAME . ' as r'))
-            ->leftJoinRaw(
-                new RawExp(self::MEMBERS_TABLE_NAME . ' as m'),
-                'm.room_guid = r.room_guid AND m.tenant_id = r.tenant_id AND m.member_guid = :member_guid_1',
-            )
-            ->leftJoinRaw(
-                new RawExp('minds_group_membership as gm'),
-                'r.group_guid = gm.group_guid AND gm.user_guid = :member_guid_2',
-            )
-            ->where('r.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
-            ->whereRaw(
-                "(m.status IS NOT NULL AND m.status IN (:status_1, :status_2)) OR
-                (gm.group_guid IS NOT NULL AND m.status IS NULL)"
-            )
-            ->prepare();
-
-        try {
-            $stmt->execute([
-                'tenant_id' => $this->config->get('tenant_id') ?? -1,
-                'member_guid_1' => $user->getGuid(),
-                'member_guid_2' => $user->getGuid(),
-                'status_1' => ChatRoomMemberStatusEnum::ACTIVE->name,
-                'status_2' => ChatRoomMemberStatusEnum::INVITE_PENDING->name,
-            ]);
-
-            $stmt->setFetchMode(PDO::FETCH_COLUMN, 0);
-            return $stmt->getIterator();
-        } catch (PDOException $e) {
-            throw new ServerErrorException('Failed to fetch chat room guids by member', previous: $e);
         }
     }
 
@@ -325,12 +311,14 @@ class RoomRepository extends AbstractRepository
             ChatRoomMemberStatusEnum::ACTIVE->name,
             ChatRoomMemberStatusEnum::INVITE_PENDING->name,
         ];
+    
+        $q = $this->buildRoomMembershipQuery()->build(false);
 
         $stmt = $this->mysqlClientReaderHandler->select()
             ->columns([
                 new RawExp('COUNT(member_guid) as total_members')
             ])
-            ->from(self::MEMBERS_TABLE_NAME)
+            ->from(new RawExp("($q) as m"))
             ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
             ->whereWithNamedParameters('status', Operator::IN, 'status', count($targetStatuses))
@@ -340,7 +328,7 @@ class RoomRepository extends AbstractRepository
             $this->mysqlHandler->bindValuesToPreparedStatement(
                 $stmt,
                 [
-                    'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                    'tenant_id' => $this->getTenantId(),
                     'room_guid' => $roomGuid,
                     'status' => $targetStatuses,
                 ]
@@ -365,21 +353,18 @@ class RoomRepository extends AbstractRepository
         ?array $targetStatuses = null
     ): bool {
         $targetStatuses = $targetStatuses ?? [ChatRoomMemberStatusEnum::ACTIVE->name];
-        $stmt = $this->mysqlClientReaderHandler->select()
-            ->columns([
-                'member_guid'
-            ])
-            ->from(self::MEMBERS_TABLE_NAME)
+
+        $query = $this->buildRoomMembershipQuery()
             ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
             ->where('member_guid', Operator::EQ, new RawExp(':member_guid'))
-            ->whereWithNamedParameters('status', Operator::IN, 'status', count($targetStatuses))
-            ->limit(1)
-            ->prepare();
+            ->whereWithNamedParameters('status', Operator::IN, 'status', count($targetStatuses));
+
+        $stmt = $query->prepare();
 
         try {
             $this->mysqlHandler->bindValuesToPreparedStatement($stmt, [
-                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'tenant_id' => $this->getTenantId(),
                 'room_guid' => $roomGuid,
                 'member_guid' => $user->getGuid(),
                 'status' => $targetStatuses,
@@ -392,6 +377,7 @@ class RoomRepository extends AbstractRepository
     }
 
     /**
+     * Note: groups do not call this as its only used for checking invite status
      * @param User $user
      * @param int $roomGuid
      * @return ChatRoomMemberStatusEnum
@@ -415,7 +401,7 @@ class RoomRepository extends AbstractRepository
 
         try {
             $stmt->execute([
-                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'tenant_id' => $this->getTenantId(),
                 'room_guid' => $roomGuid,
                 'member_guid' => $user->getGuid(),
             ]);
@@ -448,13 +434,14 @@ class RoomRepository extends AbstractRepository
         ?int $offsetMemberGuid = null,
         bool $excludeSelf = true
     ): array {
+        $q = $this->buildRoomMembershipQuery()->build(false);
         $stmt = $this->mysqlClientReaderHandler->select()
             ->columns([
                 'm.*',
-                'rms.notifications_status'
+                'notifications_status' => new RawExp('COALESCE(rms.notifications_status, "MUTED")'),
             ])
-            ->from(new RawExp(self::MEMBERS_TABLE_NAME . ' as m'))
-            ->joinRaw(
+            ->from(new RawExp("($q) as m"))
+            ->leftJoinRaw(
                 new RawExp(self::ROOM_MEMBER_SETTINGS_TABLE_NAME . ' as rms'),
                 'rms.tenant_id = m.tenant_id AND rms.member_guid = m.member_guid AND rms.room_guid = m.room_guid',
             )
@@ -465,7 +452,7 @@ class RoomRepository extends AbstractRepository
             ->limit($limit + 1);
 
         $values = [
-            'tenant_id' => $this->config->get('tenant_id') ?? -1,
+            'tenant_id' => $this->getTenantId(),
             'room_guid' => $roomGuid,
             'status' => [ChatRoomMemberStatusEnum::ACTIVE->name, ChatRoomMemberStatusEnum::INVITE_PENDING->name],
         ];
@@ -533,12 +520,13 @@ class RoomRepository extends AbstractRepository
         User $user,
         bool $excludeSelf = true
     ): iterable {
+        $q = $this->buildRoomMembershipQuery()->build(false);
         $stmt = $this->mysqlClientReaderHandler->select()
             ->columns([
                 'm.*',
                 'rms.notifications_status'
             ])
-            ->from(new RawExp(self::MEMBERS_TABLE_NAME . ' as m'))
+            ->from(new RawExp("($q) as m"))
             ->joinRaw(
                 new RawExp(self::ROOM_MEMBER_SETTINGS_TABLE_NAME . ' as rms'),
                 'rms.tenant_id = m.tenant_id AND rms.member_guid = m.member_guid AND rms.room_guid = m.room_guid',
@@ -549,7 +537,7 @@ class RoomRepository extends AbstractRepository
             ->orderBy('m.joined_timestamp ASC', 'm.member_guid DESC');
 
         $values = [
-            'tenant_id' => $this->config->get('tenant_id') ?? -1,
+            'tenant_id' => $this->getTenantId(),
             'room_guid' => $roomGuid,
             'status' => [ChatRoomMemberStatusEnum::ACTIVE->name, ChatRoomMemberStatusEnum::INVITE_PENDING->name],
         ];
@@ -592,7 +580,7 @@ class RoomRepository extends AbstractRepository
 
         try {
             $stmt->execute([
-                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'tenant_id' => $this->getTenantId(),
                 'member_guid' => $user->getGuid(),
                 'status' => ChatRoomMemberStatusEnum::INVITE_PENDING->name,
             ]);
@@ -619,7 +607,7 @@ class RoomRepository extends AbstractRepository
             ->prepare();
 
         $values = [
-            'tenant_id' => $this->config->get('tenant_id') ?? -1,
+            'tenant_id' => $this->getTenantId(),
             'room_guid' => $roomGuid,
             'member_guid' => $user->getGuid(),
         ];
@@ -671,10 +659,10 @@ class RoomRepository extends AbstractRepository
 
         try {
             $stmt->execute([
-                'tenant_id_1' => $this->config->get('tenant_id') ?? -1,
-                'tenant_id_2' => $this->config->get('tenant_id') ?? -1,
-                'tenant_id_3' => $this->config->get('tenant_id') ?? -1,
-                'tenant_id_4' => $this->config->get('tenant_id') ?? -1,
+                'tenant_id_1' => $this->getTenantId(),
+                'tenant_id_2' => $this->getTenantId(),
+                'tenant_id_3' => $this->getTenantId(),
+                'tenant_id_4' => $this->getTenantId(),
                 'room_type_1' => ChatRoomTypeEnum::ONE_TO_ONE->name,
                 'room_type_2' => ChatRoomTypeEnum::ONE_TO_ONE->name,
                 'member_guid_1' => $firstMemberGuid,
@@ -722,6 +710,33 @@ class RoomRepository extends AbstractRepository
     }
 
     /**
+     * Return all the rooms associated with a group
+     * @return ChatRoom[]
+     */
+    public function getGroupRooms(int $groupGuid): array
+    {
+        $query = $this->mysqlClientReaderHandler->select()
+            ->from(self::TABLE_NAME)
+            ->where('group_guid', Operator::EQ, new RawExp(':group_guid'))
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
+
+        $stmt = $query->prepare();
+
+        $stmt->execute([
+            'group_guid' => $groupGuid,
+            'tenant_id' => $this->getTenantId(),
+        ]);
+
+        $rooms = [];
+    
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $rooms[] = $this->buildChatRoomInstance($row);
+        }
+
+        return $rooms;
+    }
+
+    /**
      * @param int $roomGuid
      * @return bool
      * @throws ServerErrorException
@@ -737,7 +752,7 @@ class RoomRepository extends AbstractRepository
 
         try {
             return $stmt->execute([
-                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'tenant_id' => $this->getTenantId(),
                 'room_guid' => $roomGuid,
             ]);
         } catch (PDOException $e) {
@@ -761,7 +776,7 @@ class RoomRepository extends AbstractRepository
 
         try {
             return $stmt->execute([
-                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'tenant_id' => $this->getTenantId(),
                 'room_guid' => $roomGuid,
             ]);
         } catch (PDOException $e) {
@@ -786,7 +801,7 @@ class RoomRepository extends AbstractRepository
 
         try {
             return $stmt->execute([
-                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'tenant_id' => $this->getTenantId(),
                 'room_guid' => $roomGuid,
             ]);
         } catch (PDOException $e) {
@@ -810,7 +825,7 @@ class RoomRepository extends AbstractRepository
 
         try {
             return $stmt->execute([
-                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'tenant_id' => $this->getTenantId(),
                 'room_guid' => $roomGuid,
             ]);
         } catch (PDOException $e) {
@@ -834,7 +849,7 @@ class RoomRepository extends AbstractRepository
 
         try {
             return $stmt->execute([
-                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'tenant_id' => $this->getTenantId(),
                 'room_guid' => $roomGuid,
             ]);
         } catch (PDOException $e) {
@@ -878,7 +893,7 @@ class RoomRepository extends AbstractRepository
 
         try {
             return $stmt->execute([
-                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'tenant_id' => $this->getTenantId(),
                 'room_guid' => $roomGuid,
             ]);
         } catch (PDOException $e) {
@@ -896,8 +911,10 @@ class RoomRepository extends AbstractRepository
         int $roomGuid,
         User $user
     ): bool {
+        $q = $this->buildRoomMembershipQuery()->build(false);
+
         $stmt = $this->mysqlClientReaderHandler->select()
-            ->from(self::MEMBERS_TABLE_NAME)
+            ->from(new RawExp("($q) as m"))
             ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
             ->where('member_guid', Operator::EQ, new RawExp(':member_guid'))
@@ -907,7 +924,7 @@ class RoomRepository extends AbstractRepository
 
         try {
             $stmt->execute([
-                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'tenant_id' => $this->getTenantId(),
                 'room_guid' => $roomGuid,
                 'member_guid' => $user->getGuid(),
                 'role_id' => ChatRoomRoleEnum::OWNER->name,
@@ -934,7 +951,7 @@ class RoomRepository extends AbstractRepository
         $stmt = $this->mysqlClientWriterHandler->insert()
             ->into(self::ROOM_MEMBER_SETTINGS_TABLE_NAME)
             ->set([
-                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'tenant_id' => $this->getTenantId(),
                 'room_guid' => $roomGuid,
                 'member_guid' => $memberGuid,
                 'notifications_status' => $notificationStatus->value,
@@ -960,19 +977,23 @@ class RoomRepository extends AbstractRepository
         int $memberGuid,
         ChatRoomNotificationStatusEnum $notificationStatus
     ): bool {
-        $stmt = $this->mysqlClientWriterHandler->update()
-            ->table(self::ROOM_MEMBER_SETTINGS_TABLE_NAME)
+        $query = $this->mysqlClientWriterHandler->insert()
+            ->into(self::ROOM_MEMBER_SETTINGS_TABLE_NAME)
             ->set([
+                'tenant_id' => new RawExp(':tenant_id'),
+                'room_guid' => new RawExp(':room_guid'),
+                'member_guid' => new RawExp(':member_guid'),
                 'notifications_status' => $notificationStatus->value,
             ])
-            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
-            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
-            ->where('member_guid', Operator::EQ, new RawExp(':member_guid'))
-            ->prepare();
+            ->onDuplicateKeyUpdate([
+                'notifications_status' =>  $notificationStatus->value,
+            ]);
+
+        $stmt = $query->prepare();
 
         try {
             return $stmt->execute([
-                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'tenant_id' => $this->getTenantId(),
                 'room_guid' => $roomGuid,
                 'member_guid' => $memberGuid,
             ]);
@@ -1000,7 +1021,7 @@ class RoomRepository extends AbstractRepository
 
         try {
             return $stmt->execute([
-                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'tenant_id' => $this->getTenantId(),
                 'room_guid' => $roomGuid,
                 'member_guid' => $memberGuid,
             ]);
@@ -1032,14 +1053,55 @@ class RoomRepository extends AbstractRepository
 
         try {
             $stmt->execute([
-                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'tenant_id' => $this->getTenantId(),
                 'room_guid' => $roomGuid,
                 'member_guid' => $memberGuid,
             ]);
 
-            return $stmt->fetch(PDO::FETCH_ASSOC);
+            return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
         } catch (PDOException $e) {
             throw new ServerErrorException('Failed to fetch member settings in chat room', previous: $e);
         }
+    }
+
+    /**
+     * Build a query that returns both the one-to-one, multi-user and group owned
+     * chat room memberships.
+     */
+    private function buildRoomMembershipQuery(): SelectQuery
+    {
+        $membersQuery = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'tenant_id',
+                'room_guid',
+                'member_guid',
+                'status',
+                'role_id',
+                'joined_timestamp',
+            ])
+            ->from(self::MEMBERS_TABLE_NAME);
+
+        $groupsQuery = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'tenant_id',
+                'room_guid',
+                'member_guid' => 'user_guid',
+                'status' => new RawExp('"' . ChatRoomMemberStatusEnum::ACTIVE->name . '"'),
+                'role_id' => new RawExp('CASE WHEN gm.membership_level >= 3 THEN "' . ChatRoomRoleEnum::OWNER->name . '" ELSE "' . ChatRoomRoleEnum::MEMBER->name . '" END'),
+                'joined_timestamp' => 'gm.created_timestamp',
+            ])
+            ->from(new RawExp(self::TABLE_NAME . ' as r'))
+            ->joinRaw(new RawExp('minds_group_membership as gm'), 'r.group_guid = gm.group_guid')
+            ->where('gm.membership_level', Operator::GTE, 1);
+
+        return $membersQuery->union($groupsQuery);
+    }
+
+    /**
+     * Returns the tenant id, or -1 if host site
+     */
+    private function getTenantId(): int
+    {
+        return $this->config->get('tenant_id') ?? -1;
     }
 }

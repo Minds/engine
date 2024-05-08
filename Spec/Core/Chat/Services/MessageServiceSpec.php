@@ -12,6 +12,7 @@ use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Entities\ChatRoomListItem;
 use Minds\Core\Chat\Enums\ChatMessageTypeEnum;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Events\Sockets\ChatEvent;
 use Minds\Core\Chat\Events\Sockets\Enums\ChatEventTypeEnum;
 use Minds\Core\Chat\Notifications\Events\ChatNotificationEvent;
@@ -512,9 +513,12 @@ class MessageServiceSpec extends ObjectBehavior
         );
     }
 
-    public function it_should_delete_message(
+    public function it_should_delete_message_when_sender(
         User $userMock
     ): void {
+        $chatRoom = $this->generateChatRoomMock();
+        $chatRoomListItemMock = $this->generateChatRoomListItemMock($chatRoom);
+
         $this->roomRepositoryMock->isUserMemberOfRoom(
             123,
             $userMock,
@@ -529,6 +533,27 @@ class MessageServiceSpec extends ObjectBehavior
         $this->messageRepositoryMock->getMessageByGuid(123, 1)
             ->shouldBeCalledOnce()
             ->willReturn($this->generateChatMessageMock(1, 123));
+
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            1,
+            null,
+            null,
+            123
+        )
+            ->shouldBeCalled()
+            ->willReturn(['chatRooms' => [$chatRoomListItemMock]]);
+
+        $this->roomRepositoryMock->isUserRoomOwner(
+            roomGuid: 123,
+            user: $userMock
+        )
+            ->shouldBeCalled()
+            ->willReturn(false);
 
         $userMock->isAdmin()
             ->shouldBeCalledOnce()
@@ -565,9 +590,222 @@ class MessageServiceSpec extends ObjectBehavior
         )->shouldEqual(true);
     }
 
+    public function it_should_delete_message_when_admin(
+        User $userMock
+    ): void {
+        $chatRoom = $this->generateChatRoomMock(roomType: ChatRoomTypeEnum::ONE_TO_ONE);
+        $chatRoomListItemMock = $this->generateChatRoomListItemMock($chatRoom);
+
+        $this->roomRepositoryMock->isUserMemberOfRoom(
+            123,
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ]
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->messageRepositoryMock->getMessageByGuid(123, 1)
+            ->shouldBeCalledOnce()
+            ->willReturn($this->generateChatMessageMock(1, 234));
+
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            1,
+            null,
+            null,
+            123
+        )
+            ->shouldBeCalled()
+            ->willReturn(['chatRooms' => [$chatRoomListItemMock]]);
+
+        $this->roomRepositoryMock->isUserRoomOwner(
+            roomGuid: 123,
+            user: $userMock
+        )
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $userMock->isAdmin()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->messageRepositoryMock->beginTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->receiptServiceMock->deleteAllMessageReadReceipts(
+            123,
+            1
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->messageRepositoryMock->deleteChatMessage(
+            123,
+            1
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->messageRepositoryMock->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->deleteMessage(
+            123,
+            1,
+            $userMock
+        )->shouldEqual(true);
+    }
+
+    public function it_should_delete_message_when_group_owner(
+        User $userMock
+    ): void {
+        $chatRoom = $this->generateChatRoomMock(roomType: ChatRoomTypeEnum::GROUP_OWNED);
+        $chatRoomListItemMock = $this->generateChatRoomListItemMock($chatRoom);
+
+        $this->roomRepositoryMock->isUserMemberOfRoom(
+            123,
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ]
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->messageRepositoryMock->getMessageByGuid(123, 1)
+            ->shouldBeCalledOnce()
+            ->willReturn($this->generateChatMessageMock(1, 234));
+
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            1,
+            null,
+            null,
+            123
+        )
+            ->shouldBeCalled()
+            ->willReturn(['chatRooms' => [$chatRoomListItemMock]]);
+
+        $this->roomRepositoryMock->isUserRoomOwner(
+            roomGuid: 123,
+            user: $userMock
+        )
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $userMock->isAdmin()
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
+        $userMock->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $this->messageRepositoryMock->beginTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->receiptServiceMock->deleteAllMessageReadReceipts(
+            123,
+            1
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->messageRepositoryMock->deleteChatMessage(
+            123,
+            1
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->messageRepositoryMock->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->deleteMessage(
+            123,
+            1,
+            $userMock
+        )->shouldEqual(true);
+    }
+
+    public function it_should_not_delete_message_when_the_user_has_no_permission(
+        User $userMock
+    ): void {
+        $chatRoom = $this->generateChatRoomMock(roomType: ChatRoomTypeEnum::ONE_TO_ONE);
+        $chatRoomListItemMock = $this->generateChatRoomListItemMock($chatRoom);
+
+        $this->roomRepositoryMock->isUserMemberOfRoom(
+            123,
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ]
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->messageRepositoryMock->getMessageByGuid(123, 1)
+            ->shouldBeCalledOnce()
+            ->willReturn($this->generateChatMessageMock(1, 234));
+
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            1,
+            null,
+            null,
+            123
+        )
+            ->shouldBeCalled()
+            ->willReturn(['chatRooms' => [$chatRoomListItemMock]]);
+
+        $this->roomRepositoryMock->isUserRoomOwner(
+            roomGuid: 123,
+            user: $userMock
+        )
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $userMock->isAdmin()
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
+        $userMock->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $this->messageRepositoryMock->beginTransaction()
+            ->shouldNotBeCalled();
+
+        $this->shouldThrow(new GraphQLException("You are not allowed to delete this message", 403))->duringDeleteMessage(
+            123,
+            1,
+            $userMock
+        );
+    }
+
     public function it_should_delete_message_with_a_rich_embed(
         User $userMock
     ): void {
+        $chatRoom = $this->generateChatRoomMock(roomType: ChatRoomTypeEnum::ONE_TO_ONE);
+        $chatRoomListItemMock = $this->generateChatRoomListItemMock($chatRoom);
+
         $this->roomRepositoryMock->isUserMemberOfRoom(
             123,
             $userMock,
@@ -582,6 +820,27 @@ class MessageServiceSpec extends ObjectBehavior
         $this->messageRepositoryMock->getMessageByGuid(123, 1)
             ->shouldBeCalledOnce()
             ->willReturn($this->generateChatMessageMock(1, 123, ChatMessageTypeEnum::RICH_EMBED));
+
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            1,
+            null,
+            null,
+            123
+        )
+            ->shouldBeCalled()
+            ->willReturn(['chatRooms' => [$chatRoomListItemMock]]);
+
+        $this->roomRepositoryMock->isUserRoomOwner(
+            roomGuid: 123,
+            user: $userMock
+        )
+            ->shouldBeCalled()
+            ->willReturn(false);
 
         $userMock->isAdmin()
             ->shouldBeCalledOnce()
@@ -668,11 +927,14 @@ class MessageServiceSpec extends ObjectBehavior
         return $chatRoomListItem;
     }
 
-    private function generateChatRoomMock(): ChatRoom
-    {
+    private function generateChatRoomMock(
+        $guid = null,
+        $roomType = ChatRoomTypeEnum::ONE_TO_ONE,
+    ): ChatRoom {
         $chatRoom = $this->chatRoomFactoryMock->newInstanceWithoutConstructor();
 
-        $this->chatRoomFactoryMock->getProperty('guid')->setValue($chatRoom, Guid::build());
+        $this->chatRoomFactoryMock->getProperty('guid')->setValue($chatRoom, $guid ?? Guid::build());
+        $this->chatRoomFactoryMock->getProperty('roomType')->setValue($chatRoom, $roomType);
 
         return $chatRoom;
     }
