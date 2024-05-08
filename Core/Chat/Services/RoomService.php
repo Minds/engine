@@ -28,6 +28,8 @@ use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\Block\BlockEntry;
 use Minds\Core\Security\Block\BlockLimitException;
 use Minds\Core\Security\Block\Manager as BlockManager;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
+use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Core\Subscriptions\Relational\Repository as SubscriptionsRepository;
 use Minds\Entities\Group;
 use Minds\Entities\User;
@@ -43,6 +45,7 @@ class RoomService
         private readonly SubscriptionsRepository $subscriptionsRepository,
         private readonly EntitiesBuilder         $entitiesBuilder,
         private readonly BlockManager            $blockManager,
+        private readonly RolesService            $rolesService,
         private readonly GroupMembershipManager  $groupMembershipManager,
         private readonly AnalyticsDelegate       $analyticsDelegate
     ) {
@@ -132,6 +135,10 @@ class RoomService
             } catch (ChatRoomNotFoundException $e) {
                 // Continue
             }
+        }
+
+        if (!$this->rolesService->hasPermission($user, PermissionsEnum::CAN_CREATE_CHAT_ROOM)) {
+            throw new GraphQLException(message: "You don't have permission to create a chat room", code: 403);
         }
 
         // TODO: Check with Mark if we need a minimum of 3 members for multi user rooms
