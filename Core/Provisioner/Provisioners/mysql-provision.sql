@@ -1026,3 +1026,7 @@ ALTER TABLE `minds_tenant_configs`
 ALTER TABLE `minds_tenant_configs`
     ADD walled_garden_enabled boolean 
     AFTER custom_home_page_description;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD boost_enabled boolean DEFAULT false
+    AFTER nsfw_enabled;

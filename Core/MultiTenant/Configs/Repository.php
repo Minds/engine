@@ -52,6 +52,7 @@ class Repository extends AbstractRepository
             federationDisabled: (bool) $row['federation_disabled'] ?? false,
             replyEmail: $row['reply_email'] ?? null,
             nsfwEnabled: ($row['nsfw_enabled'] ?? 1) === 1,
+            boostEnabled: (bool) $row['boost_enabled'] ?? false,
             customHomePageEnabled: (bool) $row['custom_home_page_enabled'] ?? false,
             customHomePageDescription: $row['custom_home_page_description'] ?? null,
             walledGardenEnabled: (bool) $row['walled_garden_enabled'] ?? false,
@@ -70,6 +71,7 @@ class Repository extends AbstractRepository
      * @param ?bool $federationDisabled - federation disabled.
      * @param ?bool $replyEmail - reply-to email address.
      * @param ?bool $nsfwEnabled - nsfw enabled.
+     * @param ?bool $boostEnabled - boost enabled.
      * @param ?string $customHomePageEnabled - whether custom home page is enabled.
      * @param ?string $customHomePageDescription - custom home page description.
      * @param ?bool $walledGardenEnabled - whether wallet garden mode is enabled.
@@ -84,6 +86,7 @@ class Repository extends AbstractRepository
         ?bool $federationDisabled = null,
         ?string $replyEmail = null,
         ?bool $nsfwEnabled = null,
+        ?bool $boostEnabled = null,
         ?bool $customHomePageEnabled = null,
         ?string $customHomePageDescription = null,
         ?bool $walledGardenEnabled = null,
@@ -121,6 +124,11 @@ class Repository extends AbstractRepository
             $rawValues['nsfw_enabled'] = new RawExp(':nsfw_enabled');
             // Convert bool to the format mysql is expecting
             $boundValues['nsfw_enabled'] = ($nsfwEnabled === false) ? 0 : 1;
+        }
+
+        if ($boostEnabled !== null) {
+            $rawValues['boost_enabled'] = new RawExp(':boost_enabled');
+            $boundValues['boost_enabled'] = $boostEnabled;
         }
 
         if ($lastCacheTimestamp !== null) {
