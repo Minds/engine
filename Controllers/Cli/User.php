@@ -189,8 +189,6 @@ class User extends Cli\Controller implements Interfaces\CliControllerInterface
 
         $stmt->execute();
 
-
-
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
             $encryptedEmail = $row['email'];
             $email = Helpers\OpenSSL::decrypt(base64_decode($encryptedEmail, true), file_get_contents($CONFIG->encryptionKeys['email']['private']));
@@ -203,8 +201,10 @@ class User extends Cli\Controller implements Interfaces\CliControllerInterface
                         'email' => new RawExp(':email')
                     ])
                     ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+                    ->where('email', Operator::EQ, new RawExp(':encrypted_email'))
                     ->prepare();
                 $updateStmt->execute([
+                    'encrypted_email' => $encryptedEmail,
                     'email' => $email,
                     'tenant_id' => $row['tenant_id'],
                 ]);
