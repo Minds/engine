@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\SiteMemberships\Repositories;
 
+use DateTimeImmutable;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipBillingPeriodEnum;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipPricingModelEnum;
@@ -29,8 +30,20 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
     public function storeSiteMembershipSubscription(
         User           $user,
         SiteMembership $siteMembership,
-        string         $stripeSubscriptionId
+        ?string        $stripeSubscriptionId = null,
+        bool           $isManual = false,
+        DateTimeImmutable $validFrom = null,
+        DateTimeImmutable $validTo = null,
     ): bool {
+
+        if (!$validFrom) {
+            $validFrom = new DateTimeImmutable('now');
+        }
+
+        if (!$validTo) {
+            $validTo = $validFrom->modify('+1 ' . ($siteMembership->membershipBillingPeriod === SiteMembershipBillingPeriodEnum::MONTHLY ? 'month' : 'year'));
+        }
+        
         $stmt = $this->mysqlClientWriterHandler->insert()
             ->into(self::TABLE_NAME)
             ->set([
@@ -38,9 +51,14 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
                 'user_guid' => $user->getGuid(),
                 'membership_tier_guid' => $siteMembership->membershipGuid,
                 'stripe_subscription_id' => $stripeSubscriptionId,
-                'valid_from' => date('c', time()),
-                'valid_to' => date('c', strtotime('+1 ' . ($siteMembership->membershipBillingPeriod === SiteMembershipBillingPeriodEnum::MONTHLY ? 'month' : 'year'))),
-                'auto_renew' => (int)($siteMembership->membershipPricingModel === SiteMembershipPricingModelEnum::RECURRING),
+                'valid_from' => $validFrom->format('c'),
+                'valid_to' => $validTo->format('c'),
+                'manual' => $isManual,
+                'auto_renew' => $isManual ? 0 : (int) ($siteMembership->membershipPricingModel === SiteMembershipPricingModelEnum::RECURRING),
+            ])
+            ->onDuplicateKeyUpdate([
+                'valid_from' => $validFrom->format('c'),
+                'valid_to' => $validTo->format('c'),
             ])
             ->prepare();
 

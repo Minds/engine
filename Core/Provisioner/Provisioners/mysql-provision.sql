@@ -1047,3 +1047,10 @@ CREATE TABLE IF NOT EXISTS minds_personal_api_key_scopes (
     PRIMARY KEY (tenant_id, id, scope),
     FOREIGN KEY (tenant_id, id) REFERENCES minds_personal_api_keys(tenant_id,id)
 );
+
+ALTER TABLE minds_site_membership_subscriptions
+MODIFY COLUMN stripe_subscription_id varchar(256) DEFAULT NULL;
+
+ALTER TABLE minds_site_membership_subscriptions
+ADD COLUMN manual boolean DEFAULT false AFTER membership_tier_guid;
+SELECT * FROM minds_site_membership_subscriptions;

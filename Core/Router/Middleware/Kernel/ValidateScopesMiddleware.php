@@ -18,7 +18,7 @@ class ValidateScopesMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $requestHandler = $request->getAttribute(RequestAttributeEnum::REQUEST_HANDLER);
-        if ($requestHandler instanceof RegistryEntry) {
+        if ($requestHandler instanceof RegistryEntry && $request->getAttribute(RequestAttributeEnum::USER)) {
             $requiredScopes = [...$requestHandler->getScopes(), ApiScopeEnum::ALL];
             $allocatedScopes = $request->getAttribute(RequestAttributeEnum::SCOPES);
 

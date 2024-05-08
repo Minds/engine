@@ -3,10 +3,14 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\SiteMemberships\Services;
 
+use Minds\Core\Authentication\Oidc\Services\OidcUserService;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
+use Minds\Core\MultiTenant\Repositories\TenantUsersRepository;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipGroupsRepository;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRepository;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRolesRepository;
@@ -63,6 +67,19 @@ class ServicesProvider extends Provider
                 stripeSubscriptionsService: $di->get(StripeSubscriptionsService::class),
                 stripeCustomerPortalService: $di->get(StripeCustomerPortalService::class),
                 config: $di->get(Config::class)
+            )
+        );
+
+        $this->di->bind(
+            SiteMembershipBatchService::class,
+            fn (Di $di) => new SiteMembershipBatchService(
+                entitiesBuilder: $di->get(EntitiesBuilder::class),
+                oidcUserService: $di->get(OidcUserService::class),
+                tenantUsersRepository: $di->get(TenantUsersRepository::class),
+                config: $di->get(Config::class),
+                readerService: $di->get(SiteMembershipReaderService::class),
+                subscriptionsRepository: $di->get(SiteMembershipSubscriptionsRepository::class),
+                logger: $di->get('Logger'),
             )
         );
     }
