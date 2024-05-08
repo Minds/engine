@@ -7,8 +7,6 @@ use Minds\Core\Authentication\PersonalApiKeys\Repositories\PersonalApiKeyReposit
 
 class PersonalApiKeyAuthService
 {
-    //const API_KEY_HEADER = 'X-'
-
     public function __construct(
         private PersonalApiKeyRepository $repository,
         private PersonalApiKeyHashingService $hashingService
