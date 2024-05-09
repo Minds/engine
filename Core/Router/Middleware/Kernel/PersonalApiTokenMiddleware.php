@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Router\Middleware\Kernel;
 
+use Minds\Core\Authentication\PersonalApiKeys\PersonalApiKey;
 use Minds\Core\Authentication\PersonalApiKeys\Services\PersonalApiKeyAuthService;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
@@ -29,32 +30,49 @@ class PersonalApiTokenMiddleware implements MiddlewareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $apiKeyHeader = $request->getHeader('Authorization');
-        if (isset($apiKeyHeader[0]) && substr($apiKeyHeader[0], 0, 6) === 'Bearer') {
-            $bearerToken = substr($apiKeyHeader[0], 7);
-            $personalApiKey = $this->personalApiKeyAuthService->getKeyBySecret($bearerToken);
+        $personalApiKey = $this->getPersonalApiKey($request);
 
-            if ($personalApiKey) {
-                $user = $this->entitiesBuilder->single($personalApiKey->ownerGuid);
-                if (!$user instanceof User || $user->isBanned() || !$user->isEnabled()) {
-                    // Bad user
-                    throw new UnauthorizedException();
-                }
-
-                if (!$this->personalApiKeyAuthService->validateKey($personalApiKey)) {
-                    throw new UnauthorizedException("Personal Api Key is no longer valid");
-                }
-
-                return $handler->handle(
-                    $request
-                        ->withAttribute(RequestAttributeEnum::USER, $user)
-                        ->withAttribute(RequestAttributeEnum::PERSONAL_API_KEY, $personalApiKey)
-                        ->withAttribute(RequestAttributeEnum::SCOPES, $personalApiKey->scopes),
-                );
+        if ($personalApiKey) {
+            $user = $this->entitiesBuilder->single($personalApiKey->ownerGuid);
+            if (!$user instanceof User || $user->isBanned() || !$user->isEnabled()) {
+                // Bad user
+                throw new UnauthorizedException();
             }
+
+            if (!$this->personalApiKeyAuthService->validateKey($personalApiKey)) {
+                throw new UnauthorizedException("Personal Api Key is no longer valid");
+            }
+
+            return $handler->handle(
+                $request
+                    ->withAttribute(RequestAttributeEnum::USER, $user)
+                    ->withAttribute(RequestAttributeEnum::PERSONAL_API_KEY, $personalApiKey)
+                    ->withAttribute(RequestAttributeEnum::SCOPES, $personalApiKey->scopes),
+            );
         }
+
+        // If no personal api key, allow to continue, unauthenticated
 
         return $handler
             ->handle($request);
+    }
+
+    /**
+     * Returns a PersonalApiKey from the request header, if exists
+     */
+    private function getPersonalApiKey(ServerRequestInterface $request): ?PersonalApiKey
+    {
+        $apiKeyHeader = $request->getHeader('Authorization');
+        if (isset($apiKeyHeader[0]) && strpos($apiKeyHeader[0], 'Bearer') === 0) {
+            $bearerToken = substr($apiKeyHeader[0], 7);
+
+            if (strpos($bearerToken, 'pak_') !== 0) {
+                return null;
+            }
+
+            return $this->personalApiKeyAuthService->getKeyBySecret($bearerToken);
+        }
+
+        return null;
     }
 }
