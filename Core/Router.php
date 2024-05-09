@@ -8,6 +8,7 @@ namespace Minds\Core;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Router\Dispatcher;
+use Minds\Core\Router\Enums\RequestAttributeEnum;
 use Minds\Core\Router\Hooks\ShutdownHandlerManager;
 use Minds\Core\Router\Middleware\Kernel;
 use Minds\Core\Router\PrePsr7\Fallback;
@@ -51,9 +52,10 @@ class Router
             ->pipe(new Kernel\ContentNegotiationMiddleware())
             ->pipe(new Kernel\ErrorHandlerMiddleware())
             ->pipe(new Kernel\MultiTenantBootMiddleware())
+            ->pipe(new Kernel\PersonalApiTokenMiddleware())
             ->pipe(
                 (new Kernel\RouteResolverMiddleware())
-                    ->setAttributeName('_request-handler')
+                    ->setAttributeName(RequestAttributeEnum::REQUEST_HANDLER)
             ) // Note: Pre-PSR7 routes will not advance further than this
             ->pipe(new Kernel\CorsMiddleware())
             ->pipe(new Kernel\JsonPayloadMiddleware())
@@ -67,9 +69,10 @@ class Router
                     ->setAttributeName('_user')
             )
             ->pipe(new Kernel\XsrfCookieMiddleware())
+            ->pipe(new Kernel\ValidateScopesMiddleware())
             ->pipe(
                 (new Kernel\RequestHandlerMiddleware())
-                    ->setAttributeName('_request-handler')
+                    ->setAttributeName(RequestAttributeEnum::REQUEST_HANDLER)
             )
             ->handle($request);
     }

@@ -34,7 +34,7 @@ class RouteSpec extends ObjectBehavior
     ) {
         $method = Route::ALLOWED_METHODS[0];
 
-        $this->registry->register($method, 'phpspec/test/2', $ref, [])
+        $this->registry->register($method, 'phpspec/test/2', $ref, [], [])
             ->shouldBeCalled();
 
         $this
@@ -50,7 +50,7 @@ class RouteSpec extends ObjectBehavior
 
         $this->registry->register($method, 'prefix/0/phpspec/test/2', $ref, [
             $middleware
-        ])
+        ], [])
             ->shouldBeCalled();
 
         $this
@@ -76,7 +76,7 @@ class RouteSpec extends ObjectBehavior
     public function it_should_register_all(
         Ref $ref
     ) {
-        $this->registry->register(Argument::type('string'), 'phpspec/test/2', $ref, [])
+        $this->registry->register(Argument::type('string'), 'phpspec/test/2', $ref, [], [])
             ->shouldBeCalledTimes(count(Route::ALLOWED_METHODS));
 
         $this
@@ -87,7 +87,7 @@ class RouteSpec extends ObjectBehavior
     public function it_should_register_get(
         Ref $ref
     ) {
-        $this->registry->register('get', 'phpspec/test/2', $ref, [])
+        $this->registry->register('get', 'phpspec/test/2', $ref, [], [])
             ->shouldBeCalled();
 
         $this
@@ -98,7 +98,7 @@ class RouteSpec extends ObjectBehavior
     public function it_should_register_post(
         Ref $ref
     ) {
-        $this->registry->register('post', 'phpspec/test/2', $ref, [])
+        $this->registry->register('post', 'phpspec/test/2', $ref, [], [])
             ->shouldBeCalled();
 
         $this
@@ -109,7 +109,7 @@ class RouteSpec extends ObjectBehavior
     public function it_should_register_put(
         Ref $ref
     ) {
-        $this->registry->register('put', 'phpspec/test/2', $ref, [])
+        $this->registry->register('put', 'phpspec/test/2', $ref, [], [])
             ->shouldBeCalled();
 
         $this
@@ -120,7 +120,7 @@ class RouteSpec extends ObjectBehavior
     public function it_should_register_delete(
         Ref $ref
     ) {
-        $this->registry->register('delete', 'phpspec/test/2', $ref, [])
+        $this->registry->register('delete', 'phpspec/test/2', $ref, [], [])
             ->shouldBeCalled();
 
         $this

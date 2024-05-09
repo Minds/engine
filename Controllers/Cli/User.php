@@ -7,9 +7,14 @@ use Minds\Cli;
 use Minds\Interfaces;
 use Minds\Exceptions;
 use Minds\Entities;
+use Minds\Helpers;
 use Minds\Core\Channels\Ban;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
+use PDO;
+use Selective\Database\Connection;
+use Selective\Database\Operator;
+use Selective\Database\RawExp;
 
 class User extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -163,5 +168,48 @@ class User extends Cli\Controller implements Interfaces\CliControllerInterface
         }
 
         Core\Events\Dispatcher::trigger('register/complete', 'user', [ 'user' => $user ]);
+    }
+
+    public function remap_emails()
+    {
+        global $CONFIG;
+        $mysqlClient = Di::_()->get(Core\Data\MySQL\Client::class);
+        $mysqlClientReader = $mysqlClient->getConnection(Core\Data\MySQL\Client::CONNECTION_REPLICA);
+        $mysqlClientReaderHandler = new Connection($mysqlClientReader);
+        $mysqlClientWriter = $mysqlClient->getConnection(Core\Data\MySQL\Client::CONNECTION_MASTER);
+        $mysqlClientWriterHandler = new Connection($mysqlClientWriter);
+
+        $stmt = $mysqlClientReaderHandler->select()
+            ->columns([
+                'tenant_id',
+                'email'
+            ])
+            ->from('minds_entities_user')
+            ->prepare();
+
+        $stmt->execute();
+
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $encryptedEmail = $row['email'];
+            $email = Helpers\OpenSSL::decrypt(base64_decode($encryptedEmail, true), file_get_contents($CONFIG->encryptionKeys['email']['private']));
+            $this->out($email);
+        
+            if ($email) {
+                $updateStmt = $mysqlClientWriterHandler->update()
+                    ->table('minds_entities_user')
+                    ->set([
+                        'email' => new RawExp(':email')
+                    ])
+                    ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+                    ->where('email', Operator::EQ, new RawExp(':encrypted_email'))
+                    ->prepare();
+                $updateStmt->execute([
+                    'encrypted_email' => $encryptedEmail,
+                    'email' => $email,
+                    'tenant_id' => $row['tenant_id'],
+                ]);
+            }
+        }
+
     }
 }
