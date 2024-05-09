@@ -6,6 +6,7 @@
 
 namespace Minds\Core\Router\Middleware\Kernel;
 
+use Minds\Core\Router\Enums\RequestAttributeEnum;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\XSRF;
 use Psr\Http\Message\ResponseInterface;
@@ -47,7 +48,8 @@ class XsrfCookieMiddleware implements MiddlewareInterface
         if (
             $request->getAttribute('_user') && // If logged in
             !$request->getAttribute('oauth_user_id') && // And not OAuth
-            !$request->getHeader('X-SESSION-TOKEN') // And not if we authenticated with a session header (mobile)
+            !$request->getHeader('X-SESSION-TOKEN') && // And not if we authenticated with a session header (mobile)
+            !$request->getAttribute(RequestAttributeEnum::PERSONAL_API_KEY) // And not using a personal api key
         ) {
             if ($request->getUri()->getPath() === '/api/v3/multi-tenant/auto-login/login') { // And not auto-login
                 // Do nothing

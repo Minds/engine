@@ -21,7 +21,7 @@ class RegistrySpec extends ObjectBehavior
     ) {
         $this
             ->register('post', '/phpspec', function () {
-            }, [$middleware])
+            }, [$middleware], [])
             ->shouldReturn($this);
     }
 
@@ -29,9 +29,9 @@ class RegistrySpec extends ObjectBehavior
         MiddlewareInterface $middleware
     ) {
         $this
-            ->register('get', '/phpspec/:id', null, [$middleware])
-            ->register('get', '/phpspec/new', null, [$middleware])
-            ->register('get', '/phpspec/', null, [$middleware])
+            ->register('get', '/phpspec/:id', null, [$middleware], [])
+            ->register('get', '/phpspec/new', null, [$middleware], [])
+            ->register('get', '/phpspec/', null, [$middleware], [])
             ->getBestMatch('get', '/phpspec/new')
             ->shouldBeARegistryEntryWithRoute('phpspec/new');
     }

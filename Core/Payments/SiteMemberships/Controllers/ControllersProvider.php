@@ -6,6 +6,7 @@ namespace Minds\Core\Payments\SiteMemberships\Controllers;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
+use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipBatchService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipManagementService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipReaderService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipSubscriptionsManagementService;
@@ -52,6 +53,13 @@ class ControllersProvider extends Provider
             fn (Di $di): SiteMembershipSubscriptionsController => new SiteMembershipSubscriptionsController(
                 siteMembershipSubscriptionsService: $di->get(SiteMembershipSubscriptionsService::class)
             )
+        );
+
+        $this->di->bind(
+            SiteMembershipBatchPsrController::class,
+            fn (Di $di) => new SiteMembershipBatchPsrController(
+                batchService: $di->get(SiteMembershipBatchService::class)
+            ),
         );
     }
 }

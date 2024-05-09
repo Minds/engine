@@ -1026,3 +1026,31 @@ ALTER TABLE `minds_tenant_configs`
 ALTER TABLE `minds_tenant_configs`
     ADD walled_garden_enabled boolean 
     AFTER custom_home_page_description;
+
+
+CREATE TABLE IF NOT EXISTS minds_personal_api_keys (
+    tenant_id int,
+    id varchar(32),
+    owner_guid bigint NOT NULL,
+    name varchar(128),
+    secret_hash varchar(256) NOT NULL,
+    created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP(),
+    expires_timestamp timestamp DEFAULT NULL,
+    INDEX (tenant_id, owner_guid),
+    PRIMARY KEY (tenant_id, id)
+);
+
+CREATE TABLE IF NOT EXISTS minds_personal_api_key_scopes (
+    tenant_id int,
+    id varchar(32),
+    scope varchar(64),
+    PRIMARY KEY (tenant_id, id, scope),
+    FOREIGN KEY (tenant_id, id) REFERENCES minds_personal_api_keys(tenant_id,id)
+);
+
+ALTER TABLE minds_site_membership_subscriptions
+MODIFY COLUMN stripe_subscription_id varchar(256) DEFAULT NULL;
+
+ALTER TABLE minds_site_membership_subscriptions
+ADD COLUMN manual boolean DEFAULT false AFTER membership_tier_guid;
+SELECT * FROM minds_site_membership_subscriptions;
