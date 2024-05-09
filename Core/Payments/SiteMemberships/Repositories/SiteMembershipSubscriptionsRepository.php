@@ -84,6 +84,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
                 'membership_tier_guid',
                 'stripe_subscription_id',
                 'auto_renew',
+                'manual',
                 'valid_from',
                 'valid_to',
             ])
@@ -117,6 +118,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
             membershipGuid: (int)$data['membership_tier_guid'],
             stripeSubscriptionId: $data['stripe_subscription_id'],
             autoRenew: (bool)$data['auto_renew'],
+            isManual: (bool) $data['manual'],
             validFromTimestamp: strtotime($data['valid_from']),
             validToTimestamp: $data['valid_to'] ? strtotime($data['valid_to']) : null
         );
@@ -136,6 +138,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
                 'id',
                 'membership_tier_guid',
                 'stripe_subscription_id',
+                'manual',
                 'auto_renew',
                 'valid_from',
                 'valid_to',
@@ -176,6 +179,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
                 'membership_tier_guid',
                 'stripe_subscription_id',
                 'auto_renew',
+                'manual',
                 'valid_from',
                 'valid_to',
             ])

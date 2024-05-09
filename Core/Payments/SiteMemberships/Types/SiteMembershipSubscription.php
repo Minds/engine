@@ -14,6 +14,7 @@ class SiteMembershipSubscription
         #[Field(outputType: "String!")] public readonly int $membershipGuid,
         public readonly ?string                              $stripeSubscriptionId,
         #[Field] public readonly bool                       $autoRenew = true,
+        #[Field] public readonly bool                       $isManual = false,
         #[Field] public readonly ?int                        $validFromTimestamp = null,
         #[Field] public readonly ?int                       $validToTimestamp = null
     ) {
