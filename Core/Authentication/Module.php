@@ -10,6 +10,7 @@ class Module implements ModuleInterface
     /** @var array $submodules */
     public $submodules = [
         Oidc\Module::class,
+        PersonalApiKeys\Module::class,
     ];
 
     /**

@@ -4,8 +4,11 @@ declare(strict_types=1);
 namespace Minds\Core\Payments\SiteMemberships;
 
 use Minds\Core\Di\Ref;
+use Minds\Core\Payments\SiteMemberships\Controllers\SiteMembershipBatchPsrController;
 use Minds\Core\Payments\SiteMemberships\Controllers\SiteMembershipSubscriptionsManagementPsrController;
 use Minds\Core\Payments\SiteMemberships\Controllers\SiteMembershipSubscriptionsPsrController;
+use Minds\Core\Router\Enums\ApiScopeEnum;
+use Minds\Core\Router\Middleware\AdminMiddleware;
 use Minds\Core\Router\Middleware\LoggedInMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
@@ -19,7 +22,7 @@ class Routes extends ModuleRoutes
     {
         $this->route->withPrefix('api/v3/payments/site-memberships')
             ->withMiddleware([
-                LoggedInMiddleware::class
+                LoggedInMiddleware::class,
             ])
             ->do(function (Route $route): void {
                 $route->withPrefix(':membershipGuid/checkout')
@@ -45,6 +48,13 @@ class Routes extends ModuleRoutes
                             Ref::_(SiteMembershipSubscriptionsManagementPsrController::class, 'completeSiteMembershipSubscriptionCancellation')
                         );
                     });
+
+                $route
+                    ->withMiddleware([
+                        AdminMiddleware::class,
+                    ])
+                    ->withScope(ApiScopeEnum::SITE_MEMBERSHIP_WRITE)
+                    ->post('batch', Ref::_(SiteMembershipBatchPsrController::class, 'onBatchRequest'));
             });
     }
 }

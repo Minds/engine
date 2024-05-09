@@ -13,4 +13,6 @@ enum PermissionsEnum
     case CAN_ASSIGN_PERMISSIONS;
     case CAN_MODERATE_CONTENT;
     case CAN_CREATE_PAYWALL;
+    case CAN_CREATE_CHAT_ROOM;
+    case CAN_UPLOAD_CHAT_MEDIA;
 }

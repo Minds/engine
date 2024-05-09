@@ -1,0 +1,38 @@
+openapi: 3.0.0
+info:
+  title: 'Minds engine API'
+  description: 'Core Minds Engine.'
+  version: 1.0.0
+paths:
+  /api/v3/payments/site-memberships/batch:
+    post:
+      summary: "Allows for an admin, with a Personal Api Key, to issue site membership subscriptions\nto their users"
+      operationId: 7bb9447ab007ef2b7a1e5bf2300d8827
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  id_type: { enum: [GUID, OIDC, EMAIL] }
+                  id: { description: "The ID (that relates to the id_type). If passing an OIDC id, use the format '{providerId}::{sub}'", type: string }
+                  membership_guid: { type: [string, number] }
+                  valid_from: { type: string }
+                  valid_to: { type: string }
+                type: object
+            examples:
+              'A batch request with multiple different id types provided':
+                summary: ''
+                value:
+                  - { id_type: EMAIL, id: test@minds.com, membership_guid: 1604887628371464195, valid_from: '2024-05-01', valid_to: '2024-06-01' }
+                  - { id_type: GUID, id: 1404887628371464196, membership_guid: 1604887628371464195, valid_from: '2024-05-01', valid_to: '2024-06-01' }
+                  - { id_type: OIDC, id: '1::241849093897463702', membership_guid: 1604887628371464195, valid_from: '2024-05-01', valid_to: '2025-05-01' }
+      responses:
+        '200':
+          description: Ok
+        '400':
+          description: 'Bad request'
+        '403':
+          description: Forbidden
