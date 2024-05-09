@@ -1052,7 +1052,6 @@ MODIFY COLUMN stripe_subscription_id varchar(256) DEFAULT NULL;
 
 ALTER TABLE minds_site_membership_subscriptions
 ADD COLUMN manual boolean DEFAULT false AFTER membership_tier_guid;
-SELECT * FROM minds_site_membership_subscriptions;
 
 ALTER TABLE `minds_tenant_configs`
     ADD boost_enabled boolean DEFAULT false
