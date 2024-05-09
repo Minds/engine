@@ -7,6 +7,7 @@
 namespace Minds\Core\Router\Middleware\Kernel;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Router\Enums\RequestAttributeEnum;
 use Minds\Core\Router\PrePsr7;
 use Minds\Core\Router\Registry;
 use Psr\Http\Message\ResponseInterface;
@@ -17,7 +18,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 class RouteResolverMiddleware implements MiddlewareInterface
 {
     /** @var string */
-    protected $attributeName = '_request-handler';
+    protected $attributeName = RequestAttributeEnum::REQUEST_HANDLER;
 
     /** @var Registry */
     protected $registry;

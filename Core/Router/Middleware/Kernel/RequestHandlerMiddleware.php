@@ -8,6 +8,7 @@ namespace Minds\Core\Router\Middleware\Kernel;
 
 use Exception;
 use Minds\Core\Router\Dispatcher;
+use Minds\Core\Router\Enums\RequestAttributeEnum;
 use Minds\Core\Router\RegistryEntry;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -17,7 +18,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 class RequestHandlerMiddleware implements MiddlewareInterface
 {
     /** @var string */
-    protected $attributeName = '_request-handler';
+    protected $attributeName = RequestAttributeEnum::REQUEST_HANDLER;
 
     /**
      * @param string $attributeName
