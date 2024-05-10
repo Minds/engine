@@ -12,6 +12,7 @@ use Minds\Core\Chat\Enums\ChatRoomNotificationStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomRoleEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Exceptions\ChatRoomNotFoundException;
+use Minds\Core\Data\cache\InMemoryCache;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
@@ -30,6 +31,13 @@ class RoomRepository extends AbstractRepository
     public const RECEIPTS_TABLE_NAME = 'minds_chat_receipts';
     public const ROOM_MEMBER_SETTINGS_TABLE_NAME = 'minds_chat_room_member_settings';
     public const RICH_EMBED_TABLE_NAME = 'minds_chat_rich_embeds';
+
+    public function __construct(
+        private InMemoryCache $inMemoryCache,
+        ... $args
+    ) {
+        parent::__construct(...$args);
+    }
 
     /**
      * @param int $roomGuid
@@ -155,6 +163,8 @@ class RoomRepository extends AbstractRepository
                     AS unread_messages_count
                 "), // For temporary performance gains, we will just return a maximum count of 1
                 'member_guids' => 'm_guids.member_guids',
+                'role_id' => 'm.role_id',
+                'status' => 'm.status',
             ])
             ->from(new RawExp(self::TABLE_NAME . " as r"))
             // Inner join against the membership union
@@ -167,11 +177,13 @@ class RoomRepository extends AbstractRepository
                         'room_guid',
                         'member_guid',
                         'status',
+                        'role_id',
                     ])
                     ->from(new RawExp("($q) as m"))
+                    ->where('member_guid', Operator::EQ, new RawExp(':member_guid'))
                     ->alias('m');
                 },
-                'r.room_guid = m.room_guid AND r.tenant_id = m.tenant_id AND m.member_guid = :member_guid',
+                'r.room_guid = m.room_guid AND r.tenant_id = m.tenant_id',
             )
             // Get last message
             ->leftJoinRaw(
@@ -285,13 +297,19 @@ class RoomRepository extends AbstractRepository
                     continue;
                 }
 
-                $results['chatRooms'][] =  new ChatRoomListItem(
+                $item =  new ChatRoomListItem(
                     chatRoom: $this->buildChatRoomInstance($row),
                     lastMessagePlainText: $row['last_msg_plain_text'],
                     lastMessageCreatedTimestamp: $row['last_msg_created_timestamp'] ? strtotime($row['last_msg_created_timestamp']) : null,
                     unreadMessagesCount: (int) $row['unread_messages_count'],
                     memberGuids: $row['member_guids'] ? explode(',', $row['member_guids']) : [],
+                    role: constant(ChatRoomRoleEnum::class . '::' . $row['role_id']),
+                    status: constant(ChatRoomMemberStatusEnum::class . '::' . $row['status']),
                 );
+
+                $this->inMemoryCache->set($this->buildRoomListItemCacheKey((int) $user->getGuid(), (int) $row['room_guid']), $item);
+
+                $results['chatRooms'][] = $item;
             }
 
             return $results;
@@ -352,7 +370,18 @@ class RoomRepository extends AbstractRepository
         User $user,
         ?array $targetStatuses = null
     ): bool {
+        $userGuid = (int) $user->getGuid();
+    
+        if ($this->inMemoryCache->get($this->buildRoomListItemCacheKey($userGuid, $roomGuid))) {
+            return true;
+        }
+
         $targetStatuses = $targetStatuses ?? [ChatRoomMemberStatusEnum::ACTIVE->name];
+
+        $cacheKey = "chat::is-user-member::$roomGuid-{$userGuid}-" . md5(serialize($targetStatuses));
+        if (($cached = $this->inMemoryCache->get($cacheKey)) !== null) {
+            return $cached;
+        }
 
         $query = $this->buildRoomMembershipQuery()
             ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
@@ -366,11 +395,15 @@ class RoomRepository extends AbstractRepository
             $this->mysqlHandler->bindValuesToPreparedStatement($stmt, [
                 'tenant_id' => $this->getTenantId(),
                 'room_guid' => $roomGuid,
-                'member_guid' => $user->getGuid(),
+                'member_guid' => $userGuid,
                 'status' => $targetStatuses,
             ]);
             $stmt->execute();
-            return $stmt->rowCount() > 0;
+            $result = $stmt->rowCount() > 0;
+
+            $this->inMemoryCache->set($cacheKey, $result);
+
+            return $result;
         } catch (PDOException $e) {
             throw new ServerErrorException('Failed to check if user is a member of chat room', previous: $e);
         }
@@ -388,6 +421,15 @@ class RoomRepository extends AbstractRepository
         User $user,
         int $roomGuid
     ): ChatRoomMemberStatusEnum {
+        $userGuid = (int) $user->getGuid();
+
+        /** @var ChatRoomListItem|null */
+        $cachedChatRoomItem = $this->inMemoryCache->get($this->buildRoomListItemCacheKey($userGuid, $roomGuid));
+        
+        if ($cachedChatRoomItem) {
+            return $cachedChatRoomItem->status;
+        }
+
         $stmt = $this->mysqlClientReaderHandler->select()
             ->columns([
                 'status'
@@ -403,7 +445,7 @@ class RoomRepository extends AbstractRepository
             $stmt->execute([
                 'tenant_id' => $this->getTenantId(),
                 'room_guid' => $roomGuid,
-                'member_guid' => $user->getGuid(),
+                'member_guid' => $userGuid,
             ]);
 
             if ($stmt->rowCount() === 0) {
@@ -434,6 +476,23 @@ class RoomRepository extends AbstractRepository
         ?int $offsetMemberGuid = null,
         bool $excludeSelf = true
     ): array {
+        $userGuid = (int) $user->getGuid();
+
+        /** @var ChatRoomListItem|null */
+        $cachedChatRoomItem = $this->inMemoryCache->get($this->buildRoomListItemCacheKey($userGuid, $roomGuid));
+        
+        if ($cachedChatRoomItem) {
+            return [
+                'members' => array_map(fn ($memberGuid) => [
+                    'member_guid' => $memberGuid,
+                    'joined_timestamp' => null,
+                    'role_id' => 'MEMBER',
+                    'notifications_status' => 'MUTED'
+                ], $cachedChatRoomItem->memberGuids),
+                'hasMore' => true
+            ];
+        }
+    
         $q = $this->buildRoomMembershipQuery()->build(false);
         $stmt = $this->mysqlClientReaderHandler->select()
             ->columns([
@@ -459,7 +518,7 @@ class RoomRepository extends AbstractRepository
 
         if ($excludeSelf) {
             $stmt->where('m.member_guid', Operator::NOT_EQ, new RawExp(':member_guid'));
-            $values['member_guid'] = $user->getGuid();
+            $values['member_guid'] = $userGuid;
         }
 
         if ($offsetJoinedTimestamp) {
@@ -911,6 +970,14 @@ class RoomRepository extends AbstractRepository
         int $roomGuid,
         User $user
     ): bool {
+        $userGuid = (int) $user->getGuid();
+
+        /** @var ChatRoomListItem|null */
+        $cachedChatRoomItem = $this->inMemoryCache->get($this->buildRoomListItemCacheKey($userGuid, $roomGuid));
+        if ($cachedChatRoomItem) {
+            return $cachedChatRoomItem->role === ChatRoomRoleEnum::OWNER;
+        }
+        
         $q = $this->buildRoomMembershipQuery()->build(false);
 
         $stmt = $this->mysqlClientReaderHandler->select()
@@ -926,7 +993,7 @@ class RoomRepository extends AbstractRepository
             $stmt->execute([
                 'tenant_id' => $this->getTenantId(),
                 'room_guid' => $roomGuid,
-                'member_guid' => $user->getGuid(),
+                'member_guid' => $userGuid,
                 'role_id' => ChatRoomRoleEnum::OWNER->name,
             ]);
 
@@ -1104,4 +1171,10 @@ class RoomRepository extends AbstractRepository
     {
         return $this->config->get('tenant_id') ?? -1;
     }
+
+    private function buildRoomListItemCacheKey(int $userGuid, int $roomGuid): string
+    {
+        return "chat::room::$userGuid-$roomGuid";
+    }
+
 }
