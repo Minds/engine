@@ -7,7 +7,6 @@ use Minds\Core\Custom\Navigation\Enums\NavigationItemActionEnum;
 use Minds\Core\Custom\Navigation\Enums\NavigationItemTypeEnum;
 use Minds\Core\Custom\Navigation\NavigationItem;
 use Minds\Core\Custom\Navigation\Repository;
-use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Data\MySQL;
 use Minds\Core\Data\MySQL\MySQLConnectionEnum;
 use Minds\Core\Di\Di;
@@ -27,11 +26,10 @@ class RepositorySpec extends ObjectBehavior
     public function let(
         MySQL\Client $mysqlClientMock,
         Logger $loggerMock,
-        PsrWrapper $cacheMock,
         PDO $mysqlMasterMock,
         PDO $mysqlReplicaMock,
     ) {
-        $this->beConstructedWith($mysqlClientMock, Di::_()->get(Config::class), $loggerMock, $cacheMock);
+        $this->beConstructedWith($mysqlClientMock, Di::_()->get(Config::class), $loggerMock);
 
         $this->mysqlClientMock = $mysqlClientMock;
 

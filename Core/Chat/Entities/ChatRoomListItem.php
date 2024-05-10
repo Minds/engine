@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace Minds\Core\Chat\Entities;
 
 use Minds\Common\Access;
+use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Enums\ChatRoomRoleEnum;
 use Minds\Entities\EntityInterface;
 
 class ChatRoomListItem implements EntityInterface
@@ -15,6 +17,8 @@ class ChatRoomListItem implements EntityInterface
         public readonly int $unreadMessagesCount = 0,
         /** @var int[] */
         public readonly array $memberGuids = [],
+        public readonly ?ChatRoomRoleEnum $role = null,
+        public readonly ?ChatRoomMemberStatusEnum $status = null,
     ) {
     }
 
