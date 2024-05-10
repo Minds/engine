@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Chat\Repositories;
 
 use Minds\Core\Config\Config;
+use Minds\Core\Data\cache\InMemoryCache;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
@@ -19,10 +20,12 @@ class RepositoriesProvider extends Provider
         $this->di->bind(
             RoomRepository::class,
             fn (Di $di): RoomRepository => new RoomRepository(
+                inMemoryCache: $di->get(InMemoryCache::class),
                 mysqlHandler: $di->get('Database\MySQL\Client'),
                 config: $di->get(Config::class),
                 logger: $di->get('Logger')
-            )
+            ),
+            ['useFactory' => true]
         );
         $this->di->bind(
             MessageRepository::class,
@@ -30,7 +33,8 @@ class RepositoriesProvider extends Provider
                 mysqlHandler: $di->get('Database\MySQL\Client'),
                 config: $di->get(Config::class),
                 logger: $di->get('Logger')
-            )
+            ),
+            ['useFactory' => true]
         );
         $this->di->bind(
             ReceiptRepository::class,
@@ -38,7 +42,8 @@ class RepositoriesProvider extends Provider
                 mysqlHandler: $di->get('Database\MySQL\Client'),
                 config: $di->get(Config::class),
                 logger: $di->get('Logger')
-            )
+            ),
+            ['useFactory' => true]
         );
     }
 }

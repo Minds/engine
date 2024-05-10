@@ -401,9 +401,16 @@ class RoomService
     public function getAllRoomMembers(
         int $roomGuid,
         User $user,
-        bool $excludeSelf = true
+        bool $excludeSelf = true,
+        /** @var ChatRoomMemberStatusEnum[] */
+        array $memberStatus = [ChatRoomMemberStatusEnum::ACTIVE, ChatRoomMemberStatusEnum::INVITE_PENDING],
     ): iterable {
-        foreach ($this->roomRepository->getAllRoomMembers(roomGuid: $roomGuid, user: $user, excludeSelf: $excludeSelf) as $member) {
+        foreach ($this->roomRepository->getAllRoomMembers(
+            roomGuid: $roomGuid,
+            user: $user,
+            excludeSelf: $excludeSelf,
+            memberStatus: $memberStatus
+        ) as $member) {
             $user = $this->entitiesBuilder->single($member['member_guid']);
             if (!$user) {
                 continue;
@@ -433,6 +440,18 @@ class RoomService
         int  $roomGuid,
         User $loggedInUser
     ): ChatRoomEdge {
+        ['chatRooms' => $chatRooms] = $this->roomRepository->getRoomsByMember(
+            user: $loggedInUser,
+            targetMemberStatuses: [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            limit: 1,
+            roomGuid: $roomGuid
+        );
+
+        $chatRoomListItem = $chatRooms[0] ?? throw new ChatRoomNotFoundException();
+
         if (
             !$this->roomRepository->isUserMemberOfRoom(
                 roomGuid: $roomGuid,
@@ -445,18 +464,6 @@ class RoomService
         ) {
             throw new GraphQLException(message: "You are not a member of this chat.", code: 403);
         }
-
-        ['chatRooms' => $chatRooms] = $this->roomRepository->getRoomsByMember(
-            user: $loggedInUser,
-            targetMemberStatuses: [
-                ChatRoomMemberStatusEnum::ACTIVE->name,
-                ChatRoomMemberStatusEnum::INVITE_PENDING->name
-            ],
-            limit: 1,
-            roomGuid: $roomGuid
-        );
-
-        $chatRoomListItem = $chatRooms[0] ?? throw new ChatRoomNotFoundException();
 
         $chatRoomMemberSettings = $this->roomRepository->getRoomMemberSettings(
             roomGuid: $roomGuid,

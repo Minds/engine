@@ -10,7 +10,7 @@ use Psr\SimpleCache\CacheInterface;
 class InMemoryCache implements CacheInterface
 {
     /** @var int */
-    const MAX_LOCAL_CACHE = 1000;
+    const MAX_LOCAL_CACHE = 5000;
 
     protected $kvCache = [];
 

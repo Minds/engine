@@ -11,6 +11,7 @@ use Minds\Core\Chat\Enums\ChatRoomRoleEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Repositories\RoomRepository;
 use Minds\Core\Config\Config;
+use Minds\Core\Data\cache\InMemoryCache;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
@@ -37,6 +38,7 @@ class RoomRepositorySpec extends ObjectBehavior
     private Collaborator $mysqlClientReaderHandlerMock;
     private Collaborator $loggerMock;
     private Collaborator $configMock;
+    private Collaborator $inMemoryCacheMock;
 
     public function let(
         MySQLClient $mysqlClient,
@@ -46,6 +48,7 @@ class RoomRepositorySpec extends ObjectBehavior
         Connection  $mysqlReaderConnectionHandler,
         PDO         $mysqlMasterConnection,
         PDO         $mysqlReaderConnection,
+        InMemoryCache $inMemoryCacheMock,
     ): void {
         $this->mysqlHandlerMock = $mysqlClient;
 
@@ -62,13 +65,15 @@ class RoomRepositorySpec extends ObjectBehavior
         $this->loggerMock = $logger;
         $this->configMock = $config;
 
-        $this->beConstructedThrough('buildForUnitTests', [
-            $this->mysqlHandlerMock->getWrappedObject(),
-            $this->configMock->getWrappedObject(),
-            $this->loggerMock->getWrappedObject(),
-            $this->mysqlClientWriterHandlerMock->getWrappedObject(),
-            $this->mysqlClientReaderHandlerMock->getWrappedObject(),
-        ]);
+        $this->beConstructedWith(
+            $inMemoryCacheMock,
+            $this->mysqlHandlerMock,
+            $this->configMock,
+            $this->loggerMock,
+            $this->mysqlClientReaderHandlerMock,
+            $this->mysqlClientWriterHandlerMock,
+        );
+
     }
 
     public function it_is_initializable(): void
@@ -183,7 +188,7 @@ class RoomRepositorySpec extends ObjectBehavior
         $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
 
         $userMock->getGuid()
-            ->shouldBeCalledOnce()
+            ->shouldBeCalledTimes(2)
             ->willReturn(456);
 
         $this->mysqlHandlerMock->bindValuesToPreparedStatement($pdoStatementMock, [
@@ -214,6 +219,8 @@ class RoomRepositorySpec extends ObjectBehavior
                     'last_msg_created_timestamp' => '2021-01-01 00:00:00',
                     'unread_messages_count' => 0,
                     'member_guids' => "123,456",
+                    'role_id' => ChatRoomRoleEnum::MEMBER->name,
+                    'status' => ChatRoomMemberStatusEnum::ACTIVE->name,
                 ]
             ]);
 
@@ -250,7 +257,7 @@ class RoomRepositorySpec extends ObjectBehavior
 
         $selectQueryMock->joinRaw(
             Argument::any(),
-            'r.room_guid = m.room_guid AND r.tenant_id = m.tenant_id AND m.member_guid = :member_guid',
+            'r.room_guid = m.room_guid AND r.tenant_id = m.tenant_id',
         )
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
