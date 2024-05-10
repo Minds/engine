@@ -96,6 +96,10 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
 
         $chatEntity = $this->entitiesResolver->single($event->entityUrn);
 
+        if (!$chatEntity) {
+            return true; // Probably deleted
+        }
+
         // TODO: get chat room members and send push notifications to them based on notification preference
         match (get_class($chatEntity)) {
             ChatMessage::class => $this->processChatMessage($chatEntity),
