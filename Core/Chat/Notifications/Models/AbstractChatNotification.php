@@ -16,7 +16,7 @@ abstract class AbstractChatNotification implements PushNotificationInterface
 
     public function __construct(
         protected readonly ?int $chatRoomGuid,
-        protected readonly ?string $title,
+        public ?string $title,
         protected readonly ?string $body,
         protected readonly ?string $icon
     ) {

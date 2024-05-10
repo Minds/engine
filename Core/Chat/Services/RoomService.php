@@ -401,9 +401,16 @@ class RoomService
     public function getAllRoomMembers(
         int $roomGuid,
         User $user,
-        bool $excludeSelf = true
+        bool $excludeSelf = true,
+        /** @var ChatRoomMemberStatusEnum[] */
+        array $memberStatus = [ChatRoomMemberStatusEnum::ACTIVE, ChatRoomMemberStatusEnum::INVITE_PENDING],
     ): iterable {
-        foreach ($this->roomRepository->getAllRoomMembers(roomGuid: $roomGuid, user: $user, excludeSelf: $excludeSelf) as $member) {
+        foreach ($this->roomRepository->getAllRoomMembers(
+            roomGuid: $roomGuid,
+            user: $user,
+            excludeSelf: $excludeSelf,
+            memberStatus: $memberStatus
+        ) as $member) {
             $user = $this->entitiesBuilder->single($member['member_guid']);
             if (!$user) {
                 continue;

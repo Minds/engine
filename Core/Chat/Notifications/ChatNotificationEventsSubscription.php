@@ -7,6 +7,7 @@ use InvalidArgumentException;
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Enums\ChatMessageTypeEnum;
+use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomNotificationStatusEnum;
 use Minds\Core\Chat\Notifications\Events\ChatNotificationEvent;
 use Minds\Core\Chat\Notifications\Models\PlainTextMessageNotification;
@@ -127,6 +128,7 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
         $roomMembers = $this->roomService->getAllRoomMembers(
             roomGuid: $chatMessage->roomGuid,
             user: $sender,
+            memberStatus: [ChatRoomMemberStatusEnum::ACTIVE],
         );
 
         $chatRoomEdge = $this->roomService->getRoom($chatMessage->roomGuid, $sender);
@@ -151,7 +153,16 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
                 continue;
             }
 
-            $notification->setNotificationRecipient((int) $roomMember->getNode()->getGuid());
+            $receiver = $this->entitiesBuilder->single($roomMember->getNode()->getGuid());
+
+            if (!$receiver instanceof User) {
+                continue;
+            }
+
+            // Avoid having your own name in the list
+            $notification->title = $this->roomService->getRoomName($chatRoom, $receiver);
+
+            $notification->setNotificationRecipient((int) $receiver->getGuid());
 
             $deviceSubscriptions = $this->devicePushNotifSubscriptionManager->getList(
                 (new DeviceSubscriptionListOpts())

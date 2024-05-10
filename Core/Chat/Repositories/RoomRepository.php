@@ -560,9 +560,6 @@ class RoomRepository extends AbstractRepository
     }
 
     /**
-     * @param int $roomGuid
-     * @param User $user
-     * @param bool $excludeSelf
      * @return iterable<array{
      *     tenant_id: int,
      *     room_guid: int,
@@ -577,7 +574,9 @@ class RoomRepository extends AbstractRepository
     public function getAllRoomMembers(
         int $roomGuid,
         User $user,
-        bool $excludeSelf = true
+        bool $excludeSelf = true,
+        /** @var ChatRoomMemberStatusEnum[] */
+        array $memberStatus = [ChatRoomMemberStatusEnum::ACTIVE, ChatRoomMemberStatusEnum::INVITE_PENDING],
     ): iterable {
         $q = $this->buildRoomMembershipQuery()->build(false);
         $stmt = $this->mysqlClientReaderHandler->select()
@@ -592,13 +591,13 @@ class RoomRepository extends AbstractRepository
             )
             ->where('m.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->where('m.room_guid', Operator::EQ, new RawExp(':room_guid'))
-            ->whereWithNamedParameters('m.status', Operator::IN, 'status', 2)
+            ->whereWithNamedParameters('m.status', Operator::IN, 'status', count($memberStatus))
             ->orderBy('m.joined_timestamp ASC', 'm.member_guid DESC');
 
         $values = [
             'tenant_id' => $this->getTenantId(),
             'room_guid' => $roomGuid,
-            'status' => [ChatRoomMemberStatusEnum::ACTIVE->name, ChatRoomMemberStatusEnum::INVITE_PENDING->name],
+            'status' => array_map(fn ($status) => $status->name, $memberStatus),
         ];
 
         if ($excludeSelf) {
