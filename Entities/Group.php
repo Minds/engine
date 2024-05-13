@@ -49,7 +49,7 @@ class Group extends NormalizedEntity implements EntityInterface
     protected $mature = false;
     protected $rating = 1;
     protected $videoChatDisabled = 0; // enable by default
-    protected $conversationDisabled = 0; // enable by default
+    protected $conversationDisabled = 1; // enable by default
     protected $pinned_posts = [];
     protected $nsfw = [];
     protected $nsfw_lock = [];
@@ -113,6 +113,7 @@ class Group extends NormalizedEntity implements EntityInterface
             'mature' => $this->mature,
             'videoChatDisabled' => $this->videoChatDisabled,
             'conversationDisabled' => $this->conversationDisabled,
+            'conversation_disabled' => $this->conversationDisabled,
             'pinned_posts' => $this->pinned_posts,
             'nsfw' => $this->getNSFW(),
             'nsfw_lock' => $this->getNSFWLock(),
