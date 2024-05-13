@@ -488,7 +488,7 @@ class RoomRepository extends AbstractRepository
                     'joined_timestamp' => null,
                     'role_id' => 'MEMBER',
                     'notifications_status' => 'MUTED'
-                ], array_filter($cachedChatRoomItem->memberGuids, fn($memberGuid) => (int) $memberGuid !== (int) $user->getGuid())),
+                ], array_filter($cachedChatRoomItem->memberGuids, fn ($memberGuid) => (int) $memberGuid !== (int) $user->getGuid())),
                 'hasMore' => true
             ];
         }
