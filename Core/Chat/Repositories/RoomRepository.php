@@ -153,6 +153,7 @@ class RoomRepository extends AbstractRepository
                 'r.*',
                 new RawExp('last_msg.plain_text as last_msg_plain_text'),
                 new RawExp('last_msg.created_timestamp as last_msg_created_timestamp'),
+                new RawExp('GREATEST(COALESCE(last_msg.created_timestamp, 0), r.created_timestamp) as last_activity_timestamp'),
                 new RawExp("
                     CASE
                         WHEN
@@ -238,7 +239,7 @@ class RoomRepository extends AbstractRepository
             )
             ->where('r.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->whereWithNamedParameters('m.status', Operator::IN, 'status', count($targetMemberStatuses))
-            ->orderBy('last_msg.created_timestamp DESC', 'r.created_timestamp DESC')
+            ->orderBy('last_activity_timestamp DESC')
             ->limit($limit + 1);
 
         if ($roomGuid) {
