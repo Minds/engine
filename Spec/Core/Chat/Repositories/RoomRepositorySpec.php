@@ -238,7 +238,7 @@ class RoomRepositorySpec extends ObjectBehavior
                     ) &&
                     (
                         $cols[3] instanceof RawExp &&
-                        $cols[3]->getValue() === "GREATEST(COALESCE(last_msg.created_timestamp, 0), r.created_timestamp) as last_activity_timestamp"
+                        $cols[3]->getValue() === "COALESCE(last_msg.created_timestamp, r.created_timestamp) as last_activity_timestamp"
                     ) &&
                     (
                         $cols[4] instanceof RawExp &&
