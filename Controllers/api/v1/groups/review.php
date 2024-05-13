@@ -5,6 +5,7 @@
  */
 namespace Minds\Controllers\api\v1\groups;
 
+use Minds\Api\Exportable;
 use Minds\Core;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Groups\V2\Membership\Manager;
@@ -73,7 +74,7 @@ class review implements Interfaces\Api
         $result = $feeds->getAll([ 'limit' => $limit, 'offset' => $offset ], $loadNext);
 
         return Factory::response([
-            'activity' => Factory::exportable($result),
+            'activity' => Exportable::_($result),
             'adminqueue:count' => $count,
             'load-next' => $loadNext,
         ]);
