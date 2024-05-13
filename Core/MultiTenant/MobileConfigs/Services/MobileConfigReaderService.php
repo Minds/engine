@@ -84,11 +84,12 @@ class MobileConfigReaderService
     private function prepareAppReadyMobileConfigAssets(Tenant $tenant): array
     {
         $assets = [];
+        $md5 = md5(strval($tenant->id));
 
         foreach (MobileConfigImageTypeEnum::cases() as $imageType) {
             $assets[] = new KeyValuePair(
                 key: $imageType->value,
-                value: "{$this->config->get('site_url')}api/v3/multi-tenant/mobile-configs/image/$imageType->value" . "?" . time()
+                value: "https://{$md5}.networks.minds.com/api/v3/multi-tenant/mobile-configs/image/$imageType->value" . "?" . time()
             );
         }
 
