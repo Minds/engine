@@ -139,6 +139,9 @@ class GroupChatServiceSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($loggedInUserGuid);
 
+        $group->isConversationDisabled()
+            ->shouldNotBeCalled();
+
         $group->setConversationDisabled(false)
             ->shouldNotBeCalled();
 
