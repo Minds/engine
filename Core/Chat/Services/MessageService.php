@@ -292,6 +292,23 @@ class MessageService
             }
 
             $this->messageRepository->commitTransaction();
+
+            try {
+                $this->socketEvents
+                    ->setRoom("chat:$roomGuid")
+                    ->emit(
+                        "chat:$roomGuid",
+                        json_encode(new ChatEvent(
+                            type: ChatEventTypeEnum::MESSAGE_DELETED,
+                            metadata: [
+                                'messageGuid' => (string) $messageGuid
+                            ],
+                        ))
+                    );
+            } catch (\Exception $e) {
+                $this->logger->error($e); // Log but continue.
+            }
+
             return true;
         } catch (ServerErrorException $e) {
             throw new GraphQLException(message: 'Failed to delete message', code: 500);

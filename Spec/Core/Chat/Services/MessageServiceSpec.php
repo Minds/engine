@@ -583,6 +583,21 @@ class MessageServiceSpec extends ObjectBehavior
         $this->messageRepositoryMock->commitTransaction()
             ->shouldBeCalledOnce();
 
+        $this->socketEventsMock->setRoom("chat:123")
+            ->shouldBeCalledOnce()
+            ->willReturn($this->socketEventsMock);
+
+        $this->socketEventsMock->emit(
+            "chat:123",
+            json_encode(new ChatEvent(
+                type: ChatEventTypeEnum::MESSAGE_DELETED,
+                metadata: [
+                    'messageGuid' => "1",
+                ],
+            ))
+        )
+            ->shouldBeCalledOnce();
+
         $this->deleteMessage(
             123,
             1,
@@ -654,6 +669,21 @@ class MessageServiceSpec extends ObjectBehavior
             ->willReturn(true);
 
         $this->messageRepositoryMock->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->socketEventsMock->setRoom("chat:123")
+            ->shouldBeCalledOnce()
+            ->willReturn($this->socketEventsMock);
+
+        $this->socketEventsMock->emit(
+            "chat:123",
+            json_encode(new ChatEvent(
+                type: ChatEventTypeEnum::MESSAGE_DELETED,
+                metadata: [
+                    'messageGuid' => "1",
+                ],
+            ))
+        )
             ->shouldBeCalledOnce();
 
         $this->deleteMessage(
@@ -731,6 +761,21 @@ class MessageServiceSpec extends ObjectBehavior
             ->willReturn(true);
 
         $this->messageRepositoryMock->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->socketEventsMock->setRoom("chat:123")
+            ->shouldBeCalledOnce()
+            ->willReturn($this->socketEventsMock);
+
+        $this->socketEventsMock->emit(
+            "chat:123",
+            json_encode(new ChatEvent(
+                type: ChatEventTypeEnum::MESSAGE_DELETED,
+                metadata: [
+                    'messageGuid' => "1",
+                ],
+            ))
+        )
             ->shouldBeCalledOnce();
 
         $this->deleteMessage(
@@ -872,6 +917,21 @@ class MessageServiceSpec extends ObjectBehavior
             ->willReturn(true);
 
         $this->messageRepositoryMock->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->socketEventsMock->setRoom("chat:123")
+            ->shouldBeCalledOnce()
+            ->willReturn($this->socketEventsMock);
+
+        $this->socketEventsMock->emit(
+            "chat:123",
+            json_encode(new ChatEvent(
+                type: ChatEventTypeEnum::MESSAGE_DELETED,
+                metadata: [
+                    'messageGuid' => "1",
+                ],
+            ))
+        )
             ->shouldBeCalledOnce();
 
         $this->deleteMessage(
