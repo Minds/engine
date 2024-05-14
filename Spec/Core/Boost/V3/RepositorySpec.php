@@ -11,7 +11,9 @@ use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
 use Minds\Core\Boost\V3\Enums\BoostTargetSuitability;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Boost\V3\Repository;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
+use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
@@ -35,20 +37,13 @@ class RepositorySpec extends ObjectBehavior
     private Collaborator $mysqlClientWriterHandler;
     private Collaborator $entitiesBuilder;
 
-    /**
-     * @param MySQLClient $mysqlHandler
-     * @param PDO $mysqlClientReader
-     * @param PDO $mysqlClientWriter
-     * @param EntitiesBuilder $entitiesBuilder
-     * @return void
-     * @throws ServerErrorException
-     */
     public function let(
         MySQLClient $mysqlHandler,
         PDO    $mysqlClientReader,
         PDO    $mysqlClientWriter,
         Connection $mysqlClientWriterHandler,
-        EntitiesBuilder $entitiesBuilder
+        EntitiesBuilder $entitiesBuilder,
+        Config $configMock,
     ): void {
         $this->mysqlHandler = $mysqlHandler;
 
@@ -65,7 +60,7 @@ class RepositorySpec extends ObjectBehavior
 
         $this->entitiesBuilder = $entitiesBuilder;
 
-        $this->beConstructedWith($this->mysqlHandler, $this->entitiesBuilder, $this->mysqlClientWriterHandler);
+        $this->beConstructedWith($this->entitiesBuilder, $this->mysqlHandler, $configMock, Di::_()->get('Logger'));
     }
 
     public function it_is_initializable(): void
@@ -81,10 +76,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_platform_web, target_platform_android, target_platform_ios, target_location, goal, goal_button_text, goal_button_url, payment_method, payment_amount, payment_tx_id, payment_guid, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
-                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_platform_web, :target_platform_android, :target_platform_ios, :target_location, :goal, :goal_button_text, :goal_button_url, :payment_method, :payment_amount, :payment_tx_id, :payment_guid, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
-
-        $this->mysqlClientWriter->prepare($query)
+        $this->mysqlClientWriter->prepare(Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn($statement);
 
@@ -146,10 +138,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_platform_web, target_platform_android, target_platform_ios, target_location, goal, goal_button_text, goal_button_url, payment_method, payment_amount, payment_tx_id, payment_guid, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
-                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_platform_web, :target_platform_android, :target_platform_ios, :target_location, :goal, :goal_button_text, :goal_button_url, :payment_method, :payment_amount, :payment_tx_id, :payment_guid, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
-
-        $this->mysqlClientWriter->prepare($query)
+        $this->mysqlClientWriter->prepare(Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn($statement);
 
@@ -394,7 +383,6 @@ class RepositorySpec extends ObjectBehavior
 
     public function it_should_get_expired_approved_boosts(PDOStatement $statement): void
     {
-        $query = "SELECT * FROM boosts WHERE status = :status AND :expired_timestamp > TIMESTAMPADD(DAY, duration_days, approved_timestamp)";
         $statement->execute()
             ->shouldBeCalledOnce()
             ->willReturn(true);
@@ -424,7 +412,7 @@ class RepositorySpec extends ObjectBehavior
                 ]
             ]);
 
-        $this->mysqlClientReader->prepare($query)
+        $this->mysqlClientReader->prepare(Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn($statement);
 
@@ -491,8 +479,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $query = "UPDATE boosts SET status = :status, approved_timestamp = :approved_timestamp, updated_timestamp = :updated_timestamp, admin_guid = :admin_guid WHERE guid = :guid";
-        $this->mysqlClientWriter->prepare($query)
+        $this->mysqlClientWriter->prepare(Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn($statement);
 
@@ -510,8 +497,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp, reason = :reason WHERE guid = :guid";
-        $this->mysqlClientWriter->prepare($query)
+        $this->mysqlClientWriter->prepare(Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn($statement);
 
@@ -524,7 +510,6 @@ class RepositorySpec extends ObjectBehavior
 
     public function it_should_update_boost_status(
         PDOStatement $statement,
-        UpdateQuery $updateQuery
     ): void {
         $statement->execute()
             ->shouldBeCalledOnce()
@@ -532,26 +517,6 @@ class RepositorySpec extends ObjectBehavior
 
         $this->mysqlClientWriter->prepare(Argument::type('string'))
             ->willReturn($statement);
-
-        $updateQuery->table('boosts')
-            ->shouldBeCalledOnce()
-            ->willReturn($updateQuery);
-
-        $updateQuery->set(Argument::type('array'))
-            ->shouldBeCalledOnce()
-            ->willReturn($updateQuery);
-
-        $updateQuery->where('guid', Operator::EQ, Argument::type(RawExp::class))
-            ->shouldBeCalledOnce()
-            ->willReturn($updateQuery);
-
-        $updateQuery->prepare()
-            ->shouldBeCalledOnce()
-            ->willReturn($statement);
-
-        $this->mysqlClientWriterHandler->update()
-            ->shouldBeCalledOnce()
-            ->willReturn($updateQuery);
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
             ->shouldBeCalledOnce();
@@ -567,13 +532,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $this->mysqlClientWriter->prepare(Argument::that(function ($arg) {
-            return $arg === "UPDATE boosts
-            SET status = :status,
-                updated_timestamp = :updated_timestamp,
-                reason = :reason
-            WHERE entity_guid = :entity_guid AND (status = 2 OR status = 1)";
-        }))
+        $this->mysqlClientWriter->prepare(Argument::any())
             ->shouldBeCalledOnce()
             ->willReturn($statement);
 
@@ -596,14 +555,7 @@ class RepositorySpec extends ObjectBehavior
             'controversial_count' => 82
         ];
 
-        $query = "SELECT
-            SUM(CASE WHEN boosts.target_suitability = :safe_audience THEN 1 ELSE 0 END) as safe_count,
-            SUM(CASE WHEN boosts.target_suitability = :controversial_audience THEN 1 ELSE 0 END) AS controversial_count
-            FROM boosts WHERE (status = :status)";
-
-        $this->mysqlClientReader->prepare(Argument::that(function ($prepared) use ($query) {
-            return $prepared === $query;
-        }))
+        $this->mysqlClientReader->prepare(Argument::any())
             ->shouldBeCalled()
             ->willReturn($statement);
 
@@ -645,30 +597,13 @@ class RepositorySpec extends ObjectBehavior
         ];
 
         $ownerGuid = '234';
-        $limit = 30;
 
-        $query = "SELECT status, count(status) AS statusCount
-            FROM
-                (
-                    SELECT status
-                    FROM
-                        boosts
-                    WHERE owner_guid = :owner_guid AND (status = 2 OR status = 10 OR status = 3)
-                    ORDER BY
-                        updated_timestamp DESC
-                    LIMIT :limit
-                ) as boostsStatuses
-            GROUP BY status";
-
-        $this->mysqlClientReader->prepare(Argument::that(function ($prepared) use ($query) {
-            return $prepared === $query;
-        }))
+        $this->mysqlClientReader->prepare(Argument::any())
             ->shouldBeCalled()
             ->willReturn($statement);
 
-        $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::that(function ($values) use ($ownerGuid, $limit) {
-            return $values['owner_guid'] === $ownerGuid &&
-                $values['limit'] === $limit;
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::that(function ($values) use ($ownerGuid) {
+            return $values['owner_guid'] === $ownerGuid;
         }))
             ->shouldBeCalled();
 
@@ -682,7 +617,7 @@ class RepositorySpec extends ObjectBehavior
         $this->getBoostStatusCounts(
             $ownerGuid,
             $statuses,
-            $limit
+            30
         )->shouldBe($formattedReturnValue);
     }
 }

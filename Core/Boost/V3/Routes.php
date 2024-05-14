@@ -18,7 +18,6 @@ class Routes extends ModuleRoutes
             ->withPrefix('api/v3/boosts')
             ->withMiddleware([
                 LoggedInMiddleware::class,
-                NotMultiTenantMiddleware::class,
             ])
             ->do(function (Route $route): void {
                 $route->get(

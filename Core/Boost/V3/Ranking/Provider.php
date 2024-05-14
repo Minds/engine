@@ -2,6 +2,8 @@
 
 namespace Minds\Core\Boost\V3\Ranking;
 
+use Minds\Core\Config\Config;
+use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Di;
 
 /**
@@ -19,7 +21,11 @@ class Provider extends Di\Provider
             return new Manager();
         }, ['useFactory' => true]);
         $this->di->bind(Repository::class, function ($di) {
-            return new Repository();
+            return new Repository(
+                mysqlHandler: $di->get(Client::class),
+                config: $di->get(Config::class),
+                logger: $di->get('Logger'),
+            );
         }, ['useFactory' => true]);
     }
 }
