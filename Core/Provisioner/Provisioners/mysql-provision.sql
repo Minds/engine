@@ -1056,3 +1056,18 @@ ADD COLUMN manual boolean DEFAULT false AFTER membership_tier_guid;
 ALTER TABLE `minds_tenant_configs`
     ADD boost_enabled boolean DEFAULT false
     AFTER nsfw_enabled;
+
+ALTER TABLE boosts
+    ADD tenant_id int DEFAULT -1
+    FIRST;
+ALTER TABLE boosts DROP PRIMARY KEY , ADD PRIMARY KEY(tenant_id, guid);
+
+ALTER TABLE boost_summaries
+    ADD tenant_id int DEFAULT -1
+    FIRST;
+ALTER TABLE boost_summaries DROP PRIMARY KEY , ADD PRIMARY KEY(tenant_id, guid, date);
+
+ALTER TABLE boost_rankings
+    ADD tenant_id int DEFAULT -1
+    FIRST;
+ALTER TABLE boost_rankings DROP PRIMARY KEY , ADD PRIMARY KEY(tenant_id, guid);
