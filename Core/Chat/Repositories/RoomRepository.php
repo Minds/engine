@@ -1141,7 +1141,7 @@ class RoomRepository extends AbstractRepository
         int $roomGuid,
         string $roomName
     ): bool {
-        $stmt = $this->mysqlClientReaderHandler->update()
+        $stmt = $this->mysqlClientWriterHandler->update()
             ->table(self::TABLE_NAME)
             ->set(['room_name' => $roomName])
             ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))

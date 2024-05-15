@@ -1698,7 +1698,7 @@ class RoomRepositorySpec extends ObjectBehavior
 
         $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
 
-        $this->mysqlClientReaderHandlerMock->update()
+        $this->mysqlClientWriterHandlerMock->update()
             ->shouldBeCalledOnce()
             ->willReturn($updateQueryMock);
 
