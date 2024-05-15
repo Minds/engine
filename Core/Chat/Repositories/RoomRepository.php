@@ -1156,6 +1156,7 @@ class RoomRepository extends AbstractRepository
         try {
             return $stmt->execute($values);
         } catch (PDOException $e) {
+            $this->logger->error($e);
             throw new ServerErrorException(message: 'Failed to update chat room name', previous: $e);
         }
     }
