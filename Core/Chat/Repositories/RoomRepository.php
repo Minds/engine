@@ -1143,14 +1143,15 @@ class RoomRepository extends AbstractRepository
     ): bool {
         $stmt = $this->mysqlClientWriterHandler->update()
             ->table(self::TABLE_NAME)
-            ->set(['room_name' => $roomName])
+            ->set(['room_name' => new RawExp(':room_name')])
             ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
             ->prepare();
 
         $values = [
             'tenant_id' => $this->getTenantId(),
-            'room_guid' => $roomGuid
+            'room_guid' => $roomGuid,
+            'room_name' => $roomName
         ];
 
         try {
