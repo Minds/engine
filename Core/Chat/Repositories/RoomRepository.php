@@ -248,9 +248,9 @@ class RoomRepository extends AbstractRepository
 
         $optionalValues = [];
         if ($lastMessageCreatedAtTimestamp) {
-            $stmt->whereRaw('(last_msg.created_timestamp < :last_msg_created_timestamp OR last_msg.created_timestamp IS NULL)');
+            $stmt->whereRaw('COALESCE(last_msg.created_timestamp, r.created_timestamp) < :last_activity_timestamp');
             $optionalValues = [
-                'last_msg_created_timestamp' => date('c', $lastMessageCreatedAtTimestamp),
+                'last_activity_timestamp' => date('c', $lastMessageCreatedAtTimestamp),
             ];
         } elseif ($roomCreatedAtTimestamp) {
             $stmt->where('last_msg.created_timestamp', Operator::IS, null);
