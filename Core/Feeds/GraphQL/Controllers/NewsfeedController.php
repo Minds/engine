@@ -153,7 +153,8 @@ class NewsfeedController
                     limit: $limit,
                     onlySubscribed: !$this->isTenant(),
                     onlySubscribedAndGroups: $this->isTenant(),
-                    accessId: Access::PUBLIC
+                    accessId: Access::PUBLIC,
+                    nsfw: $allowedNsfw,
                 ),
                 loadAfter: $loadAfter,
                 loadBefore: $loadBefore,
@@ -177,6 +178,7 @@ class NewsfeedController
                     onlySubscribed: !$this->isTenant(),
                     onlySubscribedAndGroups: $this->isTenant(),
                     accessId: Access::PUBLIC,
+                    nsfw: $allowedNsfw,
                 ),
                 loadAfter: $loadAfter,
                 loadBefore: $loadBefore,
