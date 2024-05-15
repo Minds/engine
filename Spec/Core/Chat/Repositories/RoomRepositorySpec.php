@@ -1706,7 +1706,7 @@ class RoomRepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($updateQueryMock);
         
-        $updateQueryMock->set(['room_name' => $roomName])
+        $updateQueryMock->set(['room_name' => new RawExp(':room_name')])
             ->shouldBeCalledOnce()
             ->willReturn($updateQueryMock);
 
@@ -1725,6 +1725,7 @@ class RoomRepositorySpec extends ObjectBehavior
         $pdoStatementMock->execute([
             'tenant_id' => 1,
             'room_guid' => $roomGuid,
+            'room_name' => $roomName
         ])
             ->shouldBeCalledOnce()
             ->willReturn(true);
