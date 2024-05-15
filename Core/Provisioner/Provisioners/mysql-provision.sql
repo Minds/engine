@@ -1071,3 +1071,7 @@ ALTER TABLE boost_rankings
     ADD tenant_id int DEFAULT -1
     FIRST;
 ALTER TABLE boost_rankings DROP PRIMARY KEY , ADD PRIMARY KEY(tenant_id, guid);
+
+ALTER TABLE `minds_entities_group`
+    ADD conversation_disabled boolean DEFAULT true 
+    AFTER show_boost;

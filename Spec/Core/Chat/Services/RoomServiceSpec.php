@@ -1065,12 +1065,13 @@ class RoomServiceSpec extends ObjectBehavior
     public function it_should_delete_chat_room(
         User $userMock
     ): void {
+        $roomGuid = Guid::build();
         $userMock->getGuid()
-        ->shouldBeCalled()
-        ->willReturn('456');
+            ->shouldBeCalled()
+            ->willReturn('456');
 
         $this->roomRepositoryMock->isUserMemberOfRoom(
-            123,
+            $roomGuid,
             $userMock,
             [
                 ChatRoomMemberStatusEnum::ACTIVE->name,
@@ -1081,7 +1082,7 @@ class RoomServiceSpec extends ObjectBehavior
             ->willReturn(true);
 
         $chatRoomListItemMock = $this->generateChatRoomListItem(
-            chatRoom: $this->generateChatRoomMock(),
+            chatRoom: $this->generateChatRoomMock(guid: $roomGuid),
             lastMessagePlainText: null,
             lastMessageCreatedTimestamp: null
         );
@@ -1095,7 +1096,7 @@ class RoomServiceSpec extends ObjectBehavior
             1,
             null,
             null,
-            123,
+            $roomGuid,
         )
             ->shouldBeCalledOnce()
             ->willReturn([
@@ -1107,7 +1108,7 @@ class RoomServiceSpec extends ObjectBehavior
 
         $this->roomRepositoryMock->getUserStatusInRoom(
             $userMock,
-            123
+            $roomGuid
         )
             ->shouldBeCalledOnce()
             ->willReturn(
@@ -1115,7 +1116,7 @@ class RoomServiceSpec extends ObjectBehavior
             );
 
         $this->roomRepositoryMock->getRoomMemberSettings(
-            123,
+            $roomGuid,
             456
         )
             ->shouldBeCalledOnce()
@@ -1124,7 +1125,7 @@ class RoomServiceSpec extends ObjectBehavior
             ]);
 
         $this->roomRepositoryMock->isUserRoomOwner(
-            123,
+            $roomGuid,
             $userMock
         )
             ->shouldBeCalledTimes(2)
@@ -1132,7 +1133,7 @@ class RoomServiceSpec extends ObjectBehavior
 
         $this->roomRepositoryMock->beginTransaction()
             ->shouldBeCalledOnce();
-        $this->roomRepositoryMock->deleteRoom(123)
+        $this->roomRepositoryMock->deleteRoom($roomGuid)
             ->shouldBeCalledOnce()
             ->willReturn(true);
         $this->roomRepositoryMock->commitTransaction()
@@ -1143,8 +1144,8 @@ class RoomServiceSpec extends ObjectBehavior
             chatRoom: Argument::type(ChatRoom::class),
         )->shouldBeCalled();
 
-        $this->deleteChatRoom(
-            123,
+        $this->deleteChatRoomByRoomGuid(
+            $roomGuid,
             $userMock
         )
             ->shouldEqual(true);
@@ -1153,12 +1154,14 @@ class RoomServiceSpec extends ObjectBehavior
     public function it_should_throw_exception_when_user_IS_NOT_room_owner_and_try_delete_chat_room(
         User $userMock
     ): void {
+        $roomGuid = Guid::build();
+
         $userMock->getGuid()
-        ->shouldBeCalled()
-        ->willReturn('456');
+            ->shouldBeCalled()
+            ->willReturn('456');
 
         $this->roomRepositoryMock->isUserMemberOfRoom(
-            123,
+            $roomGuid,
             $userMock,
             [
                 ChatRoomMemberStatusEnum::ACTIVE->name,
@@ -1169,7 +1172,7 @@ class RoomServiceSpec extends ObjectBehavior
             ->willReturn(true);
 
         $chatRoomListItemMock = $this->generateChatRoomListItem(
-            chatRoom: $this->generateChatRoomMock(),
+            chatRoom: $this->generateChatRoomMock(guid: $roomGuid),
             lastMessagePlainText: null,
             lastMessageCreatedTimestamp: null
         );
@@ -1183,7 +1186,7 @@ class RoomServiceSpec extends ObjectBehavior
             1,
             null,
             null,
-            123,
+            $roomGuid,
         )
             ->shouldBeCalledOnce()
             ->willReturn([
@@ -1195,7 +1198,7 @@ class RoomServiceSpec extends ObjectBehavior
 
         $this->roomRepositoryMock->getUserStatusInRoom(
             $userMock,
-            123
+            $roomGuid
         )
             ->shouldBeCalledOnce()
             ->willReturn(
@@ -1203,7 +1206,7 @@ class RoomServiceSpec extends ObjectBehavior
             );
 
         $this->roomRepositoryMock->getRoomMemberSettings(
-            123,
+            $roomGuid,
             456
         )
             ->shouldBeCalledOnce()
@@ -1212,7 +1215,7 @@ class RoomServiceSpec extends ObjectBehavior
             ]);
    
         $this->roomRepositoryMock->isUserRoomOwner(
-            123,
+            $roomGuid,
             $userMock
         )
             ->shouldBeCalledTimes(2)
@@ -1223,9 +1226,9 @@ class RoomServiceSpec extends ObjectBehavior
                 new GraphQLException(message: "You are not the owner of this chat.", code: 403)
             )
             ->during(
-                method: 'deleteChatRoom',
+                method: 'deleteChatRoomByRoomGuid',
                 arguments: [
-                    123,
+                    $roomGuid,
                     $userMock
                 ]
             );
@@ -1354,15 +1357,16 @@ class RoomServiceSpec extends ObjectBehavior
         User $userMock,
         User $memberMock
     ): void {
+        $guid = Guid::build();
         $chatRoomListItemMock = $this->generateChatRoomListItem(
-            chatRoom: $this->generateChatRoomMock(),
+            chatRoom: $this->generateChatRoomMock(guid: $guid),
             lastMessagePlainText: null,
             lastMessageCreatedTimestamp: null
         );
 
         $this->roomRepositoryMock->getUserStatusInRoom(
             $userMock,
-            123
+            $guid
         )
             ->shouldBeCalledTimes(2)
             ->willReturn(
@@ -1370,7 +1374,7 @@ class RoomServiceSpec extends ObjectBehavior
             );
 
         $this->roomRepositoryMock->getRoomMemberSettings(
-            123,
+            $guid,
             456
         )
             ->shouldBeCalledTimes(2)
@@ -1383,7 +1387,7 @@ class RoomServiceSpec extends ObjectBehavior
             ->willReturn('456');
 
         $this->roomRepositoryMock->isUserMemberOfRoom(
-            123,
+            $guid,
             $userMock,
             [
                 ChatRoomMemberStatusEnum::ACTIVE->name,
@@ -1394,7 +1398,7 @@ class RoomServiceSpec extends ObjectBehavior
             ->willReturn(true);
 
         $this->roomRepositoryMock->isUserRoomOwner(
-            123,
+            $guid,
             $userMock
         )
             ->shouldBeCalledTimes(3)
@@ -1409,16 +1413,12 @@ class RoomServiceSpec extends ObjectBehavior
             1,
             null,
             null,
-            123
+            $guid
         )
             ->shouldBeCalledTimes(2)
             ->willReturn([
                 'chatRooms' => [
-                    $this->generateChatRoomListItem(
-                        chatRoom: $this->generateChatRoomMock(),
-                        lastMessagePlainText: null,
-                        lastMessageCreatedTimestamp: null
-                    )
+                    $chatRoomListItemMock
                 ],
                 'hasMore' => false
             ]);
@@ -1427,7 +1427,7 @@ class RoomServiceSpec extends ObjectBehavior
             ->willReturn('456');
 
         $this->roomRepositoryMock->getRoomMembers(
-            123,
+            $guid,
             $userMock,
             1,
             null,
@@ -1455,7 +1455,7 @@ class RoomServiceSpec extends ObjectBehavior
 
         $this->roomRepositoryMock->beginTransaction()
             ->shouldBeCalledOnce();
-        $this->roomRepositoryMock->deleteRoom(123)
+        $this->roomRepositoryMock->deleteRoom($guid)
             ->shouldBeCalledOnce()
             ->willReturn(true);
         $this->roomRepositoryMock->commitTransaction()
@@ -1468,7 +1468,7 @@ class RoomServiceSpec extends ObjectBehavior
             ->willReturn(true);
 
         $this->deleteChatRoomAndBlockUser(
-            123,
+            $guid,
             $userMock
         )
             ->shouldEqual(true);
@@ -1555,10 +1555,48 @@ class RoomServiceSpec extends ObjectBehavior
             );
     }
 
+    public function it_should_get_rooms_by_group(): void
+    {
+        $groupGuid = Guid::build();
+
+        $chatRooms = [
+            array_fill(
+                0,
+                6,
+                $this->generateChatRoomListItem(
+                    chatRoom: $this->generateChatRoomMock()
+                )
+            )
+        ];
+
+        $this->roomRepositoryMock->getGroupRooms($groupGuid)
+            ->shouldBeCalled()
+            ->willReturn($chatRooms);
+
+        $this->getRoomsByGroup($groupGuid)
+            ->shouldBe($chatRooms);
+    }
+
+    public function it_should_get_rooms_by_group_returning_empty_array_when_none_are_found(): void
+    {
+        $groupGuid = Guid::build();
+
+        $chatRooms = [];
+
+        $this->roomRepositoryMock->getGroupRooms($groupGuid)
+            ->shouldBeCalled()
+            ->willReturn($chatRooms);
+
+        $this->getRoomsByGroup($groupGuid)
+            ->shouldBe($chatRooms);
+    }
+
     private function generateChatRoomMock(
-        ChatRoomTypeEnum $roomType = ChatRoomTypeEnum::ONE_TO_ONE
+        ChatRoomTypeEnum $roomType = ChatRoomTypeEnum::ONE_TO_ONE,
+        int $guid = null
     ): ChatRoom {
         $chatRoom = $this->chatRoomMockFactory->newInstanceWithoutConstructor();
+        $this->chatRoomMockFactory->getProperty('guid')->setValue($chatRoom, $guid ?? Guid::build());
         $this->chatRoomMockFactory->getProperty('createdAt')->setValue($chatRoom, new DateTimeImmutable());
         $this->chatRoomMockFactory->getProperty('roomType')->setValue($chatRoom, $roomType);
         $this->chatRoomMockFactory->getProperty('name')->setValue($chatRoom, null);
