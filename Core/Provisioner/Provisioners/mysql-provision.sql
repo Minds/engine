@@ -1057,3 +1057,7 @@ SELECT * FROM minds_site_membership_subscriptions;
 ALTER TABLE `minds_entities_group`
     ADD conversation_disabled boolean DEFAULT true 
     AFTER show_boost;
+
+ALTER TABLE `minds_chat_rooms`
+    ADD room_name varchar(128) 
+    AFTER room_type;

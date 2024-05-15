@@ -470,4 +470,26 @@ class ChatController
             notificationStatus: $notificationStatus
         );
     }
+
+
+    /**
+     * Update chat room name.
+     * @param string $roomGuid - The guid of the room.
+     * @param string $roomName - The new name of the room.
+     * @param User $loggedInUser - The user updating the room name.
+     * @return bool - True if the room name was updated successfully.
+     */
+    #[Mutation]
+    #[Logged]
+    public function updateChatRoomName(
+        string $roomGuid,
+        string $roomName,
+        #[InjectUser] User $loggedInUser
+    ): bool {
+        return $this->roomService->updateRoomName(
+            roomGuid: (int) $roomGuid,
+            roomName: $roomName,
+            user: $loggedInUser
+        );
+    }
 }
