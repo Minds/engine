@@ -606,6 +606,7 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
             'excerpt',
             'slug',
             'permaUrl',
+            'link_title',
             'hasHeaderBg',
             'headerTop',
             'timeCreated',
