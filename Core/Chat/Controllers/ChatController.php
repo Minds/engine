@@ -471,7 +471,6 @@ class ChatController
         );
     }
 
-
     /**
      * Update chat room name.
      * @param string $roomGuid - The guid of the room.
