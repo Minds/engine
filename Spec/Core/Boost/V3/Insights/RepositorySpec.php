@@ -6,7 +6,9 @@ use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
 use Minds\Core\Boost\V3\Insights\Repository;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\Client;
+use Minds\Core\Di\Di;
 use PDO;
 use PDOStatement;
 use PhpSpec\ObjectBehavior;
@@ -20,13 +22,15 @@ class RepositorySpec extends ObjectBehavior
     /** @var PDO */
     protected $mysqlReplicaMock;
 
-    public function let(Client $mysqlClientMock, PDO $pdoMock)
+    public function let(Client $mysqlClientMock, PDO $pdoMock, Config $configMock)
     {
-        $this->beConstructedWith($mysqlClientMock);
+        $this->beConstructedWith($mysqlClientMock, $configMock, Di::_()->get('Logger'));
         $this->mysqlClientMock = $mysqlClientMock;
 
         $mysqlClientMock->getConnection(Client::CONNECTION_REPLICA)->willReturn($pdoMock);
         $this->mysqlReplicaMock = $pdoMock;
+
+        $mysqlClientMock->getConnection(Client::CONNECTION_MASTER)->willReturn($pdoMock);
     }
     
     public function it_is_initializable()
@@ -36,6 +40,7 @@ class RepositorySpec extends ObjectBehavior
 
     public function it_should_return_historic_cpms(PDOStatement $pdoStatementMock)
     {
+        $this->mysqlReplicaMock->quote(Argument::type('string'))->willReturn('');
         $this->mysqlReplicaMock->prepare(Argument::type('string'))->shouldBeCalled()
             ->willReturn($pdoStatementMock);
 
