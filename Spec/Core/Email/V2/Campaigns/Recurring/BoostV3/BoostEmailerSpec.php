@@ -79,7 +79,7 @@ class BoostEmailerSpec extends ObjectBehavior
         $durationDays = 10;
         $campaign = 'when';
         $tracking = "__e_ct_guid=$userGuid&campaign=when&topic=$topic";
-        $bodyText = "We're reviewing your Boost for \$$paymentAmount over $durationDays days. Once it's approved, your Boost will automatically begin running on Minds.";
+        $bodyText = "We're reviewing your Boost for \$$paymentAmount over $durationDays days. Once it's approved, your Boost will automatically begin running.";
         $headerText = "Your Boost is in review";
         $preHeaderText = "Here's what comes next.";
         $url = '~url~';
@@ -215,7 +215,7 @@ class BoostEmailerSpec extends ObjectBehavior
         $durationDays = 10;
         $campaign = 'when';
         $tracking = "__e_ct_guid=$userGuid&campaign=when&topic=$topic";
-        $bodyText = "We're reviewing your Boost for $paymentAmount tokens over $durationDays days. Once it's approved, your Boost will automatically begin running on Minds.";
+        $bodyText = "We're reviewing your Boost for $paymentAmount tokens over $durationDays days. Once it's approved, your Boost will automatically begin running.";
         $headerText = "Your Boost is in review";
         $preHeaderText = "Here's what comes next.";
         $url = '~url~';
@@ -714,7 +714,7 @@ class BoostEmailerSpec extends ObjectBehavior
         $targetSuitability = BoostTargetSuitability::CONTROVERSIAL;
         $campaign = 'when';
         $tracking = "__e_ct_guid=$userGuid&campaign=when&topic=$topic";
-        $bodyText = 'We’ve reviewed your Boost and determined the content does not meet the <a href="https://support.minds.com/hc/en-us/articles/11723536774292-Boost-Content-Policy" style="color: #4080D0; text-decoration: underline" target="_blank">content policy</a> requirements for Boost. You have been refunded.';
+        $bodyText = 'We’ve reviewed your Boost and determined the content does not meet the content policy requirements for the selected audience. You have been refunded.';
         $headerText = "Your Boost was rejected";
         $preHeaderText = "Find out why.";
 
