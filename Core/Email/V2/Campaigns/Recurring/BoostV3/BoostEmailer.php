@@ -126,7 +126,7 @@ class BoostEmailer extends EmailCampaign
             case ActionEvent::ACTION_BOOST_CREATED:
                 $headerText = 'Your Boost is in review';
                 $preHeaderText = "Here's what comes next.";
-                $bodyText = "We're reviewing your Boost for {$this->getPaymentAmountString()} over {$this->getLengthDays()} days. Once it's approved, your Boost will automatically begin running on Minds.";
+                $bodyText = "We're reviewing your Boost for {$this->getPaymentAmountString()} over {$this->getLengthDays()} days. Once it's approved, your Boost will automatically begin running.";
                 $ctaText = 'View Status';
                 $receiptUrl = $this->getBoostReceiptUrl();
                 $ctaPath = $this->getConsoleUrl($trackingQueryParams);
@@ -142,8 +142,8 @@ class BoostEmailer extends EmailCampaign
                 } elseif ($this->boost->getTargetSuitability() === BoostTargetAudiences::CONTROVERSIAL) {
                     $headerText = 'Your Boost was rejected';
                     $preHeaderText = 'Find out why.';
-                    $contentPolicyHtml = '<a href="https://support.minds.com/hc/en-us/articles/11723536774292-Boost-Content-Policy" style="color: #4080D0; text-decoration: underline" target="_blank">content policy</a>';
-                    $bodyText = "We’ve reviewed your Boost and determined the content does not meet the $contentPolicyHtml requirements for Boost. You have been refunded.";
+                    // $contentPolicyHtml = '<a href="https://support.minds.com/hc/en-us/articles/11723536774292-Boost-Content-Policy" style="color: #4080D0; text-decoration: underline" target="_blank">content policy</a>';
+                    $bodyText = "We’ve reviewed your Boost and determined the content does not meet the content policy requirements for the selected audience. You have been refunded.";
                     $ctaText = 'View Results';
                 } else {
                     $this->logger->error("Unsupported target suitability when sending email for Boost {$this->boost->getGuid()}");
