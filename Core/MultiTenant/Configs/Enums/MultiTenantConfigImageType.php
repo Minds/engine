@@ -11,4 +11,5 @@ enum MultiTenantConfigImageType: string
     case SQUARE_LOGO = 'square_logo';
     case HORIZONTAL_LOGO = 'horizontal_logo';
     case FAVICON = 'favicon';
+    case MONOGRAPHIC_ICON = 'monographic_icon';
 }
