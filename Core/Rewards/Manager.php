@@ -46,7 +46,7 @@ class Manager
     const REWARD_TYPE_HOLDING = 'holding';
 
     /** @var int */
-    const ENGAGEMENT_SCORE_MULTIPLIER = 3;
+    const REWARD_MULTIPLIER = 3;
 
     /** @var Contributions\Manager */
     protected $contributions;
@@ -203,14 +203,14 @@ class Manager
                 continue;
             }
 
-            $score = BigDecimal::of($contributionSummary->getScore())->multipliedBy(self::ENGAGEMENT_SCORE_MULTIPLIER);
+            $score = BigDecimal::of($contributionSummary->getScore())->multipliedBy(self::REWARD_MULTIPLIER);
 
             $rewardEntry = new RewardEntry();
             $rewardEntry->setUserGuid($contributionSummary->getUserGuid())
                 ->setDateTs($contributionSummary->getDateTs())
                 ->setRewardType(static::REWARD_TYPE_ENGAGEMENT)
                 ->setScore($score)
-                ->setMultiplier(BigDecimal::of(self::ENGAGEMENT_SCORE_MULTIPLIER));
+                ->setMultiplier(BigDecimal::of(self::REWARD_MULTIPLIER));
 
             //
 
@@ -231,9 +231,7 @@ class Manager
                     ->setDateTs($opts->getDateTs())
                     ->setRewardType(static::REWARD_TYPE_LIQUIDITY);
     
-                // Get yesterday RewardEntry
-                $yesterdayRewardEntry = $this->getPreviousRewardEntry($rewardEntry, 1);
-                $multiplier = $yesterdayRewardEntry ? $this->calculateMultiplier($yesterdayRewardEntry) : BigDecimal::of(1);
+                $multiplier = BigDecimal::of(self::REWARD_MULTIPLIER);
                 
                 $score = $liquiditySummary->getUserLiquidityTokens()->multipliedBy($multiplier);
                 
@@ -281,10 +279,7 @@ class Manager
                     ->setDateTs($opts->getDateTs())
                     ->setRewardType(static::REWARD_TYPE_HOLDING);
 
-                // Get yesterday RewardEntry
-                $yesterdayRewardEntry = $this->getPreviousRewardEntry($rewardEntry, 1);
-                $multiplier = $yesterdayRewardEntry ? $this->calculateMultiplier($yesterdayRewardEntry) : BigDecimal::of(1);
-
+                $multiplier = BigDecimal::of(self::REWARD_MULTIPLIER);
                 $score = BigDecimal::of($tokenBalance)->multipliedBy($multiplier);
 
                 // Update our new RewardEntry
@@ -442,6 +437,10 @@ class Manager
         }
     }
 
+    ////
+    // Legacy
+    ////
+
     /**
      * Will return a previous days RewardEntry
      * @param RewardEntry $rewardEntry
@@ -462,10 +461,6 @@ class Manager
 
         return null;
     }
-
-    ////
-    // Legacy
-    ////
 
     /**
      * Sets if to dry run or not. A dry run will return the data but will save
