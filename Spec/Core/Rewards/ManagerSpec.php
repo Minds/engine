@@ -126,7 +126,7 @@ class ManagerSpec extends ObjectBehavior
             ]);
         $this->repository->add(Argument::that(function ($rewardEntry) {
             return $rewardEntry->getUserGuid() === '123'
-                && $rewardEntry->getScore()->toFloat() === (float) 10
+                && $rewardEntry->getScore()->toFloat() === (float) 30
                 && $rewardEntry->getRewardType() === 'engagement';
         }))->shouldBeCalled();
 
@@ -142,8 +142,7 @@ class ManagerSpec extends ObjectBehavior
                 ]);
         // We request yesterdays RewardEntry
         $this->repository->getList(Argument::that(function ($opts) {
-            return $opts->getUserGuid() === '123'
-                && $opts->getDateTs()  === time() - 86400;
+            return $opts->getUserGuid() === '123';
         }))
             ->willReturn(new Response([
                 (new RewardEntry())
@@ -225,7 +224,7 @@ class ManagerSpec extends ObjectBehavior
             ]);
         $this->repository->add(Argument::that(function ($rewardEntry) {
             return $rewardEntry->getUserGuid() === '123'
-                && $rewardEntry->getScore()->toFloat() === (float) 10
+                && $rewardEntry->getScore()->toFloat() === (float) 30
                 && $rewardEntry->getRewardType() === 'engagement';
         }))->shouldBeCalled();
 

@@ -45,6 +45,9 @@ class Manager
     /** @var string */
     const REWARD_TYPE_HOLDING = 'holding';
 
+    /** @var int */
+    const ENGAGEMENT_SCORE_MULTIPLIER = 3;
+
     /** @var Contributions\Manager */
     protected $contributions;
 
@@ -200,29 +203,14 @@ class Manager
                 continue;
             }
 
-            // TODO: use a getKiteState function instead...
-            switch ($user->kite_state) {
-                case UserActivityBuckets::STATE_CORE:
-                    $multiplier = 3;
-                    break;
-                case UserActivityBuckets::STATE_CASUAL:
-                    $multiplier = 2;
-                    break;
-                case UserActivityBuckets::STATE_CURIOUS:
-                    $multiplier = 1;
-                    break;
-                default:
-                    $multiplier = 1;
-            }
-
-            $score = BigDecimal::of($contributionSummary->getScore())->multipliedBy($multiplier);
+            $score = BigDecimal::of($contributionSummary->getScore())->multipliedBy(self::ENGAGEMENT_SCORE_MULTIPLIER);
 
             $rewardEntry = new RewardEntry();
             $rewardEntry->setUserGuid($contributionSummary->getUserGuid())
                 ->setDateTs($contributionSummary->getDateTs())
                 ->setRewardType(static::REWARD_TYPE_ENGAGEMENT)
                 ->setScore($score)
-                ->setMultiplier(BigDecimal::of($multiplier));
+                ->setMultiplier(BigDecimal::of(self::ENGAGEMENT_SCORE_MULTIPLIER));
 
             //
 
