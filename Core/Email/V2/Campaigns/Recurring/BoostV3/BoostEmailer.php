@@ -19,6 +19,7 @@ use Minds\Core\Email\Campaigns\EmailCampaign;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\V2\Common\Message;
 use Minds\Core\Email\V2\Common\Template;
+use Minds\Core\Email\V2\Common\TenantTemplateVariableInjector;
 use Minds\Core\Email\V2\Partials\ActionButtonV2\ActionButtonV2;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\ActionEvent;
@@ -50,6 +51,7 @@ class BoostEmailer extends EmailCampaign
         private ?Config $config = null,
         private ?BoostConsoleUrlBuilder $consoleUrlBuilder = null,
         private ?BoostReceiptUrlBuilder $receiptUrlBuilder = null,
+        private ?TenantTemplateVariableInjector $tenantTemplateVariableInjector = null,
         private ?Logger $logger = null
     ) {
         $this->manager = $manager ?? Di::_()->get('Email\Manager');
@@ -59,6 +61,7 @@ class BoostEmailer extends EmailCampaign
         $this->config ??= Di::_()->get('Config');
         $this->consoleUrlBuilder ??= Di::_()->get(BoostConsoleUrlBuilder::class);
         $this->receiptUrlBuilder ??= Di::_()->get(BoostReceiptUrlBuilder::class);
+        $this->tenantTemplateVariableInjector ??= Di::_()->get(TenantTemplateVariableInjector::class);
         $this->logger ??= Di::_()->get('Logger');
 
         parent::__construct($this->manager);
@@ -153,7 +156,7 @@ class BoostEmailer extends EmailCampaign
 
             case ActionEvent::ACTION_BOOST_ACCEPTED:
                 $headerText = 'Your Boost is now running';
-                $preHeaderText = "The Minds community is now seeing your Boost.";
+                $preHeaderText = "The community is now seeing your Boost.";
                 $bodyText = "Your Boost has been approved and is actively running. The campaign will end in {$this->getLengthDays()} day(s).";
                 $ctaText = 'View Status';
                 $ctaPath = $this->getConsoleUrl($trackingQueryParams);
@@ -189,6 +192,11 @@ class BoostEmailer extends EmailCampaign
         } else {
             $this->template->set('additionalCtaText', '');
             $this->template->set('additionalCtaPath', '');
+        }
+
+        if ((bool) $this->config->get('tenant_id')) {
+            $this->template->set('hide_unsubscribe_link', true);
+            $this->template = $this->tenantTemplateVariableInjector->inject($this->template);
         }
 
         // Create action button
