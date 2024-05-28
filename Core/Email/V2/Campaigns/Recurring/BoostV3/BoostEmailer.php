@@ -194,10 +194,8 @@ class BoostEmailer extends EmailCampaign
             $this->template->set('additionalCtaPath', '');
         }
 
-        if ((bool) $this->config->get('tenant_id')) {
-            $this->template->set('hide_unsubscribe_link', true);
-            $this->template = $this->tenantTemplateVariableInjector->inject($this->template);
-        }
+        $this->template->set('hide_unsubscribe_link', (bool) $this->config->get('tenant_id'));
+        $this->template = $this->tenantTemplateVariableInjector->inject($this->template);
 
         // Create action button
         $actionButton = (new ActionButtonV2())

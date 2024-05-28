@@ -199,8 +199,12 @@ class BoostEmailerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
+        $this->template->set('hide_unsubscribe_link', false)
+            ->shouldBeCalled();
+
         $this->tenantTemplateVariableInjector->inject($this->template)
-            ->shouldNotBeCalled();
+            ->shouldBeCalled()
+            ->willReturn($this->template);
 
         $this->mailer->send(Argument::any())->shouldBeCalled();
 
@@ -341,8 +345,12 @@ class BoostEmailerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
+        $this->template->set('hide_unsubscribe_link', false)
+            ->shouldBeCalled();
+
         $this->tenantTemplateVariableInjector->inject($this->template)
-            ->shouldNotBeCalled();
+            ->shouldBeCalled()
+            ->willReturn($this->template);
 
         $this->mailer->send(Argument::any())->shouldBeCalled();
 
@@ -611,8 +619,12 @@ class BoostEmailerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
+        $this->template->set('hide_unsubscribe_link', false)
+            ->shouldBeCalled();
+
         $this->tenantTemplateVariableInjector->inject($this->template)
-            ->shouldNotBeCalled();
+            ->shouldBeCalled()
+            ->willReturn($this->template);
 
         $this->mailer->send(Argument::any())->shouldBeCalled();
 
@@ -872,8 +884,12 @@ class BoostEmailerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
+        $this->template->set('hide_unsubscribe_link', false)
+            ->shouldBeCalled();
+
         $this->tenantTemplateVariableInjector->inject($this->template)
-            ->shouldNotBeCalled();
+            ->shouldBeCalled()
+            ->willReturn($this->template);
 
         $this->mailer->send(Argument::any())->shouldBeCalled();
 
@@ -1134,8 +1150,12 @@ class BoostEmailerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
+        $this->template->set('hide_unsubscribe_link', false)
+            ->shouldBeCalled();
+
         $this->tenantTemplateVariableInjector->inject($this->template)
-            ->shouldNotBeCalled();
+            ->shouldBeCalled()
+            ->willReturn($this->template);
 
         $this->mailer->send(Argument::any())->shouldBeCalled();
 
@@ -1257,8 +1277,12 @@ class BoostEmailerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
+        $this->template->set('hide_unsubscribe_link', false)
+            ->shouldBeCalled();
+
         $this->tenantTemplateVariableInjector->inject($this->template)
-            ->shouldNotBeCalled();
+            ->shouldBeCalled()
+            ->willReturn($this->template);
 
         $this->mailer->send(Argument::any())->shouldBeCalled();
 
