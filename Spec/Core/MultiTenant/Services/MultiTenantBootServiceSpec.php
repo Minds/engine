@@ -352,6 +352,8 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
             ->willReturn('phpspec.local');
 
         // test the configs are being applied
+        $this->configMock->set('system_user_guid', null)
+            ->shouldBeCalled();
 
         $this->configMock->set('site_url', 'http://phpspec.local/')
             ->shouldBeCalled();
