@@ -94,7 +94,7 @@ class ManagerV2
             'payment_method_types' => [
                 'card'
             ],
-            'statement_descriptor' => $intent->getStatementDescriptor(),
+            'statement_descriptor_suffix' => $intent->getStatementDescriptor(),
             'description' => $intent->getDescription()
         ];
 
