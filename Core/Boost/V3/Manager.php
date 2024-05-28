@@ -36,6 +36,7 @@ use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardInsufficientFundsException;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
 use Minds\Core\Payments\InAppPurchases\Apple\AppleInAppPurchasesClient;
@@ -74,7 +75,8 @@ class Manager
         private ?UserSettingsManager $userSettingsManager = null,
         private ?ExperimentsManager  $experimentsManager = null,
         private ?InAppPurchasesManager $inAppPurchasesManager = null,
-        private ?Config              $config = null
+        private ?Config              $config = null,
+        private ?MultiTenantBootService $tenantBootService = null,
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
         $this->paymentProcessor ??= new PaymentProcessor();
@@ -89,6 +91,7 @@ class Manager
         $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
         $this->inAppPurchasesManager ??= Di::_()->get(InAppPurchasesManager::class);
         $this->config ??= Di::_()->get('Config');
+        $this->tenantBootService ??= Di::_()->get(MultiTenantBootService::class);
     }
 
     /**
@@ -707,6 +710,13 @@ class Manager
         $this->logger->warning("Processing expired approved boosts");
         foreach ($this->repository->getExpiredApprovedBoosts() as $boost) {
             $this->logger->warning("Processing expired boost {$boost->getGuid()}", $boost->export());
+            
+            if ($boost->tenantId === -1) {
+                $this->tenantBootService->resetRootConfigs();
+            } else {
+                $this->tenantBootService->bootFromTenantId($boost->tenantId);
+            }
+
             $this->repository->updateStatus($boost->getGuid(), BoostStatus::COMPLETED);
 
             $this->actionEventDelegate->onComplete($boost);

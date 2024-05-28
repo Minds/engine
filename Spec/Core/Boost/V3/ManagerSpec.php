@@ -30,6 +30,7 @@ use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\FeedSyncEntity;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\Payments\InAppPurchases\Manager as InAppPurchasesManager;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Core\Security\ACL;
@@ -65,6 +66,7 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $experimentsManager;
     private Collaborator $inAppPurchasesManagerMock;
     private Collaborator $configMock;
+    private Collaborator $tenantBootServiceMock;
 
     public function let(
         Repository            $repository,
@@ -78,7 +80,8 @@ class ManagerSpec extends ObjectBehavior
         UserSettingsManager   $userSettingsManager,
         ExperimentsManager    $experimentsManager,
         InAppPurchasesManager $inAppPurchasesManager,
-        Config                $config
+        Config                $config,
+        MultiTenantBootService $tenantBootServiceMock,
     ) {
         $this->repository = $repository;
         $this->paymentProcessor = $paymentProcessor;
@@ -92,6 +95,7 @@ class ManagerSpec extends ObjectBehavior
         $this->experimentsManager = $experimentsManager;
         $this->inAppPurchasesManagerMock = $inAppPurchasesManager;
         $this->configMock = $config;
+        $this->tenantBootServiceMock = $tenantBootServiceMock;
 
         $this->beConstructedWith(
             $this->repository,
@@ -105,7 +109,8 @@ class ManagerSpec extends ObjectBehavior
             $this->userSettingsManager,
             $this->experimentsManager,
             $this->inAppPurchasesManagerMock,
-            $this->configMock
+            $this->configMock,
+            $this->tenantBootServiceMock,
         );
     }
 

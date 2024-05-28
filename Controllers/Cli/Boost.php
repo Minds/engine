@@ -85,7 +85,11 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
 
     public function processExpired()
     {
-        $this->boostManager->processExpiredApprovedBoosts();
+        try {
+            $this->boostManager->processExpiredApprovedBoosts();
+        } catch (\Exception $e) {
+            var_dump($e);
+        }
     }
     
     /**

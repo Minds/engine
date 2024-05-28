@@ -583,7 +583,7 @@ class Repository extends AbstractRepository
         $query = $this->mysqlClientReaderHandler->select()
             ->from(self::TABLE_NAME)
             ->where('status', Operator::EQ, new RawExp(':status'))
-            ->where(new RawExp(':expired_timestamp > TIMESTAMPADD(DAY, duration_days, approved_timestamp'))
+            ->where(new RawExp(':expired_timestamp > TIMESTAMPADD(DAY, duration_days, approved_timestamp)'))
             ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
 
         $values = [
@@ -619,7 +619,8 @@ class Repository extends AbstractRepository
                 approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null,
                 targetPlatformWeb: isset($boostData['target_platform_web']) ? (bool) $boostData['target_platform_web'] : true,
                 targetPlatformAndroid: isset($boostData['target_platform_android']) ? (bool) $boostData['target_platform_android'] : true,
-                targetPlatformIos: isset($boostData['target_platform_ios']) ? (bool) $boostData['target_platform_ios'] : true
+                targetPlatformIos: isset($boostData['target_platform_ios']) ? (bool) $boostData['target_platform_ios'] : true,
+                tenantId: $boostData['tenant_id'] ?? -1,
             ))
                 ->setGuid($boostData['guid'])
                 ->setOwnerGuid($boostData['owner_guid']);
