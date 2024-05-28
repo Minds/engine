@@ -120,6 +120,10 @@ class MultiTenantBootService
 
         $this->setConfig('tenant', $tenant);
 
+        // System user guid
+
+        $this->setConfig('system_user_guid', $tenant->rootUserGuid);
+
         // Data root
 
         $this->setConfig('dataroot', $this->config->get('dataroot') . 'tenant/' . $this->config->get('tenant_id') . '/');

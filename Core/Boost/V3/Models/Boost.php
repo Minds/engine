@@ -89,7 +89,8 @@ class Boost implements EntityInterface, ExportableInterface
         private ?bool $targetPlatformWeb = true,
         private ?bool $targetPlatformAndroid = true,
         private ?bool $targetPlatformIos = true,
-        private ?string $paymentMethodId = null
+        private ?string $paymentMethodId = null,
+        public int $tenantId = -1,
     ) {
     }
 

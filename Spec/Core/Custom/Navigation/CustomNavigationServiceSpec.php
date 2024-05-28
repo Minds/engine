@@ -40,7 +40,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
             ->willReturn(null);
 
         $items = $this->getItems();
-        $items->shouldHaveCount(7);
+        $items->shouldHaveCount(8);
         $items->shouldBeLike([
             new NavigationItem(
                 id: 'newsfeed',
@@ -61,6 +61,15 @@ class CustomNavigationServiceSpec extends ObjectBehavior
                 order: 2,
             ),
             new NavigationItem(
+                id: 'boost',
+                name: 'Boost',
+                type: NavigationItemTypeEnum::CORE,
+                visible: true,
+                iconId: 'trending_up',
+                path: '/boost/boost-console',
+                order: 3,
+            ),
+            new NavigationItem(
                 id: 'groups',
                 name: 'Groups',
                 type: NavigationItemTypeEnum::CORE,
@@ -69,7 +78,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
                 path: '/groups',
                 url: null,
                 action: null,
-                order: 3,
+                order: 4,
             ),
             new NavigationItem(
                 id: 'chat',
@@ -80,7 +89,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
                 path: '/chat/rooms',
                 url: null,
                 action: null,
-                order: 4,
+                order: 5,
             ),
             new NavigationItem(
                 id: 'memberships',
@@ -91,7 +100,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
                 path: '/memberships',
                 url: null,
                 action: null,
-                order: 5,
+                order: 6,
             ),
             new NavigationItem(
                 id: 'admin',
@@ -100,7 +109,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
                 visible: true,
                 iconId: 'dashboard',
                 path: '/network/admin',
-                order: 6
+                order: 7
             ),
             new NavigationItem(
                 id: 'channel',
@@ -108,7 +117,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
                 type: NavigationItemTypeEnum::CORE,
                 visible: true,
                 iconId: '',
-                order: 7,
+                order: 8,
             ),
         ]);
     }
@@ -132,9 +141,9 @@ class CustomNavigationServiceSpec extends ObjectBehavior
             ]);
 
         $items = $this->getItems();
-        $items->shouldHaveCount(8);
+        $items->shouldHaveCount(9);
 
-        $items[7]->id->shouldBe('about');
+        $items[8]->id->shouldBe('about');
     }
 
     public function it_should_return_list_from_database_for_tenants_from_cache()
@@ -158,9 +167,9 @@ class CustomNavigationServiceSpec extends ObjectBehavior
             ->shouldNotBeCalled();
 
         $items = $this->getItems();
-        $items->shouldHaveCount(8);
+        $items->shouldHaveCount(9);
 
-        $items[7]->id->shouldBe('about');
+        $items[8]->id->shouldBe('about');
     }
 
     public function it_should_merge_default_and_database_items_for_tenants()
@@ -182,7 +191,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
             ]);
 
         $items = $this->getItems();
-        $items->shouldHaveCount(7);
+        $items->shouldHaveCount(8);
 
         $items[1]->id->shouldBe('explore');
         $items[1]->name->shouldBe('Global');
