@@ -118,6 +118,7 @@ class ManagerSpec extends ObjectBehavior
         $federationDisabled = true;
         $replyEmail = 'some@email.com';
         $nsfwEnabled = true;
+        $boostEnabled = true;
         $lastCacheTimestamp = time();
         $customHomePageEnabled = true;
         $customHomePageDescription = 'Hello world';
@@ -135,6 +136,7 @@ class ManagerSpec extends ObjectBehavior
             $federationDisabled,
             $replyEmail,
             $nsfwEnabled,
+            $boostEnabled,
             $customHomePageEnabled,
             $customHomePageDescription,
             $walledGardenEnabled,
@@ -157,6 +159,7 @@ class ManagerSpec extends ObjectBehavior
             $federationDisabled,
             $replyEmail,
             $nsfwEnabled,
+            $boostEnabled,
             $customHomePageEnabled,
             $customHomePageDescription,
             $walledGardenEnabled,
@@ -174,6 +177,7 @@ class ManagerSpec extends ObjectBehavior
         $federationDisabled = true;
         $replyEmail = 'some@email.com';
         $nsfwEnabled = true;
+        $boostEnabled = true;
         $customHomePageEnabled = true;
         $customHomePageDescription = 'Hello world';
         $walledGardenEnabled = true;
@@ -184,17 +188,18 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn($tenantId);
 
         $this->repository->upsert(
-            $tenantId,
-            $siteName,
-            $colorScheme,
-            $primaryColor,
-            $federationDisabled,
-            $replyEmail,
-            $nsfwEnabled,
-            $customHomePageEnabled,
-            $customHomePageDescription,
-            $walledGardenEnabled,
-            $lastCacheTimestamp
+            tenantId: $tenantId,
+            siteName: $siteName,
+            colorScheme: $colorScheme,
+            primaryColor: $primaryColor,
+            federationDisabled: $federationDisabled,
+            replyEmail: $replyEmail,
+            nsfwEnabled: $nsfwEnabled,
+            boostEnabled: $boostEnabled,
+            customHomePageEnabled: $customHomePageEnabled,
+            customHomePageDescription: $customHomePageDescription,
+            walledGardenEnabled: $walledGardenEnabled,
+            lastCacheTimestamp: $lastCacheTimestamp
         )
             ->shouldBeCalled()
             ->willReturn($result);
@@ -212,6 +217,7 @@ class ManagerSpec extends ObjectBehavior
             $federationDisabled,
             $replyEmail,
             $nsfwEnabled,
+            $boostEnabled,
             $customHomePageEnabled,
             $customHomePageDescription,
             $walledGardenEnabled,

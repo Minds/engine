@@ -78,6 +78,7 @@ class Repository extends AbstractRepository
                 'primary_color',
                 'color_scheme',
                 'federation_disabled',
+                'boost_enabled',
                 'reply_email',
                 'custom_home_page_enabled',
                 'custom_home_page_description',
@@ -99,7 +100,8 @@ class Repository extends AbstractRepository
         $siteEmail = $row['site_email'] ?? null;
         $primaryColor = $row['primary_color'] ?? null;
         $colorScheme = $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : null;
-        $federationDisabled = (bool)$row['federation_disabled'] ?? false;
+        $federationDisabled = (bool) $row['federation_disabled'] ?? false;
+        $boostEnabled = $row['boost_enabled'] ?? false;
         $replyEmail = $row['reply_email'] ?? null;
         $customHomePageEnabled = $row['custom_home_page_enabled'] ?? false;
         $customHomePageDescription = $row['custom_home_page_description'] ?? null;
@@ -120,6 +122,7 @@ class Repository extends AbstractRepository
                 colorScheme: $colorScheme,
                 primaryColor: $primaryColor,
                 federationDisabled: $federationDisabled,
+                boostEnabled: $boostEnabled,
                 replyEmail: $replyEmail,
                 nsfwEnabled: $nsfwEnabled,
                 customHomePageEnabled: $customHomePageEnabled,

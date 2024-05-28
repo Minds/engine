@@ -11,13 +11,9 @@ class BoostRanking
     ];
 
     public function __construct(
-        protected string $guid
+        public readonly int $tenantId,
+        public readonly int $guid
     ) {
-    }
-
-    public function getGuid(): string
-    {
-        return $this->guid;
     }
 
     /**

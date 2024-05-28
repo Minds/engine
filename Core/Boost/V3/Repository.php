@@ -7,6 +7,7 @@ use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Exceptions\BoostNotFoundException;
 use Minds\Core\Boost\V3\Models\Boost;
+use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
@@ -17,60 +18,52 @@ use PDOException;
 use Selective\Database\Connection;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
+use Selective\Database\SelectQuery;
 
-class Repository
+class Repository extends AbstractRepository
 {
-    private PDO $mysqlClientReader;
-    private PDO $mysqlClientWriter;
+    public const TABLE_NAME = 'boosts';
 
-    /**
-     * @param MySQLClient|null $mysqlHandler
-     * @param EntitiesBuilder|null $entitiesBuilder
-     * @param Connection|null $mysqlClientWriterHandler
-     * @throws ServerErrorException
-     */
     public function __construct(
-        private ?MySQLClient $mysqlHandler = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
-        private ?Connection $mysqlClientWriterHandler = null
+        ... $args
     ) {
-        $this->mysqlHandler ??= Di::_()->get(MySQLClient::class);
-        $this->mysqlClientReader = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_REPLICA);
-        $this->mysqlClientWriter = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_MASTER);
-        $this->mysqlClientWriterHandler ??= new Connection($this->mysqlClientWriter);
-
         $this->entitiesBuilder ??= Di::_()->get("EntitiesBuilder");
-    }
 
-    public function beginTransaction(): void
-    {
-        if ($this->mysqlClientWriter->inTransaction()) {
-            throw new PDOException("Cannot initiate transaction. Previously initiated transaction still in progress.");
-        }
-
-        $this->mysqlClientWriter->beginTransaction();
-    }
-
-    public function rollbackTransaction(): void
-    {
-        if ($this->mysqlClientWriter->inTransaction()) {
-            $this->mysqlClientWriter->rollBack();
-        }
-    }
-
-    public function commitTransaction(): void
-    {
-        $this->mysqlClientWriter->commit();
+        parent::__construct(...$args);
     }
 
     /**
-     * @param Boost $boost
      * @return bool
      */
     public function createBoost(Boost $boost): bool
     {
-        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_platform_web, target_platform_android, target_platform_ios, target_location, goal, goal_button_text, goal_button_url, payment_method, payment_amount, payment_tx_id, payment_guid, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
-                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_platform_web, :target_platform_android, :target_platform_ios, :target_location, :goal, :goal_button_text, :goal_button_url, :payment_method, :payment_amount, :payment_tx_id, :payment_guid, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
+        $query = $this->mysqlClientWriterHandler->insert()
+            ->into(self::TABLE_NAME)
+            ->set([
+                'tenant_id' => new RawExp(':tenant_id'),
+                'guid' => new RawExp(':guid'),
+                'owner_guid' => new RawExp(':owner_guid'),
+                'entity_guid' => new RawExp(':entity_guid'),
+                'target_suitability' => new RawExp(':target_suitability'),
+                'target_platform_web' => new RawExp(':target_platform_web'),
+                'target_platform_android' => new RawExp(':target_platform_android'),
+                'target_platform_ios' => new RawExp(':target_platform_ios'),
+                'target_location' => new RawExp(':target_location'),
+                'goal' => new RawExp(':goal'),
+                'goal_button_text' => new RawExp(':goal_button_text'),
+                'goal_button_url' => new RawExp(':goal_button_url'),
+                'payment_method' => new RawExp(':payment_method'),
+                'payment_amount' => new RawExp(':payment_amount'),
+                'payment_tx_id' => new RawExp(':payment_tx_id'),
+                'payment_guid' => new RawExp(':payment_guid'),
+                'daily_bid' => new RawExp(':daily_bid'),
+                'duration_days' => new RawExp(':duration_days'),
+                'status' => new RawExp(':status'),
+                'created_timestamp' => new RawExp(':created_timestamp'),
+                'approved_timestamp' => new RawExp(':approved_timestamp'),
+                'updated_timestamp' => new RawExp(':updated_timestamp'),
+            ]);
 
         $createdTimestamp = $boost->getCreatedTimestamp() ?
             date("c", $boost->getCreatedTimestamp()) :
@@ -85,6 +78,7 @@ class Repository
             null;
 
         $values = [
+            'tenant_id' => $this->getTenantId(),
             'guid' => $boost->getGuid(),
             'owner_guid' => $boost->getOwnerGuid(),
             'entity_guid' => $boost->getEntityGuid(),
@@ -108,26 +102,13 @@ class Repository
             'status' => $boost->getStatus() ?? BoostStatus::PENDING,
         ];
 
-        $statement = $this->mysqlClientWriter->prepare($query);
+        $statement = $query->prepare();
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         return $statement->execute();
     }
 
     /**
-     * @param int $limit
-     * @param int $offset
-     * @param int|null $targetStatus
-     * @param bool $forApprovalQueue
-     * @param string|null $targetUserGuid
-     * @param bool $orderByRanking
-     * @param int|null $targetAudience
-     * @param int|null $targetLocation
-     * @param int|null $paymentMethod
-     * @param string|null $entityGuid
-     * @param int|null $paymentMethod
-     * @param User|null $loggedInUser
-     * @param bool $hasNext
      * @return iterable<Boost>
      */
     public function getBoosts(
@@ -144,12 +125,16 @@ class Repository
         ?User $loggedInUser = null,
         bool &$hasNext = false
     ): iterable {
-        $values = [];
-
-        $selectColumns = [
-            "boosts.*"
+        $query = $this->mysqlClientReaderHandler->select()
+            ->from(self::TABLE_NAME)
+            ->columns([
+                'boosts.*'
+            ])
+            ->where('boosts.tenant_id', Operator::EQ, new RawExp(':tenant_id'));
+        
+        $values = [
+            'tenant_id' => $this->getTenantId(),
         ];
-        $whereClauses = [];
 
         if ($targetStatus) {
             $statusWhereClause = "(status = :status";
@@ -166,97 +151,95 @@ class Repository
             }
 
             $statusWhereClause .= ")";
-            $whereClauses[] = $statusWhereClause;
+
+            $query->whereRaw($statusWhereClause);
         }
 
         if (!$forApprovalQueue && $targetUserGuid) {
-            $whereClauses[] = "owner_guid = :owner_guid";
+            $query->where('owner_guid', Operator::EQ, new RawExp(':owner_guid'));
             $values['owner_guid'] = $targetUserGuid;
         }
 
         if ($targetLocation) {
-            $whereClauses[] = "target_location = :target_location";
+            $query->where('target_location', Operator::EQ, new RawExp(':target_location'));
             $values['target_location'] = $targetLocation;
         }
 
         if ($paymentMethod) {
-            $whereClauses[] = "payment_method = :payment_method";
+            $query->where('payment_method', Operator::EQ, new RawExp(':payment_method'));
             $values['payment_method'] = $paymentMethod;
         }
 
         // if audience is safe, we want safe only, else we want all audiences.
         // if this is for the approval queue, we want admins to be able to filter between options.
         if ($targetAudience === BoostTargetAudiences::SAFE || $forApprovalQueue) {
-            $whereClauses[] = "target_suitability = :target_suitability";
+            $query->where('target_suitability', Operator::EQ, new RawExp(':target_suitability'));
             $values['target_suitability'] = $targetAudience;
         }
 
         if ($entityGuid) {
-            $whereClauses[] = "entity_guid = :entity_guid";
+            $query->where('entity_guid', Operator::EQ, new RawExp(':entity_guid'));
             $values['entity_guid'] = $entityGuid;
         }
-
-        $hiddenEntitiesJoin = "";
 
         /**
          * Hide entities if a user has said they don't want to see them
          */
         if (!$forApprovalQueue && $loggedInUser) {
-            $hiddenEntitiesJoin = " LEFT JOIN entities_hidden
-                ON boosts.entity_guid = entities_hidden.entity_guid
-                AND entities_hidden.user_guid = :user_guid";
+            $query->leftJoinRaw('entities_hidden', 'boosts.entity_guid = entities_hidden.entity_guid AND entities_hidden.user_guid = :user_guid');
             $values['user_guid'] = $loggedInUser->getGuid();
 
-            $whereClauses[] = 'entities_hidden.entity_guid IS NULL';
+            $query->where('entities_hidden.entity_guid', Operator::IS, null);
         }
 
-        $orderByRankingJoin = "";
-        $orderByClause = " ORDER BY created_timestamp DESC, updated_timestamp DESC, approved_timestamp DESC";
+        $query->orderBy('created_timestamp DESC', 'updated_timestamp DESC', 'approved_timestamp DESC');
 
         if ($forApprovalQueue) {
-            $orderByClause = " ORDER BY created_timestamp ASC";
+            $query->orderBy('created_timestamp ASC');
         }
 
 
         if ($orderByRanking) {
-            $orderByRankingJoin = " INNER JOIN boost_rankings ON boosts.guid = boost_rankings.guid";
+            $query->join('boost_rankings', 'boosts.guid', Operator::EQ, 'boost_rankings.guid');
 
             $orderByRankingAudience = 'ranking_safe';
             if ($targetAudience === BoostTargetAudiences::CONTROVERSIAL) {
                 $orderByRankingAudience = 'ranking_open';
             }
 
-            $orderByClause = " ORDER BY boost_rankings.$orderByRankingAudience DESC";
+            $query->orderBy("boost_rankings.$orderByRankingAudience DESC");
         }
 
         /**
          * Joins with the boost_summaries table to get total views
          * Can be expanded later to get other aggregated statistics
          */
-        $summariesJoin = "";
         if ($targetUserGuid) {
-            $summariesJoin = " LEFT JOIN (
-                    SELECT guid, SUM(views) as total_views, SUM(clicks) as total_clicks FROM boost_summaries
-                    GROUP BY 1
-                ) summary
-                ON boosts.guid=summary.guid";
-            $selectColumns[] = "summary.total_views";
-            $selectColumns[] = "summary.total_clicks";
+            $query->leftJoin(
+                fn (SelectQuery $subquery) => $subquery
+                ->from('boost_summaries')
+                ->columns([
+                    'guid',
+                    'total_views' => new RawExp('SUM(views)'),
+                    'total_clicks' => new RawExp('SUM(clicks)'),
+                ])
+                ->groupBy('guid')
+                ->alias('summary'),
+                'boosts.guid',
+                Operator::EQ,
+                'summary.guid'
+            );
+
+            $query->columns([
+                'summary.total_views',
+                'summary.total_clicks',
+            ]);
         }
 
+        $query->limit($limit + 1)
+            ->offset($offset);
 
-        $whereClause = '';
-        if (count($whereClauses)) {
-            $whereClause = 'WHERE '.implode(' AND ', $whereClauses);
-        }
-
-        $selectColumnsStr = implode(',', $selectColumns);
-
-        $query = "SELECT $selectColumnsStr FROM boosts $summariesJoin $hiddenEntitiesJoin $orderByRankingJoin $whereClause $orderByClause LIMIT :offset, :limit";
-        $values['offset'] = $offset;
-        $values['limit'] = $limit + 1;
-
-        $statement = $this->mysqlClientReader->prepare($query);
+        $statement = $query->prepare();
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         $statement->execute();
@@ -311,18 +294,35 @@ class Repository
      */
     public function getBoostByGuid(string $boostGuid): Boost
     {
-        $selectColumnsStr = implode(',', [ 'boosts.*', 'summary.total_views' ]);
-        $values = [ 'guid' => $boostGuid ];
+        $values = [
+            'guid' => $boostGuid,
+            'tenant_id' => $this->getTenantId(),
+        ];
 
-        $summariesJoin = "LEFT JOIN (
-                SELECT guid, SUM(views) as total_views, SUM(clicks) as total_clicks
-                FROM boost_summaries
-                GROUP BY 1
-            ) summary
-            ON boosts.guid=summary.guid";
+        $query = $this->mysqlClientReaderHandler->select()
+            ->from(self::TABLE_NAME)
+            ->columns([
+                'boosts.*',
+                'summary.total_views'
+            ])
+            ->leftJoin(
+                fn (SelectQuery $subquery) => $subquery
+                ->from('boost_summaries')
+                ->columns([
+                    'guid',
+                    'total_views' => new RawExp('SUM(views)'),
+                    'total_clicks' => new RawExp('SUM(clicks)'),
+                ])
+                ->groupBy('guid')
+                ->alias('summary'),
+                'boosts.guid',
+                Operator::EQ,
+                'summary.guid'
+            )
+            ->where('boosts.guid', Operator::EQ, new RawExp(':guid'))
+            ->where('boosts.tenant_id', Operator::EQ, new RawExp(':tenant_id'));
 
-        $query = "SELECT $selectColumnsStr FROM boosts $summariesJoin WHERE boosts.guid = :guid";
-        $statement = $this->mysqlClientReader->prepare($query);
+        $statement = $query->prepare();
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         $statement->execute();
@@ -366,16 +366,27 @@ class Repository
 
     public function approveBoost(string $boostGuid, ?string $adminGuid): bool
     {
-        $query = "UPDATE boosts SET status = :status, approved_timestamp = :approved_timestamp, updated_timestamp = :updated_timestamp, admin_guid = :admin_guid WHERE guid = :guid";
+        $query = $this->mysqlClientWriterHandler->update()
+            ->table(self::TABLE_NAME)
+            ->set([
+                'status' => new RawExp(':status'),
+                'approved_timestamp' => new RawExp(':approved_timestamp'),
+                'updated_timestamp' => new RawExp(':updated_timestamp'),
+                'admin_guid' => new RawExp(':admin_guid'),
+            ])
+            ->where('guid', Operator::EQ, new RawExp(':guid'))
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
+
         $values = [
             'status' => BoostStatus::APPROVED,
             'approved_timestamp' => date('c', time()),
             'updated_timestamp' => date('c', time()),
             'guid' => $boostGuid,
-            'admin_guid' => $adminGuid
+            'admin_guid' => $adminGuid,
+            'tenant_id' => $this->getTenantId(),
         ];
 
-        $statement = $this->mysqlClientWriter->prepare($query);
+        $statement = $query->prepare();
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         return $statement->execute();
@@ -383,15 +394,25 @@ class Repository
 
     public function rejectBoost(string $boostGuid, int $reasonCode): bool
     {
-        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp, reason = :reason WHERE guid = :guid";
+        $query = $this->mysqlClientWriterHandler->update()
+            ->table(self::TABLE_NAME)
+            ->set([
+                'status' => new RawExp(':status'),
+                'updated_timestamp' => new RawExp(':updated_timestamp'),
+                'reason' => new RawExp(':reason'),
+            ])
+            ->where('guid', Operator::EQ, new RawExp(':guid'))
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
+
         $values = [
             'status' => BoostStatus::REJECTED,
             'updated_timestamp' => date('c', time()),
             'reason' => $reasonCode,
-            'guid' => $boostGuid
+            'guid' => $boostGuid,
+            'tenant_id' => $this->getTenantId(),
         ];
 
-        $statement = $this->mysqlClientWriter->prepare($query);
+        $statement = $query->prepare();
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         return $statement->execute();
@@ -399,15 +420,25 @@ class Repository
 
     public function cancelBoost(string $boostGuid, string $userGuid): bool
     {
-        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid AND owner_guid = :owner_guid";
+        $query = $this->mysqlClientWriterHandler->update()
+            ->table(self::TABLE_NAME)
+            ->set([
+                'status' => new RawExp(':status'),
+                'updated_timestamp' => new RawExp(':updated_timestamp'),
+            ])
+            ->where('guid', Operator::EQ, new RawExp(':guid'))
+            ->where('owner_guid', Operator::EQ, new RawExp(':owner_guid'))
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
+
         $values = [
             'status' => BoostStatus::CANCELLED,
             'updated_timestamp' => date('c', time()),
             'guid' => $boostGuid,
             'owner_guid' => $userGuid,
+            'tenant_id' => $this->getTenantId(),
         ];
 
-        $statement = $this->mysqlClientWriter->prepare($query);
+        $statement = $query->prepare();
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         return $statement->execute();
@@ -425,11 +456,13 @@ class Repository
                 'completed_timestamp' => !$isCompleted ? new RawExp('completed_timestamp') : new RawExp('TIMESTAMPADD(DAY, duration_days, updated_timestamp)'),
             ])
             ->where('guid', Operator::EQ, new RawExp(':guid'))
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->prepare();
 
         $values = [
             'status' => $status,
-            'guid' => $boostGuid
+            'guid' => $boostGuid,
+            'tenant_id' => $this->getTenantId(),
         ];
 
         if (!$isCompleted) {
@@ -453,14 +486,18 @@ class Repository
         int $reason,
         array $statuses = [BoostStatus::APPROVED, BoostStatus::PENDING]
     ): bool {
-        $query = "UPDATE boosts
-            SET status = :status,
-                updated_timestamp = :updated_timestamp,
-                reason = :reason
-            WHERE entity_guid = :entity_guid";
+        $query = $this->mysqlClientWriterHandler->update()
+            ->table('boosts')
+            ->set([
+                'status' => new RawExp(':status'),
+                'updated_timestamp' => new RawExp(':updated_timestamp'),
+                'reason' => new RawExp(':reason'),
+            ])
+            ->where('entity_guid', Operator::EQ, new RawExp(':entity_guid'))
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
 
         if (count($statuses)) {
-            $query .= " AND (status = " . implode(' OR status = ', $statuses) . ")";
+            $query->where(new RawExp("status = " . implode(' OR status = ', $statuses)));
         }
 
         $values = [
@@ -468,9 +505,10 @@ class Repository
             'updated_timestamp' => date('c', time()),
             'reason' => $reason,
             'entity_guid' => $entityGuid,
+            'tenant_id' => $this->getTenantId(),
         ];
 
-        $statement = $this->mysqlClientWriter->prepare($query);
+        $statement = $query->prepare();
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         return $statement->execute();
@@ -488,8 +526,17 @@ class Repository
         ?int $targetLocation = null,
         ?int $paymentMethod = null,
     ): array {
-        $values = [];
-        $whereClauses = [];
+        $query = $this->mysqlClientReaderHandler->select()
+            ->from(self::TABLE_NAME)
+            ->columns([
+                'safe_count' => new RawExp('SUM(CASE WHEN boosts.target_suitability = :safe_audience THEN 1 ELSE 0 END)'),
+                'controversial_count' => new RawExp('SUM(CASE WHEN boosts.target_suitability = :controversial_audience THEN 1 ELSE 0 END)'),
+            ])
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
+    
+        $values = [
+            'tenant_id' => $this->getTenantId(),
+        ];
 
         $statusWhereClause = "(status = :status";
         $values['status'] = $targetStatus;
@@ -505,32 +552,22 @@ class Repository
         }
 
         $statusWhereClause .= ")";
-        $whereClauses[] = $statusWhereClause;
+        $query->where(new RawExp($statusWhereClause));
 
         if ($targetLocation) {
-            $whereClauses[] = "target_location = :target_location";
+            $query->where('target_location', Operator::EQ, new RawExp(':target_location'));
             $values['target_location'] = $targetLocation;
         }
 
         if ($paymentMethod) {
-            $whereClauses[] = "payment_method = :payment_method";
+            $query->where('payment_method', Operator::EQ, new RawExp(':payment_method'));
             $values['payment_method'] = $paymentMethod;
         }
-
-        $whereClause = '';
-        if (count($whereClauses)) {
-            $whereClause = 'WHERE ' . implode(' AND ', $whereClauses);
-        }
-
-        $query = "SELECT
-            SUM(CASE WHEN boosts.target_suitability = :safe_audience THEN 1 ELSE 0 END) as safe_count,
-            SUM(CASE WHEN boosts.target_suitability = :controversial_audience THEN 1 ELSE 0 END) AS controversial_count
-            FROM boosts $whereClause";
 
         $values['safe_audience'] = BoostTargetAudiences::SAFE;
         $values['controversial_audience'] = BoostTargetAudiences::CONTROVERSIAL;
 
-        $statement = $this->mysqlClientReader->prepare($query);
+        $statement = $query->prepare();
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         $statement->execute();
@@ -543,12 +580,19 @@ class Repository
      */
     public function getExpiredApprovedBoosts(): ?iterable
     {
-        $query = "SELECT * FROM boosts WHERE status = :status AND :expired_timestamp > TIMESTAMPADD(DAY, duration_days, approved_timestamp)";
+        $query = $this->mysqlClientReaderHandler->select()
+            ->from(self::TABLE_NAME)
+            ->where('status', Operator::EQ, new RawExp(':status'))
+            ->where(new RawExp(':expired_timestamp > TIMESTAMPADD(DAY, duration_days, approved_timestamp'))
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
+
         $values = [
             "status" => BoostStatus::APPROVED,
-            "expired_timestamp" => date('c', time())
+            "expired_timestamp" => date('c', time()),
+            'tenant_id' => $this->getTenantId(),
         ];
-        $statement = $this->mysqlClientReader->prepare($query);
+    
+        $statement = $query->prepare();
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         $statement->execute();
@@ -594,36 +638,35 @@ class Repository
         array $statuses,
         int $limit = 12,
     ): array {
-        $values = [];
-        $whereClauses = [];
+        $values = [
+            'tenant_id' => $this->getTenantId(),
+        ];
 
-        $whereClauses[] = "owner_guid = :owner_guid";
         $values['owner_guid'] = $targetUserGuid;
 
-        $statusesString = "status = " . implode(' OR status = ', $statuses);
-        $whereClauses[] = "($statusesString)";
+        $query = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'status',
+                'statusCount' => new RawExp('count(status)'),
+            ])
+            ->from(
+                fn (SelectQuery $subquery) => $subquery
+                ->columns([
+                    'status'
+                ])
+                ->from(self::TABLE_NAME)
+                ->where('owner_guid', Operator::EQ, new RawExp(':owner_guid'))
+                ->where(new RawExp("status = " . implode(' OR status = ', $statuses)))
+                ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+                ->orderBy('updated_timestamp DESC')
+                ->limit($limit)
+                ->alias('boostsStatuses')
+            )
+            ->groupBy('status');
 
-        $whereClause = '';
-        if (count($whereClauses)) {
-            $whereClause = 'WHERE '.implode(' AND ', $whereClauses);
-        }
 
-        $query = "SELECT status, count(status) AS statusCount
-            FROM
-                (
-                    SELECT status
-                    FROM
-                        boosts
-                    $whereClause
-                    ORDER BY
-                        updated_timestamp DESC
-                    LIMIT :limit
-                ) as boostsStatuses
-            GROUP BY status";
 
-        $values['limit'] = $limit;
-
-        $statement = $this->mysqlClientReader->prepare($query);
+        $statement = $query->prepare();
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         $statement->execute();
@@ -635,5 +678,10 @@ class Repository
         }
 
         return $formattedResult;
+    }
+
+    private function getTenantId(): int
+    {
+        return $this->config->get('tenant_id') ?: -1;
     }
 }

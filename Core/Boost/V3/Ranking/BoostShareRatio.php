@@ -7,14 +7,11 @@ use Minds\Exceptions\ServerErrorException;
 class BoostShareRatio
 {
     /**
-     * @param string $guid
-     * @param array $targetAudienceShares
-     * @param int $targetLocation
-     * @param int $targetSuitability
      * @throws ServerErrorException
      */
     public function __construct(
-        protected string $guid,
+        public readonly int $tenantId,
+        public readonly int $guid,
         protected array $targetAudienceShares,
         protected int $targetLocation,
         protected int $targetSuitability,
@@ -22,15 +19,6 @@ class BoostShareRatio
         foreach ($targetAudienceShares as $targetAudience => $share) {
             $this->setTargetAudienceShare($targetAudience, $share);
         }
-    }
-
-    /**
-     * The guid of the boost
-     * @return string
-     */
-    public function getGuid(): string
-    {
-        return $this->guid;
     }
 
     /**

@@ -7,7 +7,9 @@ use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
 use Minds\Core\Boost\V3\Ranking\BoostRanking;
 use Minds\Core\Boost\V3\Ranking\BoostShareRatio;
 use Minds\Core\Boost\V3\Ranking\Repository;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\Client;
+use Minds\Core\Di\Di;
 use PDO;
 use PDOStatement;
 use PhpSpec\ObjectBehavior;
@@ -24,9 +26,9 @@ class RepositorySpec extends ObjectBehavior
     /** @var PDO */
     protected $mysqlReplicaMock;
 
-    public function let(Client $mysqlClientMock, PDO $pdoMock)
+    public function let(Client $mysqlClientMock, PDO $pdoMock, Config $configMock)
     {
-        $this->beConstructedWith($mysqlClientMock);
+        $this->beConstructedWith($mysqlClientMock, $configMock, Di::_()->get('Logger'));
         $this->mysqlClientMock = $mysqlClientMock;
 
         $mysqlClientMock->getConnection(Client::CONNECTION_MASTER)->willReturn($pdoMock);
@@ -46,6 +48,7 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlMasterMock->prepare(Argument::any())->willReturn($pdoStmtMock);
 
         $pdoStmtMock->execute([
+            'tenant_id' => -1,
             'guid' => '1234',
             'ranking_open' => 1.5,
             'ranking_safe' => 0.5,
@@ -53,7 +56,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $boostRanking = new BoostRanking('1234');
+        $boostRanking = new BoostRanking(-1, '1234');
         $boostRanking->setRank(BoostTargetAudiences::CONTROVERSIAL, 1.5)
             ->setRank(BoostTargetAudiences::SAFE, 0.5);
 
@@ -68,6 +71,7 @@ class RepositorySpec extends ObjectBehavior
 
         $pdoStmtMock->fetchAll()->willReturn([
             [
+                'tenant_id' => -1,
                 'guid' => '1234',
                 'share_ratio_open_audience' => 0.5,
                 'share_ratio_safe_audience' => 0.75,
@@ -75,6 +79,7 @@ class RepositorySpec extends ObjectBehavior
                 'target_suitability' => 1
             ],
             [
+                'tenant_id' => 123,
                 'guid' => '1235',
                 'share_ratio_open_audience' => 0.5,
                 'share_ratio_safe_audience' => 0.25,
@@ -86,6 +91,7 @@ class RepositorySpec extends ObjectBehavior
         $this->getBoostShareRatios()
             ->shouldYieldLike(new \ArrayIterator([
                 new BoostShareRatio(
+                    tenantId: -1,
                     guid: '1234',
                     targetAudienceShares: [
                         BoostTargetAudiences::CONTROVERSIAL => 0.5,
@@ -95,6 +101,7 @@ class RepositorySpec extends ObjectBehavior
                     targetSuitability: 1
                 ),
                 new BoostShareRatio(
+                    tenantId: 123,
                     guid: '1235',
                     targetAudienceShares: [
                         BoostTargetAudiences::CONTROVERSIAL => 0.5,
@@ -114,6 +121,7 @@ class RepositorySpec extends ObjectBehavior
 
         $pdoStmtMock->fetchAll()->willReturn([
             [
+                'tenant_id' => -1,
                 'guid' => '1234',
                 'share_ratio_open_audience' => 0.5,
                 'share_ratio_safe_audience' => 0.75,
@@ -125,6 +133,7 @@ class RepositorySpec extends ObjectBehavior
         $this->getBoostShareRatiosByGuid('1234')
             ->shouldBeLike(
                 new BoostShareRatio(
+                    tenantId: -1,
                     guid: '1234',
                     targetAudienceShares: [
                         BoostTargetAudiences::CONTROVERSIAL => 0.5,
