@@ -26,6 +26,7 @@ use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Boost\V3\Models\BoostEntityWrapper;
 use Minds\Core\Boost\V3\PreApproval\Manager as PreApprovalManager;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
@@ -72,7 +73,8 @@ class Manager
         private ?GuidLinkResolver    $guidLinkResolver = null,
         private ?UserSettingsManager $userSettingsManager = null,
         private ?ExperimentsManager  $experimentsManager = null,
-        private ?InAppPurchasesManager $inAppPurchasesManager = null
+        private ?InAppPurchasesManager $inAppPurchasesManager = null,
+        private ?Config              $config = null
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
         $this->paymentProcessor ??= new PaymentProcessor();
@@ -86,6 +88,7 @@ class Manager
         $this->userSettingsManager ??= Di::_()->get('Settings\Manager');
         $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
         $this->inAppPurchasesManager ??= Di::_()->get(InAppPurchasesManager::class);
+        $this->config ??= Di::_()->get('Config');
     }
 
     /**
@@ -815,6 +818,13 @@ class Manager
      */
     public function shouldShowBoosts(User $user, int $showBoostsAfterX = 604800): bool
     {
+        /**
+         * For tenants return boosts if they are enabled.
+         */
+        if ($this->config->get('tenant_id')) {
+            return (bool) $this->config->get('tenant')?->config?->boostEnabled;
+        }
+
         /**
          * Do not show boosts if plus and disabled flag
          */

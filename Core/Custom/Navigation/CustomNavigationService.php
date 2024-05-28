@@ -153,6 +153,15 @@ class CustomNavigationService
                 order: 2,
             ),
             new NavigationItem(
+                id: 'boost',
+                name: 'Boost',
+                type: NavigationItemTypeEnum::CORE,
+                visible: true,
+                iconId: 'trending_up',
+                path: '/boost/boost-console',
+                order: 3,
+            ),
+            new NavigationItem(
                 id: 'groups',
                 name: 'Groups',
                 type: NavigationItemTypeEnum::CORE,
@@ -161,7 +170,7 @@ class CustomNavigationService
                 path: '/groups',
                 url: null,
                 action: null,
-                order: 3,
+                order: 4,
             ),
             new NavigationItem(
                 id: 'chat',
@@ -172,7 +181,7 @@ class CustomNavigationService
                 path: '/chat/rooms',
                 url: null,
                 action: null,
-                order: 4,
+                order: 5,
             ),
             new NavigationItem(
                 id: 'memberships',
@@ -183,7 +192,7 @@ class CustomNavigationService
                 path: '/memberships',
                 url: null,
                 action: null,
-                order: 5,
+                order: 6,
             ),
             new NavigationItem(
                 id: 'admin',
@@ -192,7 +201,7 @@ class CustomNavigationService
                 visible: true,
                 iconId: 'dashboard',
                 path: '/network/admin',
-                order: 6
+                order: 7
             ),
             new NavigationItem(
                 id: 'channel',
@@ -200,7 +209,7 @@ class CustomNavigationService
                 type: NavigationItemTypeEnum::CORE,
                 visible: true,
                 iconId: '',
-                order: 7,
+                order: 8,
             ),
         ];
     }

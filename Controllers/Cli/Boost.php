@@ -83,24 +83,6 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
         $this->out('Done');
     }
 
-    /**
-     * Call this function to sync views to summaries
-     * `php cli.php Boost syncViews`
-     */
-    public function syncViews()
-    {
-        Di::_()->get('Config')->set('min_log_level', MonologLogger::INFO);
-
-        ACL::_()->setIgnore(true);
-
-        /** @var Core\Boost\V3\Summaries\Manager */
-        $summariesManager = Di::_()->get(Core\Boost\V3\Summaries\Manager::class);
-
-        $summariesManager->sync(new DateTime('midnight'));
-
-        $this->out('Done');
-    }
-
     public function processExpired()
     {
         $this->boostManager->processExpiredApprovedBoosts();
