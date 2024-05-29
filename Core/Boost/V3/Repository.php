@@ -497,7 +497,7 @@ class Repository extends AbstractRepository
             ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
 
         if (count($statuses)) {
-            $query->where(new RawExp("status = " . implode(' OR status = ', $statuses)));
+            $query->where(new RawExp("(status = " . implode(' OR status = ', $statuses) . ")"));
         }
 
         $values = [
@@ -657,7 +657,7 @@ class Repository extends AbstractRepository
                 ])
                 ->from(self::TABLE_NAME)
                 ->where('owner_guid', Operator::EQ, new RawExp(':owner_guid'))
-                ->where(new RawExp("status = " . implode(' OR status = ', $statuses)))
+                ->where(new RawExp("(status = " . implode(' OR status = ', $statuses) . ")"))
                 ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
                 ->orderBy('updated_timestamp DESC')
                 ->limit($limit)
