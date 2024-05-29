@@ -53,7 +53,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
                 'stripe_subscription_id' => $stripeSubscriptionId,
                 'valid_from' => $validFrom->format('c'),
                 'valid_to' => $validTo->format('c'),
-                'manual' => $isManual,
+                'manual' => (int) $isManual,
                 'auto_renew' => $isManual ? 0 : (int) ($siteMembership->membershipPricingModel === SiteMembershipPricingModelEnum::RECURRING),
             ])
             ->onDuplicateKeyUpdate([
