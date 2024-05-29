@@ -22,6 +22,7 @@ class MultiTenantConfigInput
         #[Field] public readonly ?bool $federationDisabled = null,
         #[Field] public readonly ?string $replyEmail = null,
         #[Field] public readonly ?bool $nsfwEnabled = null,
+        #[Field] public readonly ?bool $boostEnabled = null,
         #[Field] public readonly ?bool $customHomePageEnabled = null,
         #[Field] public readonly ?string $customHomePageDescription = null,
         #[Field] public readonly ?bool $walledGardenEnabled = null

@@ -3,31 +3,25 @@ declare(strict_types=1);
 
 namespace Minds\Core\Boost\V3\Summaries;
 
-use Cassandra\Timeuuid;
 use DateTime;
+use DateTimeImmutable;
 use Minds\Common\Urn;
 use Minds\Core\Boost\V3\Common\ViewsScroller;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver;
+use SplObjectStorage;
+use stdClass;
 
 class Manager
 {
-    const MAX_BUFFER = 1000;
-
-    protected DateTime $date;
-
-    /** @var int[] */
-    protected $boostViewsBuffer = [];
+    /** @var array */
+    protected $buffer = [];
 
     public function __construct(
-        private ?ViewsScroller $viewsScroller = null,
         private ?Repository $repository = null,
-        private ?Resolver $entitiesResolver = null,
     ) {
-        $this->viewsScroller ??= Di::_()->get(ViewsScroller::class);
         $this->repository ??= Di::_()->get(Repository::class);
-        $this->entitiesResolver ??= new Resolver();
     }
 
     /**
@@ -42,76 +36,43 @@ class Manager
     }
 
     /**
-     * Runs through views and
-     * @param DateTime $date
-     * @return void
+     * Increments views for boost summary
      */
-    public function sync(DateTime $date): void
+    public function incrementViews(int $tenantId, int $boostGuid, int $unixTimestamp): bool
     {
-        $this->date = $date;
+        $unixDate = (new DateTimeImmutable())->setTimestamp($unixTimestamp)->modify('midnight')->getTimestamp();
 
-        foreach ($this->viewsScroller->scroll(
-            gtTimeuuid: new Timeuuid($this->date->getTimestamp() * 1000),
-            ltTimeuuid: new Timeuuid((clone $this->date)->modify("+1 day")->getTimestamp() * 1000)
-        ) as $row) {
-            $campaign = $row['campaign'];
-
-            $boost = $this->getBoostByCampaign($campaign);
-
-            if (!$boost) {
-                continue;
-            }
-
-            $this->incrementViews($boost);
+        if (!isset($this->buffer[$unixDate])) {
+            $this->buffer[$unixDate] = [];
         }
 
-        // Save these to the database
-        $this->saveToDb();
-    }
-
-    /**
-     * @param Boost $boost
-     * @return void
-     */
-    protected function incrementViews(Boost $boost): void
-    {
-        if (!isset($this->boostViewsBuffer[$boost->getGuid()])) {
-            $this->boostViewsBuffer[$boost->getGuid()] = 0;
+        if (!isset($this->buffer[$unixDate][$boostGuid])) {
+            $this->buffer[$unixDate][$boostGuid] = (object) [
+                'tenantId' => $tenantId,
+                'views' => 0,
+            ];
         }
 
-        ++$this->boostViewsBuffer[$boost->getGuid()];
+        ++$this->buffer[$unixDate][$boostGuid]->views;
+
+        return true;
     }
 
     /**
      * @return void
      */
-    protected function saveToDb(): void
+    public function flush(): void
     {
         $this->repository->beginTransaction();
-        foreach ($this->boostViewsBuffer as $guid => $views) {
-            $this->repository->add((string) $guid, $this->date, $views);
+        foreach ($this->buffer as $unixDate => $boostViews) {
+            foreach ($boostViews as $guid => $data) {
+                $this->repository->incrementViews($data->tenantId, $guid, (new DateTime())->setTimestamp($unixDate), $data->views);
+            }
         }
+        // Reset the buffer
+        $this->buffer = [];
+        // Commit to the database
         $this->repository->commitTransaction();
     }
 
-
-    /**
-     * Will return a boost from its campaign id
-     * @param string $campaign
-     * @return null|Boost
-     */
-    protected function getBoostByCampaign(string $campaign): ?Boost
-    {
-        if (strpos($campaign, 'urn:boost:', 0) === false || count(explode(':', $campaign)) > 3) {
-            return null;
-        }
-
-        $boost = $this->entitiesResolver->single(new Urn($campaign));
-
-        if ($boost instanceof Boost) {
-            return $boost;
-        }
-
-        return null;
-    }
 }

@@ -221,6 +221,7 @@ class Exported
                 'custom_home_page_enabled' => $tenant->config?->customHomePageEnabled ?? false,
                 'custom_home_page_description' => $tenant->config?->customHomePageDescription ?? '',
                 'walled_garden_enabled' => $tenant->config?->walledGardenEnabled ?? false,
+                'boost_enabled' => $tenant->config?->boostEnabled ?? false,
             ];
 
             $exported['tenant']['max_memberships'] = $multiTenantConfig['plan_memberships'][$exported['tenant']['plan']] ?? 0;

@@ -13,20 +13,17 @@ use Minds\Core\Boost\V3\Summaries\Manager;
 use Minds\Core\Boost\V3\Summaries\Repository;
 use Minds\Core\Entities\Resolver;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
 {
-    protected $viewsScrollerMock;
-    protected $repositoryMock;
-    protected $resolverMock;
+    protected Collaborator $repositoryMock;
 
-    public function let(ViewsScroller $viewsScrollerMock, Repository $repositoryMock, Resolver $resolverMock)
+    public function let(Repository $repositoryMock)
     {
-        $this->beConstructedWith($viewsScrollerMock, $repositoryMock, $resolverMock);
-        $this->viewsScrollerMock = $viewsScrollerMock;
+        $this->beConstructedWith($repositoryMock);
         $this->repositoryMock = $repositoryMock;
-        $this->resolverMock = $resolverMock;
     }
 
     public function it_is_initializable()
@@ -36,94 +33,29 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_sync_views()
     {
-        $this->viewsScrollerMock->scroll(
-            Argument::that(function ($timeUuid) {
-                return true; // improve this
-            }),
-            Argument::that(function ($timeUuid) {
-                return true; // improve this
-            }),
-        )
-            ->shouldBeCalled()
-            ->willYield([
-                [
-                    'campaign' => 'urn:boost:123'
-                ],
-                [
-                    'campaign' => 'urn:boost:123'
-                ],
-                [
-                    'campaign' => 'urn:boost:123'
-                ],
-                [
-                    'campaign' => 'urn:boost:123'
-                ],
-                [
-                    'campaign' => 'urn:boost:456'
-                ]
-            ]);
-
-        $this->resolverMock->single(Argument::type(Urn::class))
-            ->shouldBeCalled()
-            ->willReturn(
-                (new Boost(
-                    entityGuid: '123',
-                    targetLocation: BoostTargetLocation::NEWSFEED,
-                    targetSuitability: BoostTargetSuitability::SAFE,
-                    paymentMethod: BoostPaymentMethod::CASH,
-                    paymentAmount: 10,
-                    dailyBid: 10,
-                    durationDays: 1
-                ))->setGuid('123'),
-                (new Boost(
-                    entityGuid: '123',
-                    targetLocation: BoostTargetLocation::NEWSFEED,
-                    targetSuitability: BoostTargetSuitability::SAFE,
-                    paymentMethod: BoostPaymentMethod::CASH,
-                    paymentAmount: 10,
-                    dailyBid: 10,
-                    durationDays: 1
-                ))->setGuid('123'),
-                (new Boost(
-                    entityGuid: '123',
-                    targetLocation: BoostTargetLocation::NEWSFEED,
-                    targetSuitability: BoostTargetSuitability::SAFE,
-                    paymentMethod: BoostPaymentMethod::CASH,
-                    paymentAmount: 10,
-                    dailyBid: 10,
-                    durationDays: 1
-                ))->setGuid('123'),
-                (new Boost(
-                    entityGuid: '123',
-                    targetLocation: BoostTargetLocation::NEWSFEED,
-                    targetSuitability: BoostTargetSuitability::SAFE,
-                    paymentMethod: BoostPaymentMethod::CASH,
-                    paymentAmount: 10,
-                    dailyBid: 10,
-                    durationDays: 1
-                ))->setGuid('123'),
-                (new Boost(
-                    entityGuid: '456',
-                    targetLocation: BoostTargetLocation::NEWSFEED,
-                    targetSuitability: BoostTargetSuitability::SAFE,
-                    paymentMethod: BoostPaymentMethod::CASH,
-                    paymentAmount: 10,
-                    dailyBid: 10,
-                    durationDays: 1
-                ))->setGuid('456'),
-            );
-
         $this->repositoryMock->beginTransaction()->shouldBeCalled();
 
-        $this->repositoryMock->add('123', Argument::type(DateTime::class), 4)
-            ->shouldBeCalled();
+        $this->repositoryMock->incrementViews(-1, 123, Argument::type(DateTime::class), 2)
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
 
-        $this->repositoryMock->add('456', Argument::type(DateTime::class), 1)
-            ->shouldBeCalled();
+        $this->repositoryMock->incrementViews(-1, 456, Argument::type(DateTime::class), 1)
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->repositoryMock->incrementViews(1, 789, Argument::type(DateTime::class), 1)
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
 
         $this->repositoryMock->commitTransaction()->shouldBeCalled();
 
-        $this->sync(new DateTime('midnight'));
+        $this->incrementViews(-1, 123, time());
+        $this->incrementViews(-1, 123, time());
+        $this->incrementViews(-1, 456, time());
+        $this->incrementViews(1, 789, time());
+
+        $this->flush();
+        $this->flush();
     }
 
     public function it_should_call_to_increment_clicks(Boost $boost): void

@@ -84,6 +84,7 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
                 id: 123,
                 domain: 'phpspec.local',
                 ownerGuid: 234,
+                rootUserGuid: 234,
                 config: new MultiTenantConfig(
                     siteName: $siteName,
                     siteEmail: $siteEmail,
@@ -117,6 +118,9 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this->configMock->set('tenant', Argument::type(Tenant::class))
+            ->shouldBeCalled();
+
+        $this->configMock->set('system_user_guid', 234)
             ->shouldBeCalled();
 
         $this->configMock->set('dataroot', '/dataroot/tenant/123/')
@@ -203,6 +207,7 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
                 id: 123,
                 domain: 'phpspec.local',
                 ownerGuid: 234,
+                rootUserGuid: 234,
                 config: new MultiTenantConfig(
                     siteName: $siteName,
                     siteEmail: $siteEmail,
@@ -236,6 +241,9 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this->configMock->set('tenant', Argument::type(Tenant::class))
+            ->shouldBeCalled();
+
+        $this->configMock->set('system_user_guid', 234)
             ->shouldBeCalled();
 
         $this->configMock->set('dataroot', '/dataroot/tenant/123/')

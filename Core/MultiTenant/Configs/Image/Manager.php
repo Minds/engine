@@ -73,6 +73,7 @@ class Manager
                 MultiTenantConfigImageType::FAVICON => 'default-favicon.png',
                 MultiTenantConfigImageType::SQUARE_LOGO => 'default-square-logo.png',
                 MultiTenantConfigImageType::HORIZONTAL_LOGO => 'default-horizontal-logo.png',
+                MultiTenantConfigImageType::MONOGRAPHIC_ICON => 'default-monographic-icon.png',
             };
             $filepath = $this->config->get('path') . "engine/Assets/tenant/$fileName";
             $contents = file_get_contents($filepath);

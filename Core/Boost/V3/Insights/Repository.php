@@ -1,21 +1,16 @@
 <?php
 namespace Minds\Core\Boost\V3\Insights;
 
+use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Data\MySQL\Client;
 use PDO;
 use Selective\Database\Connection;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
 
-class Repository
+class Repository extends AbstractRepository
 {
     protected Connection $mysqlQueryBuilder;
-
-    public function __construct(private ?Client $mysqlClient = null)
-    {
-        $this->mysqlClient ??= new Client();
-        $this->mysqlQueryBuilder = new Connection($this->mysqlClient->getConnection(Client::CONNECTION_REPLICA));
-    }
 
     /**
      * Returns historical cpms of completed boosts
@@ -38,7 +33,7 @@ class Repository
             'target_audience' => $targetAudience,
         ];
 
-        $boostTotalViewsQuery = $this->mysqlQueryBuilder
+        $boostTotalViewsQuery = $this->mysqlClientReaderHandler
             ->select()
             ->columns([
                 'guid',
@@ -48,7 +43,7 @@ class Repository
             ->groupBy('guid')
             ->alias('boost_summaries');
 
-        $query = $this->mysqlQueryBuilder
+        $query = $this->mysqlClientReaderHandler
             ->select()
             ->columns([
                 'cpm' => new RawExp('MAX((daily_bid / (total_views / duration_days)) * 1000)'),
@@ -66,16 +61,22 @@ class Repository
             ->where('target_location', Operator::EQ, new RawExp(':target_location'))
             ->where('target_suitability', Operator::GTE, new RawExp(':target_audience'))
             ->where('duration_days', Operator::LTE, new  RawExp((string) $numDays)) // Limiting to the duration that we look back to avoid skew
+            ->where('boosts.tenant_id', Operator::EQ, $this->getTenantId())
             ->groupBy('boosts.guid');
 
         $statement = $query->prepare();
 
-        $this->mysqlClient->bindValuesToPreparedStatement($statement, $values);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         $statement->execute();
 
         return array_map(function ($val) {
             return (float) $val['cpm'];
         }, $statement->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    private function getTenantId(): int
+    {
+        return $this->config->get('tenant_id') ?: -1;
     }
 }
