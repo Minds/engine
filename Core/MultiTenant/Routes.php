@@ -24,7 +24,6 @@ class Routes extends ModuleRoutes
             ->do(function (Route $route) {
                 $route
                     ->withMiddleware([
-                        AdminMiddleware::class,
                         NotMultiTenantMiddleware::class,
                     ])
                     ->withScope(ApiScopeEnum::TENANT_CREATE_TRIAL)
