@@ -6,24 +6,15 @@ Your trial is ready
 <!--BODY TEXT-->
 
 <p <?= $emailStylesV2->getStyles(['m-mainContent__paragraph']) ?> >
-Your Minds Network trials is ready to go! Click the button below to automatically log into your network and take it for a spin.
+Your Minds Networks trial is ready to go! Click the button below to go to your network and use the username & password below to log in.
 </p>
 
 <p <?= $emailStylesV2->getStyles(['m-mainContent__paragraph']) ?> >
-Your username is: <?= $vars['username']; ?> <br />
-Your password is: <?= $vars['password']; ?>
+Your username is: <b><?= $vars['username']; ?></b> <br />
+Your password is: <b><?= $vars['password']; ?></b>
 </p>
 
 <!--ACTION BUTTON-->
 <p <?= $emailStylesV2->getStyles(['m-mainContent__paragraph']) ?> >
     <?php echo $vars['actionButton']; ?>
 </p>
-
-<br />
-
-<p <?= $emailStylesV2->getStyles(['m-mainContent__paragraph']) ?> >
-Got a question about Minds Networks? Pick an open slot to schedule a video chat with us.
-</p>
-
-<!--ACTION BUTTON-->
-<?php echo $vars['helpButton']; ?>
