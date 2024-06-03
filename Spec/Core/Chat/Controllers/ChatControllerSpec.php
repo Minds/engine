@@ -723,4 +723,22 @@ class ChatControllerSpec extends ObjectBehavior
         )
             ->shouldEqual(true);
     }
+
+    public function it_should_update_chat_room_names(User $user): void
+    {
+        $this->roomServiceMock->updateRoomName(
+            123,
+            "new name",
+            $user
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->updateChatRoomName(
+            "123",
+            "new name",
+            $user
+        )
+            ->shouldEqual(true);
+    }
 }
