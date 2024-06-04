@@ -112,10 +112,6 @@ class MultiTenantBootService
         $didConfig['domain'] = $domain;
         $this->setConfig('did', $didConfig);
 
-        // Tenant ID
-
-        $this->setConfig('tenant_id', $tenant->id);
-
         // Nake global the tenant object
 
         $this->setConfig('tenant', $tenant);
@@ -187,6 +183,10 @@ class MultiTenantBootService
 
             $this->setConfig('nsfw_enabled', isset($tenant->config->nsfwEnabled) ? $tenant->config->nsfwEnabled : true);
         }
+
+        // Tenant ID (must be last so that rootConfigs are still saved)
+
+        $this->setConfig('tenant_id', $tenant->id);
     }
 
     private function setConfig(string $key, mixed $value): void
