@@ -5,6 +5,7 @@ namespace Spec\Minds\Core\Authentication\Oidc\Services;
 use Minds\Core\Authentication\Oidc\Repositories\OidcUserRepository;
 use Minds\Core\Authentication\Oidc\Services\OidcUserService;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Queue\LegacyClient;
 use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -14,13 +15,15 @@ class OidcUserServiceSpec extends ObjectBehavior
 {
     private Collaborator $oidcUserRepositoryMock;
     private Collaborator $entitiesBuilderMock;
+    private Collaborator $registerQueueMock;
 
-    public function let(OidcUserRepository $oidcUserRepositoryMock, EntitiesBuilder $entitiesBuilderMock)
+    public function let(OidcUserRepository $oidcUserRepositoryMock, EntitiesBuilder $entitiesBuilderMock, LegacyClient $registerQueueMock)
     {
-        $this->beConstructedWith($oidcUserRepositoryMock, $entitiesBuilderMock, ACL::_());
+        $this->beConstructedWith($oidcUserRepositoryMock, $entitiesBuilderMock, ACL::_(), $registerQueueMock);
 
         $this->oidcUserRepositoryMock = $oidcUserRepositoryMock;
         $this->entitiesBuilderMock = $entitiesBuilderMock;
+        $this->registerQueueMock = $registerQueueMock;
     }
 
     public function it_is_initializable()

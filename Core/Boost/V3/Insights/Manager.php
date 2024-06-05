@@ -51,7 +51,7 @@ class Manager
         int $dailyBid,
         int $duration = 1
     ): array {
-        $historicCpms = $this->repository->getHistoricCpms($targetAudience, $targetLocation, $paymentMethod) ?: [ 3, 15 ];
+        $historicCpms = $this->repository->getHistoricCpms($targetAudience, $targetLocation, $paymentMethod) ?: [ 0, 0 ];
 
         $magnitude = 1;
         $count = count($historicCpms);

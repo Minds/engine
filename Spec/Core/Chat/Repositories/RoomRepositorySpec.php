@@ -219,6 +219,7 @@ class RoomRepositorySpec extends ObjectBehavior
                     'last_msg_created_timestamp' => '2021-01-01 00:00:00',
                     'unread_messages_count' => 0,
                     'member_guids' => "123,456",
+                    'room_name' => 'roomName',
                     'role_id' => ChatRoomRoleEnum::MEMBER->name,
                     'status' => ChatRoomMemberStatusEnum::ACTIVE->name,
                 ]
@@ -1684,5 +1685,52 @@ class RoomRepositorySpec extends ObjectBehavior
             ->shouldBeSameAs([
                 'notifications_status' => "ALL"
             ]);
+    }
+
+    // updateRoomName
+
+    public function it_should_update_a_room_name(
+        UpdateQuery $updateQueryMock,
+        PDOStatement $pdoStatementMock
+    ): void {
+        $roomGuid = Guid::build();
+        $roomName = 'room name';
+
+        $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
+
+        $this->mysqlClientWriterHandlerMock->update()
+            ->shouldBeCalledOnce()
+            ->willReturn($updateQueryMock);
+
+        $updateQueryMock->table(RoomRepository::TABLE_NAME)
+            ->shouldBeCalledOnce()
+            ->willReturn($updateQueryMock);
+        
+        $updateQueryMock->set(['room_name' => new RawExp(':room_name')])
+            ->shouldBeCalledOnce()
+            ->willReturn($updateQueryMock);
+
+        $updateQueryMock->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->shouldBeCalledOnce()
+            ->willReturn($updateQueryMock);
+
+        $updateQueryMock->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($updateQueryMock);
+
+        $updateQueryMock->prepare()
+            ->shouldBeCalledOnce()
+            ->willReturn($pdoStatementMock);
+
+        $pdoStatementMock->execute([
+            'tenant_id' => 1,
+            'room_guid' => $roomGuid,
+            'room_name' => $roomName
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->updateRoomName($roomGuid, $roomName)
+            ->shouldEqual(true);
     }
 }

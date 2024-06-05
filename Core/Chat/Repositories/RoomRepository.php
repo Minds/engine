@@ -87,6 +87,7 @@ class RoomRepository extends AbstractRepository
             createdByGuid: $data['created_by_user_guid'],
             createdAt: new DateTimeImmutable($data['created_timestamp']),
             groupGuid: $data['group_guid'] ?? null,
+            name: $data['room_name'] ?? null
         );
     }
 
@@ -1127,6 +1128,37 @@ class RoomRepository extends AbstractRepository
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
         } catch (PDOException $e) {
             throw new ServerErrorException('Failed to fetch member settings in chat room', previous: $e);
+        }
+    }
+
+    /**
+     * Update a chat room name.
+     * @param int $roomGuid - The room guid.
+     * @param string $roomName - The new room name.
+     * @return bool True on success.
+     */
+    public function updateRoomName(
+        int $roomGuid,
+        string $roomName
+    ): bool {
+        $stmt = $this->mysqlClientWriterHandler->update()
+            ->table(self::TABLE_NAME)
+            ->set(['room_name' => new RawExp(':room_name')])
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->prepare();
+
+        $values = [
+            'tenant_id' => $this->getTenantId(),
+            'room_guid' => $roomGuid,
+            'room_name' => $roomName
+        ];
+
+        try {
+            return $stmt->execute($values);
+        } catch (PDOException $e) {
+            $this->logger->error($e);
+            throw new ServerErrorException(message: 'Failed to update chat room name', previous: $e);
         }
     }
 

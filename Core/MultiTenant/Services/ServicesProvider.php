@@ -27,6 +27,7 @@ use Minds\Core\MultiTenant\Repository;
 use Minds\Core\Notifications\PostSubscriptions\Services\PostSubscriptionsService;
 use GuzzleHttp\Client;
 use Minds\Core\Authentication\Services\RegisterService;
+use Minds\Core\Email\V2\Campaigns\Recurring\TenantTrial\TenantTrialEmailer;
 
 class ServicesProvider extends Provider
 {
@@ -138,6 +139,16 @@ class ServicesProvider extends Provider
                 );
             },
             ['useFactory' => true]
+        );
+
+        $this->di->bind(
+            AutoTrialService::class,
+            fn (Di $di) => new AutoTrialService(
+                registerService: $di->get(RegisterService::class),
+                tenantsService: $di->get(TenantsService::class),
+                usersService: $di->get(TenantUsersService::class),
+                emailService: new TenantTrialEmailer(),
+            )
         );
     }
 }

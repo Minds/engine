@@ -919,4 +919,42 @@ class RoomService
             return "{$names[0]}, $names[1] & {$names[2]}";
         }
     }
+
+    /**
+     * Update the name of a chat room.
+     * @param int $roomGuid - The room GUID.
+     * @param string $roomName - The new room name.
+     * @param User $user - The user requesting the update.
+     * @return bool - True if the room name was updated.
+     */
+    public function updateRoomName(
+        int $roomGuid,
+        string $roomName,
+        User $user
+    ): bool {
+        $chatRoomEdge = $this->getRoom(
+            roomGuid: $roomGuid,
+            loggedInUser: $user
+        );
+
+        if (!$this->roomRepository->isUserRoomOwner(
+            roomGuid: $roomGuid,
+            user: $user
+        )) {
+            throw new GraphQLException(message: "You are not the owner of this chat.", code: 403);
+        }
+
+        if ($chatRoomEdge?->getNode()?->getRoomType() !== ChatRoomTypeEnum::MULTI_USER) {
+            throw new GraphQLException(message: "Only multi-user chat names can have their names changed.", code: 400);
+        }
+
+        if (strlen($roomName) > 128) {
+            throw new UserErrorException("Room name must be under 128 characters", code: 400);
+        }
+
+        return $this->roomRepository->updateRoomName(
+            roomGuid: $roomGuid,
+            roomName: $roomName
+        );
+    }
 }

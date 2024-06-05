@@ -3,6 +3,7 @@ namespace Minds\Core\Authentication\Oidc\Services;
 
 use Minds\Core\Authentication\Oidc\Repositories\OidcUserRepository;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Queue\LegacyClient;
 use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 use RegistrationException;
@@ -13,6 +14,7 @@ class OidcUserService
         private OidcUserRepository $oidcUserRepository,
         private EntitiesBuilder $entitiesBuilder,
         private ACL $acl,
+        private LegacyClient $registerQueue,
     ) {
         
     }
@@ -65,6 +67,11 @@ class OidcUserService
 
         // Link this user to the oidc map
         $this->oidcUserRepository->linkSubToUserGuid($sub, $providerId, (int) $user->getGuid());
+
+        $this->registerQueue->send([
+            'user_guid' => (string) $user->getGuid(),
+            'invite_token' => null,
+        ]);
 
         return $user;
     }

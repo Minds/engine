@@ -75,8 +75,8 @@ class Mailer
         $this->mailer->ClearAllRecipients();
         $this->mailer->ClearAttachments();
 
+        $this->mailer->ClearReplyTos();
         if ($message->getReplyTo()) {
-            $this->mailer->ClearReplyTos();
             $this->mailer->addReplyTo(
                 $message->getReplyTo()['email'],
                 $message->getReplyTo()['name'] ?? 'Minds'
