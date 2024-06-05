@@ -25,6 +25,7 @@ class Repository extends AbstractRepository
                 'name',
                 'type',
                 'visible',
+                'visible_mobile',
                 'icon_id',
                 'path',
                 'url',
@@ -53,6 +54,7 @@ class Repository extends AbstractRepository
                 name: $row['name'],
                 type: constant(NavigationItemTypeEnum::class . '::' . $row['type']),
                 visible: (bool) $row['visible'],
+                visibleMobile: (bool) $row['visible_mobile'],
                 iconId: $row['icon_id'],
                 path: $row['path'],
                 url: $row['url'],
@@ -70,6 +72,7 @@ class Repository extends AbstractRepository
     public function addItem(NavigationItem $item): bool
     {
         $visibleForSQL = $item->visible ? 1 : 0;
+        $visibleMobileForSQL = $item->visibleMobile ? 1 : 0;
 
         $query = $this->mysqlClientWriterHandler->insert()
             ->into(self::TABLE_NAME)
@@ -79,6 +82,7 @@ class Repository extends AbstractRepository
                 'name' => new RawExp(':name'),
                 'type' => new RawExp(':type'),
                 'visible' => new RawExp(':visible'),
+                'visible_mobile' => new RawExp(':visible_mobile'),
                 'icon_id' => new RawExp(':icon_id'),
                 'path' => new RawExp(':path'),
                 'url' => new RawExp(':url'),
@@ -89,6 +93,7 @@ class Repository extends AbstractRepository
                 'name' => new RawExp(':new_name'),
                 'type' => new RawExp(':new_type'),
                 'visible' => new RawExp(':new_visible'),
+                'visible_mobile' => new RawExp(':new_visible_mobile'),
                 'icon_id' => new RawExp(':new_icon_id'),
                 'path' => new RawExp(':new_path'),
                 'url' => new RawExp(':new_url'),
@@ -104,6 +109,7 @@ class Repository extends AbstractRepository
             'name' => $item->name,
             'type' => $item->type->name,
             'visible' => $visibleForSQL,
+            'visible_mobile' => $visibleMobileForSQL,
             'icon_id' => $item->iconId,
             'path' => $item->path,
             'url' => $item->url,
@@ -113,6 +119,7 @@ class Repository extends AbstractRepository
             'new_name' => $item->name,
             'new_type' => $item->type->name,
             'new_visible' => $visibleForSQL,
+            'new_visible_mobile' => $visibleMobileForSQL,
             'new_icon_id' => $item->iconId,
             'new_path' => $item->path,
             'new_url' => $item->url,
