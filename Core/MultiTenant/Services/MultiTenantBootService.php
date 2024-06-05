@@ -122,7 +122,7 @@ class MultiTenantBootService
 
         // Data root
 
-        $this->setConfig('dataroot', $this->config->get('dataroot') . 'tenant/' . $this->config->get('tenant_id') . '/');
+        $this->setConfig('dataroot', $this->config->get('dataroot') . 'tenant/' . $tenant->id . '/');
 
         // PostHog
 
