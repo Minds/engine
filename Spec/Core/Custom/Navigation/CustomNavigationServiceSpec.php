@@ -67,7 +67,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
                 name: 'Boost',
                 type: NavigationItemTypeEnum::CORE,
                 visible: true,
-                visibleMobile: true,
+                visibleMobile: false,
                 iconId: 'trending_up',
                 path: '/boost/boost-console',
                 order: 3,
