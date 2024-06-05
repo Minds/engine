@@ -13,6 +13,7 @@ use Minds\Core\Authentication\Oidc\Services\OidcAuthService;
 use Minds\Core\Authentication\Oidc\Services\OidcProvidersService;
 use Minds\Core\Authentication\Oidc\Services\OidcUserService;
 use Minds\Core\Config\Config;
+use Minds\Core\Queue;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\EntitiesBuilder;
@@ -57,6 +58,7 @@ class Provider extends DiProvider
                 oidcUserRepository: $di->get(OidcUserRepository::class),
                 entitiesBuilder: $di->get(EntitiesBuilder::class),
                 acl: $di->get('Security\ACL'),
+                registerQueue: Queue\Client::build()->setQueue('Registered'),
             );
         });
 

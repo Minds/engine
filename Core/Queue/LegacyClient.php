@@ -30,14 +30,14 @@ class LegacyClient implements QueueClient
     ) {
     }
 
-    public function setQueue($name = 'default')
+    public function setQueue($name = 'default'): self
     {
         $this->queueName = $name;
 
         return $this;
     }
 
-    public function send(array $message, $delaySecs = 0)
+    public function send(array $message, $delaySecs = 0): bool
     {
         $event = new Message(
             queueName: $this->queueName,
