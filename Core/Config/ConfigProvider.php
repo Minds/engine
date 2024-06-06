@@ -44,5 +44,10 @@ class ConfigProvider extends Provider
         $this->di->bind('Config\Exported', function ($di) {
             return new Exported();
         }, ['useFactory' => true]);
+
+        $this->di->bind(
+            GraphQL\Controllers\ConfigController::class,
+            fn (Di $di) => new GraphQL\Controllers\ConfigController($di->get(Config::class))
+        );
     }
 }
