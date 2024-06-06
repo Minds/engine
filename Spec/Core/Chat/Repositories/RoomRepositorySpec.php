@@ -395,6 +395,7 @@ class RoomRepositorySpec extends ObjectBehavior
         SelectQuery $membersQueryMock,
         SelectQuery $groupsQueryMock,
         SelectQuery $unionQueryMock,
+        SelectQuery $selectQueryMock,
         PDOStatement $pdoStatementMock,
         User $userMock
     ): void {
@@ -462,9 +463,14 @@ class RoomRepositorySpec extends ObjectBehavior
         $membersQueryMock->union($groupsQueryMock)
             ->willReturn($unionQueryMock);
 
+        $unionQueryMock->build(false)->willReturn('');
+
+        $selectQueryMock->from(Argument::type(RawExp::class))->shouldBeCalled()
+            ->willReturn($unionQueryMock);
+
         $this->mysqlClientReaderHandlerMock->select()
             ->shouldBeCalled()
-            ->willReturn($membersQueryMock, $groupsQueryMock);
+            ->willReturn($membersQueryMock, $groupsQueryMock, $selectQueryMock);
 
         $this->mysqlHandlerMock->bindValuesToPreparedStatement($pdoStatementMock, [
             'tenant_id' => 1,

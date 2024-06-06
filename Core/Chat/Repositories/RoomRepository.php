@@ -384,7 +384,10 @@ class RoomRepository extends AbstractRepository
             return $cached;
         }
 
-        $query = $this->buildRoomMembershipQuery()
+        $q = $this->buildRoomMembershipQuery()->build(false);
+
+        $query = $this->mysqlClientReaderHandler->select()
+            ->from(new RawExp("($q) as m"))
             ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
             ->where('member_guid', Operator::EQ, new RawExp(':member_guid'))
