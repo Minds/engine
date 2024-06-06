@@ -48,6 +48,7 @@ class ServicesProvider extends Provider
                 chatNotificationsTopic: $di->get(ChatNotificationsTopic::class),
                 chatRichEmbedService: Di::_()->get(RichEmbedService::class),
                 analyticsDelegate: $di->get(AnalyticsDelegate::class),
+                eventsDispatcher: Di::_()->get('EventsDispatcher'),
                 logger: $di->get('Logger')
             )
         );

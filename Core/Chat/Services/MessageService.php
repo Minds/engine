@@ -19,6 +19,7 @@ use Minds\Core\Chat\Repositories\RoomRepository;
 use Minds\Core\Chat\Types\ChatMessageEdge;
 use Minds\Core\Chat\Types\ChatMessageNode;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\EventStreams\Topics\ChatNotificationsTopic;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
 use Minds\Core\Guid;
@@ -40,6 +41,7 @@ class MessageService
         private readonly ChatNotificationsTopic $chatNotificationsTopic,
         private readonly RichEmbedService $chatRichEmbedService,
         private readonly AnalyticsDelegate $analyticsDelegate,
+        private readonly EventsDispatcher $eventsDispatcher,
         private readonly Logger $logger
     ) {
     }
@@ -187,20 +189,24 @@ class MessageService
 
         usort($messages, fn (ChatMessage $a, ChatMessage $b): bool => $a->createdAt > $b->createdAt);
 
-        return [
-            'edges' => array_map(
-                fn (ChatMessage $message) => new ChatMessageEdge(
-                    node: new ChatMessageNode(
-                        chatMessage: $message,
-                        sender: new UserEdge(
-                            user: $this->entitiesBuilder->single($message->senderGuid),
-                            cursor: ''
-                        )
-                    ),
-                    cursor: base64_encode((string) $message->guid)
+        $edges = array_map(
+            fn (ChatMessage $message) => new ChatMessageEdge(
+                node: new ChatMessageNode(
+                    chatMessage: $message,
+                    sender: new UserEdge(
+                        user: $this->entitiesBuilder->single($message->senderGuid),
+                        cursor: ''
+                    )
                 ),
-                $messages
+                cursor: base64_encode((string) $message->guid)
             ),
+            $messages
+        );
+
+        $edges = $this->removeDisallowedSendersFromEdges($edges);
+
+        return [
+            'edges' => $edges,
             'hasMore' => $hasMore
         ];
     }
@@ -362,5 +368,40 @@ class MessageService
         );
 
         return $chatRooms[0] ?? throw new ChatRoomNotFoundException();
+    }
+
+    /**
+     * Remove messages from disallowed senders.
+     * @param array $edges - the edges.
+     * @return array - the filtered edges.
+     */
+    private function removeDisallowedSendersFromEdges(array $edges): array
+    {
+        $disallowedMessageSenders = [];
+
+        return array_values(array_filter(
+            $edges,
+            function (ChatMessageEdge $edge) use (&$disallowedMessageSenders) {
+                // If we already know the sender is disallowed, don't check them again.
+                if (in_array($edge->getNode()->sender->getNode()->getGuid(), $disallowedMessageSenders, true)) {
+                    return false;
+                }
+
+                $isAllowed = $this->eventsDispatcher->trigger(
+                    event: 'acl:read',
+                    namespace: 'chat',
+                    params: [
+                        'user' => $edge->getNode()->sender->getNode()->getUser(),
+                        'entity' => $edge->getNode()->chatMessage
+                    ]
+                );
+
+                if (!$isAllowed) {
+                    $disallowedMessageSenders[] = $edge->getNode()->sender->getNode()->getGuid();
+                }
+
+                return $isAllowed;
+            }
+        ));
     }
 }

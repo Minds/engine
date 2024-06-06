@@ -23,6 +23,7 @@ use Minds\Core\Chat\Services\ReceiptService;
 use Minds\Core\Chat\Services\RichEmbedService;
 use Minds\Core\Chat\Types\ChatMessageEdge;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\EventStreams\Topics\ChatNotificationsTopic;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
@@ -44,6 +45,7 @@ class MessageServiceSpec extends ObjectBehavior
     private Collaborator $chatNotificationsTopicMock;
     private Collaborator $chatRichEmbedServiceMock;
     private Collaborator $analyticsDelegateMock;
+    private Collaborator $eventsDispatcherMock;
     private Collaborator $loggerMock;
 
     private ReflectionClass $chatMessageFactoryMock;
@@ -60,9 +62,10 @@ class MessageServiceSpec extends ObjectBehavior
         ChatNotificationsTopic $chatNotificationsTopic,
         RichEmbedService $chatRichEmbedService,
         AnalyticsDelegate $analyticsDelegate,
+        EventsDispatcher $eventsDispatcher,
         Logger $logger
     ) {
-        $this->beConstructedWith($messageRepositoryMock, $roomRepositoryMock, $receiptServiceMock, $entitiesBuilderMock, $socketEvents, $chatNotificationsTopic, $chatRichEmbedService, $analyticsDelegate, $logger);
+        $this->beConstructedWith($messageRepositoryMock, $roomRepositoryMock, $receiptServiceMock, $entitiesBuilderMock, $socketEvents, $chatNotificationsTopic, $chatRichEmbedService, $analyticsDelegate, $eventsDispatcher, $logger);
         $this->messageRepositoryMock = $messageRepositoryMock;
         $this->roomRepositoryMock  = $roomRepositoryMock;
         $this->receiptServiceMock = $receiptServiceMock;
@@ -71,6 +74,7 @@ class MessageServiceSpec extends ObjectBehavior
         $this->chatNotificationsTopicMock = $chatNotificationsTopic;
         $this->chatRichEmbedServiceMock = $chatRichEmbedService;
         $this->analyticsDelegateMock = $analyticsDelegate;
+        $this->eventsDispatcherMock = $eventsDispatcher;
         $this->loggerMock = $logger;
 
         $this->chatMessageFactoryMock = new ReflectionClass(ChatMessage::class);
@@ -381,6 +385,8 @@ class MessageServiceSpec extends ObjectBehavior
     public function it_should_get_chat_messages(
         User $userMock
     ): void {
+        $sender1Guid = '123';
+
         $this->roomRepositoryMock->isUserMemberOfRoom(
             123,
             $userMock,
@@ -409,9 +415,21 @@ class MessageServiceSpec extends ObjectBehavior
                 'hasMore' => false
             ]);
 
+        $userMock->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($sender1Guid);
+
         $this->entitiesBuilderMock->single(123)
             ->shouldBeCalledOnce()
             ->willReturn($userMock);
+
+        $this->eventsDispatcherMock->trigger(
+            'acl:read',
+            'chat',
+            Argument::any()
+        )
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $response = $this->getMessages(
             123,
@@ -424,6 +442,65 @@ class MessageServiceSpec extends ObjectBehavior
         $response['edges'][0]->getNode()->chatMessage->guid->shouldEqual(1);
         $response['edges'][0]->getNode()->chatMessage->senderGuid->shouldEqual(123);
         $response['edges'][0]->getCursor()->shouldEqual(base64_encode('1'));
+    }
+
+    public function it_should_filter_chat_messages_from_disallowed_senders(
+        User $userMock
+    ): void {
+        $sender1Guid = '123';
+
+        $this->roomRepositoryMock->isUserMemberOfRoom(
+            123,
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ]
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->messageRepositoryMock->getMessagesByRoom(
+            123,
+            12,
+            null,
+            null
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'messages' => [
+                    $this->generateChatMessageMock(
+                        messageGuid: 1,
+                        senderGuid: 123
+                    )
+                ],
+                'hasMore' => false
+            ]);
+
+        $userMock->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($sender1Guid);
+
+        $this->entitiesBuilderMock->single(123)
+            ->shouldBeCalledOnce()
+            ->willReturn($userMock);
+
+        $this->eventsDispatcherMock->trigger(
+            'acl:read',
+            'chat',
+            Argument::any()
+        )
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $response = $this->getMessages(
+            123,
+            $userMock
+        );
+
+        $response->shouldBeArray();
+
+        $response['edges']->shouldBe([]);
     }
 
     public function it_should_get_chat_message_as_NON_ADMIN(
