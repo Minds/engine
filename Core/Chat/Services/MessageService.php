@@ -66,13 +66,10 @@ class MessageService
             throw new GraphQLException(message: "Message cannot be empty", code: 400);
         }
 
-        if (
-            !$this->roomRepository->isUserMemberOfRoom(
-                roomGuid: $roomGuid,
-                user: $user
-            )
-        ) {
-            throw new GraphQLException(message: "You are not a member of this room", code: 403);
+        $chatRoomListItem = $this->getChatRoomListItem($user, $roomGuid);
+
+        if (!$this->acl->write(entity: $chatRoomListItem->chatRoom, user: $user)) {
+            throw new GraphQLException(message: "You cannot add a message to this room", code: 403);
         }
 
         $messageType = ChatMessageTypeEnum::TEXT;
@@ -138,7 +135,7 @@ class MessageService
         $this->handleSendMessageAnalyticsEvent(
             user: $user,
             chatMessage: $chatMessage,
-            roomGuid: $roomGuid
+            chatRoom: $chatRoomListItem->chatRoom
         );
 
         return new ChatMessageEdge(
@@ -327,21 +324,19 @@ class MessageService
      * Handle analytics event firing on message send.
      * @param User $user - the message sender.
      * @param ChatMessage $chatMessage - the message.
-     * @param int $roomGuid - the room guid.
+     * @param ChatRoom $chatRoom - the room chat room.
      * @return void
      */
     private function handleSendMessageAnalyticsEvent(
         User $user,
         ChatMessage $chatMessage,
-        int $roomGuid
+        ChatRoom $chatRoom
     ) {
         try {
-            $chatRoom = $this->getChatRoomListItem($user, $roomGuid);
-
             $this->analyticsDelegate->onMessageSend(
                 actor: $user,
                 message: $chatMessage,
-                chatRoom: $chatRoom->chatRoom
+                chatRoom: $chatRoom
             );
         } catch (\Exception $e) {
             $this->logger->error($e);
