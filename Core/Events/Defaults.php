@@ -207,7 +207,7 @@ class Defaults
 
         // Chat ACL Events
         (new Core\Chat\Events\Events(
-            eventsDispatcher: Di::_()->get('EventsDispatcher')
+            eventsDispatcher: Di::_()->get('EventsDispatcher'),
         ))->register();
     }
 
