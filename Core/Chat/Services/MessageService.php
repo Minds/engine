@@ -5,6 +5,7 @@ namespace Minds\Core\Chat\Services;
 
 use Minds\Core\Chat\Delegates\AnalyticsDelegate;
 use Minds\Core\Chat\Entities\ChatMessage;
+use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Entities\ChatRoomListItem;
 use Minds\Core\Chat\Enums\ChatMessageTypeEnum;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
@@ -19,11 +20,11 @@ use Minds\Core\Chat\Repositories\RoomRepository;
 use Minds\Core\Chat\Types\ChatMessageEdge;
 use Minds\Core\Chat\Types\ChatMessageNode;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\EventStreams\Topics\ChatNotificationsTopic;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
+use Minds\Core\Security\ACL;
 use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -41,7 +42,7 @@ class MessageService
         private readonly ChatNotificationsTopic $chatNotificationsTopic,
         private readonly RichEmbedService $chatRichEmbedService,
         private readonly AnalyticsDelegate $analyticsDelegate,
-        private readonly EventsDispatcher $eventsDispatcher,
+        private readonly ACL $acl,
         private readonly Logger $logger
     ) {
     }
@@ -203,7 +204,8 @@ class MessageService
             $messages
         );
 
-        $edges = $this->removeDisallowedSendersFromEdges($edges);
+        $chatRoomListItem = $this->getChatRoomListItem($user, $roomGuid);
+        $edges = $this->removeDisallowedSendersFromEdges($edges, $chatRoomListItem->chatRoom);
 
         return [
             'edges' => $edges,
@@ -375,29 +377,32 @@ class MessageService
      * @param array $edges - the edges.
      * @return array - the filtered edges.
      */
-    private function removeDisallowedSendersFromEdges(array $edges): array
+    private function removeDisallowedSendersFromEdges(array $edges, ChatRoom $chatRoom): array
     {
         $disallowedMessageSenders = [];
+        $allowedMessageSenders = [];
 
         return array_values(array_filter(
             $edges,
-            function (ChatMessageEdge $edge) use (&$disallowedMessageSenders) {
+            function (ChatMessageEdge $edge) use (&$disallowedMessageSenders, &$allowedMessageSenders, $chatRoom) {
+                $sender = $edge->getNode()->sender->getNode()->getUser();
+        
+                // If we already know the sender is allowed, don't check them again.
+                if (in_array($sender->getGuid(), $allowedMessageSenders, true)) {
+                    return true;
+                }
+
                 // If we already know the sender is disallowed, don't check them again.
-                if (in_array($edge->getNode()->sender->getNode()->getGuid(), $disallowedMessageSenders, true)) {
+                if (in_array($sender->getGuid(), $disallowedMessageSenders, true)) {
                     return false;
                 }
 
-                $isAllowed = $this->eventsDispatcher->trigger(
-                    event: 'acl:read',
-                    namespace: 'chat',
-                    params: [
-                        'user' => $edge->getNode()->sender->getNode()->getUser(),
-                        'entity' => $edge->getNode()->chatMessage
-                    ]
-                );
+                $isAllowed = $this->acl->write(entity: $chatRoom, user: $sender);
 
-                if (!$isAllowed) {
-                    $disallowedMessageSenders[] = $edge->getNode()->sender->getNode()->getGuid();
+                if ($isAllowed) {
+                    $allowedMessageSenders[] = $sender->getGuid();
+                } else {
+                    $disallowedMessageSenders[] = $sender->getGuid();
                 }
 
                 return $isAllowed;
