@@ -238,7 +238,11 @@ class RoomRepositorySpec extends ObjectBehavior
                     ) &&
                     (
                         $cols[3] instanceof RawExp &&
-                        trim($cols[3]->getValue()) === "CASE
+                        $cols[3]->getValue() === "COALESCE(last_msg.created_timestamp, r.created_timestamp) as last_activity_timestamp"
+                    ) &&
+                    (
+                        $cols[4] instanceof RawExp &&
+                        trim($cols[4]->getValue()) === "CASE
                         WHEN
                             COALESCE(rct.message_guid, 0) < last_msg.guid
                         THEN 1
@@ -291,7 +295,7 @@ class RoomRepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
-        $selectQueryMock->orderBy('last_msg.created_timestamp DESC', 'r.created_timestamp DESC')
+        $selectQueryMock->orderBy('last_activity_timestamp DESC')
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
