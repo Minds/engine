@@ -154,6 +154,7 @@ class RoomRepository extends AbstractRepository
                 'r.*',
                 new RawExp('last_msg.plain_text as last_msg_plain_text'),
                 new RawExp('last_msg.created_timestamp as last_msg_created_timestamp'),
+                new RawExp('COALESCE(last_msg.created_timestamp, r.created_timestamp) as last_activity_timestamp'),
                 new RawExp("
                     CASE
                         WHEN
@@ -239,7 +240,7 @@ class RoomRepository extends AbstractRepository
             )
             ->where('r.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->whereWithNamedParameters('m.status', Operator::IN, 'status', count($targetMemberStatuses))
-            ->orderBy('last_msg.created_timestamp DESC', 'r.created_timestamp DESC')
+            ->orderBy('last_activity_timestamp DESC')
             ->limit($limit + 1);
 
         if ($roomGuid) {
@@ -248,9 +249,9 @@ class RoomRepository extends AbstractRepository
 
         $optionalValues = [];
         if ($lastMessageCreatedAtTimestamp) {
-            $stmt->whereRaw('(last_msg.created_timestamp < :last_msg_created_timestamp OR last_msg.created_timestamp IS NULL)');
+            $stmt->whereRaw('COALESCE(last_msg.created_timestamp, r.created_timestamp) < :last_activity_timestamp');
             $optionalValues = [
-                'last_msg_created_timestamp' => date('c', $lastMessageCreatedAtTimestamp),
+                'last_activity_timestamp' => date('c', $lastMessageCreatedAtTimestamp),
             ];
         } elseif ($roomCreatedAtTimestamp) {
             $stmt->where('last_msg.created_timestamp', Operator::IS, null);
@@ -384,7 +385,10 @@ class RoomRepository extends AbstractRepository
             return $cached;
         }
 
-        $query = $this->buildRoomMembershipQuery()
+        $q = $this->buildRoomMembershipQuery()->build(false);
+
+        $query = $this->mysqlClientReaderHandler->select()
+            ->from(new RawExp("($q) as m"))
             ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
             ->where('member_guid', Operator::EQ, new RawExp(':member_guid'))
