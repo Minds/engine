@@ -1079,3 +1079,6 @@ ALTER TABLE `minds_entities_group`
 ALTER TABLE `minds_chat_rooms`
     ADD room_name varchar(128) 
     AFTER room_type;
+
+ALTER TABLE minds_group_membership
+    ADD site_membership_guid BIGINT DEFAULT NULL REFERENCES minds_site_membership_subscriptions (site_membership_guid);
