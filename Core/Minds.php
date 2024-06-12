@@ -94,6 +94,7 @@ class Minds extends base
         Custom\Navigation\Module::class,
         Chat\Module::class,
         SEO\Robots\Module::class,
+        DeepLink\Module::class
     ];
 
     /**

@@ -82,6 +82,8 @@ class MobileConfigRepository extends AbstractRepository
             appScheme: $entry['app_scheme'],
             appIosBundle: $entry['app_ios_bundle'],
             appAndroidPackage: $entry['app_android_package'],
+            androidKeystoreFingerprint: $entry['android_keystore_fingerprint'],
+            appleDevelopmentTeamId: $entry['apple_development_team_id']
         );
     }
 }
