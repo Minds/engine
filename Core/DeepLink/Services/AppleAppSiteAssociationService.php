@@ -25,7 +25,7 @@ class AppleAppSiteAssociationService
     {
         $configs = $this->mobileConfigReaderService->getMobileConfig();
 
-        if (!($appleDevelopmentTeamId = $configs->appleDevelopmentTeamId)) {
+        if (!($appleDevelopmentTeamId = $configs?->appleDevelopmentTeamId)) {
             throw new ServerErrorException("Apple development team ID is not set");
         }
 
