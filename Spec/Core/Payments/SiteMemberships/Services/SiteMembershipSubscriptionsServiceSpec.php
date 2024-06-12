@@ -20,6 +20,9 @@ use PhpSpec\Wrapper\Collaborator;
 use ReflectionClass;
 use Stripe\Checkout\Session as StripeCheckoutSession;
 use Stripe\Product as StripeProduct;
+use Minds\Core\Groups\V2\Membership\Manager as GroupMembershipService;
+use Minds\Core\Payments\SiteMemberships\Repositories\DTO\SiteMembershipSubscriptionDTO;
+use Prophecy\Argument;
 
 class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
 {
@@ -29,6 +32,7 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
     private Collaborator $stripeProductServiceMock;
     private Collaborator $stripeCheckoutSessionServiceMock;
     private Collaborator $configMock;
+    private Collaborator $groupMembershipServiceMock;
 
     private ReflectionClass $siteMembershipSubscriptionMockFactory;
     private ReflectionClass $siteMembershipMockFactory;
@@ -41,7 +45,8 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
         StripeCheckoutManager                 $stripeCheckoutManager,
         StripeProductService                  $stripeProductService,
         StripeCheckoutSessionService          $stripeCheckoutSessionService,
-        Config                                $config
+        Config                                $config,
+        GroupMembershipService                $groupMembershipServiceMock,
     ): void {
         $this->siteMembershipSubscriptionsRepositoryMock = $siteMembershipSubscriptionsRepository;
         $this->siteMembershipReaderServiceMock = $siteMembershipReaderService;
@@ -49,6 +54,7 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
         $this->stripeProductServiceMock = $stripeProductService;
         $this->stripeCheckoutSessionServiceMock = $stripeCheckoutSessionService;
         $this->configMock = $config;
+        $this->groupMembershipServiceMock = $groupMembershipServiceMock;
 
         $this->siteMembershipSubscriptionMockFactory = new ReflectionClass(SiteMembershipSubscription::class);
         $this->siteMembershipMockFactory = new ReflectionClass(SiteMembership::class);
@@ -61,7 +67,8 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
             $this->stripeCheckoutManagerMock,
             $this->stripeProductServiceMock,
             $this->stripeCheckoutSessionServiceMock,
-            $this->configMock
+            $this->configMock,
+            $this->groupMembershipServiceMock,
         );
     }
 
@@ -122,12 +129,14 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
     private function generateSiteMembershipMock(
         int                            $siteMembershipGuid,
         string                         $stripeProductId,
-        SiteMembershipPricingModelEnum $membershipPricingModel
+        SiteMembershipPricingModelEnum $membershipPricingModel,
+        array                          $groups = [],
     ): SiteMembership {
         $siteMembershipMock = $this->siteMembershipMockFactory->newInstanceWithoutConstructor();
         $this->siteMembershipMockFactory->getProperty('membershipGuid')->setValue($siteMembershipMock, $siteMembershipGuid);
         $this->siteMembershipMockFactory->getProperty('stripeProductId')->setValue($siteMembershipMock, $stripeProductId);
         $this->siteMembershipMockFactory->getProperty('membershipPricingModel')->setValue($siteMembershipMock, $membershipPricingModel);
+        $this->siteMembershipMockFactory->getProperty('groups')->setValue($siteMembershipMock, $groups);
 
         return $siteMembershipMock;
     }
@@ -249,11 +258,10 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
             ->willReturn($siteMembershipMock);
 
         $this->siteMembershipSubscriptionsRepositoryMock->storeSiteMembershipSubscription(
-            $userMock,
-            $siteMembershipMock,
-            'sub_123',
+            Argument::type(SiteMembershipSubscriptionDTO::class)
         )
-            ->shouldBeCalledOnce();
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
 
         $this->completeSiteMembershipCheckout(
             "checkout_session_id",
