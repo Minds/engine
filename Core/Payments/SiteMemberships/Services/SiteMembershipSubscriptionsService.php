@@ -3,16 +3,22 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\SiteMemberships\Services;
 
+use DateTime;
 use Minds\Core\Config\Config;
+use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipErrorEnum;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipPricingModelEnum;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipFoundException;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipSubscriptionFoundException;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipSubscriptionsRepository;
+use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
 use Minds\Core\Payments\Stripe\Checkout\Enums\CheckoutModeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Manager as StripeCheckoutManager;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
 use Minds\Core\Payments\Stripe\Checkout\Session\Services\SessionService as StripeCheckoutSessionService;
+use Minds\Core\Groups\V2\Membership\Manager as GroupMembershipService;
+use Minds\Core\Groups\V2\Membership\Membership;
+use Minds\Core\Payments\SiteMemberships\Repositories\DTO\SiteMembershipSubscriptionDTO;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
@@ -28,7 +34,8 @@ class SiteMembershipSubscriptionsService
         private readonly StripeCheckoutManager                 $stripeCheckoutManager,
         private readonly StripeProductService                  $stripeProductService,
         private readonly StripeCheckoutSessionService          $stripeCheckoutSessionService,
-        private readonly Config                                $config
+        private readonly Config                                $config,
+        private readonly GroupMembershipService                $groupMembershipService,
     ) {
     }
 
@@ -117,13 +124,32 @@ class SiteMembershipSubscriptionsService
 
         $siteMembership = $this->siteMembershipReaderService->getSiteMembership((int)$siteMembershipGuid);
 
-        $this->siteMembershipSubscriptionsRepository->storeSiteMembershipSubscription(
-            user: $user,
-            siteMembership: $siteMembership,
-            stripeSubscriptionId: $siteMembership->membershipPricingModel === SiteMembershipPricingModelEnum::RECURRING ? $stripeCheckoutSession->subscription : $stripeCheckoutSession->payment_intent
+        $this->addSiteMembershipSubscription(
+            new SiteMembershipSubscriptionDTO(
+                user: $user,
+                siteMembership: $siteMembership,
+                stripeSubscriptionId: $siteMembership->membershipPricingModel === SiteMembershipPricingModelEnum::RECURRING ? $stripeCheckoutSession->subscription : $stripeCheckoutSession->payment_intent
+            )
+        );
+        
+        return $redirectPath;
+    }
+
+    /**
+     * Add a site membership subscription to the datastore and run any other processes
+     * such as joining the relevant groups
+     */
+    public function addSiteMembershipSubscription(SiteMembershipSubscriptionDTO $siteMembershipSubscription): bool
+    {
+        $success = $this->siteMembershipSubscriptionsRepository->storeSiteMembershipSubscription(
+            $siteMembershipSubscription
         );
 
-        return $redirectPath;
+        if ($success) {
+            $this->joinGroups($siteMembershipSubscription->siteMembership, $siteMembershipSubscription->user);
+        }
+
+        return $success;
     }
 
     /**
@@ -135,5 +161,39 @@ class SiteMembershipSubscriptionsService
         ?User $user = null
     ): array {
         return iterator_to_array($this->siteMembershipSubscriptionsRepository->getSiteMembershipSubscriptions($user));
+    }
+
+    /**
+     * Leaves a group if the membership subscription has expired
+     */
+    public function cleanupSiteMembershipGroupMemberships()
+    {
+
+    }
+
+    /**
+     * Join groups associated with a membership
+     */
+    private function joinGroups(SiteMembership $siteMembership, User $user): void
+    {
+        foreach ($siteMembership->getGroups() as $groupNode) {
+            $group = $groupNode->getEntity();
+            // Check if there is already a membership. If they are already 'at least a member', then skip.
+            try {
+                $groupMembership = $this->groupMembershipService->getMembership(group: $group, user: $user);
+            
+                if ($groupMembership->siteMembershipGuid) {
+                    throw new NotFoundException(); // Allow
+                }
+
+                if ($groupMembership->membershipLevel->value > GroupMembershipLevelEnum::REQUESTED->value) {
+                    continue; // If they already have a membership that is not a request, do not allow
+                }
+            } catch (NotFoundException) {
+                // This is what we want
+            }
+
+            $this->groupMembershipService->joinGroup($group, $user, GroupMembershipLevelEnum::MEMBER, $siteMembership->membershipGuid);
+        }
     }
 }
