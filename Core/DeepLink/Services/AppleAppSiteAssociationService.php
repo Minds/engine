@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\DeepLink\Services;
 
+use Minds\Core\Config\Config;
 use Minds\Core\MultiTenant\MobileConfigs\Services\MobileConfigReaderService;
 use Minds\Exceptions\ServerErrorException;
 
@@ -12,7 +13,8 @@ use Minds\Exceptions\ServerErrorException;
 class AppleAppSiteAssociationService
 {
     public function __construct(
-        private readonly MobileConfigReaderService $mobileConfigReaderService
+        private readonly MobileConfigReaderService $mobileConfigReaderService,
+        private readonly Config $configs
     ) {
     }
 
@@ -29,36 +31,46 @@ class AppleAppSiteAssociationService
             throw new ServerErrorException("Apple development team ID is not set");
         }
 
-        return [
+        if (!($appIosBundle = $configs?->appIosBundle)) {
+            throw new ServerErrorException("iOS bundle ID is not set");
+        }
+
+        $data = [
             'activitycontinuation' => [
-                    "apps" => [
-                            "$appleDevelopmentTeamId.com.minds.mobile",
-                            "$appleDevelopmentTeamId.com.minds.chat"
-                    ]
+                "apps" => [
+                    "$appleDevelopmentTeamId.$appIosBundle"
+                ]
             ],
             'applinks' => [
-                    'apps' => [],
-                    'details' => [
-                            [
-                                    'appID' => "$appleDevelopmentTeamId.com.minds.mobile",
-                                    'paths' => [
-                                            'NOT /api/*',
-                                            'NOT /register',
-                                            'NOT /login',
-                                            '/*'
-                                    ]
-                            ],
-                            [
-                                    'appID' => "$appleDevelopmentTeamId.com.minds.chat",
-                                    'paths' => ['/*']
-                            ]
+                'apps' => [],
+                'details' => [
+                    [
+                        'appID' => "$appleDevelopmentTeamId.$appIosBundle",
+                        'paths' => [
+                            'NOT /api/*',
+                            'NOT /register',
+                            'NOT /login',
+                            '/*'
+                        ]
                     ]
+                ]
             ],
             'webcredentials' => [
-                    'apps' => [
-                            "$appleDevelopmentTeamId.com.minds.mobile",
-                    ]
+                'apps' => [
+                    "$appleDevelopmentTeamId.$appIosBundle",
+                ]
             ],
         ];
+
+        // Add the Chat app for non-tenant domain.
+        if (!$this->configs->get('tenant_id')) {
+            $data['activitycontinuation']['apps'][] = "$appleDevelopmentTeamId.com.minds.chat";
+            $data['applinks']['details'][] = [
+                'appID' => "$appleDevelopmentTeamId.com.minds.chat",
+                'paths' => ['/*']
+            ];
+        }
+
+        return $data;
     }
 }

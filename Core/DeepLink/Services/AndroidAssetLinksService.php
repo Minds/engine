@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\DeepLink\Services;
 
+use Minds\Core\Config\Config;
 use Minds\Core\MultiTenant\MobileConfigs\Services\MobileConfigReaderService;
 use Minds\Exceptions\ServerErrorException;
 
@@ -12,7 +13,8 @@ use Minds\Exceptions\ServerErrorException;
 class AndroidAssetLinksService
 {
     public function __construct(
-        private readonly MobileConfigReaderService $mobileConfigReaderService
+        private readonly MobileConfigReaderService $mobileConfigReaderService,
+        private readonly Config $configs
     ) {
     }
 
@@ -29,11 +31,15 @@ class AndroidAssetLinksService
             throw new ServerErrorException("Android keystore fingerprint is not set");
         }
 
+        if (!($appAndroidPackage = $configs?->appAndroidPackage)) {
+            throw new ServerErrorException("iOS bundle ID is not set");
+        }
+
         return [[
           "relation" => ["delegate_permission/common.handle_all_urls"],
           "target" => [
               "namespace" => "android_app",
-              "package_name" => "com.minds.mobile",
+              "package_name" => $appAndroidPackage,
               "sha256_cert_fingerprints" => [$androidKeystoreFingerprint]
           ]
         ]];

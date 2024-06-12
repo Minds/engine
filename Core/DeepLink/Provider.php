@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\DeepLink;
 
+use Minds\Core\Config\Config;
 use Minds\Core\DeepLink\Controllers\WellKnownPsrController;
 use Minds\Core\DeepLink\Services\AndroidAssetLinksService;
 use Minds\Core\DeepLink\Services\AppleAppSiteAssociationService;
@@ -26,13 +27,15 @@ class Provider extends DiProvider
 
         $this->di->bind(AndroidAssetLinksService::class, function (Di $di): AndroidAssetLinksService {
             return new AndroidAssetLinksService(
-                mobileConfigReaderService: $di->get(MobileConfigReaderService::class)
+                mobileConfigReaderService: $di->get(MobileConfigReaderService::class),
+                configs: $di->get(Config::class)
             );
         });
 
         $this->di->bind(AppleAppSiteAssociationService::class, function (Di $di): AppleAppSiteAssociationService {
             return new AppleAppSiteAssociationService(
-                mobileConfigReaderService: $di->get(MobileConfigReaderService::class)
+                mobileConfigReaderService: $di->get(MobileConfigReaderService::class),
+                configs: $di->get(Config::class)
             );
         });
     }
