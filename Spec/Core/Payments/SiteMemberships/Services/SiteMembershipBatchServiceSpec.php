@@ -12,9 +12,10 @@ use Minds\Core\MultiTenant\Repositories\TenantUsersRepository;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipBatchIdTypeEnum;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipBillingPeriodEnum;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipPricingModelEnum;
-use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipSubscriptionsRepository;
+use Minds\Core\Payments\SiteMemberships\Repositories\DTO\SiteMembershipSubscriptionDTO;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipBatchService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipReaderService;
+use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipSubscriptionsService;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembershipBatchUpdate;
 use Minds\Core\Router\Exceptions\ForbiddenException;
@@ -30,7 +31,7 @@ class SiteMembershipBatchServiceSpec extends ObjectBehavior
     private Collaborator $tenantUsersRepositoryMock;
     private Collaborator $configMock;
     private Collaborator $readerServiceMock;
-    private Collaborator $subscriptionsRepositoryMock;
+    private Collaborator $siteMembershipSubscriptionsServiceMock;
 
     public function let(
         EntitiesBuilder $entitiesBuilderMock,
@@ -38,10 +39,10 @@ class SiteMembershipBatchServiceSpec extends ObjectBehavior
         TenantUsersRepository $tenantUsersRepositoryMock,
         Config $configMock,
         SiteMembershipReaderService $readerServiceMock,
-        SiteMembershipSubscriptionsRepository $subscriptionsRepositoryMock,
+        SiteMembershipSubscriptionsService $siteMembershipSubscriptionsServiceMock,
         Logger $loggerMock,
     ) {
-        $this->beConstructedWith($entitiesBuilderMock, $oidcUserServiceMock, $tenantUsersRepositoryMock, $configMock, $readerServiceMock, $subscriptionsRepositoryMock, $loggerMock);
+        $this->beConstructedWith($entitiesBuilderMock, $oidcUserServiceMock, $tenantUsersRepositoryMock, $configMock, $readerServiceMock, $siteMembershipSubscriptionsServiceMock, $loggerMock);
         
         $this->entitiesBuilderMock = $entitiesBuilderMock;
         $this->oidcUserServiceMock = $oidcUserServiceMock;
@@ -49,7 +50,7 @@ class SiteMembershipBatchServiceSpec extends ObjectBehavior
         $this->configMock = $configMock;
 
         $this->readerServiceMock = $readerServiceMock;
-        $this->subscriptionsRepositoryMock = $subscriptionsRepositoryMock;
+        $this->siteMembershipSubscriptionsServiceMock = $siteMembershipSubscriptionsServiceMock;
     }
 
     public function it_is_initializable()
@@ -86,13 +87,15 @@ class SiteMembershipBatchServiceSpec extends ObjectBehavior
         $this->entitiesBuilderMock->single(Argument::any())
             ->willReturn(new User());
 
-        $this->subscriptionsRepositoryMock->storeSiteMembershipSubscription(
-            Argument::type(User::class),
-            Argument::type(SiteMembership::class),
-            null,
-            true,
-            new DateTimeImmutable('midnight last month'),
-            new DateTimeImmutable('midnight'),
+        $this->siteMembershipSubscriptionsServiceMock->addSiteMembershipSubscription(
+            Argument::that(
+                fn (SiteMembershipSubscriptionDTO $input) =>
+                $input->user instanceof User &&
+                $input->siteMembership instanceof SiteMembership &&
+                $input->isManual === true &&
+                $input->validFrom == new DateTimeImmutable('midnight last month') &&
+                $input->validTo == new DateTimeImmutable('midnight'),
+            ),
         )
             ->shouldBeCalled()
             ->willReturn(true);
@@ -124,13 +127,15 @@ class SiteMembershipBatchServiceSpec extends ObjectBehavior
         $this->oidcUserServiceMock->getUserFromSub('subid', 1)
             ->willReturn(new User());
 
-        $this->subscriptionsRepositoryMock->storeSiteMembershipSubscription(
-            Argument::type(User::class),
-            Argument::type(SiteMembership::class),
-            null,
-            true,
-            new DateTimeImmutable('midnight last month'),
-            new DateTimeImmutable('midnight'),
+        $this->siteMembershipSubscriptionsServiceMock->addSiteMembershipSubscription(
+            Argument::that(
+                fn (SiteMembershipSubscriptionDTO $input) =>
+                $input->user instanceof User &&
+                $input->siteMembership instanceof SiteMembership &&
+                $input->isManual === true &&
+                $input->validFrom == new DateTimeImmutable('midnight last month') &&
+                $input->validTo == new DateTimeImmutable('midnight'),
+            ),
         )
             ->shouldBeCalled()
             ->willReturn(true);
@@ -166,13 +171,15 @@ class SiteMembershipBatchServiceSpec extends ObjectBehavior
             ->shouldBeCalledTimes(2)
             ->willReturn(new User());
 
-        $this->subscriptionsRepositoryMock->storeSiteMembershipSubscription(
-            Argument::type(User::class),
-            Argument::type(SiteMembership::class),
-            null,
-            true,
-            new DateTimeImmutable('midnight last month'),
-            new DateTimeImmutable('midnight'),
+        $this->siteMembershipSubscriptionsServiceMock->addSiteMembershipSubscription(
+            Argument::that(
+                fn (SiteMembershipSubscriptionDTO $input) =>
+                $input->user instanceof User &&
+                $input->siteMembership instanceof SiteMembership &&
+                $input->isManual === true &&
+                $input->validFrom == new DateTimeImmutable('midnight last month') &&
+                $input->validTo == new DateTimeImmutable('midnight'),
+            ),
         )
             ->shouldBeCalledTimes(2)
             ->willReturn(true);

@@ -58,12 +58,7 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlReplicaMock->quote("123")->willReturn("123");
         $this->mysqlReplicaMock->quote("456")->willReturn("456");
 
-        $this->mysqlReplicaMock->prepare(Argument::any())->willReturn($pdoStatementMock);
-
-        $pdoStatementMock->execute([
-            'group_guid' => 123,
-            'user_guid' => 456,
-        ])->willReturn(true);
+        $this->mysqlReplicaMock->query(Argument::any())->willReturn($pdoStatementMock);
 
         $pdoStatementMock->rowCount()->willReturn(1);
 
@@ -74,6 +69,7 @@ class RepositorySpec extends ObjectBehavior
                     'user_guid' => 456,
                     'created_timestamp' => date('c'),
                     'membership_level' => 1,
+                    'site_membership_guid' => null,
                 ]
             ]);
 
@@ -91,13 +87,8 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlReplicaMock->quote("456")->willReturn("456");
         $this->mysqlReplicaMock->quote("1")->willReturn("1");
 
-        $this->mysqlReplicaMock->prepare(Argument::any())->willReturn($pdoStatementMock);
+        $this->mysqlReplicaMock->query(Argument::any())->willReturn($pdoStatementMock);
 
-        $pdoStatementMock->execute([
-            'group_guid' => 123,
-            'user_guid' => 456,
-        ])->willReturn(true);
-    
         $pdoStatementMock->rowCount()->willReturn(0);
 
         $pdoStatementMock->fetchAll(PDO::FETCH_ASSOC)
@@ -114,12 +105,7 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlReplicaMock->quote("456")->willReturn("456");
         $this->mysqlReplicaMock->quote("1")->willReturn("1");
 
-        $this->mysqlReplicaMock->prepare(Argument::any())->willReturn($pdoStatementMock);
-
-        $pdoStatementMock->execute([
-            'group_guid' => 123,
-            'membership_level' => 1
-        ])->willReturn(true);
+        $this->mysqlReplicaMock->query(Argument::any())->willReturn($pdoStatementMock);
 
         $pdoStatementMock->fetchAll(PDO::FETCH_ASSOC)
             ->willReturn([
@@ -128,12 +114,14 @@ class RepositorySpec extends ObjectBehavior
                     'user_guid' => 456,
                     'created_timestamp' => date('c', $refTime),
                     'membership_level' => 1,
+                    'site_membership_guid' => null,
                 ],
                 [
                     'group_guid' => 123,
                     'user_guid' => 789,
                     'created_timestamp' => date('c', $refTime),
                     'membership_level' => 2,
+                    'site_membership_guid' => null,
                 ]
             ]);
 

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\SiteMemberships\Services;
 
+use Minds\Controllers\api\v1\payments\subscriptions;
 use Minds\Core\Authentication\Oidc\Services\OidcUserService;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
@@ -20,6 +21,7 @@ use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as Stri
 use Minds\Core\Payments\Stripe\Checkout\Session\Services\SessionService as StripeCheckoutSessionService;
 use Minds\Core\Payments\Stripe\CustomerPortal\Services\CustomerPortalService as StripeCustomerPortalService;
 use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService as StripeSubscriptionsService;
+use Minds\Core\Groups\V2\Membership\Manager as GroupMembershipService;
 
 class ServicesProvider extends Provider
 {
@@ -56,7 +58,8 @@ class ServicesProvider extends Provider
                 stripeCheckoutManager: $di->get(StripeCheckoutManager::class),
                 stripeProductService: $di->get(StripeProductService::class),
                 stripeCheckoutSessionService: $di->get(StripeCheckoutSessionService::class),
-                config: $di->get(Config::class)
+                config: $di->get(Config::class),
+                groupMembershipService: $di->get(GroupMembershipService::class),
             )
         );
 
@@ -78,7 +81,7 @@ class ServicesProvider extends Provider
                 tenantUsersRepository: $di->get(TenantUsersRepository::class),
                 config: $di->get(Config::class),
                 readerService: $di->get(SiteMembershipReaderService::class),
-                subscriptionsRepository: $di->get(SiteMembershipSubscriptionsRepository::class),
+                siteMembershipSubscriptionsService: $di->get(SiteMembershipSubscriptionsService::class),
                 logger: $di->get('Logger'),
             )
         );

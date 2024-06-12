@@ -7,8 +7,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
 use Minds\Core\MultiTenant\Repositories\TenantUsersRepository;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipBatchIdTypeEnum;
-use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipSubscriptionsRepository;
-use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
+use Minds\Core\Payments\SiteMemberships\Repositories\DTO\SiteMembershipSubscriptionDTO;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembershipBatchUpdate;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Entities\User;
@@ -22,7 +21,7 @@ class SiteMembershipBatchService
         private TenantUsersRepository $tenantUsersRepository,
         private Config $config,
         private SiteMembershipReaderService $readerService,
-        private SiteMembershipSubscriptionsRepository $subscriptionsRepository,
+        private SiteMembershipSubscriptionsService $siteMembershipSubscriptionsService,
         private Logger $logger,
     ) {
         
@@ -55,12 +54,14 @@ class SiteMembershipBatchService
 
             foreach ($users as $user) {
                 try {
-                    $this->subscriptionsRepository->storeSiteMembershipSubscription(
-                        user: $user,
-                        siteMembership: $siteMembership,
-                        isManual: true,
-                        validFrom: $item->validFrom,
-                        validTo: $item->validTo,
+                    $this->siteMembershipSubscriptionsService->addSiteMembershipSubscription(
+                        new SiteMembershipSubscriptionDTO(
+                            user: $user,
+                            siteMembership: $siteMembership,
+                            isManual: true,
+                            validFrom: $item->validFrom,
+                            validTo: $item->validTo,
+                        )
                     );
                     $item->updatedSuccess = true;
                 } catch (\Exception $e) {

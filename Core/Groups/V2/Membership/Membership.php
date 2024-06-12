@@ -15,6 +15,7 @@ class Membership implements ExportableInterface
         public readonly int $userGuid,
         public readonly DateTime $createdTimestamp,
         public GroupMembershipLevelEnum $membershipLevel,
+        public readonly ?int $siteMembershipGuid = null,
     ) {
     }
 

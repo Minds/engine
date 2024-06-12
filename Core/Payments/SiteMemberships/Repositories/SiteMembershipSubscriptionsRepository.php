@@ -8,6 +8,7 @@ use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipBillingPeriodEnum;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipPricingModelEnum;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipSubscriptionFoundException;
+use Minds\Core\Payments\SiteMemberships\Repositories\DTO\SiteMembershipSubscriptionDTO;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembershipSubscription;
 use Minds\Entities\User;
@@ -28,33 +29,23 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
      * @throws ServerErrorException
      */
     public function storeSiteMembershipSubscription(
-        User           $user,
-        SiteMembership $siteMembership,
-        ?string        $stripeSubscriptionId = null,
-        bool           $isManual = false,
-        DateTimeImmutable $validFrom = null,
-        DateTimeImmutable $validTo = null,
+        SiteMembershipSubscriptionDTO $siteMembershipSubscription
     ): bool {
 
-        if (!$validFrom) {
-            $validFrom = new DateTimeImmutable('now');
-        }
+        $validFrom = $siteMembershipSubscription->validFrom ?: new DateTimeImmutable('now');
+        $validTo = $siteMembershipSubscription->validTo ?: $validFrom->modify('+1 ' . ($siteMembershipSubscription->siteMembership->membershipBillingPeriod === SiteMembershipBillingPeriodEnum::MONTHLY ? 'month' : 'year'));
 
-        if (!$validTo) {
-            $validTo = $validFrom->modify('+1 ' . ($siteMembership->membershipBillingPeriod === SiteMembershipBillingPeriodEnum::MONTHLY ? 'month' : 'year'));
-        }
-        
         $stmt = $this->mysqlClientWriterHandler->insert()
             ->into(self::TABLE_NAME)
             ->set([
                 'tenant_id' => $this->config->get('tenant_id') ?? -1,
-                'user_guid' => $user->getGuid(),
-                'membership_tier_guid' => $siteMembership->membershipGuid,
-                'stripe_subscription_id' => $stripeSubscriptionId,
+                'user_guid' => $siteMembershipSubscription->user->getGuid(),
+                'membership_tier_guid' => $siteMembershipSubscription->siteMembership->membershipGuid,
+                'stripe_subscription_id' => $siteMembershipSubscription->stripeSubscriptionId,
                 'valid_from' => $validFrom->format('c'),
                 'valid_to' => $validTo->format('c'),
-                'manual' => (int) $isManual,
-                'auto_renew' => $isManual ? 0 : (int) ($siteMembership->membershipPricingModel === SiteMembershipPricingModelEnum::RECURRING),
+                'manual' => (int) $siteMembershipSubscription->isManual,
+                'auto_renew' => $siteMembershipSubscription->isManual ? 0 : (int) ($siteMembershipSubscription->siteMembership->membershipPricingModel === SiteMembershipPricingModelEnum::RECURRING),
             ])
             ->onDuplicateKeyUpdate([
                 'valid_from' => $validFrom->format('c'),
