@@ -1080,8 +1080,9 @@ ALTER TABLE `minds_chat_rooms`
     ADD room_name varchar(128) 
     AFTER room_type;
 
+ALTER TABLE `minds_custom_navigation`
+    ADD visible_mobile boolean DEFAULT true
+    AFTER visible;
+
 ALTER TABLE minds_group_membership
     ADD site_membership_guid BIGINT DEFAULT NULL REFERENCES minds_site_membership_subscriptions (site_membership_guid);
-
-ALTER TABLE minds_tenant_mobile_configs  ADD COLUMN android_keystore_fingerprint varchar(256) AFTER app_version;
-ALTER TABLE minds_tenant_mobile_configs  ADD COLUMN apple_development_team_id varchar(128) AFTER android_keystore_fingerprint;
