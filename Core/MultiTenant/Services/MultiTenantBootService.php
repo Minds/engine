@@ -137,6 +137,15 @@ class MultiTenantBootService
             $this->setConfig('posthog', $postHogConfig);
         }
 
+        // Chatwoot
+
+        if (isset($this->config->get('multi_tenant')['chatwoot'])) {
+            $chatwootConfig = $this->config->get('chatwoot');
+            $chatwootConfig['website_token'] = $this->config->get('multi_tenant')['chatwoot']['website_token'];
+            $chatwootConfig['signing_key'] = $this->config->get('multi_tenant')['chatwoot']['signing_key'];
+            $this->setConfig('chatwoot', $chatwootConfig);
+        }
+
         // Misc
 
         if ($tenantConfig = $tenant->config) {
