@@ -239,7 +239,11 @@ class RoomRepositorySpec extends ObjectBehavior
                     ) &&
                     (
                         $cols[3] instanceof RawExp &&
-                        trim($cols[3]->getValue()) === "CASE
+                        $cols[3]->getValue() === "COALESCE(last_msg.created_timestamp, r.created_timestamp) as last_activity_timestamp"
+                    ) &&
+                    (
+                        $cols[4] instanceof RawExp &&
+                        trim($cols[4]->getValue()) === "CASE
                         WHEN
                             COALESCE(rct.message_guid, 0) < last_msg.guid
                         THEN 1
@@ -292,7 +296,7 @@ class RoomRepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
-        $selectQueryMock->orderBy('last_msg.created_timestamp DESC', 'r.created_timestamp DESC')
+        $selectQueryMock->orderBy('last_activity_timestamp DESC')
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
@@ -395,6 +399,7 @@ class RoomRepositorySpec extends ObjectBehavior
         SelectQuery $membersQueryMock,
         SelectQuery $groupsQueryMock,
         SelectQuery $unionQueryMock,
+        SelectQuery $selectQueryMock,
         PDOStatement $pdoStatementMock,
         User $userMock
     ): void {
@@ -462,9 +467,14 @@ class RoomRepositorySpec extends ObjectBehavior
         $membersQueryMock->union($groupsQueryMock)
             ->willReturn($unionQueryMock);
 
+        $unionQueryMock->build(false)->willReturn('');
+
+        $selectQueryMock->from(Argument::type(RawExp::class))->shouldBeCalled()
+            ->willReturn($unionQueryMock);
+
         $this->mysqlClientReaderHandlerMock->select()
             ->shouldBeCalled()
-            ->willReturn($membersQueryMock, $groupsQueryMock);
+            ->willReturn($membersQueryMock, $groupsQueryMock, $selectQueryMock);
 
         $this->mysqlHandlerMock->bindValuesToPreparedStatement($pdoStatementMock, [
             'tenant_id' => 1,

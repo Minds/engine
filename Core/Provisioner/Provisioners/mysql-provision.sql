@@ -1083,3 +1083,6 @@ ALTER TABLE `minds_chat_rooms`
 ALTER TABLE `minds_custom_navigation`
     ADD visible_mobile boolean DEFAULT true
     AFTER visible;
+
+ALTER TABLE minds_group_membership
+    ADD site_membership_guid BIGINT DEFAULT NULL REFERENCES minds_site_membership_subscriptions (site_membership_guid);

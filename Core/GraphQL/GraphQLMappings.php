@@ -4,6 +4,7 @@ namespace Minds\Core\GraphQL;
 
 use Minds\Core\Router\Enums\ApiScopeEnum;
 use TheCodingMachine\GraphQLite\Mappers\StaticClassListTypeMapperFactory;
+use Minds\Core\Config\GraphQL\GraphQLMappings as ConfigGrapghlMappings;
 
 class GraphQLMappings extends AbstractGraphQLMappings
 {
@@ -14,5 +15,7 @@ class GraphQLMappings extends AbstractGraphQLMappings
             Types\KeyValuePair::class,
             Types\KeyValueType::class,
         ]));
+
+        (new ConfigGrapghlMappings)->register();
     }
 }
