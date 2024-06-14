@@ -32,6 +32,11 @@ class Manager
      */
     public function shouldPreApprove(User $user): bool
     {
+        // Tenant networks should not have preapproved boosts.
+        if ((bool) $this->config->get('tenant_id')) {
+            return false;
+        }
+
         if (!$this->isExperimentActive()) {
             return false;
         }

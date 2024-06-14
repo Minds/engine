@@ -220,20 +220,11 @@ class ChatControllerSpec extends ObjectBehavior
     public function it_should_get_chat_room_guids(
         User $loggedInUserMock
     ): void {
-        $this->roomServiceMock->getRoomGuidsByMember($loggedInUserMock)
-            ->shouldBeCalledOnce()
-            ->willReturn([
-                '123',
-                '456'
-            ]);
-
+        
         $result = $this->getChatRoomGuids($loggedInUserMock);
 
         $result->shouldBeArray();
-        $result->shouldBeSameAs([
-            '123',
-            '456'
-        ]);
+        $result->shouldBeSameAs([]);
     }
 
     public function it_should_get_chat_room(
@@ -451,7 +442,8 @@ class ChatControllerSpec extends ObjectBehavior
         $this->roomServiceMock->createRoom(
             $loggedInUserMock,
             ['123', '456'],
-            ChatRoomTypeEnum::ONE_TO_ONE
+            ChatRoomTypeEnum::ONE_TO_ONE,
+            null,
         )
             ->shouldBeCalledOnce()
             ->willReturn(
@@ -475,6 +467,43 @@ class ChatControllerSpec extends ObjectBehavior
             $loggedInUserMock,
             ['123', '456'],
             ChatRoomTypeEnum::ONE_TO_ONE
+        );
+
+        $result->shouldBeAnInstanceOf(ChatRoomEdge::class);
+    }
+
+    public function it_should_create_a_group_chat_room(
+        User $loggedInUserMock
+    ): void {
+        $this->roomServiceMock->createRoom(
+            $loggedInUserMock,
+            [],
+            ChatRoomTypeEnum::GROUP_OWNED,
+            123,
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(
+                $this->generateChatRoomEdgeMock(
+                    chatRoomNodeMock: $this->generateChatRoomNodeMock(
+                        chatRoomMock: $this->generateChatRoomMock(
+                            123,
+                            456,
+                            ChatRoomTypeEnum::GROUP_OWNED,
+                            new DateTimeImmutable()
+                        )
+                    ),
+                    cursor: base64_encode('123')
+                )
+            );
+
+        /**
+         * @var ChatRoomEdge $result
+         */
+        $result = $this->createChatRoom(
+            $loggedInUserMock,
+            [],
+            ChatRoomTypeEnum::GROUP_OWNED,
+            '123'
         );
 
         $result->shouldBeAnInstanceOf(ChatRoomEdge::class);
@@ -628,7 +657,7 @@ class ChatControllerSpec extends ObjectBehavior
     public function it_should_delete_chat_room(
         User $loggedInUserMock
     ): void {
-        $this->roomServiceMock->deleteChatRoom(
+        $this->roomServiceMock->deleteChatRoomByRoomGuid(
             123,
             $loggedInUserMock
         )
@@ -691,6 +720,24 @@ class ChatControllerSpec extends ObjectBehavior
         $this->deleteChatRoomAndBlockUser(
             "123",
             $loggedInUserMock
+        )
+            ->shouldEqual(true);
+    }
+
+    public function it_should_update_chat_room_names(User $user): void
+    {
+        $this->roomServiceMock->updateRoomName(
+            123,
+            "new name",
+            $user
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->updateChatRoomName(
+            "123",
+            "new name",
+            $user
         )
             ->shouldEqual(true);
     }

@@ -1038,3 +1038,63 @@ ALTER TABLE `minds_tenant_configs`
 ALTER TABLE `minds_tenant_configs`
     ADD walled_garden_enabled boolean 
     AFTER custom_home_page_description;
+
+CREATE TABLE IF NOT EXISTS minds_personal_api_keys (
+    tenant_id int,
+    id varchar(32),
+    owner_guid bigint NOT NULL,
+    name varchar(128),
+    secret_hash varchar(256) NOT NULL,
+    created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP(),
+    expires_timestamp timestamp DEFAULT NULL,
+    INDEX (tenant_id, owner_guid),
+    PRIMARY KEY (tenant_id, id)
+);
+
+CREATE TABLE IF NOT EXISTS minds_personal_api_key_scopes (
+    tenant_id int,
+    id varchar(32),
+    scope varchar(64),
+    PRIMARY KEY (tenant_id, id, scope),
+    FOREIGN KEY (tenant_id, id) REFERENCES minds_personal_api_keys(tenant_id,id)
+);
+
+ALTER TABLE minds_site_membership_subscriptions
+MODIFY COLUMN stripe_subscription_id varchar(256) DEFAULT NULL;
+
+ALTER TABLE minds_site_membership_subscriptions
+ADD COLUMN manual boolean DEFAULT false AFTER membership_tier_guid;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD boost_enabled boolean DEFAULT false
+    AFTER nsfw_enabled;
+
+ALTER TABLE boosts
+    ADD tenant_id int DEFAULT -1
+    FIRST;
+ALTER TABLE boosts DROP PRIMARY KEY , ADD PRIMARY KEY(tenant_id, guid);
+
+ALTER TABLE boost_summaries
+    ADD tenant_id int DEFAULT -1
+    FIRST;
+ALTER TABLE boost_summaries DROP PRIMARY KEY , ADD PRIMARY KEY(tenant_id, guid, date);
+
+ALTER TABLE boost_rankings
+    ADD tenant_id int DEFAULT -1
+    FIRST;
+ALTER TABLE boost_rankings DROP PRIMARY KEY , ADD PRIMARY KEY(tenant_id, guid);
+
+ALTER TABLE `minds_entities_group`
+    ADD conversation_disabled boolean DEFAULT true 
+    AFTER show_boost;
+
+ALTER TABLE `minds_chat_rooms`
+    ADD room_name varchar(128) 
+    AFTER room_type;
+
+ALTER TABLE `minds_custom_navigation`
+    ADD visible_mobile boolean DEFAULT true
+    AFTER visible;
+
+ALTER TABLE minds_group_membership
+    ADD site_membership_guid BIGINT DEFAULT NULL REFERENCES minds_site_membership_subscriptions (site_membership_guid);

@@ -23,12 +23,14 @@ use Minds\Core\Boost\V3\Models\BoostEntityWrapper;
 use Minds\Core\Boost\V3\PaymentProcessor;
 use Minds\Core\Boost\V3\PreApproval\Manager as PreApprovalManager;
 use Minds\Core\Boost\V3\Repository;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\FeedSyncEntity;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\Payments\InAppPurchases\Manager as InAppPurchasesManager;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Core\Security\ACL;
@@ -45,10 +47,13 @@ use NotImplementedException;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
+use Spec\Minds\Common\Traits\TenantFactoryMockBuilder;
 use Stripe\Exception\ApiErrorException;
 
 class ManagerSpec extends ObjectBehavior
 {
+    use TenantFactoryMockBuilder;
+    
     private Collaborator $repository;
     private Collaborator $paymentProcessor;
     private Collaborator $entitiesBuilder;
@@ -60,6 +65,8 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $userSettingsManager;
     private Collaborator $experimentsManager;
     private Collaborator $inAppPurchasesManagerMock;
+    private Collaborator $configMock;
+    private Collaborator $tenantBootServiceMock;
 
     public function let(
         Repository            $repository,
@@ -73,6 +80,8 @@ class ManagerSpec extends ObjectBehavior
         UserSettingsManager   $userSettingsManager,
         ExperimentsManager    $experimentsManager,
         InAppPurchasesManager $inAppPurchasesManager,
+        Config                $config,
+        MultiTenantBootService $tenantBootServiceMock,
     ) {
         $this->repository = $repository;
         $this->paymentProcessor = $paymentProcessor;
@@ -85,6 +94,8 @@ class ManagerSpec extends ObjectBehavior
         $this->userSettingsManager = $userSettingsManager;
         $this->experimentsManager = $experimentsManager;
         $this->inAppPurchasesManagerMock = $inAppPurchasesManager;
+        $this->configMock = $config;
+        $this->tenantBootServiceMock = $tenantBootServiceMock;
 
         $this->beConstructedWith(
             $this->repository,
@@ -98,6 +109,8 @@ class ManagerSpec extends ObjectBehavior
             $this->userSettingsManager,
             $this->experimentsManager,
             $this->inAppPurchasesManagerMock,
+            $this->configMock,
+            $this->tenantBootServiceMock,
         );
     }
 
@@ -1996,6 +2009,10 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_determine_if_a_user_should_be_shown_boosts_because_they_previously_disabled_boosts_but_are_NOT_plus(
         User $targetUser
     ): void {
+        $this->configMock->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+        
         $targetUser->get('disabled_boost')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -2015,6 +2032,10 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_determine_if_a_user_should_NOT_be_shown_boosts_because_they_are_plus_and_disabled_boosts(
         User $targetUser
     ): void {
+        $this->configMock->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $targetUser->get('disabled_boost')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -2030,6 +2051,10 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_determine_if_a_user_should_NOT_be_shown_boosts_because_they_are_new(
         User $targetUser
     ): void {
+        $this->configMock->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $targetUser->get('disabled_boost')
             ->shouldBeCalled()
             ->willReturn(false);
@@ -2037,6 +2062,44 @@ class ManagerSpec extends ObjectBehavior
         $targetUser->getTimeCreated()
             ->shouldBeCalled()
             ->willReturn(time() - 1000);
+
+        $this->callOnWrappedObject('shouldShowBoosts', [$targetUser])
+            ->shouldBe(false);
+    }
+
+    public function it_should_determine_if_a_user_should_be_shown_boosts_because_they_are_on_a_tenant_domain_with_boost_enabled(
+        User $targetUser
+    ): void {
+        $this->configMock->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $this->configMock->get('tenant')
+            ->shouldBeCalled()
+            ->willReturn($this->generateTenantMock(
+                config: $this->generateTenantConfigMock(
+                    boostEnabled: true
+                )
+            ));
+
+        $this->callOnWrappedObject('shouldShowBoosts', [$targetUser])
+            ->shouldBe(true);
+    }
+
+    public function it_should_determine_if_a_user_should_NOT_be_shown_boosts_because_they_are_on_a_tenant_domain_with_boost_disabled(
+        User $targetUser
+    ): void {
+        $this->configMock->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $this->configMock->get('tenant')
+            ->shouldBeCalled()
+            ->willReturn($this->generateTenantMock(
+                config: $this->generateTenantConfigMock(
+                    boostEnabled: false
+                )
+            ));
 
         $this->callOnWrappedObject('shouldShowBoosts', [$targetUser])
             ->shouldBe(false);

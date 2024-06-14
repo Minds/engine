@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Minds\Core\Boost\V3\Summaries;
 
+use Minds\Core\Config\Config;
+use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
@@ -22,7 +24,11 @@ class Provider extends DiProvider
             return new Manager();
         });
         Di::_()->bind(Repository::class, function ($di): Repository {
-            return new Repository();
+            return new Repository(
+                mysqlHandler: $di->get(Client::class),
+                config: $di->get(Config::class),
+                logger: $di->get('Logger'),
+            );
         });
     }
 }

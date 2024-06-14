@@ -57,7 +57,8 @@ class Manager
         bool $membershipLevelGte = false,
         int $limit = 12,
         int $offset = 0,
-        int|string &$loadNext = 0
+        int|string &$loadNext = 0,
+        int $siteMembershipGuid = null,
     ): iterable {
         foreach ($this->repository->getList(
             groupGuid: $group->getGuid(),
@@ -188,7 +189,8 @@ class Manager
     public function joinGroup(
         Group $group,
         User $user,
-        GroupMembershipLevelEnum $membershipLevel = null
+        GroupMembershipLevelEnum $membershipLevel = null,
+        int $siteMembershipGuid = null,
     ): bool {
         $membership = new Membership(
             groupGuid: $group->getGuid(),
@@ -196,6 +198,7 @@ class Manager
             createdTimestamp: new DateTime(),
             membershipLevel: $membershipLevel ?:
                 ($group->isPublic() ? GroupMembershipLevelEnum::MEMBER : GroupMembershipLevelEnum::REQUESTED),
+            siteMembershipGuid: $siteMembershipGuid,
         );
 
         $joined = $this->repository->add($membership);
@@ -346,6 +349,17 @@ class Manager
             return false;
         }
 
+    }
+
+    /**
+     * If a group membership is tagged to a site membership, and that site membership has lapsed,
+     * we delete the membership
+     */
+    public function cleanupExpiredGroupMemberships(): void
+    {
+        foreach ($this->repository->getExpiredGroupMemberships() as $membership) {
+            $this->repository->delete($membership);
+        }
     }
 
     /**

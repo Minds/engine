@@ -7,6 +7,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
 use Minds\Core\MultiTenant\AutoLogin\AutoLoginService;
+use Minds\Core\MultiTenant\Services\AutoTrialService;
 use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\MultiTenant\Services\FeaturedEntityService;
 use Minds\Core\MultiTenant\Services\TenantsService;
@@ -45,5 +46,7 @@ class ControllersProvider extends Provider
                 $di->get(DomainService::class)
             );
         });
+
+        $this->di->bind(TenantPsrController::class, fn (Di $di) => new TenantPsrController($di->get(AutoTrialService::class)));
     }
 }

@@ -11,6 +11,7 @@ use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
 use Minds\Core\Boost\V3\Enums\BoostTargetSuitability;
 use Minds\Core\Boost\V3\Models\Boost;
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\ActionEvent;
@@ -28,11 +29,13 @@ class ActionEventDelegate
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?ActiveSession $activeSession = null,
         private ?PostHogService $postHogService = null,
+        private ?Config $config = null,
     ) {
         $this->actionEventsTopic ??= Di::_()->get('EventStreams\Topics\ActionEventsTopic');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->activeSession ??= Di::_()->get('Sessions\ActiveSession');
         $this->postHogService ??= Di::_()->get(PostHogService::class);
+        $this->config ??= Di::_()->get(Config::class);
     }
 
     /**
@@ -148,7 +151,8 @@ class ActionEventDelegate
     private function getSender(string $action): User
     {
         if ($action === ActionEvent::ACTION_BOOST_COMPLETED || php_sapi_name() === 'cli') {
-            return $this->entitiesBuilder->single(SystemUser::GUID);
+            $systemUserGuid = $this->config->get('system_user_guid') ?: SystemUser::GUID;
+            return $this->entitiesBuilder->single($systemUserGuid);
         }
         return $this->activeSession->getUser();
     }

@@ -12,10 +12,9 @@ class Client
     /**
      * Build the client
      * @param string $client
-     * @return mixed
      * @throws \Exception
      */
-    public static function build($client = '')
+    public static function build($client = ''): LegacyClient
     {
         return Di::_()->get('Queue');
     }

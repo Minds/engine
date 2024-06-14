@@ -93,6 +93,7 @@ class Minds extends base
         PWA\Module::class,
         Custom\Navigation\Module::class,
         Chat\Module::class,
+        SEO\Robots\Module::class,
     ];
 
     /**

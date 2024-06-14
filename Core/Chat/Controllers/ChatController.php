@@ -72,6 +72,7 @@ class ChatController
     }
 
     /**
+     * @deprecated
      * @param User $loggedInUser
      * @return string[]
      */
@@ -80,7 +81,7 @@ class ChatController
     public function getChatRoomGuids(
         #[InjectUser] User $loggedInUser,
     ): array {
-        return $this->roomService->getRoomGuidsByMember($loggedInUser);
+        return [];
     }
 
     /**
@@ -220,12 +221,14 @@ class ChatController
     public function createChatRoom(
         #[InjectUser] User $loggedInUser,
         array              $otherMemberGuids = [],
-        ?ChatRoomTypeEnum  $roomType = null
+        ?ChatRoomTypeEnum  $roomType = null,
+        string             $groupGuid = null,
     ): ChatRoomEdge {
         return $this->roomService->createRoom(
             user: $loggedInUser,
             otherMemberGuids: $otherMemberGuids,
-            roomType: $roomType
+            roomType: $roomType,
+            groupGuid: $groupGuid ? (int) $groupGuid : null,
         );
     }
 
@@ -384,7 +387,7 @@ class ChatController
         string $roomGuid,
         #[InjectUser] User $loggedInUser
     ): bool {
-        return $this->roomService->deleteChatRoom(
+        return $this->roomService->deleteChatRoomByRoomGuid(
             roomGuid: (int) $roomGuid,
             user: $loggedInUser
         );
@@ -465,6 +468,27 @@ class ChatController
             roomGuid: (int) $roomGuid,
             user: $loggedInUser,
             notificationStatus: $notificationStatus
+        );
+    }
+
+    /**
+     * Update chat room name.
+     * @param string $roomGuid - The guid of the room.
+     * @param string $roomName - The new name of the room.
+     * @param User $loggedInUser - The user updating the room name.
+     * @return bool - True if the room name was updated successfully.
+     */
+    #[Mutation]
+    #[Logged]
+    public function updateChatRoomName(
+        string $roomGuid,
+        string $roomName,
+        #[InjectUser] User $loggedInUser
+    ): bool {
+        return $this->roomService->updateRoomName(
+            roomGuid: (int) $roomGuid,
+            roomName: $roomName,
+            user: $loggedInUser
         );
     }
 }

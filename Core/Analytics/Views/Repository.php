@@ -13,6 +13,7 @@ use DateTime;
 use DateTimeZone;
 use Exception;
 use Minds\Common\Repository\Response;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\Cassandra\Client as CassandraClient;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
@@ -27,9 +28,11 @@ class Repository
      * @param CassandraClient $db
      */
     public function __construct(
-        $db = null
+        $db = null,
+        protected ?Config $config = null,
     ) {
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Cql');
+        $this->config ??= Di::_()->get(Config::class);
     }
 
     /**
@@ -136,8 +139,8 @@ class Repository
         $timestamp = $view->getTimestamp() ?: time();
         $date = new DateTime("@{$timestamp}", new DateTimeZone('utc'));
 
-        $cql = "INSERT INTO views (year, month, day, uuid, entity_urn, owner_guid, page_token, position, platform, source, medium, campaign, delta) 
-        VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $cql = "INSERT INTO views (year, month, day, uuid, entity_urn, owner_guid, page_token, position, platform, source, medium, campaign, delta, tenant_id) 
+        VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $values = [
             (int) ($view->getYear() ?? $date->format('Y')),
             new Tinyint((int) ($view->getMonth() ?? $date->format('m'))),
@@ -151,6 +154,7 @@ class Repository
             $view->getMedium() ?: '',
             $view->getCampaign() ?: '',
             (int) ($view->getDelta() ?? 0),
+            $this->config->get('tenant_id') ?: -1,
         ];
 
         $prepared = new Custom();

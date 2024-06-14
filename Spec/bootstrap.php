@@ -29,7 +29,7 @@ $CONFIG->cassandra = [
 ];
 
 $CONFIG->set('development_mode', false);
-
+$CONFIG->set('system_user_guid', '100000000000000519');
 
 $CONFIG->set('oci', [
     'oss_s3_client' => [

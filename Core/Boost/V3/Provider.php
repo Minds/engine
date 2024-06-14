@@ -8,9 +8,12 @@ use Minds\Core\Boost\V3\Utils\BoostConsoleUrlBuilder;
 use Minds\Core\Boost\V3\Utils\BoostReceiptUrlBuilder;
 use Minds\Core\Boost\V3\PreApproval\Manager as PreApprovalManager;
 use Minds\Core\Boost\V3\GraphQL\Controllers\Controller as GraphQLController;
+use Minds\Core\Config\Config;
+use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\EntitiesBuilder;
 
 class Provider extends DiProvider
 {
@@ -27,7 +30,12 @@ class Provider extends DiProvider
             return new Manager();
         });
         Di::_()->bind(Repository::class, function ($di): Repository {
-            return new Repository();
+            return new Repository(
+                entitiesBuilder: $di->get(EntitiesBuilder::class),
+                mysqlHandler: $di->get(Client::class),
+                config: $di->get(Config::class),
+                logger: $di->get('Logger'),
+            );
         });
         Di::_()->bind(PreApprovalManager::class, function ($di): PreApprovalManager {
             return new PreApprovalManager();

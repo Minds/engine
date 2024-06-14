@@ -7,7 +7,6 @@ use Minds\Core\Custom\Navigation\Enums\NavigationItemActionEnum;
 use Minds\Core\Custom\Navigation\Enums\NavigationItemTypeEnum;
 use Minds\Core\Custom\Navigation\NavigationItem;
 use Minds\Core\Custom\Navigation\Repository;
-use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Data\MySQL;
 use Minds\Core\Data\MySQL\MySQLConnectionEnum;
 use Minds\Core\Di\Di;
@@ -27,11 +26,10 @@ class RepositorySpec extends ObjectBehavior
     public function let(
         MySQL\Client $mysqlClientMock,
         Logger $loggerMock,
-        PsrWrapper $cacheMock,
         PDO $mysqlMasterMock,
         PDO $mysqlReplicaMock,
     ) {
-        $this->beConstructedWith($mysqlClientMock, Di::_()->get(Config::class), $loggerMock, $cacheMock);
+        $this->beConstructedWith($mysqlClientMock, Di::_()->get(Config::class), $loggerMock);
 
         $this->mysqlClientMock = $mysqlClientMock;
 
@@ -72,6 +70,7 @@ class RepositorySpec extends ObjectBehavior
                     'name' => 'About',
                     'type' => 'CUSTOM_LINK',
                     'visible' => true,
+                    'visible_mobile' => true,
                     'icon_id' => 'info',
                     'path' => null,
                     'url' => '/about',
@@ -84,6 +83,7 @@ class RepositorySpec extends ObjectBehavior
                     'name' => 'About 2',
                     'type' => 'CORE',
                     'visible' => true,
+                    'visible_mobile' => true,
                     'icon_id' => 'info',
                     'path' => '/about-2',
                     'url' => null,
@@ -96,6 +96,7 @@ class RepositorySpec extends ObjectBehavior
                     'name' => 'Extra',
                     'type' => 'CUSTOM_LINK',
                     'visible' => true,
+                    'visible_mobile' => true,
                     'icon_id' => 'more',
                     'path' => null,
                     'url' => null,
@@ -133,6 +134,7 @@ class RepositorySpec extends ObjectBehavior
             'name' => 'Newsfeed',
             'type' => 'CORE',
             'visible' => true,
+            'visible_mobile' => true,
             'icon_id' => 'home',
             'path' => '/newsfeed',
             'url' => null,
@@ -142,6 +144,7 @@ class RepositorySpec extends ObjectBehavior
             'new_name' => 'Newsfeed',
             'new_type' => 'CORE',
             'new_visible' => true,
+            'new_visible_mobile' => true,
             'new_icon_id' => 'home',
             'new_path' => '/newsfeed',
             'new_url' => null,
@@ -156,6 +159,7 @@ class RepositorySpec extends ObjectBehavior
             name: 'Newsfeed',
             type: NavigationItemTypeEnum::CORE,
             visible: true,
+            visibleMobile: true,
             iconId: 'home',
             path: '/newsfeed',
         );
@@ -174,6 +178,7 @@ class RepositorySpec extends ObjectBehavior
             'name' => 'Newsfeed',
             'type' => 'CUSTOM_LINK',
             'visible' => true,
+            'visible_mobile' => true,
             'icon_id' => 'home',
             'path' => null,
             'url' => null,
@@ -183,6 +188,7 @@ class RepositorySpec extends ObjectBehavior
             'new_name' => 'Newsfeed',
             'new_type' => 'CUSTOM_LINK',
             'new_visible' => true,
+            'new_visible_mobile' => true,
             'new_icon_id' => 'home',
             'new_path' => null,
             'new_url' => null,
@@ -197,6 +203,7 @@ class RepositorySpec extends ObjectBehavior
             name: 'Newsfeed',
             type: NavigationItemTypeEnum::CUSTOM_LINK,
             visible: true,
+            visibleMobile: true,
             iconId: 'home',
             action: NavigationItemActionEnum::SHOW_SIDEBAR_MORE
         );

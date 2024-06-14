@@ -4,38 +4,17 @@ namespace Minds\Core\Boost\V3\Ranking;
 use Iterator;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
+use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
 use PDOException;
 use PDOStatement;
+use Selective\Database\RawExp;
 
-class Repository
+class Repository extends AbstractRepository
 {
-    public function __construct(private ?Client $mysqlClient = null)
-    {
-        $this->mysqlClient ??= new Client();
-    }
-
-    /**
-     * Start the transaction
-     */
-    public function beginTransaction(): void
-    {
-        if ($this->getMasterConnection()->inTransaction()) {
-            throw new PDOException("Cannot initiate transaction. Previously initiated transaction still in progress.");
-        }
-
-        $this->getMasterConnection()->beginTransaction();
-    }
-
-    /**
-     * Commit the transaction
-     */
-    public function commitTransaction(): void
-    {
-        $this->getMasterConnection()->commit();
-    }
+    public const TABLE_NAME = 'boost_rankings';
 
     /**
      * Saves the ranking to the database
@@ -43,20 +22,29 @@ class Repository
      */
     public function addBoostRanking(BoostRanking $boostRanking): bool
     {
-        $statement = "INSERT INTO boost_rankings (
-            guid,
-            ranking_open,
-            ranking_safe,
-            last_updated
-        ) VALUES (:guid,:ranking_open,:ranking_safe,NOW())
-            ON DUPLICATE KEY UPDATE last_updated=NOW(),ranking_open=:ranking_open,ranking_safe=:ranking_safe";
+        $query = $this->mysqlClientWriterHandler->insert()
+            ->into(self::TABLE_NAME)
+            ->set([
+                'tenant_id' => new RawExp(':tenant_id'),
+                'guid' => new RawExp(':guid'),
+                'ranking_open' => new RawExp(':ranking_open'),
+                'ranking_safe' => new RawExp(':ranking_safe'),
+                'last_updated' => new RawExp('NOW()'),
+            ])
+            ->onDuplicateKeyUpdate([
+                'last_updated' => new RawExp('NOW()'),
+                'ranking_open' => new RawExp(':ranking_open'),
+                'ranking_safe' => new RawExp(':ranking_safe'),
+            ]);
+
         $values = [
-            'guid' => $boostRanking->getGuid(),
+            'tenant_id' => $boostRanking->tenantId,
+            'guid' => $boostRanking->guid,
             'ranking_open' => $boostRanking->getRanking(BoostTargetAudiences::CONTROVERSIAL),
             'ranking_safe' => $boostRanking->getRanking(BoostTargetAudiences::SAFE),
         ];
 
-        $stmt = $this->mysqlClient->getConnection(Client::CONNECTION_MASTER)->prepare($statement);
+        $stmt = $query->prepare();
         return $stmt->execute($values);
     }
 
@@ -99,6 +87,7 @@ class Repository
     protected function buildBoostShareModel(array $row): BoostShareRatio
     {
         return new BoostShareRatio(
+            tenantId: $row['tenant_id'],
             guid: $row['guid'],
             targetAudienceShares: [
                 BoostTargetAudiences::CONTROVERSIAL => $row['share_ratio_open_audience'],
@@ -123,6 +112,7 @@ class Repository
             AND approved_timestamp < DATE_ADD(approved_timestamp, INTERVAL `duration_days` DAY)";
 
         $statement = "SELECT
+            tenant_id,
             guid,
             boosts.target_location,
             boosts.target_suitability,
@@ -160,15 +150,7 @@ class Repository
             $statement .= " AND guid=:guid";
         }
 
-        return $this->mysqlClient->getConnection(Client::CONNECTION_REPLICA)->prepare($statement);
+        return $this->mysqlClientReader->prepare($statement);
     }
 
-    /**
-     * Returns the writer connection
-     * @return PDO
-     */
-    protected function getMasterConnection(): PDO
-    {
-        return $this->mysqlClient->getConnection(Client::CONNECTION_MASTER);
-    }
 }

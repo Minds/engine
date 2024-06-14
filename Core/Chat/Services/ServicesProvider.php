@@ -10,7 +10,9 @@ use Minds\Core\Chat\Repositories\RoomRepository;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
+use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Core\EventStreams\Topics\ChatNotificationsTopic;
+use Minds\Core\Groups\V2\Membership\Manager as GroupMembershipManager;
 use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Core\Subscriptions\Relational\Repository as SubscriptionsRepository;
 
@@ -29,6 +31,8 @@ class ServicesProvider extends Provider
                 subscriptionsRepository: $di->get(SubscriptionsRepository::class),
                 entitiesBuilder: $di->get('EntitiesBuilder'),
                 blockManager: $di->get('Security\Block\Manager'),
+                rolesService: $di->get(RolesService::class),
+                groupMembershipManager: $di->get(GroupMembershipManager::class),
                 analyticsDelegate: $di->get(AnalyticsDelegate::class)
             )
         );

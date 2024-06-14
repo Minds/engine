@@ -25,12 +25,14 @@ abstract class AbstractRepository
         protected Client $mysqlHandler,
         protected Config $config,
         protected Logger $logger,
+        Connection $mysqlClientReaderHandler = null,
+        Connection $mysqlClientWriterHandler = null,
     ) {
         $this->mysqlClientReader = $this->mysqlHandler->getConnection(Client::CONNECTION_REPLICA);
-        $this->mysqlClientReaderHandler = new Connection($this->mysqlClientReader);
+        $this->mysqlClientReaderHandler = $mysqlClientReaderHandler ?: new Connection($this->mysqlClientReader);
 
         $this->mysqlClientWriter = $this->mysqlHandler->getConnection(Client::CONNECTION_MASTER);
-        $this->mysqlClientWriterHandler = new Connection($this->mysqlClientWriter);
+        $this->mysqlClientWriterHandler = $mysqlClientWriterHandler ?: new Connection($this->mysqlClientWriter);
     }
 
     /**

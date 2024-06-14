@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\SiteMemberships\Repositories;
 
+use DateTimeImmutable;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipBillingPeriodEnum;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipPricingModelEnum;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipSubscriptionFoundException;
+use Minds\Core\Payments\SiteMemberships\Repositories\DTO\SiteMembershipSubscriptionDTO;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembershipSubscription;
 use Minds\Entities\User;
@@ -28,20 +30,27 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
      * @throws ServerErrorException
      */
     public function storeSiteMembershipSubscription(
-        User           $user,
-        SiteMembership $siteMembership,
-        string         $stripeSubscriptionId
+        SiteMembershipSubscriptionDTO $siteMembershipSubscription
     ): bool {
+
+        $validFrom = $siteMembershipSubscription->validFrom ?: new DateTimeImmutable('now');
+        $validTo = $siteMembershipSubscription->validTo ?: $validFrom->modify('+1 ' . ($siteMembershipSubscription->siteMembership->membershipBillingPeriod === SiteMembershipBillingPeriodEnum::MONTHLY ? 'month' : 'year'));
+
         $stmt = $this->mysqlClientWriterHandler->insert()
             ->into(self::TABLE_NAME)
             ->set([
                 'tenant_id' => $this->config->get('tenant_id') ?? -1,
-                'user_guid' => $user->getGuid(),
-                'membership_tier_guid' => $siteMembership->membershipGuid,
-                'stripe_subscription_id' => $stripeSubscriptionId,
-                'valid_from' => date('c', time()),
-                'valid_to' => date('c', strtotime('+1 ' . ($siteMembership->membershipBillingPeriod === SiteMembershipBillingPeriodEnum::MONTHLY ? 'month' : 'year'))),
-                'auto_renew' => (int)($siteMembership->membershipPricingModel === SiteMembershipPricingModelEnum::RECURRING),
+                'user_guid' => $siteMembershipSubscription->user->getGuid(),
+                'membership_tier_guid' => $siteMembershipSubscription->siteMembership->membershipGuid,
+                'stripe_subscription_id' => $siteMembershipSubscription->stripeSubscriptionId,
+                'valid_from' => $validFrom->format('c'),
+                'valid_to' => $validTo->format('c'),
+                'manual' => (int) $siteMembershipSubscription->isManual,
+                'auto_renew' => $siteMembershipSubscription->isManual ? 0 : (int) ($siteMembershipSubscription->siteMembership->membershipPricingModel === SiteMembershipPricingModelEnum::RECURRING),
+            ])
+            ->onDuplicateKeyUpdate([
+                'valid_from' => $validFrom->format('c'),
+                'valid_to' => $validTo->format('c'),
             ])
             ->prepare();
 
@@ -67,6 +76,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
                 'membership_tier_guid',
                 'stripe_subscription_id',
                 'auto_renew',
+                'manual',
                 'valid_from',
                 'valid_to',
             ])
@@ -134,6 +144,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
             membershipGuid: (int)$data['membership_tier_guid'],
             stripeSubscriptionId: $data['stripe_subscription_id'],
             autoRenew: (bool)$data['auto_renew'],
+            isManual: (bool) $data['manual'],
             validFromTimestamp: strtotime($data['valid_from']),
             validToTimestamp: $data['valid_to'] ? strtotime($data['valid_to']) : null
         );
@@ -153,6 +164,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
                 'id',
                 'membership_tier_guid',
                 'stripe_subscription_id',
+                'manual',
                 'auto_renew',
                 'valid_from',
                 'valid_to',
@@ -234,6 +246,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
                 'membership_tier_guid',
                 'stripe_subscription_id',
                 'auto_renew',
+                'manual',
                 'valid_from',
                 'valid_to',
             ])

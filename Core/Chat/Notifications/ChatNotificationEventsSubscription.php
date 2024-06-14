@@ -7,6 +7,7 @@ use InvalidArgumentException;
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Enums\ChatMessageTypeEnum;
+use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomNotificationStatusEnum;
 use Minds\Core\Chat\Notifications\Events\ChatNotificationEvent;
 use Minds\Core\Chat\Notifications\Models\PlainTextMessageNotification;
@@ -26,6 +27,7 @@ use Minds\Core\Notifications\Push\Services\ApnsService;
 use Minds\Core\Notifications\Push\Services\FcmService;
 use Minds\Core\Notifications\Push\Services\PushServiceInterface;
 use Minds\Core\Notifications\Push\Services\WebPushService;
+use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use NotImplementedException;
 
@@ -95,6 +97,10 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
 
         $chatEntity = $this->entitiesResolver->single($event->entityUrn);
 
+        if (!$chatEntity) {
+            return true; // Probably deleted
+        }
+
         // TODO: get chat room members and send push notifications to them based on notification preference
         match (get_class($chatEntity)) {
             ChatMessage::class => $this->processChatMessage($chatEntity),
@@ -114,19 +120,30 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
     private function processChatMessage(ChatMessage $chatMessage): void
     {
         $sender = $this->entitiesBuilder->single($chatMessage->getOwnerGuid());
+
+        if (!$sender instanceof User) {
+            return;
+        }
+
         $roomMembers = $this->roomService->getAllRoomMembers(
             roomGuid: $chatMessage->roomGuid,
             user: $sender,
+            memberStatus: [ChatRoomMemberStatusEnum::ACTIVE],
         );
+
+        $chatRoomEdge = $this->roomService->getRoom($chatMessage->roomGuid, $sender);
+        $chatRoom = $chatRoomEdge->getNode()->chatRoom;
 
         $notification = match ($chatMessage->messageType) {
             ChatMessageTypeEnum::TEXT => $this->notificationFactory->createNotification(
                 notificationClass: PlainTextMessageNotification::class,
                 chatEntity: $chatMessage,
+                chatRoom: $chatRoom,
             ),
             ChatMessageTypeEnum::RICH_EMBED => $this->notificationFactory->createNotification(
                 notificationClass: RichEmbedMessageNotification::class,
-                chatEntity: $chatMessage
+                chatEntity: $chatMessage,
+                chatRoom: $chatRoom,
             ),
             default => throw new InvalidArgumentException('Invalid chat message type'),
         };
@@ -136,7 +153,16 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
                 continue;
             }
 
-            $notification->setNotificationRecipient((int) $roomMember->getNode()->getGuid());
+            $receiver = $this->entitiesBuilder->single($roomMember->getNode()->getGuid());
+
+            if (!$receiver instanceof User) {
+                continue;
+            }
+
+            // Avoid having your own name in the list
+            $notification->title = $this->roomService->getRoomName($chatRoom, $receiver);
+
+            $notification->setNotificationRecipient((int) $receiver->getGuid());
 
             $deviceSubscriptions = $this->devicePushNotifSubscriptionManager->getList(
                 (new DeviceSubscriptionListOpts())

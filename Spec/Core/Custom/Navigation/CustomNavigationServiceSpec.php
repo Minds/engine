@@ -40,13 +40,14 @@ class CustomNavigationServiceSpec extends ObjectBehavior
             ->willReturn(null);
 
         $items = $this->getItems();
-        $items->shouldHaveCount(7);
+        $items->shouldHaveCount(8);
         $items->shouldBeLike([
             new NavigationItem(
                 id: 'newsfeed',
                 name: 'Newsfeed',
                 type: NavigationItemTypeEnum::CORE,
                 visible: true,
+                visibleMobile: true,
                 iconId: 'home',
                 path: '/newsfeed',
                 order: 1,
@@ -56,59 +57,75 @@ class CustomNavigationServiceSpec extends ObjectBehavior
                 name: 'Explore',
                 type: NavigationItemTypeEnum::CORE,
                 visible: true,
+                visibleMobile: true,
                 iconId: 'tag',
                 path: '/discovery',
                 order: 2,
+            ),
+            new NavigationItem(
+                id: 'boost',
+                name: 'Boost',
+                type: NavigationItemTypeEnum::CORE,
+                visible: true,
+                visibleMobile: false,
+                iconId: 'trending_up',
+                path: '/boost/boost-console',
+                order: 3,
             ),
             new NavigationItem(
                 id: 'groups',
                 name: 'Groups',
                 type: NavigationItemTypeEnum::CORE,
                 visible: true,
+                visibleMobile: true,
                 iconId: 'group',
                 path: '/groups',
                 url: null,
                 action: null,
-                order: 3,
+                order: 4,
             ),
             new NavigationItem(
                 id: 'chat',
                 name: 'Chat',
                 type: NavigationItemTypeEnum::CORE,
                 visible: true,
+                visibleMobile: true,
                 iconId: 'chat_bubble',
                 path: '/chat/rooms',
                 url: null,
                 action: null,
-                order: 4,
+                order: 5,
             ),
             new NavigationItem(
                 id: 'memberships',
                 name: 'Memberships',
                 type: NavigationItemTypeEnum::CORE,
                 visible: true,
+                visibleMobile: false,
                 iconId: 'verified',
                 path: '/memberships',
                 url: null,
                 action: null,
-                order: 5,
+                order: 6,
             ),
             new NavigationItem(
                 id: 'admin',
                 name: 'Admin',
                 type: NavigationItemTypeEnum::CORE,
                 visible: true,
+                visibleMobile: false,
                 iconId: 'dashboard',
                 path: '/network/admin',
-                order: 6
+                order: 7
             ),
             new NavigationItem(
                 id: 'channel',
                 name: '',
                 type: NavigationItemTypeEnum::CORE,
                 visible: true,
+                visibleMobile: true,
                 iconId: '',
-                order: 7,
+                order: 8,
             ),
         ]);
     }
@@ -126,15 +143,16 @@ class CustomNavigationServiceSpec extends ObjectBehavior
                     name: 'About',
                     type: NavigationItemTypeEnum::CUSTOM_LINK,
                     visible: true,
+                    visibleMobile: true,
                     iconId: 'home',
                     url: '/about',
                 ),
             ]);
 
         $items = $this->getItems();
-        $items->shouldHaveCount(8);
+        $items->shouldHaveCount(9);
 
-        $items[7]->id->shouldBe('about');
+        $items[8]->id->shouldBe('about');
     }
 
     public function it_should_return_list_from_database_for_tenants_from_cache()
@@ -149,6 +167,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
                     name: 'About',
                     type: NavigationItemTypeEnum::CUSTOM_LINK,
                     visible: true,
+                    visibleMobile: true,
                     iconId: 'home',
                     url: '/about',
                 ),
@@ -158,9 +177,9 @@ class CustomNavigationServiceSpec extends ObjectBehavior
             ->shouldNotBeCalled();
 
         $items = $this->getItems();
-        $items->shouldHaveCount(8);
+        $items->shouldHaveCount(9);
 
-        $items[7]->id->shouldBe('about');
+        $items[8]->id->shouldBe('about');
     }
 
     public function it_should_merge_default_and_database_items_for_tenants()
@@ -175,6 +194,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
                     name: 'Global',
                     type: NavigationItemTypeEnum::CORE,
                     visible: true,
+                    visibleMobile: true,
                     iconId: 'explore',
                     path: '/explore',
                     order: 2,
@@ -182,7 +202,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
             ]);
 
         $items = $this->getItems();
-        $items->shouldHaveCount(7);
+        $items->shouldHaveCount(8);
 
         $items[1]->id->shouldBe('explore');
         $items[1]->name->shouldBe('Global');
@@ -201,6 +221,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
             name: 'Global',
             type: NavigationItemTypeEnum::CORE,
             visible: true,
+            visibleMobile: true,
             iconId: 'explore',
             path: '/explore',
         ))->shouldBe(true);
@@ -218,6 +239,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
                     name: 'Newsfeed',
                     type: NavigationItemTypeEnum::CORE,
                     visible: true,
+                    visibleMobile: true,
                     iconId: 'home',
                     path: '/newsfeed',
                     order: 3,
@@ -227,6 +249,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
                     name: 'Global',
                     type: NavigationItemTypeEnum::CORE,
                     visible: true,
+                    visibleMobile: true,
                     iconId: 'explore',
                     path: '/explore',
                     order: 2,

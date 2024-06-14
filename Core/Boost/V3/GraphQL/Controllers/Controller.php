@@ -41,7 +41,6 @@ class Controller
      * @return BoostsConnection
      */
     #[Query]
-    #[Logged]
     public function boosts(
         int $targetLocation = BoostTargetLocation::NEWSFEED,
         ?int $targetAudience = null,
@@ -67,14 +66,18 @@ class Controller
 
         if (!$targetAudience) {
             $targetAudience = (
-                $loggedInUser->getBoostRating() !== BoostTargetAudiences::CONTROVERSIAL ?
+                $loggedInUser?->getBoostRating() !== BoostTargetAudiences::CONTROVERSIAL ?
                     BoostTargetAudiences::SAFE :
                     BoostTargetAudiences::CONTROVERSIAL
             );
         }
 
+        if ($loggedInUser) {
+            $this->manager
+                ->setUser($loggedInUser);
+        }
+
         $boosts = $this->manager
-            ->setUser($loggedInUser)
             ->getBoostFeed(
                 limit: (int) $limit,
                 offset: (int) $after,

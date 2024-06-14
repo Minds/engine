@@ -6,6 +6,8 @@
 
 namespace Minds\Core\Router;
 
+use Minds\Core\Router\Enums\ApiScopeEnum;
+
 class Registry
 {
     /** @var Registry */
@@ -31,9 +33,10 @@ class Registry
      * @param string $route
      * @param mixed $binding
      * @param string[] $middleware
+     * @param ApiScopeEnum[] $scopes
      * @return Registry
      */
-    public function register(string $method, string $route, $binding, array $middleware): Registry
+    public function register(string $method, string $route, $binding, array $middleware, array $scopes): Registry
     {
         $method = strtolower($method);
 
@@ -45,7 +48,8 @@ class Registry
         $registryEntry
             ->setRoute($route)
             ->setBinding($binding)
-            ->setMiddleware($middleware);
+            ->setMiddleware($middleware)
+            ->setScopes($scopes);
 
         $this->registry[$method][] = $registryEntry;
 
