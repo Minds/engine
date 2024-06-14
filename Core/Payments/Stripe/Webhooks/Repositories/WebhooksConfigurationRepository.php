@@ -18,35 +18,30 @@ class WebhooksConfigurationRepository extends AbstractRepository
     /**
      * @param string $webhookId
      * @param string $webhookSecret
-     * @param string $webhookDomainUrl
      * @return bool
      * @throws ServerErrorException
      */
     public function storeWebhookConfiguration(
         string $webhookId,
         string $webhookSecret,
-        string $webhookDomainUrl
     ): bool {
         $stmt = $this->mysqlClientWriterHandler->insert()
             ->into(self::TABLE_NAME)
             ->set([
                 'tenant_id' => $this->config->get('tenant_id') ?? -1,
                 'stripe_webhook_id' => new RawExp(':stripe_webhook_id'),
-                'stripe_webhook_secret' => new RawExp(':stripe_webhook_secret'),
-                'stripe_webhook_domain_url' => new RawExp(':stripe_webhook_domain_url'),
+                'stripe_webhook_secret' => new RawExp(':stripe_webhook_secret')
             ])
             ->onDuplicateKeyUpdate([
                 'stripe_webhook_id' => new RawExp(':stripe_webhook_id'),
-                'stripe_webhook_secret' => new RawExp(':stripe_webhook_secret'),
-                'stripe_webhook_domain_url' => new RawExp(':stripe_webhook_domain_url'),
+                'stripe_webhook_secret' => new RawExp(':stripe_webhook_secret')
             ])
             ->prepare();
 
         try {
             return $stmt->execute([
                 'stripe_webhook_id' => $webhookId,
-                'stripe_webhook_secret' => $webhookSecret,
-                'stripe_webhook_domain_url' => $webhookDomainUrl,
+                'stripe_webhook_secret' => $webhookSecret
             ]);
         } catch (PDOException $e) {
             throw new ServerErrorException('Failed to store customer portal configuration', previous: $e);
@@ -63,8 +58,7 @@ class WebhooksConfigurationRepository extends AbstractRepository
             ->from(self::TABLE_NAME)
             ->columns([
                 'stripe_webhook_id',
-                'stripe_webhook_secret',
-                'stripe_webhook_domain_url'
+                'stripe_webhook_secret'
             ])
             ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
             ->prepare();
@@ -78,7 +72,6 @@ class WebhooksConfigurationRepository extends AbstractRepository
             return new SubscriptionsWebhookDetails(
                 stripeWebhookId: $result['stripe_webhook_id'],
                 stripeWebhookSecret: $result['stripe_webhook_secret'],
-                stripeWebhookDomainUrl: $result['stripe_webhook_domain_url']
             );
         } catch (PDOException $e) {
             throw new ServerErrorException('Failed to get customer portal configuration', previous: $e);

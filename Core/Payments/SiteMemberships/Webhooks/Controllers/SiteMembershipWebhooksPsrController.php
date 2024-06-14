@@ -23,7 +23,7 @@ class SiteMembershipWebhooksPsrController
     public function processSubscriptionRenewal(ServerRequestInterface $request): JsonResponse
     {
         $payload = $request->getBody()->getContents();
-        $signature = $request->getHeader("HTTP_STRIPE_SIGNATURE")[0] ?? null;
+        $signature = $request->getHeader("STRIPE-SIGNATURE")[0] ?? null;
 
         $this->siteMembershipsRenewalsService->processSubscriptionRenewalEvent(
             $payload,

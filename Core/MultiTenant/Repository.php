@@ -20,6 +20,20 @@ class Repository extends AbstractRepository
 {
     public function getTenantFromDomain(string $domain): ?Tenant
     {
+        // TODO: DO NOT COMMIT. <-----------------
+        // TODO: DO NOT COMMIT. <-----------------
+        // TODO: DO NOT COMMIT. <-----------------
+        // TODO: DO NOT COMMIT. <-----------------
+        // TODO: DO NOT COMMIT. <-----------------
+        // TODO: DO NOT COMMIT. <-----------------
+        // TODO: DO NOT COMMIT. <-----------------
+        // TODO: DO NOT COMMIT. <-----------------
+        // TODO: DO NOT COMMIT. <-----------------
+        // TODO: DO NOT COMMIT. <-----------------
+        // TODO: DO NOT COMMIT. <-----------------
+        // TODO: DO NOT COMMIT. <-----------------
+        // TODO: DO NOT COMMIT. <-----------------
+        $domain = "tenant2.local";
         $query = $this->buildGetTenantQuery()
             ->where('minds_tenants_domain_details.domain', Operator::EQ, new RawExp(':domain'));
 

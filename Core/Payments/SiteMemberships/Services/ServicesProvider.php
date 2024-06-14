@@ -78,6 +78,7 @@ class ServicesProvider extends Provider
                 subscriptionsWebhookService: $di->get(SubscriptionsWebhookService::class),
                 siteMembershipSubscriptionsService: $di->get(SiteMembershipSubscriptionsService::class),
                 stripeSubscriptionsService: $di->get(StripeSubscriptionsService::class),
+                logger: $di->get('Logger')
             )
         );
         

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Payments\SiteMemberships\Services;
 
 use Exception;
+use Minds\Core\Log\Logger;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipSubscriptionFoundException;
 use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService as StripeSubscriptionsService;
 use Minds\Core\Payments\Stripe\Webhooks\Enums\WebhookEventTypeEnum;
@@ -19,6 +20,7 @@ class SiteMembershipsRenewalsService
         private readonly SubscriptionsWebhookService $subscriptionsWebhookService,
         private readonly SiteMembershipSubscriptionsService $siteMembershipSubscriptionsService,
         private readonly StripeSubscriptionsService $stripeSubscriptionsService,
+        private readonly Logger $logger
     ) {
     }
 
@@ -109,15 +111,19 @@ class SiteMembershipsRenewalsService
         $siteMembershipSubscriptions = $this->siteMembershipSubscriptionsService->getAllSiteMemberships($tenantId);
 
         foreach ($siteMembershipSubscriptions as $siteMembershipSubscription) {
-            $stripeSubscription = $this->stripeSubscriptionsService->retrieveSubscription(
-                subscriptionId: $siteMembershipSubscription->stripeSubscriptionId
-            );
+            try {
+                $stripeSubscription = $this->stripeSubscriptionsService->retrieveSubscription(
+                    subscriptionId: $siteMembershipSubscription->stripeSubscriptionId
+                );
 
-            $this->siteMembershipSubscriptionsService->renewSiteMembershipSubscription(
-                stripeSubscriptionId: $stripeSubscription->id,
-                startTimestamp: $stripeSubscription->current_period_start,
-                endTimestamp: $stripeSubscription->current_period_end
-            );
+                $this->siteMembershipSubscriptionsService->renewSiteMembershipSubscription(
+                    stripeSubscriptionId: $stripeSubscription->id,
+                    startTimestamp: $stripeSubscription->current_period_start,
+                    endTimestamp: $stripeSubscription->current_period_end
+                );
+            } catch (\Exception $e) {
+                $this->logger->error($e);
+            }
         }
     }
 }

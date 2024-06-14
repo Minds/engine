@@ -128,8 +128,7 @@ class SubscriptionsWebhookServiceSpec extends ObjectBehavior
 
         $this->webhooksConfigurationRepositoryMock->storeWebhookConfiguration(
             'webhookId',
-            'webhookSecret',
-            'http://example.com/'
+            'webhookSecret'
         )
             ->shouldBeCalledOnce()
             ->willReturn(true);

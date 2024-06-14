@@ -31,7 +31,7 @@ class SiteMemberships extends Controller implements CliControllerInterface
 
     public function help($command = null)
     {
-        $this->out('Syntax usage: SiteMemberships [run]');
+        $this->out('Syntax usage: cli.php payments SiteMemberships [run]');
     }
 
 

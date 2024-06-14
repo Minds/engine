@@ -7,8 +7,7 @@ class SubscriptionsWebhookDetails
 {
     public function __construct(
         public readonly ?string $stripeWebhookId = null,
-        public readonly ?string $stripeWebhookSecret = null,
-        public readonly ?string $stripeWebhookDomainUrl = null,
+        public readonly ?string $stripeWebhookSecret = null
     ) {
     }
 }

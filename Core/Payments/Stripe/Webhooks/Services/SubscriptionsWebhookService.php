@@ -5,6 +5,7 @@ namespace Minds\Core\Payments\Stripe\Webhooks\Services;
 
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Core\Payments\Stripe\Webhooks\Enums\WebhookEventTypeEnum;
 use Minds\Core\Payments\Stripe\Webhooks\Model\SubscriptionsWebhookDetails;
@@ -21,7 +22,8 @@ class SubscriptionsWebhookService
     public function __construct(
         private readonly Config $config,
         private readonly WebhooksConfigurationRepository $webhooksConfigurationRepository,
-        private readonly WebhookEventBuilderService $webhookEventBuilderService
+        private readonly WebhookEventBuilderService $webhookEventBuilderService,
+        private readonly DomainService $domainService,
     ) {
     }
 
@@ -43,7 +45,7 @@ class SubscriptionsWebhookService
         $response = $this->stripeClient
             ->webhookEndpoints
             ->create([
-                'url' => $this->config->get('site_url') . 'api/v3/stripe/webhooks/site-memberships/process-renewal',
+                'url' => $this->buildWebhookEndpoint(),
                 'enabled_events' => [
                     WebhookEventTypeEnum::INVOICE_PAYMENT_SUCCEEDED->value,
                     WebhookEventTypeEnum::INVOICE_PAID->value,
@@ -57,8 +59,7 @@ class SubscriptionsWebhookService
 
         return $this->webhooksConfigurationRepository->storeWebhookConfiguration(
             webhookId: $response->id,
-            webhookSecret: $response->secret,
-            webhookDomainUrl: $this->config->get('site_url')
+            webhookSecret: $response->secret
         );
     }
 
@@ -95,11 +96,8 @@ class SubscriptionsWebhookService
         $existingWebhookDetails = $this->getSubscriptionsWebhookDetails();
         return !(
             $existingWebhookDetails->stripeWebhookId &&
-            (
-                $existingWebhookDetails->stripeWebhookDomainUrl === $this->config->get('site_url') &&
-                ($webhookEndpointCheckDetails = $this->checkSubscriptionsWebhook($existingWebhookDetails->stripeWebhookId)) &&
-                $webhookEndpointCheckDetails->url === $this->config->get('site_url') . 'api/v3/stripe/webhooks/site-memberships/process-renewal'
-            )
+            ($webhookEndpointCheckDetails = $this->checkSubscriptionsWebhook($existingWebhookDetails->stripeWebhookId)) &&
+            $webhookEndpointCheckDetails->url === $this->buildWebhookEndpoint()
         );
     }
 
@@ -133,12 +131,14 @@ class SubscriptionsWebhookService
         StripeClient $stripeClient,
         Config $config,
         WebhooksConfigurationRepository $webhooksConfigurationRepository,
-        WebhookEventBuilderService $webhookEventBuilderService
+        WebhookEventBuilderService $webhookEventBuilderService,
+        DomainService $domainService
     ): self {
         $instance = new self(
             config: $config,
             webhooksConfigurationRepository: $webhooksConfigurationRepository,
-            webhookEventBuilderService: $webhookEventBuilderService
+            webhookEventBuilderService: $webhookEventBuilderService,
+            domainService: $domainService
         );
         $instance->stripeClient = $stripeClient;
 
@@ -148,5 +148,14 @@ class SubscriptionsWebhookService
     public function initStripeClient(): void
     {
         $this->stripeClient ??= Di::_()->get(StripeClient::class);
+    }
+
+    /**
+     * Builds callback URL for webhook.
+     * @return string Callback URL.
+     */
+    private function buildWebhookEndpoint(): string
+    {
+        return 'https://' . $this->domainService->buildTmpSubdomain($this->config->get('tenant')) . '/api/v3/stripe/webhooks/site-memberships/process-renewal';
     }
 }
