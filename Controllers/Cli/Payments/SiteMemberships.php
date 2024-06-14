@@ -10,13 +10,12 @@ use Minds\Cli\Controller;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipsRenewalsService;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Interfaces\CliControllerInterface;
-use Spec\Minds\Core\Payments\SiteMemberships\Services\SiteMembershipSubscriptionsServiceSpec;
 use Stripe\Exception\ApiErrorException;
 
 class SiteMemberships extends Controller implements CliControllerInterface
 {
     public function __construct(
-        private ?SiteMembershipSubscriptionsServiceSpec $siteMembershipSubscriptionsService = null,
+        private ?SiteMembershipSubscriptionsService $siteMembershipSubscriptionsService = null,
         private ?GroupMembershipService $groupMembershipService = null,
     ) {
         error_reporting(E_ALL);
