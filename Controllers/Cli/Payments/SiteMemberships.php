@@ -7,6 +7,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Groups\V2\Membership\Manager as GroupMembershipService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipSubscriptionsService;
 use Minds\Cli\Controller;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipsRenewalsService;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Interfaces\CliControllerInterface;
@@ -17,11 +18,13 @@ class SiteMemberships extends Controller implements CliControllerInterface
     public function __construct(
         private ?SiteMembershipSubscriptionsService $siteMembershipSubscriptionsService = null,
         private ?GroupMembershipService $groupMembershipService = null,
+        private ?MultiTenantBootService $multiTenantBootService = null
     ) {
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
         $this->siteMembershipSubscriptionsService ??= Di::_()->get(SiteMembershipSubscriptionsService::class);
         $this->groupMembershipService ??= Di::_()->get(GroupMembershipService::class);
+        $this->multiTenantBootService ??= Di::_()->get(MultiTenantBootService::class);
     }
 
     public function exec()
@@ -36,6 +39,12 @@ class SiteMemberships extends Controller implements CliControllerInterface
 
 
     /**
+     * Sync site memberships state with Stripe.
+     * 
+     * Example usage:
+     * ```
+     * php cli.php payments SiteMemberships sync --tenant_id=123
+     * ```
      * @return void
      * @throws ServerErrorException
      * @throws ApiErrorException
@@ -44,6 +53,10 @@ class SiteMemberships extends Controller implements CliControllerInterface
     {
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
+
+        if ($tenantId = $this->getOpt('tenant_id')) {
+            $this->multiTenantBootService->bootFromTenantId((int) $tenantId);
+        }
 
         /**
          * @var SiteMembershipsRenewalsService $siteMembershipsRenewalsService
