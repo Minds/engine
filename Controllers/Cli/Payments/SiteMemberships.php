@@ -54,8 +54,10 @@ class SiteMemberships extends Controller implements CliControllerInterface
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
 
-        if ($tenantId = $this->getOpt('tenant_id')) {
-            $this->multiTenantBootService->bootFromTenantId((int) $tenantId);
+        $tenantId = $this->getOpt('tenant_id') ? (int) $this->getOpt('tenant_id') : null;
+
+        if ($tenantId) {
+            $this->multiTenantBootService->bootFromTenantId($tenantId);
         }
 
         /**
@@ -63,7 +65,7 @@ class SiteMemberships extends Controller implements CliControllerInterface
          */
         $siteMembershipsRenewalsService = Di::_()->get(SiteMembershipsRenewalsService::class);
 
-        $siteMembershipsRenewalsService->syncSiteMemberships();
+        $siteMembershipsRenewalsService->syncSiteMemberships($tenantId);
     }
 
     public function cleanupExpiredGroupMemberships()

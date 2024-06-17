@@ -278,19 +278,20 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
         $keyPairs = $this->stripeKeysService->getAllKeys();
 
         foreach ($keyPairs as $keyPair) {
-            $this->out("Syncing webhook for tenant: {$keyPair['tenant_id']}...");
+            $tenantId = (int) $keyPair['tenant_id'];
+            $this->out("Syncing webhook for tenant: {$tenantId}...");
 
             try {
-                $this->multiTenantBootService->bootFromTenantId((int) $keyPair['tenant_id']);
+                $this->multiTenantBootService->bootFromTenantId($tenantId);
 
                 $this->out(
                     $this->subscriptionsWebhookService->createSubscriptionsWebhook() ?
-                        "Webhook created, or already exists for tenant: {$keyPair['tenant_id']}." :
-                        "Webhook not created for tenant: {$keyPair['tenant_id']}"
+                        "Webhook created, or already exists for tenant: {$tenantId}." :
+                        "Webhook not created for tenant: {$tenantId}"
                 );
 
                 if ($this->getOpt('sync_site_memberships')) {
-                    $this->siteMembershipsRenewalsService->syncSiteMemberships();
+                    $this->siteMembershipsRenewalsService->syncSiteMemberships($tenantId);
                 }
             } catch(\Exception $e) {
                 $this->out($e->getMessage());
