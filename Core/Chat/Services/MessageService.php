@@ -187,20 +187,30 @@ class MessageService
 
         usort($messages, fn (ChatMessage $a, ChatMessage $b): bool => $a->createdAt > $b->createdAt);
 
-        return [
-            'edges' => array_map(
-                fn (ChatMessage $message) => new ChatMessageEdge(
-                    node: new ChatMessageNode(
-                        chatMessage: $message,
-                        sender: new UserEdge(
-                            user: $this->entitiesBuilder->single($message->senderGuid),
-                            cursor: ''
-                        )
-                    ),
-                    cursor: base64_encode((string) $message->guid)
+
+        $edges = [];
+
+        foreach ($messages as $message) {
+            $user = $this->entitiesBuilder->single($message->senderGuid);
+
+            if (!$user instanceof User) {
+                continue;
+            }
+
+            $edges[] = new ChatMessageEdge(
+                node: new ChatMessageNode(
+                    chatMessage: $message,
+                    sender: new UserEdge(
+                        user: $user,
+                        cursor: ''
+                    )
                 ),
-                $messages
-            ),
+                cursor: base64_encode((string) $message->guid)
+            );
+        }
+
+        return [
+            'edges' => $edges,
             'hasMore' => $hasMore
         ];
     }
