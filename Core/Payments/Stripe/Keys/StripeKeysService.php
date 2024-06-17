@@ -87,4 +87,12 @@ class StripeKeysService
         }
     }
 
+    /**
+     * Gets all keys.
+     * @return array all keys.
+     */
+    public function getAllKeys(): array
+    {
+        return $this->repository->getAllKeys();
+    }
 }

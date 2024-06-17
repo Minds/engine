@@ -6,11 +6,14 @@ use Minds\Core;
 use Minds\Cli;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Interfaces;
 use Minds\Entities;
 use Minds\Core\Payments\Models\GetPaymentsOpts;
 use Minds\Core\Supermind\Payments\SupermindPaymentProcessor;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
+use Minds\Core\Payments\Stripe\Keys\StripeKeysService;
+use Minds\Core\Payments\Stripe\Webhooks\Services\SubscriptionsWebhookService;
 use Minds\Core\Wire\Manager as WireManager;
 use Minds\Core\Wire\Wire;
 use Minds\Entities\User;
@@ -22,7 +25,10 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?IntentsManagerV2 $intentsManager = null,
         private ?SupermindPaymentProcessor $supermindPaymentProcessor = null,
-        private ?WireManager $wireManager = null
+        private ?WireManager $wireManager = null,
+        private ?MultiTenantBootService $multiTenantBootService = null,
+        private ?StripeKeysService $stripeKeysService = null,
+        private ?SubscriptionsWebhookService $subscriptionsWebhookService = null
     ) {
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
@@ -30,6 +36,9 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
         $this->intentsManager ??= new IntentsManagerV2();
         $this->supermindPaymentProcessor ??= new SupermindPaymentProcessor();
         $this->wireManager ??= Di::_()->get('Wire\Manager');
+        $this->multiTenantBootService ??= Di::_()->get(MultiTenantBootService::class);
+        $this->stripeKeysService ??= Di::_()->get(StripeKeysService::class);
+        $this->subscriptionsWebhookService ??= Di::_()->get(SubscriptionsWebhookService::class);
     }
 
     public function help($command = null)
@@ -248,5 +257,37 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
         }
 
         $this->out("Completed. Processed $count PaymentIntents");
+    }
+
+    /**
+     * Sync site membership subscription webhooks for all tenants with Stripe kets set.
+     * Example usage: 
+     * ```
+     * php cli.php Stripe sync_membership_webhooks
+     * ``` 
+     * @return void
+     */
+    public function sync_membership_webhooks(): void
+    {
+        $this->out("Syncing membership webhooks...");
+        $keyPairs = $this->stripeKeysService->getAllKeys();
+
+        foreach ($keyPairs as $keyPair) {
+            $this->out("Syncing webhook for tenant: {$keyPair['tenant_id']}...");
+
+            try {
+                $this->multiTenantBootService->bootFromTenantId((int) $keyPair['tenant_id']);
+
+                $this->out(
+                    $this->subscriptionsWebhookService->createSubscriptionsWebhook() ?
+                        "Webhook created, or already exists for tenant: {$keyPair['tenant_id']}." :
+                        "Webhook not created for tenant: {$keyPair['tenant_id']}"
+                );
+            } catch(\Exception $e) {
+                $this->out($e->getMessage());
+            }
+        }
+
+        $this->out('Done.');
     }
 }

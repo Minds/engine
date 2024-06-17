@@ -40,7 +40,7 @@ class SiteMemberships extends Controller implements CliControllerInterface
 
     /**
      * Sync site memberships state with Stripe.
-     * 
+     *
      * Example usage:
      * ```
      * php cli.php payments SiteMemberships sync --tenant_id=123

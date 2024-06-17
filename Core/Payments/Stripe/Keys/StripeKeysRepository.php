@@ -62,6 +62,33 @@ class StripeKeysRepository extends AbstractRepository
     }
 
     /**
+     * Returns all keys
+     * @return array all keys.
+     */
+    public function getAllKeys(): array
+    {
+        $query = $this->mysqlClientReaderHandler->select()
+            ->from(self::TABLE_NAME)
+            ->columns([
+                'tenant_id',
+                'pub_key',
+                'sec_key_cipher_text',
+                'created_timestamp',
+                'updated_timestamp'
+            ]);
+
+        $stmt = $query->prepare();
+
+        $stmt->execute();
+
+        if ($stmt->rowCount() === 0) {
+            return null;
+        }
+
+        return array_values($stmt->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    /**
      * Returns the tenant id
      * -1 will be the host site
      */
