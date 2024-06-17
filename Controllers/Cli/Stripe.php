@@ -10,6 +10,7 @@ use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Interfaces;
 use Minds\Entities;
 use Minds\Core\Payments\Models\GetPaymentsOpts;
+use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipsRenewalsService;
 use Minds\Core\Supermind\Payments\SupermindPaymentProcessor;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
 use Minds\Core\Payments\Stripe\Keys\StripeKeysService;
@@ -28,7 +29,8 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
         private ?WireManager $wireManager = null,
         private ?MultiTenantBootService $multiTenantBootService = null,
         private ?StripeKeysService $stripeKeysService = null,
-        private ?SubscriptionsWebhookService $subscriptionsWebhookService = null
+        private ?SubscriptionsWebhookService $subscriptionsWebhookService = null,
+        private ?SiteMembershipsRenewalsService $siteMembershipsRenewalsService = null
     ) {
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
@@ -39,6 +41,7 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
         $this->multiTenantBootService ??= Di::_()->get(MultiTenantBootService::class);
         $this->stripeKeysService ??= Di::_()->get(StripeKeysService::class);
         $this->subscriptionsWebhookService ??= Di::_()->get(SubscriptionsWebhookService::class);
+        $this->siteMembershipsRenewalsService ??= Di::_()->get(SiteMembershipsRenewalsService::class);
     }
 
     public function help($command = null)
@@ -261,9 +264,11 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
 
     /**
      * Sync site membership subscription webhooks for all tenants with Stripe kets set.
+     * Optionally also sync site memberships after syncing webhooks.
+     * 
      * Example usage: 
      * ```
-     * php cli.php Stripe sync_membership_webhooks
+     * php cli.php Stripe sync_membership_webhooks --sync_site_memberships
      * ``` 
      * @return void
      */
@@ -283,6 +288,10 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
                         "Webhook created, or already exists for tenant: {$keyPair['tenant_id']}." :
                         "Webhook not created for tenant: {$keyPair['tenant_id']}"
                 );
+
+                if ($this->getOpt('sync_site_memberships')) {
+                    $this->siteMembershipsRenewalsService->syncSiteMemberships();
+                }
             } catch(\Exception $e) {
                 $this->out($e->getMessage());
             }
