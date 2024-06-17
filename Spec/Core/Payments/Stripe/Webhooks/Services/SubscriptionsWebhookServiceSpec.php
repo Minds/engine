@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace Spec\Minds\Core\Payments\Stripe\Webhooks\Services;
 
 use Minds\Core\Config\Config;
+use Minds\Core\MultiTenant\Models\Tenant;
+use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Core\Payments\Stripe\Webhooks\Enums\WebhookEventTypeEnum;
 use Minds\Core\Payments\Stripe\Webhooks\Model\SubscriptionsWebhookDetails;
@@ -23,6 +25,7 @@ class SubscriptionsWebhookServiceSpec extends ObjectBehavior
     private Collaborator $configMock;
     private Collaborator $webhooksConfigurationRepositoryMock;
     private Collaborator $webhookEventBuilderServiceMock;
+    private Collaborator $domainServiceMock;
 
     private ReflectionClass $stripeClientMockFactory;
     private ReflectionClass $stripeWebhookEndpointMockFactory;
@@ -39,12 +42,14 @@ class SubscriptionsWebhookServiceSpec extends ObjectBehavior
         WebhookEndpointService $stripeWebhookEndpointService,
         Config $config,
         WebhooksConfigurationRepository $webhooksConfigurationRepository,
-        WebhookEventBuilderService $webhookEventBuilderService
+        WebhookEventBuilderService $webhookEventBuilderService,
+        DomainService $domainServiceMock
     ): void {
         $this->stripeWebhookEndpointServiceMock = $stripeWebhookEndpointService;
         $this->configMock = $config;
         $this->webhooksConfigurationRepositoryMock = $webhooksConfigurationRepository;
         $this->webhookEventBuilderServiceMock = $webhookEventBuilderService;
+        $this->domainServiceMock = $domainServiceMock;
 
         $this->stripeClientMockFactory = new ReflectionClass(StripeClient::class);
         $this->stripeWebhookEndpointMockFactory = new ReflectionClass(WebhookEndpoint::class);
@@ -55,7 +60,8 @@ class SubscriptionsWebhookServiceSpec extends ObjectBehavior
                 $this->prepareStripeClientMock(),
                 $this->configMock,
                 $this->webhooksConfigurationRepositoryMock,
-                $this->webhookEventBuilderServiceMock
+                $this->webhookEventBuilderServiceMock,
+                $this->domainServiceMock
             ]
         );
     }
@@ -87,15 +93,16 @@ class SubscriptionsWebhookServiceSpec extends ObjectBehavior
         $this->shouldBeAnInstanceOf(SubscriptionsWebhookService::class);
     }
 
-    public function it_should_create_subscriptions_webhook(): void
-    {
-        $this->configMock->get('site_url')
-            ->shouldBeCalled()
-            ->willReturn('http://example.com/');
-
+    public function it_should_create_subscriptions_webhook(
+        Tenant $tenantMock
+    ): void {
         $this->configMock->get('tenant_id')
             ->shouldBeCalledOnce()
             ->willReturn(1);
+
+        $this->configMock->get('tenant')
+            ->shouldBeCalledOnce()
+            ->willReturn($tenantMock);
 
         $subscriptionsWebhookDetailsMock = new SubscriptionsWebhookDetails();
 
@@ -106,8 +113,12 @@ class SubscriptionsWebhookServiceSpec extends ObjectBehavior
         $this->stripeWebhookEndpointServiceMock->retrieve('webhookId')
             ->shouldNotBeCalled();
 
+        $this->domainServiceMock->buildTmpSubdomain($tenantMock)
+            ->shouldBeCalledOnce()
+            ->willReturn('example.com');
+
         $this->stripeWebhookEndpointServiceMock->create([
-            'url' => 'http://example.com/api/v3/stripe/webhooks/site-memberships/process-renewal',
+            'url' => 'https://example.com/api/v3/stripe/webhooks/site-memberships/process-renewal',
             'enabled_events' => [
                 WebhookEventTypeEnum::INVOICE_PAYMENT_SUCCEEDED->value,
                 WebhookEventTypeEnum::INVOICE_PAID->value,

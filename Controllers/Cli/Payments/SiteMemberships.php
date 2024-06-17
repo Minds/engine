@@ -64,7 +64,6 @@ class SiteMemberships extends Controller implements CliControllerInterface
          * @var SiteMembershipsRenewalsService $siteMembershipsRenewalsService
          */
         $siteMembershipsRenewalsService = Di::_()->get(SiteMembershipsRenewalsService::class);
-
         $siteMembershipsRenewalsService->syncSiteMemberships($tenantId);
     }
 

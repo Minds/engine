@@ -84,4 +84,17 @@ class StripeKeysServiceSpec extends ObjectBehavior
         $this->setKeys('pub-key', 'sec-key-plain-text', false)->shouldBe(true);
     }
 
+    public function it_should_get_all_keys(): void 
+    {
+        $keys = [[
+            'tenant_id' => 'tenant-id-1',
+            'pub_key' => 'pub-key-1',
+        ], [
+            'tenant_id' => 'tenant-id-2',
+            'pub_key' => 'pub-key-2',
+        ]];
+
+        $this->repositoryMock->getAllKeys()->willReturn($keys);
+        $this->getAllKeys()->shouldBe($keys);
+    }
 }
