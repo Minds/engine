@@ -265,11 +265,11 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
     /**
      * Sync site membership subscription webhooks for all tenants with Stripe kets set.
      * Optionally also sync site memberships after syncing webhooks.
-     * 
-     * Example usage: 
+     *
+     * Example usage:
      * ```
      * php cli.php Stripe sync_membership_webhooks --sync_site_memberships
-     * ``` 
+     * ```
      * @return void
      */
     public function sync_membership_webhooks(): void

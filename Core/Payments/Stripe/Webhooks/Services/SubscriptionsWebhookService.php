@@ -19,6 +19,8 @@ class SubscriptionsWebhookService
 {
     protected ?StripeClient $stripeClient = null;
     
+    const PROCESS_RENEWAL_ENDPOINT = '/api/v3/stripe/webhooks/site-memberships/process-renewal';
+
     public function __construct(
         private readonly Config $config,
         private readonly WebhooksConfigurationRepository $webhooksConfigurationRepository,
@@ -156,6 +158,6 @@ class SubscriptionsWebhookService
      */
     private function buildWebhookEndpoint(): string
     {
-        return 'https://' . $this->domainService->buildTmpSubdomain($this->config->get('tenant')) . '/api/v3/stripe/webhooks/site-memberships/process-renewal';
+        return 'https://' . $this->domainService->buildTmpSubdomain($this->config->get('tenant')) . self::PROCESS_RENEWAL_ENDPOINT;
     }
 }
