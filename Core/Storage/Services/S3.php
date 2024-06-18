@@ -77,6 +77,11 @@ class S3 implements ServiceInterface
             case "read":
             default:
                 try { // to read object from OCI OSS bucket
+
+                    if (!is_string($this->filepath)) {
+                        return;
+                    }
+
                     $result = $this->ociS3Client->getObject([
                         'Bucket' => $this->config->get('storage')['oci_bucket_name'],
                         'Key' => $this->filepath
