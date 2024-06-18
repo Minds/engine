@@ -252,6 +252,10 @@ class ProcessObjectService
 
                 $quotePost = $this->manager->getEntityFromUri($this->object->quoteUri);
 
+                if (!$quotePost) {
+                    return; // The post was not found, so do not create a remind
+                }
+
                 $remind = new RemindIntent();
                 $remind->setGuid($quotePost->getGuid());
                 $remind->setOwnerGuid($quotePost->getOwnerGuid());
