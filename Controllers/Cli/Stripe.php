@@ -29,8 +29,6 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
         private ?WireManager $wireManager = null,
         private ?MultiTenantBootService $multiTenantBootService = null,
         private ?StripeKeysService $stripeKeysService = null,
-        private ?SubscriptionsWebhookService $subscriptionsWebhookService = null,
-        private ?SiteMembershipsRenewalsService $siteMembershipsRenewalsService = null
     ) {
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
@@ -40,8 +38,6 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
         $this->wireManager ??= Di::_()->get('Wire\Manager');
         $this->multiTenantBootService ??= Di::_()->get(MultiTenantBootService::class);
         $this->stripeKeysService ??= Di::_()->get(StripeKeysService::class);
-        $this->subscriptionsWebhookService ??= Di::_()->get(SubscriptionsWebhookService::class);
-        $this->siteMembershipsRenewalsService ??= Di::_()->get(SiteMembershipsRenewalsService::class);
     }
 
     public function help($command = null)
@@ -285,13 +281,13 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
                 $this->multiTenantBootService->bootFromTenantId($tenantId);
 
                 $this->out(
-                    $this->subscriptionsWebhookService->createSubscriptionsWebhook() ?
+                    Di::_()->get(SubscriptionsWebhookService::class)->createSubscriptionsWebhook() ?
                         "Webhook created, or already exists for tenant: {$tenantId}." :
                         "Webhook not created for tenant: {$tenantId}"
                 );
 
                 if ($this->getOpt('sync_site_memberships')) {
-                    $this->siteMembershipsRenewalsService->syncSiteMemberships($tenantId);
+                    Di::_()->get(SiteMembershipsRenewalsService::class)->syncSiteMemberships($tenantId);
                 }
             } catch(\Exception $e) {
                 $this->out($e->getMessage());
