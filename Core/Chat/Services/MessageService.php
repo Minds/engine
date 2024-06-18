@@ -187,19 +187,27 @@ class MessageService
 
         usort($messages, fn (ChatMessage $a, ChatMessage $b): bool => $a->createdAt > $b->createdAt);
 
-        $edges = array_map(
-            fn (ChatMessage $message) => new ChatMessageEdge(
+
+        $edges = [];
+
+        foreach ($messages as $message) {
+            $user = $this->entitiesBuilder->single($message->senderGuid);
+
+            if (!$user instanceof User) {
+                continue;
+            }
+
+            $edges[] = new ChatMessageEdge(
                 node: new ChatMessageNode(
                     chatMessage: $message,
                     sender: new UserEdge(
-                        user: $this->entitiesBuilder->single($message->senderGuid),
+                        user: $user,
                         cursor: ''
                     )
                 ),
                 cursor: base64_encode((string) $message->guid)
-            ),
-            $messages
-        );
+            );
+        }
 
         $chatRoomListItem = $this->getChatRoomListItem($user, $roomGuid);
         $edges = $this->removeDisallowedSendersFromEdges($edges, $chatRoomListItem->chatRoom);

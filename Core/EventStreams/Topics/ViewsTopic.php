@@ -73,6 +73,7 @@ class ViewsTopic extends AbstractTopic implements TopicInterface
                     'cm_position' => $event->cmPosition,
                     'cm_served_by_guid' => $event->cmServedByGuid,
                     'view_uuid' => $event->viewUUID,
+                    'external' => $event->external,
                     'tenant_id' => $this->config->get('tenant_id') ?: -1,
                 ])
             )
@@ -200,6 +201,10 @@ class ViewsTopic extends AbstractTopic implements TopicInterface
                 [
                     'name' => 'view_uuid',
                     'type' => 'string'
+                ],
+                [
+                    'name' => 'external',
+                    'type' => 'boolean'
                 ],
                 [
                     'name' => 'tenant_id',

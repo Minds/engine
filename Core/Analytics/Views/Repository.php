@@ -115,7 +115,8 @@ class Repository
                     ->setMedium($row['medium'])
                     ->setCampaign($row['campaign'])
                     ->setDelta((int) $row['delta'])
-                    ->setTimestamp($row['uuid']->time());
+                    ->setTimestamp($row['uuid']->time())
+                    ->setExternal($row['external'] ?? false);
 
                 $response[] = $view;
             }
@@ -139,8 +140,8 @@ class Repository
         $timestamp = $view->getTimestamp() ?: time();
         $date = new DateTime("@{$timestamp}", new DateTimeZone('utc'));
 
-        $cql = "INSERT INTO views (year, month, day, uuid, entity_urn, owner_guid, page_token, position, platform, source, medium, campaign, delta, tenant_id) 
-        VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $cql = "INSERT INTO views (year, month, day, uuid, entity_urn, owner_guid, page_token, position, platform, source, medium, campaign, delta, tenant_id, external) 
+        VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $values = [
             (int) ($view->getYear() ?? $date->format('Y')),
             new Tinyint((int) ($view->getMonth() ?? $date->format('m'))),
@@ -155,6 +156,7 @@ class Repository
             $view->getCampaign() ?: '',
             (int) ($view->getDelta() ?? 0),
             $this->config->get('tenant_id') ?: -1,
+            $view->isExternal(),
         ];
 
         $prepared = new Custom();

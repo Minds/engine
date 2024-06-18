@@ -161,6 +161,11 @@ class ActorFactory
         // Must
         $actor->id = $json['id'];
         $actor->inbox = $json['inbox'];
+
+        if (!isset($json['outbox'])) {
+            throw new UserErrorException("Outbox must be provided");
+        }
+
         $actor->outbox = $json['outbox'];
 
         // May
