@@ -211,7 +211,7 @@ class SiteMembershipsRenewalsServiceSpec extends ObjectBehavior
             ->willReturn($this->buildStripeSubscriptionDetails(
                 $currentPeriodStart,
                 $currentPeriodEnd
-            )); 
+            ));
 
         $this->siteMembershipSubscriptionsServiceMock->renewSiteMembershipSubscription(
             stripeSubscriptionId: '1',

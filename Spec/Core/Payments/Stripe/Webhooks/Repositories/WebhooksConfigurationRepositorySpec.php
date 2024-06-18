@@ -145,7 +145,7 @@ class WebhooksConfigurationRepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($selectQueryMock);
 
-        $selectQueryMock->where('tenant_id', Operator::EQ, 1)    
+        $selectQueryMock->where('tenant_id', Operator::EQ, 1)
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
