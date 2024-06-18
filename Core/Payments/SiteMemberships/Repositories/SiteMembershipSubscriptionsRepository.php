@@ -111,6 +111,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
                 'id',
                 'membership_tier_guid',
                 'stripe_subscription_id',
+                'manual',
                 'auto_renew',
                 'valid_from',
                 'valid_to',
