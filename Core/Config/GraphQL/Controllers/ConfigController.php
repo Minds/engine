@@ -26,6 +26,7 @@ class ConfigController
             'posthog.project_id',
             'posthog.api_key',
             'posthog.host',
+            'tenant_id',
         ];
 
         if (!in_array($key, $allowedKeys, true)) {
