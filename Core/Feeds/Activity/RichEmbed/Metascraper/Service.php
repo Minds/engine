@@ -83,7 +83,7 @@ class Service
                 return $metadata->export();
             }
         } catch (\Exception $e) {
-            $this->logger->error($e);
+            $this->logger->info($e);
         }
 
         throw new ServerErrorException(
