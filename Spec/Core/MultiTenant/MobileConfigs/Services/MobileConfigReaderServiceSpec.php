@@ -63,7 +63,7 @@ class MobileConfigReaderServiceSpec extends ObjectBehavior
             updateTimestamp: time(),
         );
         $md5 = md5(strval($tenantMock->id));
-        $siteUrl = 'test';
+        $siteUrl = 'https://example.minds.com/';
 
         $this->multiTenantBootServiceMock->bootFromTenantId(1)
             ->shouldBeCalledOnce();
@@ -90,7 +90,7 @@ class MobileConfigReaderServiceSpec extends ObjectBehavior
 
         $response->appName->shouldBe('test');
         $response->tenantId->shouldBe(1);
-        $response->appHost->shouldBe($siteUrl);
+        $response->appHost->shouldBe('example.minds.com');
         $response->appSplashResize->shouldBe(strtolower($mobileConfigMock->splashScreenType->name));
         $response->accentColorLight->shouldBe('test');
         $response->accentColorDark->shouldBe('test');
