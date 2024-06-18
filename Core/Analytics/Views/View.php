@@ -43,6 +43,8 @@ use Minds\Traits\MagicAttributes;
  * @method string|null getServedByGuid()
  * @method View setTimestamp(int $timestamp)
  * @method int getTimestamp()
+ * @method View setExternal(bool $external)
+ * @method bool isExternal()
  */
 class View
 {
@@ -92,6 +94,8 @@ class View
 
     private ?string $salt = null;
     private ?string $servedByGuid = null;
+
+    protected bool $external = false;
 
     /**
      * @param array $clientMeta

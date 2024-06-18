@@ -23,6 +23,9 @@ class ConfigController
             'site_url',
             'theme_override.color_scheme',
             'theme_override.primary_color',
+            'posthog.project_id',
+            'posthog.api_key',
+            'posthog.host',
         ];
 
         if (!in_array($key, $allowedKeys, true)) {

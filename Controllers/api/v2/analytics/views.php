@@ -4,6 +4,7 @@
 namespace Minds\Controllers\api\v2\analytics;
 
 use Minds\Api\Factory;
+use Minds\Common\IpAddress;
 use Minds\Common\Urn;
 use Minds\Core;
 use Minds\Core\Di\Di;
@@ -27,9 +28,8 @@ class views implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         switch ($pages[0]) {
             case 'boost':
-                if (!Session::getLoggedinUser()) {
-                    throw new ForbiddenException();
-                }
+                $isLoggedIn = Session::getLoggedinUser();
+                $identifier = $isLoggedIn ? Session::getLoggedInUserGuid() : (new IpAddress)->get();
 
                 $keyValueLimiter = Di::_()->get('Security\RateLimits\KeyValueLimiter');
                 $config = Di::_()->get('Config');
@@ -37,7 +37,7 @@ class views implements Interfaces\Api, Interfaces\ApiIgnorePam
 
                 $keyValueLimiter
                     ->setKey('boost-view')
-                    ->setValue(md5(Session::getLoggedInUserGuid() . ":" . $pages[1]))
+                    ->setValue(md5($identifier . ":" . $pages[1]))
                     ->setSeconds($config->get('boost_view_rate_limit') ?? 5)
                     ->setMax(1)
                     ->checkAndIncrement();
@@ -60,8 +60,10 @@ class views implements Interfaces\Api, Interfaces\ApiIgnorePam
                     ]);
                 }
 
-                Counters::increment($boost->getEntity()->guid, "impression");
-                Counters::increment($boost->getEntity()->owner_guid, "impression");
+                if ($isLoggedIn) {
+                    Counters::increment($boost->getEntity()->guid, "impression");
+                    Counters::increment($boost->getEntity()->owner_guid, "impression");
+                }
 
                 try {
                     if (!$boost->getEntity()) {
@@ -74,7 +76,8 @@ class views implements Interfaces\Api, Interfaces\ApiIgnorePam
                         view: (new Core\Analytics\Views\View())
                             ->setEntityUrn($boost->getEntity()->getUrn())
                             ->setOwnerGuid((string) $boost->getEntity()->getOwnerGuid())
-                            ->setClientMeta($_POST['client_meta'] ?? []),
+                            ->setClientMeta($_POST['client_meta'] ?? [])
+                            ->setExternal($isLoggedIn === false || ($_GET['external'] ?? false)),
                         entity: $boost->getEntity()
                     );
                 } catch (\Exception $e) {

@@ -51,6 +51,7 @@ class ViewsDelegate
         $viewEvent->cmDelta = $view->getDelta();
         $viewEvent->cmPosition = $view->getPosition();
         $viewEvent->cmServedByGuid = $view->getServedByGuid();
+        $viewEvent->external = $view->isExternal();
 
         $viewEvent->viewUUID = $view->getUuid();
 
