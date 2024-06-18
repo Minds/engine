@@ -112,6 +112,10 @@ class SiteMembershipsRenewalsService
 
         foreach ($siteMembershipSubscriptions as $siteMembershipSubscription) {
             try {
+                if (!str_starts_with($siteMembershipSubscription->stripeSubscriptionId, "sub_")) {
+                    continue; // skip over non-subscriptions, such as payments.
+                }
+
                 $stripeSubscription = $this->stripeSubscriptionsService->retrieveSubscription(
                     subscriptionId: $siteMembershipSubscription->stripeSubscriptionId
                 );
@@ -121,6 +125,8 @@ class SiteMembershipsRenewalsService
                     startTimestamp: $stripeSubscription->current_period_start,
                     endTimestamp: $stripeSubscription->current_period_end
                 );
+
+                $this->logger->info('Renewed site membership subscription for: ' . $siteMembershipSubscription->stripeSubscriptionId);
             } catch (\Exception $e) {
                 $this->logger->error($e);
             }

@@ -16,6 +16,7 @@ use Minds\Core\Payments\Stripe\Webhooks\Model\SubscriptionsWebhookDetails;
 use Minds\Core\Payments\Stripe\Webhooks\Services\SubscriptionsWebhookService;
 use Minds\Exceptions\ServerErrorException;
 use NotImplementedException;
+use Prophecy\Argument;
 use Stripe\Event as StripeEvent;
 use Stripe\Invoice;
 use Stripe\Subscription;
@@ -195,7 +196,7 @@ class SiteMembershipsRenewalsServiceSpec extends ObjectBehavior
         $siteMembershipMock = new SiteMembershipSubscription(
             membershipSubscriptionId: 1,
             membershipGuid: 1,
-            stripeSubscriptionId: 'stripeSubscriptionId',
+            stripeSubscriptionId: 'sub_stripeSubscriptionId',
             autoRenew: false,
             isManual: false
         );
@@ -220,6 +221,36 @@ class SiteMembershipsRenewalsServiceSpec extends ObjectBehavior
         )
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->syncSiteMemberships($tenantId);
+    }
+
+    public function it_should_sync_site_memberships_but_not_process_non_sub_payments(): void
+    {
+        $tenantId = 123;
+        $siteMembershipMock = new SiteMembershipSubscription(
+            membershipSubscriptionId: 1,
+            membershipGuid: 1,
+            stripeSubscriptionId: 'pi_stripeSubscriptionId',
+            autoRenew: false,
+            isManual: false
+        );
+
+        $this->siteMembershipSubscriptionsServiceMock->getAllSiteMemberships($tenantId)
+            ->shouldBeCalled()
+            ->willReturn([$siteMembershipMock]);
+
+        $this->stripeSubscriptionsServiceMock->retrieveSubscription(
+            subscriptionId: Argument::any()
+        )
+            ->shouldNotBeCalled();
+
+        $this->siteMembershipSubscriptionsServiceMock->renewSiteMembershipSubscription(
+            stripeSubscriptionId: Argument::any(),
+            startTimestamp: Argument::any(),
+            endTimestamp: Argument::any()
+        )
+            ->shouldNotBeCalled();
 
         $this->syncSiteMemberships($tenantId);
     }
