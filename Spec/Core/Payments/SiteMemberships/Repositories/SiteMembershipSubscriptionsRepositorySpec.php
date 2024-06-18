@@ -151,6 +151,7 @@ class SiteMembershipSubscriptionsRepositorySpec extends ObjectBehavior
             'id',
             'membership_tier_guid',
             'stripe_subscription_id',
+            'manual',
             'auto_renew',
             'valid_from',
             'valid_to',
