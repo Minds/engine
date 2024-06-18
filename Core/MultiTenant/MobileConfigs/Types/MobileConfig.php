@@ -27,6 +27,8 @@ class MobileConfig
         public ?string                                  $appScheme = null,
         public ?string                                  $appIosBundle = null,
         public ?string                                  $appAndroidPackage = null,
+        public ?string                                  $androidKeystoreFingerprint = null,
+        public ?string                                  $appleDevelopmentTeamId = null,
     ) {
     }
 
