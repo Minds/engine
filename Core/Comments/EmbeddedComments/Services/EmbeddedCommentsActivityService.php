@@ -161,7 +161,8 @@ class EmbeddedCommentsActivityService
                 ->setLinkTitle($richEmbed['meta']['title'])
                 ->setBlurb($richEmbed['meta']['description'])
                 ->setURL($canonicalUrl)
-                ->setThumbnail($richEmbed['links']['thumbnail'][0]['href']);
+                ->setThumbnail($richEmbed['links']['thumbnail'][0]['href'])
+                ->setTimeCreated(strtotime($richEmbed['date'] ?? time()));
         } catch (ServerErrorException $e) {
             // Client exception signals issue at remote end, not ours
             $this->logger->info($e->getMessage());

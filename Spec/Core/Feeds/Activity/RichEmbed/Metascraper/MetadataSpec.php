@@ -63,7 +63,8 @@ class MetadataSpec extends ObjectBehavior
             'author' => 'author',
             'image' => 'image',
             'logo' => 'logo',
-            'iframe' => 'iframe'
+            'iframe' => 'iframe',
+            'date' => date('c', strtotime('midnight')),
         ];
 
         $this->fromMetascraperData($data, 'url');
@@ -88,6 +89,7 @@ class MetadataSpec extends ObjectBehavior
                     ]
                 ]
             ],
+            'date' => date('c', strtotime('midnight')),
             'html' => 'iframe'
         ]);
     }
