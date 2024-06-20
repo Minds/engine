@@ -236,10 +236,7 @@ class Manager
                 $entities[] = $entity;
             }
 
-            // TODO: confirm if the following is actually necessary
-            // especially after the first 12
-
-            /*usort($entities, function ($a, $b) use ($scores) {
+            usort($entities, function ($a, $b) use ($scores) {
                $aGuid = $a instanceof FeedSyncEntity ? $a->getGuid() : $a->guid;
                $bGuid = $b instanceof FeedSyncEntity ? $b->getGuid() : $b->guid;
 
@@ -251,7 +248,7 @@ class Manager
                }
 
                return $aScore < $bScore ? 1 : -1;
-           });*/
+           });
         }
 
         $response = new Response($entities);
