@@ -75,7 +75,7 @@ class Metadata implements ExportableInterface, JsonSerializable
             ->setImage($data['image'] ?? '')
             ->setLogo($data['logo'] ?? '')
             ->setIframe($data['iframe'] ?? '')
-            ->setDate($data['date'] ?? date('c'));
+            ->setDate($data['datePublished'] ?? $data['date'] ?? date('c'));
         return $this;
     }
 
