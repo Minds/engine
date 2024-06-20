@@ -62,9 +62,9 @@ class ManagerSpec extends ObjectBehavior
             ->getList([
                 'cache_key' => 'phpspec',
             ]);
-        $response[0]->getUrn()
-            ->shouldBe('urn:image:500');
         $response[1]->getUrn()
+            ->shouldBe('urn:image:500');
+        $response[0]->getUrn()
             ->shouldBe('urn:activity:5001');
     }
 
@@ -85,9 +85,9 @@ class ManagerSpec extends ObjectBehavior
                 'query' => 'Activity with #hashtags',
             ]);
         
-        $response[0]->getUrn()
-            ->shouldBe('urn:image:500');
         $response[1]->getUrn()
+            ->shouldBe('urn:image:500');
+        $response[0]->getUrn()
             ->shouldBe('urn:activity:5001');
     }
 
@@ -110,9 +110,9 @@ class ManagerSpec extends ObjectBehavior
                 'unseen' => true,
             ]);
 
-        $response[0]->getUrn()
-            ->shouldBe('urn:image:500');
         $response[1]->getUrn()
+            ->shouldBe('urn:image:500');
+        $response[0]->getUrn()
             ->shouldBe('urn:activity:5001');
     }
 
@@ -136,9 +136,9 @@ class ManagerSpec extends ObjectBehavior
                 'exclude' => ['fakeExcludedGuid']
             ]);
 
-        $response[0]->getUrn()
-            ->shouldBe('urn:image:500');
         $response[1]->getUrn()
+            ->shouldBe('urn:image:500');
+        $response[0]->getUrn()
             ->shouldBe('urn:activity:5001');
     }
 
@@ -162,9 +162,9 @@ class ManagerSpec extends ObjectBehavior
                 'unseen' => false,
             ]);
 
-        $response[0]->getUrn()
-            ->shouldBe('urn:image:500');
         $response[1]->getUrn()
+            ->shouldBe('urn:image:500');
+        $response[0]->getUrn()
             ->shouldBe('urn:activity:5001');
     }
 
