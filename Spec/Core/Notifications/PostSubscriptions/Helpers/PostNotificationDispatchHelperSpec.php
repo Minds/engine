@@ -57,6 +57,9 @@ class PostNotificationDispatchHelperSpec extends ObjectBehavior
             frequency: $frequency
         );
 
+        $forActivity->getTimeCreated()
+          ->willReturn(time());
+
         $forActivity->getContainerGuid()
           ->shouldBeCalled()
           ->willReturn(null);
@@ -78,6 +81,9 @@ class PostNotificationDispatchHelperSpec extends ObjectBehavior
             entityGuid: $entityGuid,
             frequency: $frequency
         );
+      
+        $forActivity->getTimeCreated()
+          ->willReturn(time());
 
         $forActivity->getContainerGuid()
           ->shouldBeCalled()
@@ -106,6 +112,9 @@ class PostNotificationDispatchHelperSpec extends ObjectBehavior
             entityGuid: $entityGuid,
             frequency: $frequency
         );
+        
+        $forActivity->getTimeCreated()
+          ->willReturn(time());
 
         $forActivity->getContainerGuid()
           ->shouldBeCalled()
@@ -146,6 +155,9 @@ class PostNotificationDispatchHelperSpec extends ObjectBehavior
             entityGuid: $entityGuid,
             frequency: $frequency
         );
+        
+        $forActivity->getTimeCreated()
+          ->willReturn(time());
 
         $forActivity->getContainerGuid()
           ->shouldBeCalled()
@@ -166,6 +178,24 @@ class PostNotificationDispatchHelperSpec extends ObjectBehavior
         $this->groupsMembershipManager->getMembership($container, $recipient)
           ->shouldBeCalled()
           ->willReturn($membership);
+
+        $this->canDispatch($postSubscription, $forActivity)->shouldBe(false);
+    }
+
+    public function it_should_not_allow_a_post_that_is_older_than_24_hours_old(Entity $forActivity)
+    {
+        $userGuid = Guid::build();
+        $entityGuid = Guid::build();
+        $frequency = PostSubscriptionFrequencyEnum::ALWAYS;
+
+        $postSubscription = new PostSubscription(
+            userGuid: $userGuid,
+            entityGuid: $entityGuid,
+            frequency: $frequency
+        );
+
+        $forActivity->getTimeCreated()
+          ->willReturn(strtotime('2 days ago'));
 
         $this->canDispatch($postSubscription, $forActivity)->shouldBe(false);
     }

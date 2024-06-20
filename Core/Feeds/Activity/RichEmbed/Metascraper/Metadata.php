@@ -25,6 +25,8 @@ use Minds\Traits\MagicAttributes;
  * @method self setLogo(string $logo)
  * @method string|null getIframe()
  * @method self setIframe(string $iframe)
+ * @method string|null getDate()
+ * @method self setDate(string $date)
  */
 class Metadata implements ExportableInterface, JsonSerializable
 {
@@ -54,6 +56,9 @@ class Metadata implements ExportableInterface, JsonSerializable
     /** @var string|null iframe html from metadata. */
     protected ?string $iframe;
 
+    /** An ISO timestamp */
+    protected ?string $date;
+
     /**
      * Build class from data provided by Metascraper Server.
      * @param array $data - data from Metascraper Server.
@@ -69,7 +74,8 @@ class Metadata implements ExportableInterface, JsonSerializable
             ->setAuthor($data['author'] ?? '')
             ->setImage($data['image'] ?? '')
             ->setLogo($data['logo'] ?? '')
-            ->setIframe($data['iframe'] ?? '');
+            ->setIframe($data['iframe'] ?? '')
+            ->setDate($data['date'] ?? date('c'));
         return $this;
     }
 
@@ -109,6 +115,7 @@ class Metadata implements ExportableInterface, JsonSerializable
                     ]
                 ]
             ],
+            'date' => $this->date,
             'html' => $this->iframe
         ];
     }
