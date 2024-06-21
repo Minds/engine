@@ -237,6 +237,12 @@ class Manager
             }
 
             usort($entities, function ($a, $b) use ($scores) {
+                if (($a instanceof FeedSyncEntity && $a->getEntity()->pinned) ||
+                    ($b instanceof FeedSyncEntity && $b->getEntity()->pinned)
+                ) {
+                    return 0;
+                }
+
                 $aGuid = $a instanceof FeedSyncEntity ? $a->getGuid() : $a->guid;
                 $bGuid = $b instanceof FeedSyncEntity ? $b->getGuid() : $b->guid;
 
