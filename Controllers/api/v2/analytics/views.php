@@ -60,10 +60,8 @@ class views implements Interfaces\Api, Interfaces\ApiIgnorePam
                     ]);
                 }
 
-                if ($isLoggedIn) {
-                    Counters::increment($boost->getEntity()->guid, "impression");
-                    Counters::increment($boost->getEntity()->owner_guid, "impression");
-                }
+                Counters::increment($boost->getEntity()->guid, "impression");
+                Counters::increment($boost->getEntity()->owner_guid, "impression");
 
                 try {
                     if (!$boost->getEntity()) {
