@@ -38,7 +38,7 @@ class Manager
      * @throws NotFoundException - if a valid entity is not found for given identifier.
      * @return void
      */
-    public function trackClick(string $entityGuid, array $clientMeta, User $user): void
+    public function trackClick(string $entityGuid, array $clientMeta, ?User $user = null): void
     {
         $campaign = $clientMeta['campaign'] ?? null;
 
@@ -47,7 +47,9 @@ class Manager
             $this->getEntityByGuid($entityGuid);
 
         $this->actionEventsDelegate->onClick($entity, $user);
-        $this->postHogDelegate->onClick($entity, $clientMeta, $user);
+        if ($user) {
+            $this->postHogDelegate->onClick($entity, $clientMeta, $user);
+        }
     }
 
     /**
