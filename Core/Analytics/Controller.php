@@ -30,11 +30,6 @@ class Controller
         $entityGuid = $request->getAttribute("parameters")["entityGuid"];
         $clientMeta = $request->getParsedBody()['client_meta'];
 
-        // Logged out users are not currently supported.
-        if (!$loggedInUser) {
-            return new JsonResponse([]);
-        }
-
         $this->clicksManager->trackClick(
             entityGuid: $entityGuid,
             user: $loggedInUser,

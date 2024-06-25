@@ -26,12 +26,17 @@ class ActionEventsDelegate
      * @param User $user - triggering user.
      * @return void
      */
-    public function onClick(EntityInterface $entity, User $user): void
+    public function onClick(EntityInterface $entity, ?User $user = null): void
     {
         $actionEvent = new ActionEvent();
-        $actionEvent->setUser($user)
+        $actionEvent
             ->setAction(ActionEvent::ACTION_CLICK)
             ->setEntity($entity);
+
+        if ($user) {
+            $actionEvent->setUser($user);
+        }
+
         $this->actionEventsTopic->send($actionEvent);
     }
 }
