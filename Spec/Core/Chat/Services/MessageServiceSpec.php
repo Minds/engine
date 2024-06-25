@@ -26,6 +26,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\Topics\ChatNotificationsTopic;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
+use Minds\Core\Security\ACL;
 use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -44,6 +45,7 @@ class MessageServiceSpec extends ObjectBehavior
     private Collaborator $chatNotificationsTopicMock;
     private Collaborator $chatRichEmbedServiceMock;
     private Collaborator $analyticsDelegateMock;
+    private Collaborator $aclMock;
     private Collaborator $loggerMock;
 
     private ReflectionClass $chatMessageFactoryMock;
@@ -60,9 +62,10 @@ class MessageServiceSpec extends ObjectBehavior
         ChatNotificationsTopic $chatNotificationsTopic,
         RichEmbedService $chatRichEmbedService,
         AnalyticsDelegate $analyticsDelegate,
+        ACL $acl,
         Logger $logger
     ) {
-        $this->beConstructedWith($messageRepositoryMock, $roomRepositoryMock, $receiptServiceMock, $entitiesBuilderMock, $socketEvents, $chatNotificationsTopic, $chatRichEmbedService, $analyticsDelegate, $logger);
+        $this->beConstructedWith($messageRepositoryMock, $roomRepositoryMock, $receiptServiceMock, $entitiesBuilderMock, $socketEvents, $chatNotificationsTopic, $chatRichEmbedService, $analyticsDelegate, $acl, $logger);
         $this->messageRepositoryMock = $messageRepositoryMock;
         $this->roomRepositoryMock  = $roomRepositoryMock;
         $this->receiptServiceMock = $receiptServiceMock;
@@ -71,6 +74,7 @@ class MessageServiceSpec extends ObjectBehavior
         $this->chatNotificationsTopicMock = $chatNotificationsTopic;
         $this->chatRichEmbedServiceMock = $chatRichEmbedService;
         $this->analyticsDelegateMock = $analyticsDelegate;
+        $this->aclMock = $acl;
         $this->loggerMock = $logger;
 
         $this->chatMessageFactoryMock = new ReflectionClass(ChatMessage::class);
@@ -88,16 +92,17 @@ class MessageServiceSpec extends ObjectBehavior
         User $userMock
     ): void {
         $plainText = 'just for testing';
+        $chatRoom = $this->generateChatRoomMock();
+        $listItemMock = $this->generateChatRoomListItemMock(
+            $chatRoom
+        );
+
+        $this->aclMock->write($chatRoom, $userMock)
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $userMock->getGuid()
             ->willReturn('123');
-
-        $this->roomRepositoryMock->isUserMemberOfRoom(
-            123,
-            $userMock
-        )
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $this->chatRichEmbedServiceMock->parseFromText($plainText)
             ->shouldBeCalled()
@@ -135,8 +140,6 @@ class MessageServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $chatRoom = $this->generateChatRoomMock();
-
         $this->roomRepositoryMock->getRoomsByMember(
             $userMock,
             [
@@ -148,11 +151,7 @@ class MessageServiceSpec extends ObjectBehavior
             null,
             123
         )->shouldBeCalled()->willReturn([
-            'chatRooms' => [
-                $this->generateChatRoomListItemMock(
-                    $chatRoom
-                )
-            ]
+            'chatRooms' => [ $listItemMock ]
         ]);
 
         $this->analyticsDelegateMock->onMessageSend(
@@ -173,17 +172,32 @@ class MessageServiceSpec extends ObjectBehavior
     ): void {
         $plainText = 'just for testing www.minds.com';
         $chatRichEmbed = $this->generateChatRichEmbedMock();
+        $chatRoom = $this->generateChatRoomMock(guid: 123);
+        $listItemMock = $this->generateChatRoomListItemMock(
+            $chatRoom
+        );
 
         $userMock->getGuid()
             ->willReturn('123');
 
-        $this->roomRepositoryMock->isUserMemberOfRoom(
-            123,
-            $userMock
-        )
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            1,
+            null,
+            null,
+            123
+        )->shouldBeCalled()->willReturn([
+            'chatRooms' => [ $listItemMock ]
+        ]);
+
+        $this->aclMock->write(Argument::any(), $userMock)
             ->shouldBeCalled()
             ->willReturn(true);
-
+    
         $this->chatRichEmbedServiceMock->parseFromText($plainText)
             ->shouldBeCalled()
             ->willReturn($chatRichEmbed);
@@ -284,16 +298,28 @@ class MessageServiceSpec extends ObjectBehavior
     public function it_should_throw_exception_when_trying_to_store_chat_message_as_NOT_ROOM_MEMBER(
         User $userMock
     ): void {
-        $userMock->getGuid()
-            ->willReturn('123');
+        $chatRoom = $this->generateChatRoomMock(guid: 123);
+        $listItemMock = $this->generateChatRoomListItemMock(
+            $chatRoom
+        );
 
-        $this->roomRepositoryMock->isUserMemberOfRoom(123, $userMock)
-            ->shouldBeCalled()
-            ->willReturn(false);
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            1,
+            null,
+            null,
+            123
+        )->shouldBeCalled()->willReturn([
+            'chatRooms' => [ $listItemMock ]
+        ]);
 
         $this
             ->shouldThrow(
-                new GraphQLException(message: "You are not a member of this room", code: 403)
+                new GraphQLException(message: "You cannot add a message to this room", code: 403)
             )
             ->during(
                 'addMessage',
@@ -309,10 +335,29 @@ class MessageServiceSpec extends ObjectBehavior
         User $userMock
     ) {
         $roomGuid = (int) Guid::build();
+        $chatRoom = $this->generateChatRoomMock(guid: $roomGuid);
+        $listItemMock = $this->generateChatRoomListItemMock(
+            $chatRoom
+        );
+
         $userMock->getGuid()
             ->willReturn('123');
 
-        $this->roomRepositoryMock->isUserMemberOfRoom($roomGuid, $userMock)
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            1,
+            null,
+            null,
+            $roomGuid
+        )->shouldBeCalled()->willReturn([
+            'chatRooms' => [ $listItemMock ]
+        ]);
+
+        $this->aclMock->write(Argument::any(), $userMock)
             ->shouldBeCalled()
             ->willReturn(true);
         
@@ -381,6 +426,9 @@ class MessageServiceSpec extends ObjectBehavior
     public function it_should_get_chat_messages(
         User $userMock
     ): void {
+        $chatRoom = $this->generateChatRoomMock();
+        $chatRoomListItemMock = $this->generateChatRoomListItemMock($chatRoom);
+
         $this->roomRepositoryMock->isUserMemberOfRoom(
             123,
             $userMock,
@@ -413,6 +461,24 @@ class MessageServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($userMock);
 
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            1,
+            null,
+            null,
+            123
+        )
+            ->shouldBeCalled()
+            ->willReturn(['chatRooms' => [$chatRoomListItemMock]]);
+
+        $this->aclMock->write($chatRoomListItemMock->chatRoom, $userMock)
+            ->shouldBeCalled()
+            ->willReturn(true);
+    
         $response = $this->getMessages(
             123,
             $userMock
@@ -424,6 +490,74 @@ class MessageServiceSpec extends ObjectBehavior
         $response['edges'][0]->getNode()->chatMessage->guid->shouldEqual(1);
         $response['edges'][0]->getNode()->chatMessage->senderGuid->shouldEqual(123);
         $response['edges'][0]->getCursor()->shouldEqual(base64_encode('1'));
+    }
+
+    public function it_should_NOT_get_chat_messages_for_a_user_when_acl_check_fails(
+        User $userMock
+    ): void {
+        $chatRoom = $this->generateChatRoomMock();
+        $chatRoomListItemMock = $this->generateChatRoomListItemMock($chatRoom);
+
+        $this->roomRepositoryMock->isUserMemberOfRoom(
+            123,
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ]
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->messageRepositoryMock->getMessagesByRoom(
+            123,
+            12,
+            null,
+            null
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'messages' => [
+                    $this->generateChatMessageMock(
+                        messageGuid: 1,
+                        senderGuid: 123
+                    )
+                ],
+                'hasMore' => false
+            ]);
+
+        $this->entitiesBuilderMock->single(123)
+            ->shouldBeCalledOnce()
+            ->willReturn($userMock);
+
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            1,
+            null,
+            null,
+            123
+        )
+            ->shouldBeCalled()
+            ->willReturn(['chatRooms' => [$chatRoomListItemMock]]);
+
+        $this->aclMock->write($chatRoomListItemMock->chatRoom, $userMock)
+            ->shouldBeCalled()
+            ->willReturn(false);
+    
+        $response = $this->getMessages(
+            123,
+            $userMock
+        );
+
+        $response->shouldBeArray();
+        $response->shouldBe([
+            'edges' => [],
+            'hasMore' => false
+        ]);
     }
 
     public function it_should_get_chat_message_as_NON_ADMIN(

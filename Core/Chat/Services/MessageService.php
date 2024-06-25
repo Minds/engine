@@ -5,6 +5,7 @@ namespace Minds\Core\Chat\Services;
 
 use Minds\Core\Chat\Delegates\AnalyticsDelegate;
 use Minds\Core\Chat\Entities\ChatMessage;
+use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Entities\ChatRoomListItem;
 use Minds\Core\Chat\Enums\ChatMessageTypeEnum;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
@@ -23,6 +24,7 @@ use Minds\Core\EventStreams\Topics\ChatNotificationsTopic;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
+use Minds\Core\Security\ACL;
 use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -40,6 +42,7 @@ class MessageService
         private readonly ChatNotificationsTopic $chatNotificationsTopic,
         private readonly RichEmbedService $chatRichEmbedService,
         private readonly AnalyticsDelegate $analyticsDelegate,
+        private readonly ACL $acl,
         private readonly Logger $logger
     ) {
     }
@@ -63,13 +66,10 @@ class MessageService
             throw new GraphQLException(message: "Message cannot be empty", code: 400);
         }
 
-        if (
-            !$this->roomRepository->isUserMemberOfRoom(
-                roomGuid: $roomGuid,
-                user: $user
-            )
-        ) {
-            throw new GraphQLException(message: "You are not a member of this room", code: 403);
+        $chatRoomListItem = $this->getChatRoomListItem($user, $roomGuid);
+
+        if (!$this->acl->write(entity: $chatRoomListItem->chatRoom, user: $user)) {
+            throw new GraphQLException(message: "You cannot add a message to this room", code: 403);
         }
 
         $messageType = ChatMessageTypeEnum::TEXT;
@@ -135,7 +135,7 @@ class MessageService
         $this->handleSendMessageAnalyticsEvent(
             user: $user,
             chatMessage: $chatMessage,
-            roomGuid: $roomGuid
+            chatRoom: $chatRoomListItem->chatRoom
         );
 
         return new ChatMessageEdge(
@@ -208,6 +208,9 @@ class MessageService
                 cursor: base64_encode((string) $message->guid)
             );
         }
+
+        $chatRoomListItem = $this->getChatRoomListItem($user, $roomGuid);
+        $edges = $this->removeDisallowedSendersFromEdges($edges, $chatRoomListItem->chatRoom);
 
         return [
             'edges' => $edges,
@@ -329,21 +332,19 @@ class MessageService
      * Handle analytics event firing on message send.
      * @param User $user - the message sender.
      * @param ChatMessage $chatMessage - the message.
-     * @param int $roomGuid - the room guid.
+     * @param ChatRoom $chatRoom - the room chat room.
      * @return void
      */
     private function handleSendMessageAnalyticsEvent(
         User $user,
         ChatMessage $chatMessage,
-        int $roomGuid
+        ChatRoom $chatRoom
     ) {
         try {
-            $chatRoom = $this->getChatRoomListItem($user, $roomGuid);
-
             $this->analyticsDelegate->onMessageSend(
                 actor: $user,
                 message: $chatMessage,
-                chatRoom: $chatRoom->chatRoom
+                chatRoom: $chatRoom
             );
         } catch (\Exception $e) {
             $this->logger->error($e);
@@ -372,5 +373,43 @@ class MessageService
         );
 
         return $chatRooms[0] ?? throw new ChatRoomNotFoundException();
+    }
+
+    /**
+     * Remove messages from disallowed senders.
+     * @param array $edges - the edges.
+     * @return array - the filtered edges.
+     */
+    private function removeDisallowedSendersFromEdges(array $edges, ChatRoom $chatRoom): array
+    {
+        $disallowedMessageSenders = [];
+        $allowedMessageSenders = [];
+
+        return array_values(array_filter(
+            $edges,
+            function (ChatMessageEdge $edge) use (&$disallowedMessageSenders, &$allowedMessageSenders, $chatRoom) {
+                $sender = $edge->getNode()->sender->getNode()->getUser();
+        
+                // If we already know the sender is allowed, don't check them again.
+                if (in_array($sender->getGuid(), $allowedMessageSenders, true)) {
+                    return true;
+                }
+
+                // If we already know the sender is disallowed, don't check them again.
+                if (in_array($sender->getGuid(), $disallowedMessageSenders, true)) {
+                    return false;
+                }
+
+                $isAllowed = $this->acl->write(entity: $chatRoom, user: $sender);
+
+                if ($isAllowed) {
+                    $allowedMessageSenders[] = $sender->getGuid();
+                } else {
+                    $disallowedMessageSenders[] = $sender->getGuid();
+                }
+
+                return $isAllowed;
+            }
+        ));
     }
 }
