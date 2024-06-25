@@ -29,7 +29,7 @@ class AdminController
     #[Mutation]
     #[Logged]
     #[Right('PERMISSION_CAN_MODERATE_CONTENT')]
-    public function cancelBoosts(
+    public function adminCancelBoosts(
         string $entityGuid,
         #[InjectUser] User $loggedInUser = null // Do not add in docblock as it will break GraphQL
     ): bool {

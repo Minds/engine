@@ -35,6 +35,6 @@ class AdminControllerSpec extends ObjectBehavior
         )
             ->willReturn(true);
 
-        $this->cancelBoosts($entityGuid);
+        $this->adminCancelBoosts($entityGuid);
     }
 }
