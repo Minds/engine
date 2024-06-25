@@ -41,12 +41,14 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
 
         $producer = $this->client()->createProducer("persistent://$tenant/$namespace/$topic", $config);
 
+        $user = $event->getUser();
+
         // Build the message
 
         $data = [
             'action' => $event->getAction(),
             'action_data' => $event->getActionData(),
-            'user_guid' => (string) $event->getUser()->getGuid(),
+            'user_guid' => $user ? (string) $event->getUser()->getGuid() : null,
             'entity_urn' => (string) $event->getEntity()->getUrn(),
             'entity_guid' => (string) $event->getEntity()->getGuid(),
             'entity_owner_guid' => (string) $event->getEntity()->getOwnerGuid(),
@@ -124,7 +126,7 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
                 $user = $this->entitiesBuilder->single($data['user_guid']);
 
                 // If no user, something went wrong, but still skip
-                if (!$user || !$user instanceof User) {
+                if ((!$user || !$user instanceof User) && $subscriptionId !== 'boost-clicks') {
                     $this->logger->warning('User ' . $data['user_guid'] . ' not found', $data);
                     $consumer->acknowledge($message);
                     continue;

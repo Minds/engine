@@ -53,7 +53,7 @@ class Repository extends AbstractRepository
         $query = $this->mysqlClientWriterHandler->insert()
             ->into(self::TABLE_NAME)
             ->set([
-                'tenant_id' => new RawExp('tenant_id'),
+                'tenant_id' => new RawExp(':tenant_id'),
                 'guid' => new RawExp(':guid'),
                 'date' => new RawExp(':date'),
                 'views' => 0,
