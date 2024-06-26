@@ -373,6 +373,10 @@ class PaymentProcessor
             return true;
         }
         
+        if ($boost->getPaymentTxId() === FreePaymentMethodEnum::FREE_ADMIN_BOOST->value) {
+            return true;
+        }
+
         return $this->getIntentsManager()->cancelPaymentIntent($boost->getPaymentTxId(), $boostOwner);
     }
 
