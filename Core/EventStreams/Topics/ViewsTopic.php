@@ -53,11 +53,12 @@ class ViewsTopic extends AbstractTopic implements TopicInterface
      */
     private function createMessage(ViewEvent $event): Message
     {
+        $userGuid = $event->getUser() ? (string) $event->getUser()->getGuid() : null;
         return (new MessageBuilder())
             ->setEventTimestamp($event->getTimestamp() ?: time())
             ->setContent(
                 json_encode([
-                    'user_guid' => (string) $event->getUser()->getGuid(),
+                    'user_guid' => $userGuid,
                     'entity_urn' => (string) $event->getEntity()->getUrn(),
                     'entity_guid' => (string) $event->getEntity()->getUrn(),
                     'entity_owner_guid' => (string) $event->getEntity()->getOwnerGuid(),
