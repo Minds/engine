@@ -288,7 +288,7 @@ class PaymentProcessor
             $boostOwner = null;
         }
 
-        if ($boost->getPaymentTxId() === GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
+        if (in_array($boost->getPaymentTxId(), [GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID, FreePaymentMethodEnum::FREE_ADMIN_BOOST->value], true)) {
             return true;
         }
         
