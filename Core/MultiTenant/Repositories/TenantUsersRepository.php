@@ -7,6 +7,7 @@ use Exception;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\MultiTenant\Enums\TenantUserRoleEnum;
 use Minds\Core\MultiTenant\Types\TenantUser;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use PDO;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
@@ -27,7 +28,8 @@ class TenantUsersRepository extends AbstractRepository
         $query = $this->mysqlClientReaderHandler->select()
             ->columns(['guid'])
             ->from('minds_entities_user')
-            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('source', Operator::EQ, FederatedEntitySourcesEnum::LOCAL->value);
 
         if ($email) {
             $query->where('email', Operator::EQ, new RawExp(':email'));
