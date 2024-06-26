@@ -1991,6 +1991,96 @@ class ManagerSpec extends ObjectBehavior
         )->shouldBe(true);
     }
 
+    // cancelByEntityGuid
+
+    public function it_should_cancel_by_entity_guid(): void
+    {
+        $entityGuid = '123';
+        $statuses = [ BoostStatus::APPROVED, BoostStatus::PENDING ];
+        $boost1 = $this->generateBoost('123');
+        $boost2 = $this->generateBoost('234');
+
+        $this->repository->getBoosts(
+            Argument::any(),
+            Argument::any(),
+            BoostStatus::APPROVED,
+            Argument::any(),
+            Argument::any(),
+            Argument::any(),
+            Argument::any(),
+            Argument::any(),
+            $entityGuid,
+            Argument::any(),
+            Argument::any(),
+            Argument::any()
+        )
+            ->shouldBeCalled()
+            ->willReturn([$boost1, $boost2]);
+
+        $this->repository->cancelByEntityGuid(
+            entityGuid: $entityGuid,
+            statuses: $statuses
+        )
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->actionEventDelegate->onCancel($boost1)
+            ->shouldBeCalled();
+
+        $this->actionEventDelegate->onCancel($boost2)
+            ->shouldBeCalled();
+
+        $this->cancelByEntityGuid(
+            entityGuid: $entityGuid,
+            statuses: $statuses
+        )->shouldBe(true);
+    }
+
+    public function it_should_not_send_emails_on_failure_when_cancelling_by_entity_guid(): void
+    {
+        $entityGuid = '123';
+        $statuses = [ BoostStatus::APPROVED, BoostStatus::PENDING ];
+        $boost1 = $this->generateBoost('123');
+        $boost2 = $this->generateBoost('234');
+
+        $this->repository->getBoosts(
+            Argument::any(),
+            Argument::any(),
+            BoostStatus::APPROVED,
+            Argument::any(),
+            Argument::any(),
+            Argument::any(),
+            Argument::any(),
+            Argument::any(),
+            $entityGuid,
+            Argument::any(),
+            Argument::any(),
+            Argument::any()
+        )
+            ->shouldBeCalled()
+            ->willReturn([$boost1, $boost2]);
+
+        $this->repository->cancelByEntityGuid(
+            entityGuid: $entityGuid,
+            statuses: $statuses
+        )
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->actionEventDelegate->onCancel($boost1)
+            ->shouldNotBeCalled();
+
+        $this->actionEventDelegate->onCancel($boost2)
+            ->shouldNotBeCalled();
+
+        $this->cancelByEntityGuid(
+            entityGuid: $entityGuid,
+            statuses: $statuses
+        )->shouldBe(true);
+    }
+
+    // shouldShowBoosts
+
     public function it_should_determine_if_a_user_should_be_shown_boosts(
         User $targetUser
     ): void {
@@ -2103,5 +2193,29 @@ class ManagerSpec extends ObjectBehavior
 
         $this->callOnWrappedObject('shouldShowBoosts', [$targetUser])
             ->shouldBe(false);
+    }
+
+
+    private function generateBoost(string $guid = '123')
+    {
+        $boost = (new Boost(
+            $guid,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))
+            ->setOwnerGuid('123')
+            ->setGuid('234');
+
+        return $boost;
     }
 }
