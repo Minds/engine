@@ -76,7 +76,7 @@ class Digest extends EmailCampaign
             $siteName = 'Minds';
         }
     
-        $subject = "Whats happening on $siteName";
+        $subject = "What's happening on $siteName";
 
         $this->template->setTemplate('default.v2.tpl');
         $this->template->setBody('./template.tpl');
