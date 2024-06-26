@@ -49,7 +49,7 @@ class BoostEmailEventStreamSubscriptionSpec extends ObjectBehavior
 
     public function it_should_get_static_topic_regex()
     {
-        $this->getTopicRegex()->shouldBe('(boost_created|boost_rejected|boost_accepted|boost_completed)');
+        $this->getTopicRegex()->shouldBe('(boost_created|boost_rejected|boost_accepted|boost_completed|boost_cancelled)');
     }
 
     public function it_should_not_consume_a_non_action_event(EventInterface $event)
@@ -158,6 +158,38 @@ class BoostEmailEventStreamSubscriptionSpec extends ObjectBehavior
         Boost $boost
     ): void {
         $action = ActionEvent::ACTION_BOOST_COMPLETED;
+
+        $boost->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $event->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($boost);
+
+        $event->getAction()
+            ->shouldBeCalled()
+            ->willReturn($action);
+
+        $this->boostEmailer->setBoost($boost)
+            ->shouldBeCalled()
+            ->willReturn($this->boostEmailer);
+
+        $this->boostEmailer->setTopic($action)
+            ->shouldBeCalled()
+            ->willReturn($this->boostEmailer);
+            
+        $this->boostEmailer->send()
+            ->shouldBeCalled();
+
+        $this->consume($event)->shouldBe(true);
+    }
+
+    public function it_should_consume_and_handle_a_boost_cancelled_event(
+        ActionEvent $event,
+        Boost $boost
+    ): void {
+        $action = ActionEvent::ACTION_BOOST_CANCELLED;
 
         $boost->getGuid()
             ->shouldBeCalled()

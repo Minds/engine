@@ -54,7 +54,7 @@ class BoostEmailEventStreamSubscription implements SubscriptionInterface
      */
     public function getTopicRegex(): string
     {
-        return '(boost_created|boost_rejected|boost_accepted|boost_completed)';
+        return '(boost_created|boost_rejected|boost_accepted|boost_completed|boost_cancelled)';
     }
 
     /**

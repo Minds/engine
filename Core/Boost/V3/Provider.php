@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Boost\V3;
 
 use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
+use Minds\Core\Boost\V3\GraphQL\Controllers\AdminController;
 use Minds\Core\Boost\V3\Utils\BoostConsoleUrlBuilder;
 use Minds\Core\Boost\V3\Utils\BoostReceiptUrlBuilder;
 use Minds\Core\Boost\V3\PreApproval\Manager as PreApprovalManager;
@@ -57,6 +58,9 @@ class Provider extends DiProvider
                 $di->get(Manager::class),
                 $di->get('Logger')
             );
+        }, ['factory' => true]);
+        Di::_()->bind(AdminController::class, function (Di $di): AdminController {
+            return new AdminController($di->get(Manager::class));
         }, ['factory' => true]);
     }
 }

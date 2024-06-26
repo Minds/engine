@@ -62,6 +62,9 @@ class ActionEvent implements EventInterface
     const ACTION_BOOST_COMPLETED = 'boost_completed';
 
     /** @var string */
+    const ACTION_BOOST_CANCELLED = 'boost_cancelled';
+
+    /** @var string */
     const ACTION_BOOST_PEER_REQUEST = 'boost_peer_request';
 
     /** @var string */
@@ -203,6 +206,7 @@ class ActionEvent implements EventInterface
             case self::ACTION_BOOST_CREATED:
             case self::ACTION_BOOST_ACCEPTED:
             case self::ACTION_BOOST_COMPLETED:
+            case self::ACTION_BOOST_CANCELLED:
                 break;
             case self::ACTION_BOOST_PEER_REQUEST:
             case self::ACTION_BOOST_PEER_ACCEPTED:

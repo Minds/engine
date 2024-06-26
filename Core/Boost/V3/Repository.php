@@ -515,6 +515,41 @@ class Repository extends AbstractRepository
     }
 
     /**
+     * Cancel boosts in given statuses, by entity guid.
+     * @param string $entityGuid - entity guid for which to cancel boosts.
+     * @param array $statuses - array of statuses to update status for.
+     * @return bool true on success.
+     */
+    public function cancelByEntityGuid(
+        string $entityGuid,
+        array $statuses = [BoostStatus::APPROVED, BoostStatus::PENDING]
+    ): bool {
+        $query = $this->mysqlClientWriterHandler->update()
+            ->table('boosts')
+            ->set([
+                'status' => new RawExp(':status'),
+                'updated_timestamp' => new RawExp(':updated_timestamp'),
+            ])
+            ->where('entity_guid', Operator::EQ, new RawExp(':entity_guid'))
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
+
+        if (count($statuses)) {
+            $query->where(new RawExp("(status = " . implode(' OR status = ', $statuses) . ")"));
+        }
+
+        $values = [
+            'status' => BoostStatus::CANCELLED,
+            'updated_timestamp' => date('c', time()),
+            'entity_guid' => $entityGuid,
+            'tenant_id' => $this->getTenantId(),
+        ];
+
+        $statement = $query->prepare();
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+        return $statement->execute();
+    }
+
+    /**
      * Get admin stats.
      * @param int $targetStatus - target status to get stats for.
      * @param int|null $targetLocation - target location to get stats for.

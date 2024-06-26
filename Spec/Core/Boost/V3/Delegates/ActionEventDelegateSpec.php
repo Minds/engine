@@ -141,4 +141,30 @@ class ActionEventDelegateSpec extends ObjectBehavior
 
         $this->onComplete($boost);
     }
+
+    public function it_does_dispatch_action_event_on_cancel(
+        User $sender
+    ): void {
+        $boost = new Boost('123', BoostTargetLocation::NEWSFEED, BoostTargetSuitability::SAFE, BoostPaymentMethod::CASH, 1, 1, 1);
+        $boost->setGuid('456');
+        $boost->setOwnerGuid('789');
+
+        $this->entitiesBuilder->single('100000000000000519')
+            ->shouldBeCalled()
+            ->willReturn($sender);
+
+        $this->actionEventsTopic->send(Argument::that(function ($arg) use ($boost, $sender) {
+            return $arg->getEntity() === $boost &&
+                $arg->getUser() === $sender->getWrappedObject() &&
+                $arg->getAction() === 'boost_cancelled';
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->postHogServiceMock->capture('boost_cancelled', $sender, Argument::any(), Argument::any(), Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->onCancel($boost);
+    }
 }
