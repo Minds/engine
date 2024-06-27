@@ -33,7 +33,7 @@ class Manager
             $prices = unserialize($cached);
         } else {
             $prices = $this->uniswapClient->getTokenUsdPrices($tokenAddress);
-            $this->cache->set($cacheKey, serialize($prices), 300); // 5 mins
+            $this->cache->set($cacheKey, serialize($prices), 3600); // 1 hour
         }
 
         return [
