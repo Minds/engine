@@ -7,6 +7,7 @@ use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use PostHog\Client;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\SimpleCache\CacheInterface;
 use WebSocket\Server;
 use Zend\Diactoros\ServerRequestFactory;
 
@@ -17,7 +18,7 @@ class PostHogService
     public function __construct(
         private Client $postHogClient,
         private PostHogConfig $postHogConfig,
-        private SharedCache $cache,
+        private CacheInterface $cache,
         private Config $config,
     ) {
     }
@@ -125,8 +126,8 @@ class PostHogService
         User $user = null,
         bool $useCache = true
     ): array {
-        if ($useCache && $this->cache->withTenantPrefix(false)->has($this->getCacheKey())) {
-            $this->postHogClient->featureFlags = $this->cache->withTenantPrefix(false)->get($this->getCacheKey());
+        if ($useCache && $this->cache->has($this->getCacheKey())) {
+            $this->postHogClient->featureFlags = $this->cache->get($this->getCacheKey());
         } else {
             if (!$this->postHogConfig->getPersonalApiKey()) {
                 // Personal API Key is not setup, we can't load any feature flags
@@ -134,7 +135,7 @@ class PostHogService
             }
 
             $this->postHogClient->loadFlags();
-            $this->cache->withTenantPrefix(false)->set($this->getCacheKey(), $this->postHogClient->featureFlags);
+            $this->cache->set($this->getCacheKey(), $this->postHogClient->featureFlags);
         }
 
         return $this->postHogClient->getAllFlags(
