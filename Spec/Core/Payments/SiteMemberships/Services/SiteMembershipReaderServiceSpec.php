@@ -69,6 +69,9 @@ class SiteMembershipReaderServiceSpec extends ObjectBehavior
                 'currency' => 'usd',
                 'price_in_cents' => 1099,
                 'archived' => false,
+                'is_external' => false,
+                'purchase_url' => null,
+                'manage_url' => null,
             ],
             [
                 'membership_tier_guid' => 2,
@@ -80,6 +83,9 @@ class SiteMembershipReaderServiceSpec extends ObjectBehavior
                 'currency' => 'usd',
                 'price_in_cents' => 1099,
                 'archived' => false,
+                'is_external' => false,
+                'purchase_url' => null,
+                'manage_url' => null,
             ],
             [
                 'membership_tier_guid' => 3,
@@ -91,6 +97,9 @@ class SiteMembershipReaderServiceSpec extends ObjectBehavior
                 'currency' => 'usd',
                 'price_in_cents' => 1099,
                 'archived' => false,
+                'is_external' => true,
+                'purchase_url' => 'http://foo/bar',
+                'manage_url' => 'http://bar/foo'
             ],
         ];
 
@@ -118,8 +127,12 @@ class SiteMembershipReaderServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($groupMock);
 
-        $this->getSiteMemberships()
-            ->shouldContainAnInstanceOf(SiteMembership::class);
+        $memberships = $this->getSiteMemberships();
+        $memberships->shouldContainAnInstanceOf(SiteMembership::class);
+
+        $memberships[2]->isExternal->shouldBe(true);
+        $memberships[2]->purchaseUrl->shouldBe('http://foo/bar');
+        $memberships[2]->manageUrl->shouldBe('http://bar/foo');
     }
 
     /**
@@ -150,6 +163,9 @@ class SiteMembershipReaderServiceSpec extends ObjectBehavior
                 'currency' => 'usd',
                 'price_in_cents' => 1099,
                 'archived' => false,
+                'is_external' => false,
+                'purchase_url' => null,
+                'manage_url' => null,
             ]);
 
         $this->siteMembershipGroupsRepositoryMock->getSiteMembershipGroups(1)
@@ -158,5 +174,38 @@ class SiteMembershipReaderServiceSpec extends ObjectBehavior
 
         $this->getSiteMembership(1)
             ->shouldBeAnInstanceOf(SiteMembership::class);
+    }
+
+    
+    public function it_should_get_an_external_membership(): void
+    {
+        $this->siteMembershipRepositoryMock->getSiteMembership(
+            1
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'membership_tier_guid' => 1,
+                'stripe_product_id' => 'prod_1',
+                'name' => 'Membership 1',
+                'description' => 'Membership 1 description',
+                'billing_period' => SiteMembershipBillingPeriodEnum::MONTHLY->value,
+                'pricing_model' => 'recurring',
+                'currency' => 'usd',
+                'price_in_cents' => 1099,
+                'archived' => false,
+                'is_external' => true,
+                'purchase_url' => 'http://foo/bar',
+                'manage_url' => 'http://bar/foo'
+            ]);
+
+        $this->siteMembershipGroupsRepositoryMock->getSiteMembershipGroups(1)
+            ->shouldBeCalledOnce()
+            ->willReturn([]);
+
+        $membership = $this->getSiteMembership(1);
+        $membership->shouldBeAnInstanceOf(SiteMembership::class);
+        $membership->isExternal->shouldBe(true);
+        $membership->purchaseUrl->shouldBe('http://foo/bar');
+        $membership->manageUrl->shouldBe('http://bar/foo');
     }
 }
