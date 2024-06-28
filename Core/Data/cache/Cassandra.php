@@ -33,7 +33,7 @@ class Cassandra implements CacheInterface
      * @inheritDoc
      * @throws Exception
      */
-    public function get($key, $default = null): ?string
+    public function get($key, $default = null)
     {
         if ($this->inMemoryCache->has(self::IN_MEMORY_PREFIX . $key)) {
             return $this->inMemoryCache->get(self::IN_MEMORY_PREFIX . $key);
@@ -61,9 +61,15 @@ class Cassandra implements CacheInterface
 
         $value = $response->first()['data'];
 
-        $this->inMemoryCache->set(self::IN_MEMORY_PREFIX . $key, $value);
+        if ($value !== false) {
+            $value = json_decode($value, true);
 
-        return $value;
+            $this->inMemoryCache->set(self::IN_MEMORY_PREFIX . $key, $value);
+
+            return $value;
+        }
+
+        return $default;
     }
 
     /**
@@ -74,6 +80,8 @@ class Cassandra implements CacheInterface
     public function set($key, $value, $ttl = null): bool
     {
         $this->inMemoryCache->set(self::IN_MEMORY_PREFIX . $key, $value);
+
+        $value = json_encode($value);
 
         $query = (new PreparedStatement())
             ->query(
