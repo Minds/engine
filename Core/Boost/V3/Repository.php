@@ -618,13 +618,11 @@ class Repository extends AbstractRepository
         $query = $this->mysqlClientReaderHandler->select()
             ->from(self::TABLE_NAME)
             ->where('status', Operator::EQ, new RawExp(':status'))
-            ->where(new RawExp(':expired_timestamp > TIMESTAMPADD(DAY, duration_days, approved_timestamp)'))
-            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
+            ->where(new RawExp(':expired_timestamp > TIMESTAMPADD(DAY, duration_days, approved_timestamp)'));
 
         $values = [
             "status" => BoostStatus::APPROVED,
             "expired_timestamp" => date('c', time()),
-            'tenant_id' => $this->getTenantId(),
         ];
     
         $statement = $query->prepare();
