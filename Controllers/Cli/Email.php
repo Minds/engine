@@ -7,7 +7,6 @@ use Minds\Core;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\Invites\Services\InviteSenderService;
-use Minds\Core\Email\Invites\Services\InvitesService;
 use Minds\Core\Email\V2\Campaigns;
 use Minds\Core\Email\V2\Campaigns\Recurring\Supermind\Supermind as SupermindEmail;
 use Minds\Core\Email\V2\Campaigns\Recurring\SupermindBulkIncentive\SupermindBulkIncentive;
@@ -20,6 +19,7 @@ use Minds\Core\Supermind;
 use Minds\Entities\User;
 use Minds\Interfaces;
 use Minds\Core\Email\V2\Campaigns\Recurring\ForgotPassword\ForgotPasswordEmailer;
+use Minds\Core\Email\V2\Campaigns\Recurring\TenantUserWelcome\TenantUserWelcomeEmailer;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\MultiTenant\Services\MultiTenantDataService;
@@ -446,6 +446,52 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         $message = $campaign->build();
 
         ACL::$ignore = $ignore;
+
+        if ($output) {
+            file_put_contents($output, $message->buildHtml());
+        } else {
+            $this->out($message->buildHtml());
+        }
+    }
+
+    /**
+     * Tests tenant welcome email.
+     * 
+     * Example usage:
+     * ```sh
+     * php cli.php Email testTenantWelcomeEmail --output=/var/www/Minds/engine/welcome.html --userGuid="1540482017907445761" --tenantId=123
+     * ```
+     * @return void
+     */
+    public function testTenantWelcomeEmail()
+    {
+        $userGuid = $this->getOpt('userGuid');
+        $tenantId = $this->getOpt('tenantId');
+        $output = $this->getOpt('output');
+
+        if (!$tenantId) {
+            $this->out('Tenant id required');
+            return;
+        }
+
+        Di::_()->get(MultiTenantBootService::class)->bootFromTenantId($tenantId);
+
+        if (!$userGuid) {
+            $this->out('User guid required');
+            return;
+        }
+
+        $user = Di::_()->get(EntitiesBuilder::class)->single($userGuid);
+
+        if (!$user || !($user instanceof User)) {
+            $this->out('User not found');
+            return;
+        }
+
+        $campaign = (new TenantUserWelcomeEmailer());
+        $campaign->setUser($user);
+
+        $message = $campaign->build();
 
         if ($output) {
             file_put_contents($output, $message->buildHtml());

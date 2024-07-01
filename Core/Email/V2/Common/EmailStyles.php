@@ -69,6 +69,28 @@ class EmailStyles
             'm-unreadNotificationsCount__text' => 'text-decoration: none; font-size: 17px; font-weight: 500',
             'm-unreadNotifications__previews' => 'width: 100%; border-collapse: collapse;',
             'm-unreadNotifications__preview' => 'width: 100%; border: 1px solid #d4d4d4; padding: 20px; font-size: 15px;',
+        
+            // PARTIAL: Tenant Welcome email
+            'm-tenantWelcome__subtitle' => 'color: #000; font-family: Inter, sans-serif; font-size: 28px; font-weight: 800;',
+            'm-tenantWelcome__catchUpTitle' => 'margin: 60px 20px 30px;',
+    
+            // PARTIAL: Tenant Welcome email memberships
+            'm-tenantWelcome__membershipBox' => 'margin: 30px 20px; padding: 40px 20px 30px 20px; border-radius: 30px;',
+            'm-tenantWelcome__membershipBox--dark' => 'background-color: rgba(255,255,255, 0.10); 1px solid rgba(255,255,255, 0.05)',
+            'm-tenantWelcome__membershipBox--light' => 'background-color: rgba(0,0,0, 0.10); 1px solid rgba(0,0,0, 0.05)',
+            'm-tenantWelcome__membershipTitle' => 'margin-bottom: 10px;',
+            'm-tenantWelcome__membershipPrice' => 'margin: 10px 20px; color: #000; font-family: Inter, sans-serif; font-size: 18px; font-weight: 700;',
+            'm-tenantWelcome__membershipDescription' => 'margin: 10px 20px 20px; color: #000; font-family: Inter, sans-serif; font-size: 18px;',
+        
+            // PARTIAL: Tenant Welcome email groups
+            'm-tenantWelcome__groupsSectionTitle' => 'margin: 60px 20px 30px;',
+            'm-tenantWelcome__groupsTable' => 'width: 100%; table-layout: fixed;',
+            'm-tenantWelcome__groupsTableCell' => 'text-align: center; vertical-align: baseline;',
+            'm-tenantWelcome__groupBox' => 'max-width: 200px; padding: 10px; margin: auto;',
+            'm-tenantWelcome__avatar' => 'width: 96px; height: 96px; border-radius: 50%; object-fit: cover; margin: auto;',
+            'm-tenantWelcome__groupName' => 'margin: 20px 0; font-family: Inter, sans-serif; font-size: 18px; font-weight: 700;',
+            'm-tenantWelcome__groupDescription' => 'margin: 20px 0; font-family: Inter, sans-serif; font-size: 18px; font-weight: 400;',
+            'm-tenantWelcome__groupLink' => 'color: #1b85d6 !important; margin: 10px 0 30px; font-family: Inter, sans-serif; font-size: 18px; font-weight: 400;'
         ];
     }
 
