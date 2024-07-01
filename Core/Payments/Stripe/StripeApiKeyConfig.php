@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Payments\Stripe;
 
 use Minds\Core\Config\Config;
+use Minds\Core\Payments\Stripe\Exceptions\StripeNotConfiguredException;
 use Minds\Core\Payments\Stripe\Keys\StripeKeysRepository;
 use Minds\Core\Payments\Stripe\Keys\StripeKeysService;
 use Minds\Core\Security\Vault\VaultTransitService;
@@ -36,7 +37,11 @@ class StripeApiKeyConfig
         $stripeConfig = $this->config->get('payments')['stripe'];
 
         // Tenants will use the keystore, Minds.com is provided from env variable
-        if ($this->config->get('tenant_id') && $secKey = $this->keysService->getSecKey()) {
+        if ($this->config->get('tenant_id')) {
+            $secKey = $this->keysService->getSecKey();
+            if (!$secKey) {
+                throw new StripeNotConfiguredException();
+            }
             $stripeConfig['api_key'] = $secKey;
         }
 
