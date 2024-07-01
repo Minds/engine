@@ -23,7 +23,7 @@ class SiteMembershipRepository extends AbstractRepository
      */
     public function storeSiteMembership(
         SiteMembership $siteMembership,
-        string         $stripeProductId
+        ?string         $stripeProductId = null
     ): bool {
         $stmt = $this->mysqlClientWriterHandler->insert()
             ->into('minds_site_membership_tiers')
@@ -37,6 +37,9 @@ class SiteMembershipRepository extends AbstractRepository
                 'pricing_model' => new RawExp(':pricing_model'),
                 'currency' => new RawExp(':currency'),
                 'price_in_cents' => $siteMembership->membershipPriceInCents,
+                'is_external' => new RawExp(':is_external'),
+                'purchase_url'=> new RawExp(':purchase_url'),
+                'manage_url' => new RawExp(':manage_url'),
             ])
             ->prepare();
 
@@ -48,6 +51,9 @@ class SiteMembershipRepository extends AbstractRepository
                 'billing_period' => $siteMembership->membershipBillingPeriod->value,
                 'pricing_model' => $siteMembership->membershipPricingModel->value,
                 'currency' => strtolower($siteMembership->priceCurrency),
+                'is_external' => $siteMembership->isExternal,
+                'purchase_url'=> $siteMembership->purchaseUrl,
+                'manage_url' => $siteMembership->manageUrl,
             ]);
         } catch (PDOException $e) {
             throw new ServerErrorException(
@@ -76,6 +82,9 @@ class SiteMembershipRepository extends AbstractRepository
                 'currency',
                 'price_in_cents',
                 'archived',
+                'is_external',
+                'purchase_url',
+                'manage_url',
             ])
             ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
             ->prepare();
@@ -135,6 +144,8 @@ class SiteMembershipRepository extends AbstractRepository
             ->set([
                 'name' => new RawExp(':name'),
                 'description' => new RawExp(':description'),
+                'purchase_url'=> new RawExp(':purchase_url'),
+                'manage_url' => new RawExp(':manage_url'),
             ])
             ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
             ->where('membership_tier_guid', Operator::EQ, $siteMembership->membershipGuid)
@@ -144,6 +155,8 @@ class SiteMembershipRepository extends AbstractRepository
             return $stmt->execute([
                 'name' => $siteMembership->membershipName,
                 'description' => $siteMembership->membershipDescription,
+                'purchase_url'=> $siteMembership->purchaseUrl,
+                'manage_url' => $siteMembership->manageUrl,
             ]);
         } catch (PDOException $e) {
             throw new ServerErrorException(
@@ -200,6 +213,9 @@ class SiteMembershipRepository extends AbstractRepository
                 'currency',
                 'price_in_cents',
                 'archived',
+                'is_external',
+                'purchase_url',
+                'manage_url',
             ])
             ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
             ->where('membership_tier_guid', Operator::EQ, $siteMembershipGuid)
