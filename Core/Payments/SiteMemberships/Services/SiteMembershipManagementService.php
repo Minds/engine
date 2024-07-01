@@ -16,7 +16,9 @@ use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductPriceCurrencyEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductPricingModelEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductTypeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
+use Minds\Core\Payments\Stripe\Exceptions\StripeNotConfiguredException;
 use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\UserErrorException;
 use Psr\SimpleCache\InvalidArgumentException;
 
 class SiteMembershipManagementService
@@ -50,20 +52,31 @@ class SiteMembershipManagementService
         }
 
         $this->siteMembershipRepository->beginTransaction();
-        $stripeProduct = $this->stripeProductService->createProduct(
-            internalProductId: $siteMembership->membershipGuid,
-            name: $siteMembership->membershipName,
-            priceInCents: $siteMembership->membershipPriceInCents,
-            billingPeriod: ProductPriceBillingPeriodEnum::tryFrom($siteMembership->membershipBillingPeriod->value),
-            pricingModel: ProductPricingModelEnum::tryFrom($siteMembership->membershipPricingModel->value),
-            productType: ProductTypeEnum::SITE_MEMBERSHIP,
-            currency: ProductPriceCurrencyEnum::USD,
-            description: $siteMembership->membershipDescription
-        );
+
+        if (!$siteMembership->isExternal) {
+            try {
+                $stripeProduct = $this->stripeProductService->createProduct(
+                    internalProductId: $siteMembership->membershipGuid,
+                    name: $siteMembership->membershipName,
+                    priceInCents: $siteMembership->membershipPriceInCents,
+                    billingPeriod: ProductPriceBillingPeriodEnum::tryFrom($siteMembership->membershipBillingPeriod->value),
+                    pricingModel: ProductPricingModelEnum::tryFrom($siteMembership->membershipPricingModel->value),
+                    productType: ProductTypeEnum::SITE_MEMBERSHIP,
+                    currency: ProductPriceCurrencyEnum::USD,
+                    description: $siteMembership->membershipDescription
+                );
+            } catch (StripeNotConfiguredException $e) {
+                // Not having stripe setup is ok... so long as the payment link is set
+                throw new UserErrorException("You have not configured stripe. Please use an external membership instead.");
+            }
+        } else {
+            $stripeProduct = null;
+        }
+
         try {
             $this->siteMembershipRepository->storeSiteMembership(
                 siteMembership: $siteMembership,
-                stripeProductId: $stripeProduct->id
+                stripeProductId: $stripeProduct?->id
             );
 
             if ($roles = $siteMembership->getRoles()) {
@@ -136,19 +149,21 @@ class SiteMembershipManagementService
         }
 
 
-        try {
-            $this->stripeProductService->updateProduct(
-                productId: $siteMembershipDbInfo['stripe_product_id'],
-                name: $siteMembership->membershipName,
-                description: $siteMembership->membershipDescription
-            );
-        } catch (Exception $e) {
-            $this->siteMembershipRepository->rollbackTransaction();
+        if (!$siteMembership->isExternal) {
+            try {
+                $this->stripeProductService->updateProduct(
+                    productId: $siteMembershipDbInfo['stripe_product_id'],
+                    name: $siteMembership->membershipName,
+                    description: $siteMembership->membershipDescription
+                );
+            } catch (Exception $e) {
+                $this->siteMembershipRepository->rollbackTransaction();
 
-            throw new ServerErrorException(
-                message: "Failed to update site membership.",
-                previous: $e
-            );
+                throw new ServerErrorException(
+                    message: "Failed to update site membership.",
+                    previous: $e
+                );
+            }
         }
 
         $this->siteMembershipRepository->commitTransaction();
