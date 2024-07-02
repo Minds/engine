@@ -40,7 +40,7 @@ class TenantUserWelcomeEmailerSpec extends ObjectBehavior
         TenantTemplateVariableInjector $tenantTemplateVariableInjector,
         SiteMembershipReaderService $siteMembershipReaderService,
         FeaturedEntityService $featuredEntityService,
-        Manager $manager,        
+        Manager $manager,
     ) {
         $this->templateMock = $template;
         $this->mailerMock = $mailer;
@@ -51,13 +51,13 @@ class TenantUserWelcomeEmailerSpec extends ObjectBehavior
         $this->managerMock = $manager;
 
         $this->beConstructedWith(
-          $this->templateMock,
-          $this->mailerMock,
-          $this->configMock,
-          $this->tenantTemplateVariableInjectorMock,
-          $this->siteMembershipReaderServiceMock,
-          $this->featuredEntityServiceMock,
-          $this->managerMock
+            $this->templateMock,
+            $this->mailerMock,
+            $this->configMock,
+            $this->tenantTemplateVariableInjectorMock,
+            $this->siteMembershipReaderServiceMock,
+            $this->featuredEntityServiceMock,
+            $this->managerMock
         );
     }
 
@@ -67,122 +67,122 @@ class TenantUserWelcomeEmailerSpec extends ObjectBehavior
     }
 
     public function it_should_build_with_no_memberships_or_featured_groups(
-      User $user,
-      FeaturedEntityConnection $featuredEntityConnection
+        User $user,
+        FeaturedEntityConnection $featuredEntityConnection
     ): void {
-      $siteName = 'Testnet';
-      $siteUrl = 'https://example.minds.com/';
-      $username = 'testuser';
+        $siteName = 'Testnet';
+        $siteUrl = 'https://example.minds.com/';
+        $username = 'testuser';
       
-      $email = 'noreply@minds.com';
-      $tenantId = 123;
-      $userGuid = Guid::build();
-      $siteMemberships = [];
-      $featuredGroups = [];
+        $email = 'noreply@minds.com';
+        $tenantId = 123;
+        $userGuid = Guid::build();
+        $siteMemberships = [];
+        $featuredGroups = [];
 
-      $featuredEntityConnection->getEdges()
-        ->shouldBeCalled()
-        ->willReturn($featuredGroups);
-
-      $user->username = $username;
-
-      $user->get('username')
-        ->shouldBeCalled($username);
-
-      $user->get('name')
-        ->shouldBeCalled($username);
-
-      $user->getEmail()
-        ->shouldBeCalled()
-        ->willReturn($email);
-
-      $user->getGUID()
-        ->shouldBeCalled()
-        ->willReturn($userGuid);
-
-      $this->setUser($user);
-
-      $this->configMock->get('site_name')
+        $featuredEntityConnection->getEdges()
           ->shouldBeCalled()
-          ->willReturn($siteName);
+          ->willReturn($featuredGroups);
 
-      $this->templateMock->setTemplate('default.v2.tpl')
-        ->shouldBeCalled();
+        $user->username = $username;
 
-      $this->templateMock->setBody('./template.tpl')
-        ->shouldBeCalled();
+        $user->get('username')
+          ->shouldBeCalled($username);
 
-      $this->templateMock->set('headerText', "Welcome!")
-        ->shouldBeCalled();
+        $user->get('name')
+          ->shouldBeCalled($username);
 
-      $this->templateMock->set('bodyText', "Thanks for joining $siteName. Here's what you can do next to get the most out of the community.")
-        ->shouldBeCalled();
+        $user->getEmail()
+          ->shouldBeCalled()
+          ->willReturn($email);
 
-      $this->templateMock->set('preheader', "Thanks for joining $siteName")
-        ->shouldBeCalled();
+        $user->getGUID()
+          ->shouldBeCalled()
+          ->willReturn($userGuid);
 
-      $this->templateMock->set('user', $user)
-        ->shouldBeCalled();
+        $this->setUser($user);
 
-      $this->templateMock->set('username', Argument::any())
-        ->shouldBeCalled();
+        $this->configMock->get('site_name')
+            ->shouldBeCalled()
+            ->willReturn($siteName);
 
-      $this->templateMock->set('email', $email)
-        ->shouldBeCalled();
+        $this->templateMock->setTemplate('default.v2.tpl')
+          ->shouldBeCalled();
 
-      $this->templateMock->set('guid', $userGuid)
-        ->shouldBeCalled();
+        $this->templateMock->setBody('./template.tpl')
+          ->shouldBeCalled();
 
-      $this->templateMock->set('campaign', 'with')
-        ->shouldBeCalled();
+        $this->templateMock->set('headerText', "Welcome!")
+          ->shouldBeCalled();
 
-      $this->templateMock->set('topic', 'welcome')
-        ->shouldBeCalled();
+        $this->templateMock->set('bodyText', "Thanks for joining $siteName. Here's what you can do next to get the most out of the community.")
+          ->shouldBeCalled();
 
-      $this->templateMock->set('tracking', Argument::type('string'))
-        ->shouldBeCalled();
+        $this->templateMock->set('preheader', "Thanks for joining $siteName")
+          ->shouldBeCalled();
 
-      $this->configMock->get('tenant_id')
-        ->shouldBeCalled()
-        ->willReturn($tenantId);
+        $this->templateMock->set('user', $user)
+          ->shouldBeCalled();
 
-      $this->tenantTemplateVariableInjectorMock->inject($this->templateMock)
-        ->shouldBeCalled()
-        ->willReturn($this->templateMock);
+        $this->templateMock->set('username', Argument::any())
+          ->shouldBeCalled();
 
-      $this->templateMock->set('actionButton', Argument::any())
-        ->shouldBeCalled();
+        $this->templateMock->set('email', $email)
+          ->shouldBeCalled();
+
+        $this->templateMock->set('guid', $userGuid)
+          ->shouldBeCalled();
+
+        $this->templateMock->set('campaign', 'with')
+          ->shouldBeCalled();
+
+        $this->templateMock->set('topic', 'welcome')
+          ->shouldBeCalled();
+
+        $this->templateMock->set('tracking', Argument::type('string'))
+          ->shouldBeCalled();
+
+        $this->configMock->get('tenant_id')
+          ->shouldBeCalled()
+          ->willReturn($tenantId);
+
+        $this->tenantTemplateVariableInjectorMock->inject($this->templateMock)
+          ->shouldBeCalled()
+          ->willReturn($this->templateMock);
+
+        $this->templateMock->set('actionButton', Argument::any())
+          ->shouldBeCalled();
       
-      $this->siteMembershipReaderServiceMock->getSiteMemberships()
-        ->shouldBeCalled()
-        ->willReturn($siteMemberships);
+        $this->siteMembershipReaderServiceMock->getSiteMemberships()
+          ->shouldBeCalled()
+          ->willReturn($siteMemberships);
 
-      $this->templateMock->set('site_membership_containers', $siteMemberships)
-        ->shouldBeCalled();
+        $this->templateMock->set('site_membership_containers', $siteMemberships)
+          ->shouldBeCalled();
 
-      $this->featuredEntityServiceMock->getFeaturedEntities(
-        type: FeaturedEntityTypeEnum::GROUP,
-        loadAfter: 0,
-        limit: 3
-    )
-        ->shouldBeCalled()
-        ->willReturn($featuredEntityConnection);
+        $this->featuredEntityServiceMock->getFeaturedEntities(
+            type: FeaturedEntityTypeEnum::GROUP,
+            loadAfter: 0,
+            limit: 3
+        )
+          ->shouldBeCalled()
+          ->willReturn($featuredEntityConnection);
 
-      $this->templateMock->set('featured_group_containers', $featuredGroups)
-        ->shouldBeCalled();
+        $this->templateMock->set('featured_group_containers', $featuredGroups)
+          ->shouldBeCalled();
 
-      $this->configMock->get('site_url')
-        ->shouldBeCalled()
-        ->willReturn($siteUrl);
+        $this->configMock->get('site_url')
+          ->shouldBeCalled()
+          ->willReturn($siteUrl);
 
-      $this->build();
+        $this->build();
     }
 
     public function it_should_build_with_memberships_and_featured_groups(
         User $user,
         FeaturedEntityConnection $featuredEntityConnection,
         FeaturedEntityEdge $featuredEntityEdge
-      ): void {
+    ): void {
         $siteName = 'Testnet';
         $siteUrl = 'https://example.minds.com/';
         $username = 'testuser';
@@ -191,25 +191,25 @@ class TenantUserWelcomeEmailerSpec extends ObjectBehavior
         $tenantId = 123;
         $userGuid = Guid::build();
         $siteMemberships = [new SiteMembership(
-          membershipGuid: Guid::build(),
-          membershipName: 'Test Membership',
-          membershipPriceInCents: 999,
-          membershipBillingPeriod: SiteMembershipBillingPeriodEnum::MONTHLY,
-          membershipPricingModel: SiteMembershipPricingModelEnum::RECURRING,
-          membershipDescription: 'Test Membership Description',
+            membershipGuid: Guid::build(),
+            membershipName: 'Test Membership',
+            membershipPriceInCents: 999,
+            membershipBillingPeriod: SiteMembershipBillingPeriodEnum::MONTHLY,
+            membershipPricingModel: SiteMembershipPricingModelEnum::RECURRING,
+            membershipDescription: 'Test Membership Description',
         )];
         
         $featuredEntityEdge->getNode()
           ->shouldBeCalled()
           ->willReturn(new FeaturedGroup(
-            tenantId: 123,
-            entityGuid: Guid::build(),
-            autoSubscribe: false,
-            recommended: false,
-            autoPostSubscription: false,
-            name: 'Test Group',
-            briefDescription: 'Test Group Description',
-            membersCount: 3
+              tenantId: 123,
+              entityGuid: Guid::build(),
+              autoSubscribe: false,
+              recommended: false,
+              autoPostSubscription: false,
+              name: 'Test Group',
+              briefDescription: 'Test Group Description',
+              membersCount: 3
           ));
         
         $featuredEntityConnection->getEdges()
@@ -289,26 +289,26 @@ class TenantUserWelcomeEmailerSpec extends ObjectBehavior
           ->shouldBeCalled()
           ->willReturn($siteMemberships);
   
-        $this->templateMock->set('site_membership_containers', Argument::that(function($siteMembershipContainers) {
-          return $siteMembershipContainers[0]['name'] === 'Test Membership'
-            && $siteMembershipContainers[0]['description'] === 'Test Membership Description'
-            && $siteMembershipContainers[0]['pricingLabel'] === '$9.99 / month';
+        $this->templateMock->set('site_membership_containers', Argument::that(function ($siteMembershipContainers) {
+            return $siteMembershipContainers[0]['name'] === 'Test Membership'
+              && $siteMembershipContainers[0]['description'] === 'Test Membership Description'
+              && $siteMembershipContainers[0]['pricingLabel'] === '$9.99 / month';
         }))
           ->shouldBeCalled();
   
         $this->featuredEntityServiceMock->getFeaturedEntities(
-          type: FeaturedEntityTypeEnum::GROUP,
-          loadAfter: 0,
-          limit: 3
-      )
+            type: FeaturedEntityTypeEnum::GROUP,
+            loadAfter: 0,
+            limit: 3
+        )
           ->shouldBeCalled()
           ->willReturn($featuredEntityConnection);
   
-        $this->templateMock->set('featured_group_containers',  Argument::that(function($featuredGroups) {
-          return $featuredGroups[0]['name'] === 'Test Group'
-            && $featuredGroups[0]['description'] === 'Test Group Description'
-            && str_starts_with($featuredGroups[0]['avatar_url'], 'https://example.minds.com/fs/v1/avatars')
-            && str_starts_with($featuredGroups[0]['join_url'], 'https://example.minds.com/group/');
+        $this->templateMock->set('featured_group_containers', Argument::that(function ($featuredGroups) {
+            return $featuredGroups[0]['name'] === 'Test Group'
+              && $featuredGroups[0]['description'] === 'Test Group Description'
+              && str_starts_with($featuredGroups[0]['avatar_url'], 'https://example.minds.com/fs/v1/avatars')
+              && str_starts_with($featuredGroups[0]['join_url'], 'https://example.minds.com/group/');
         }))
           ->shouldBeCalled();
   
@@ -317,5 +317,5 @@ class TenantUserWelcomeEmailerSpec extends ObjectBehavior
           ->willReturn($siteUrl);
   
         $this->build();
-      }
+    }
 }
