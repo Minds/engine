@@ -473,13 +473,13 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             return;
         }
 
-        Di::_()->get(MultiTenantBootService::class)->bootFromTenantId($tenantId);
 
         if (!$userGuid) {
             $this->out('User guid required');
             return;
         }
 
+        Di::_()->get(MultiTenantBootService::class)->bootFromTenantId($tenantId);
         $user = Di::_()->get(EntitiesBuilder::class)->single($userGuid);
 
         if (!$user || !($user instanceof User)) {
@@ -487,7 +487,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             return;
         }
 
-        $campaign = (new TenantUserWelcomeEmailer());
+        $campaign = new TenantUserWelcomeEmailer();
         $campaign->setUser($user);
 
         $message = $campaign->build();
