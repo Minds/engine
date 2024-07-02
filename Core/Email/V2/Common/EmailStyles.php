@@ -89,7 +89,7 @@ class EmailStyles
             'm-tenantWelcome__groupBox' => 'max-width: 200px; padding: 10px; margin: auto;',
             'm-tenantWelcome__avatar' => 'width: 96px; height: 96px; border-radius: 50%; object-fit: cover; margin: auto;',
             'm-tenantWelcome__groupName' => 'margin: 20px 0; font-family: Inter, sans-serif; font-size: 18px; font-weight: 700;',
-            'm-tenantWelcome__groupDescription' => 'margin: 20px 0; font-family: Inter, sans-serif; font-size: 18px; font-weight: 400;',
+            'm-tenantWelcome__groupDescription' => 'margin: 20px 0; color: #000; font-family: Inter, sans-serif; font-size: 18px; font-weight: 400;',
             'm-tenantWelcome__groupLink' => 'color: #1b85d6 !important; margin: 10px 0 30px; font-family: Inter, sans-serif; font-size: 18px; font-weight: 400;'
         ];
     }

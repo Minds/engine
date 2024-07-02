@@ -163,7 +163,7 @@ class TenantUserWelcomeEmailer extends EmailCampaign
      */
     public function send(): void
     {
-        if ($this->canSend()) {
+        if ($this->canSend() && (bool) $this->config->get('tenant_id')) {
             $message = $this->build();
             if ($message) {
                 $this->saveCampaignLog();
@@ -178,7 +178,7 @@ class TenantUserWelcomeEmailer extends EmailCampaign
      */
     public function queue(): void
     {
-        if ($this->canSend()) {
+        if ($this->canSend() && (bool) $this->config->get('tenant_id')) {
             $message = $this->build();
             if ($message) {
                 $this->saveCampaignLog();

@@ -10,7 +10,7 @@
 
 <!--MEMBERSHIP CONTAINERS-->
 <?php foreach ($vars['site_membership_containers'] as $siteMembershipContainer): ?>
-    <div <?= $emailStyles->getStyles('m-tenantWelcome__membershipBox', $vars['color_scheme'] === 'DARK' ? 'm-tenantWelcome__membershipBox--dark' : 'm-tenantWelcome__membershipBox--light'); ?>>
+    <div <?= $emailStyles->getStyles('m-tenantWelcome__membershipBox', isset($vars['color_scheme']) && $vars['color_scheme'] === 'DARK' ? 'm-tenantWelcome__membershipBox--dark' : 'm-tenantWelcome__membershipBox--light'); ?>>
         <h2 <?= $emailStyles->getStyles('m-tenantWelcome__membershipTitle', 'm-tenantWelcome__subtitle'); ?>><?= $siteMembershipContainer['name']; ?></h2>
         <p <?= $emailStyles->getStyles('m-tenantWelcome__membershipPrice'); ?>><?= $siteMembershipContainer['pricingLabel']; ?></p>
         <p <?= $emailStyles->getStyles('m-tenantWelcome__membershipDescription'); ?>><?= $siteMembershipContainer['description']; ?></p>
