@@ -13,7 +13,7 @@
     <div <?= $emailStyles->getStyles('m-tenantWelcome__membershipBox', $vars['color_scheme'] === 'DARK' ? 'm-tenantWelcome__membershipBox--dark' : 'm-tenantWelcome__membershipBox--light'); ?>>
         <h2 <?= $emailStyles->getStyles('m-tenantWelcome__membershipTitle', 'm-tenantWelcome__subtitle'); ?>><?= $siteMembershipContainer['name']; ?></h2>
         <p <?= $emailStyles->getStyles('m-tenantWelcome__membershipPrice'); ?>><?= $siteMembershipContainer['pricingLabel']; ?></p>
-        <p <?= $emailStyles->getStyles('m-tenantWelcome__membershipDescription'); ?>><?= $siteMembershipContainer['description']; ?></h2>
+        <p <?= $emailStyles->getStyles('m-tenantWelcome__membershipDescription'); ?>><?= $siteMembershipContainer['description']; ?></p>
         <?= $siteMembershipContainer['actionButton']; ?>
     </div>
 <?php endforeach ?>
@@ -25,7 +25,7 @@
     <table <?= $emailStyles->getStyles('m-tenantWelcome__groupsTable'); ?>>
         <tr>
             <?php foreach ($vars['featured_group_containers'] as $featuredGroupContainer): ?>
-                <td <?= $emailStyles->getStyles('m-tenantWelcome__groupsTableCell'); ?>>
+                <td class="m-welcomeEmail__groupTableCell" <?= $emailStyles->getStyles('m-tenantWelcome__groupsTableCell'); ?>>
                     <div <?= $emailStyles->getStyles('m-tenantWelcome__groupBox'); ?>>
                         <a href="<?= $featuredGroupContainer['join_url']; ?>" target="_blank">
                             <img src="<?= $featuredGroupContainer['avatar_url'] ?>" <?= $emailStyles->getStyles('m-tenantWelcome__avatar'); ?>/>
@@ -50,3 +50,12 @@
 <p <?= $emailStylesV2->getStyles(['m-mainContent__paragraph']) ?> >
     <?php echo $vars['actionButton']; ?>
 </p>
+
+<style type="text/css">
+    @media (max-width: 600px) {
+        .m-welcomeEmail__groupTableCell {
+            display: block;
+            width: 100% !important;
+        }
+    }
+</style>
