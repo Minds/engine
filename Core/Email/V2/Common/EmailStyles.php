@@ -76,8 +76,8 @@ class EmailStyles
     
             // PARTIAL: Tenant Welcome email memberships
             'm-tenantWelcome__membershipBox' => 'margin: 30px 20px; padding: 40px 20px 30px 20px; border-radius: 30px;',
-            'm-tenantWelcome__membershipBox--dark' => 'background-color: rgba(255,255,255, 0.10); 1px solid rgba(255,255,255, 0.05)',
-            'm-tenantWelcome__membershipBox--light' => 'background-color: rgba(0,0,0, 0.10); 1px solid rgba(0,0,0, 0.05)',
+            'm-tenantWelcome__membershipBox--dark' => 'background-color: rgba(255,255,255, 0.10); border: 1px solid rgba(255,255,255, 0.05)',
+            'm-tenantWelcome__membershipBox--light' => 'background-color: rgba(0,0,0, 0.10); border: 1px solid rgba(0,0,0, 0.05)',
             'm-tenantWelcome__membershipSubtitle' => 'margin-bottom: 10px;',
             'm-tenantWelcome__membershipPrice' => 'margin: 10px 20px; color: #000; font-family: Inter, sans-serif; font-size: 18px; font-weight: 700;',
             'm-tenantWelcome__membershipDescription' => 'margin: 10px 20px 20px; color: #000; font-family: Inter, sans-serif; font-size: 18px;',
