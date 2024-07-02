@@ -318,6 +318,10 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         foreach ($this->multiTenantDataService->getTenants(limit: 9999999) as $tenant) {
             $this->multiTenantBootService->bootFromTenantId($tenant->id);
 
+            if ($tenant->id === 75) {
+                continue;
+            }
+
             foreach ($this->multiTenantUsersService->getUsers(tenantId: $tenant->id) as $user) {
                 $digest = new DigestSender();
                 $digest->send($user);
