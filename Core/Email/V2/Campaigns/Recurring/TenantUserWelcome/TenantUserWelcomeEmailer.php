@@ -193,14 +193,14 @@ class TenantUserWelcomeEmailer extends EmailCampaign
 
         switch($siteMembership->membershipPricingModel) {
             case SiteMembershipPricingModelEnum::ONE_TIME:
-                return "$price / one-time";
+                return "$$price / one-time";
             case SiteMembershipPricingModelEnum::RECURRING:
                 if ($siteMembership->membershipBillingPeriod === SiteMembershipBillingPeriodEnum::YEARLY) {
-                    return "$price / year";
+                    return "$$price / year";
                 }
-                return "$price / month";
+                return "$$price / month";
             default:
-                return "$price";
+                return "$$price";
         }
     }
 
