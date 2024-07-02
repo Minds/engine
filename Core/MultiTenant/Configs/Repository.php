@@ -47,8 +47,8 @@ class Repository extends AbstractRepository
         return new MultiTenantConfig(
             siteName: $row['site_name'] ?? null,
             siteEmail: $row['site_email'] ?? null,
-            colorScheme: $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : null,
-            primaryColor: $row['primary_color'] ?? null,
+            colorScheme: $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : MultiTenantColorScheme::LIGHT,
+            primaryColor: $row['primary_color'] ?? '#1b85d6',
             federationDisabled: (bool) $row['federation_disabled'] ?? false,
             replyEmail: $row['reply_email'] ?? null,
             nsfwEnabled: ($row['nsfw_enabled'] ?? 1) === 1,

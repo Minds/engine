@@ -98,8 +98,8 @@ class Repository extends AbstractRepository
         $rootUserGuid = $row['root_user_guid'];
         $siteName = $row['site_name'] ?? null;
         $siteEmail = $row['site_email'] ?? null;
-        $primaryColor = $row['primary_color'] ?? null;
-        $colorScheme = $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : null;
+        $primaryColor = $row['primary_color'] ?? '#1b85d6';
+        $colorScheme = $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : MultiTenantColorScheme::LIGHT;
         $federationDisabled = (bool) $row['federation_disabled'] ?? false;
         $boostEnabled = $row['boost_enabled'] ?? false;
         $replyEmail = $row['reply_email'] ?? null;
