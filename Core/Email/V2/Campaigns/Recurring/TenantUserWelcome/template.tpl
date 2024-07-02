@@ -20,7 +20,7 @@
 
 <!--FEATURED GROUP CONTAINERS-->
 <?php if(count($vars['featured_group_containers'])): ?>
-    <h2 <?= $emailStyles->getStyles('m-tenantWelcome__groupsSectionSubtitle, 'm-tenantWelcome__subtitle');?>>Discuss with groups</h2>
+    <h2 <?= $emailStyles->getStyles('m-tenantWelcome__groupsSectionSubtitle', 'm-tenantWelcome__subtitle');?>>Discuss with groups</h2>
 
     <table <?= $emailStyles->getStyles('m-tenantWelcome__groupsTable'); ?>>
         <tr>
