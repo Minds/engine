@@ -473,7 +473,6 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             return;
         }
 
-
         if (!$userGuid) {
             $this->out('User guid required');
             return;
