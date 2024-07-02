@@ -138,7 +138,7 @@ class TenantUserWelcomeEmailer extends EmailCampaign
             $featuredGroupContainers[] = [
                 'name' => $this->ellipsisTrim($featuredGroup->getName(), 36),
                 'description' => $this->ellipsisTrim($featuredGroup->briefDescription, 250),
-                'avatar_url' => $this->getAvatarUrl($featuredGroup->entityGuid), 
+                'avatar_url' => $this->getAvatarUrl($featuredGroup->entityGuid),
                 'join_url' => $this->getGroupUrl($featuredGroup->entityGuid)
             ];
         }
@@ -192,7 +192,8 @@ class TenantUserWelcomeEmailer extends EmailCampaign
      * @param SiteMembership $siteMembership Site membership.
      * @return string - Join membership URL.
      */
-    private function getJoinMembershipUrl(SiteMembership $siteMembership): string {
+    private function getJoinMembershipUrl(SiteMembership $siteMembership): string
+    {
         if ($siteMembership->purchaseUrl) {
             return $siteMembership->purchaseUrl;
         }
@@ -204,7 +205,8 @@ class TenantUserWelcomeEmailer extends EmailCampaign
      * @param SiteMembership $siteMembership - Site membership.
      * @return string - Membership pricing label.
      */
-    private function getMembershipPriceLabel(SiteMembership $siteMembership): string {
+    private function getMembershipPriceLabel(SiteMembership $siteMembership): string
+    {
         $price = $siteMembership->membershipPriceInCents / 100;
 
         switch($siteMembership->membershipPricingModel) {
@@ -225,7 +227,8 @@ class TenantUserWelcomeEmailer extends EmailCampaign
      * @param integer $groupGuid - Group GUID.
      * @return string - Group URL.
      */
-    private function getGroupUrl(int $groupGuid): string {
+    private function getGroupUrl(int $groupGuid): string
+    {
         return $this->config->get('site_url') . "group/$groupGuid";
     }
 
@@ -234,7 +237,8 @@ class TenantUserWelcomeEmailer extends EmailCampaign
      * @param integer $groupGuid - Group GUID.
      * @return string - Avatar URL.
      */
-    private function getAvatarUrl(int $groupGuid): string {
+    private function getAvatarUrl(int $groupGuid): string
+    {
         return $this->config->get('site_url') . "fs/v1/avatars/$groupGuid/large/" . time();
     }
 
@@ -244,7 +248,8 @@ class TenantUserWelcomeEmailer extends EmailCampaign
      * @param integer $limit - Limit.
      * @return string - Trimmed text.
      */
-    private function ellipsisTrim(string $text, int $limit): string {
+    private function ellipsisTrim(string $text, int $limit): string
+    {
         if (!strlen($text)) {
             return "";
         }

@@ -456,7 +456,6 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 
     /**
      * Tests tenant welcome email.
-     * 
      * Example usage:
      * ```sh
      * php cli.php Email testTenantWelcomeEmail --output=/var/www/Minds/engine/welcome.html --userGuid="1540482017907445761" --tenantId=123
