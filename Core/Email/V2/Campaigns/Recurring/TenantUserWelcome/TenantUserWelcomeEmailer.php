@@ -105,13 +105,13 @@ class TenantUserWelcomeEmailer extends EmailCampaign
 
         $this->template->set('site_membership_containers', $siteMembershipContainers);
 
+        // Get groups
+
         $featuredGroups = $this->featuredEntityService->getFeaturedEntities(
             type: FeaturedEntityTypeEnum::GROUP,
             loadAfter: 0,
             limit: 3
         );
-
-        // Get groups
 
         $featuredGroupContainers = [];
 

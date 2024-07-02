@@ -11,7 +11,7 @@
 <!--MEMBERSHIP CONTAINERS-->
 <?php foreach ($vars['site_membership_containers'] as $siteMembershipContainer): ?>
     <div <?= $emailStyles->getStyles('m-tenantWelcome__membershipBox', isset($vars['color_scheme']) && $vars['color_scheme'] === 'DARK' ? 'm-tenantWelcome__membershipBox--dark' : 'm-tenantWelcome__membershipBox--light'); ?>>
-        <h2 <?= $emailStyles->getStyles('m-tenantWelcome__membershipTitle', 'm-tenantWelcome__subtitle'); ?>><?= $siteMembershipContainer['name']; ?></h2>
+        <h2 <?= $emailStyles->getStyles('m-tenantWelcome__membershipSubtitle', 'm-tenantWelcome__subtitle'); ?>><?= $siteMembershipContainer['name']; ?></h2>
         <p <?= $emailStyles->getStyles('m-tenantWelcome__membershipPrice'); ?>><?= $siteMembershipContainer['pricingLabel']; ?></p>
         <p <?= $emailStyles->getStyles('m-tenantWelcome__membershipDescription'); ?>><?= $siteMembershipContainer['description']; ?></p>
         <?= $siteMembershipContainer['actionButton']; ?>
@@ -20,7 +20,7 @@
 
 <!--FEATURED GROUP CONTAINERS-->
 <?php if(count($vars['featured_group_containers'])): ?>
-    <h2 <?= $emailStyles->getStyles('m-tenantWelcome__groupsSectionTitle', 'm-tenantWelcome__subtitle');?>>Discuss with groups</h2>
+    <h2 <?= $emailStyles->getStyles('m-tenantWelcome__groupsSectionSubtitle, 'm-tenantWelcome__subtitle');?>>Discuss with groups</h2>
 
     <table <?= $emailStyles->getStyles('m-tenantWelcome__groupsTable'); ?>>
         <tr>
@@ -40,7 +40,7 @@
     </table>
 <?php endif; ?>
 
-<h1 <?= $emailStyles->getStyles('m-tenantWelcome__subtitle', 'm-tenantWelcome__catchUpTitle') ?>>
+<h1 <?= $emailStyles->getStyles('m-tenantWelcome__catchUpSubtitle', 'm-tenantWelcome__subtitle') ?>>
     Catch up with the latest
 </h1>
 <p <?= $emailStylesV2->getStyles(['m-mainContent__paragraph']) ?> >
