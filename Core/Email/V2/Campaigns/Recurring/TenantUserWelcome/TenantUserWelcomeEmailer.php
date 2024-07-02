@@ -7,8 +7,6 @@ use Minds\Core\Email\Campaigns\EmailCampaign;
 use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Common\Message;
 use Minds\Core\Email\Mailer;
-use Minds\Core\Email\Manager;
-use Minds\Traits\MagicAttributes;
 use Minds\Core\Di\Di;
 use Minds\Core\Config\Config;
 use Minds\Core\Email\V2\Common\TenantTemplateVariableInjector;
@@ -25,33 +23,17 @@ use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
  */
 class TenantUserWelcomeEmailer extends EmailCampaign
 {
-    use MagicAttributes;
-
-    /** @var Template */
-    protected $template;
-
-    /** @var Mailer */
-    protected $mailer;
-
-    /** @var Manager */
-    protected $manager;
-
     public function __construct(
-        Template $template = null,
-        Mailer $mailer = null,
-        Manager $manager = null,
-        protected ?Config $config = null,
-        protected ?TenantTemplateVariableInjector $tenantTemplateVariableInjector= null,
-        protected ?SiteMembershipReaderService $siteMembershipReaderService = null,
-        protected ?FeaturedEntityService $featuredEntityService = null
+        private Template $template,
+        private readonly Mailer $mailer,
+        private readonly Config $config,
+        private readonly TenantTemplateVariableInjector $tenantTemplateVariableInjector,
+        private readonly SiteMembershipReaderService $siteMembershipReaderService,
+        private readonly FeaturedEntityService $featuredEntityService,
+        $manager = null,
     ) {
-        $this->template = $template ?: new Template();
-        $this->mailer = $mailer ?: new Mailer();
-        $this->manager = $manager ?: Di::_()->get('Email\Manager');
-        $this->config ??= Di::_()->get(Config::class);
-        $this->tenantTemplateVariableInjector ??= Di::_()->get(TenantTemplateVariableInjector::class);
-        $this->siteMembershipReaderService ??= Di::_()->get(SiteMembershipReaderService::class);
-        $this->featuredEntityService ??= Di::_()->get(FeaturedEntityService::class);
+        $this->manager = $manager ?? Di::_()->get('Email\Manager');
+        parent::__construct($manager);
 
         $this->campaign = 'with';
         $this->topic = 'welcome';

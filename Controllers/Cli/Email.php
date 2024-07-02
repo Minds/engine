@@ -486,7 +486,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             return;
         }
 
-        $campaign = new TenantUserWelcomeEmailer();
+        $campaign = Di::_()->get(TenantUserWelcomeEmailer::class);
         $campaign->setUser($user);
 
         $message = $campaign->build();

@@ -60,7 +60,7 @@ class Provider extends DiProvider
                 entitiesBuilder: $di->get(EntitiesBuilder::class),
                 acl: $di->get('Security\ACL'),
                 registerQueue: Queue\Client::build()->setQueue('Registered'),
-                tenantUserWelcomeEmailer: new TenantUserWelcomeEmailer(),
+                tenantUserWelcomeEmailer: $di->get(TenantUserWelcomeEmailer::class),
                 config: $di->get(Config::class),
                 logger: $di->get('Logger'),
             );

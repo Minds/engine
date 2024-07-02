@@ -34,7 +34,7 @@ class Controller
     ) {
         $this->manager ??= Di::_()->get('Security\TwoFactor\Manager');
         $this->config ??= Di::_()->get(Config::class);
-        $this->tenantUserWelcomeEmailer ??= new TenantUserWelcomeEmailer();
+        $this->tenantUserWelcomeEmailer ??= Di::_()->get(TenantUserWelcomeEmailer::class);
         $this->logger ??= Di::_()->get('Logger');
     }
 
