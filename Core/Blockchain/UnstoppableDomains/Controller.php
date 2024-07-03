@@ -33,7 +33,7 @@ class Controller
 
         return new JsonResponse([
             'status' => 'success',
-            'domains' => $this->client->getDomains($walletAddress),
+            'domains' => [],
         ]);
     }
 }
