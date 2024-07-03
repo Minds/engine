@@ -11,6 +11,8 @@ use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Log\Logger;
+use Minds\Core\Votes\Enums\VoteEnum;
+use Minds\Core\Votes\MySqlRepository as VotesMySqlRepository;
 
 /**
  * Subscribes to metric change events.
@@ -20,11 +22,13 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
     public function __construct(
         private ?SocketEvents $socketEvents = null,
         private ?Counters $counters = null,
+        private ?VotesMySqlRepository $votesMySqlRepository = null,
         private ?ExperimentsManager $experiments = null,
         private ?Logger $logger = null
     ) {
         $this->socketEvents ??= new SocketEvents();
         $this->counters ??= new Counters();
+        $this->votesMySqlRepository ??= Di::_()->get(VotesMySqlRepository::class);
         $this->experiments ??= Di::_()->get('Experiments\Manager');
         $this->logger ??= Di::_()->get('Logger');
     }
@@ -67,12 +71,21 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
             return false;
         }
 
-        $guid = $this->getGuid($event->getEntity());
+        $entity = $event->getEntity();
+
+        if (!$entity) {
+            return true;
+        }
+
+        $guid = $this->getGuid($entity);
 
         switch ($event->getAction()) {
             case 'vote_up_removed':
             case 'vote_up':
-                $count = $this->counters->get($guid, 'thumbs:up', false);
+                $count = isset($entity?->tenant_id) && (bool) $entity->tenant_id ?
+                    $this->votesMySqlRepository->getCount($guid, VoteEnum::UP) :
+                    $this->counters->get($guid, 'thumbs:up', false);
+
                 $this->emitViaSockets(
                     guid: $guid,
                     key: 'thumbs:up:count',
