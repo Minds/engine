@@ -7,7 +7,6 @@ use Minds\Core\Config\Config;
 use Minds\Core\Payments\Stripe\Exceptions\StripeNotConfiguredException;
 use Minds\Core\Payments\Stripe\Keys\StripeKeysRepository;
 use Minds\Core\Payments\Stripe\Keys\StripeKeysService;
-use Minds\Core\Security\Vault\VaultTransitService;
 use Minds\Core\Sessions\ActiveSession;
 use Minds\Entities\User;
 

@@ -987,6 +987,14 @@ ALTER TABLE `minds_entities_user`
 	ADD `opt_out_analytics` boolean DEFAULT FALSE
 	AFTER `canonical_url`;
 
+ALTER TABLE minds.minds_payments_config
+    ADD stripe_webhook_id varchar(256) DEFAULT NULL
+    AFTER stripe_customer_portal_config_id;
+
+ALTER TABLE minds.minds_payments_config
+    ADD stripe_webhook_secret varchar(256) DEFAULT NULL
+    AFTER stripe_webhook_id;
+
 CREATE TABLE IF NOT EXISTS minds_chat_rich_embeds(
     tenant_id int,
     room_guid bigint,

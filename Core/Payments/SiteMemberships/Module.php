@@ -10,6 +10,7 @@ class Module implements ModuleInterface
 {
     public array $submodules  = [
         PaywalledEntities\Module::class,
+        Webhooks\Module::class,
     ];
 
     /**

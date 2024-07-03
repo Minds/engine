@@ -474,6 +474,20 @@ class DomainServiceSpec extends ObjectBehavior
         $domain->dnsRecord->value->shouldBe('127.0.0.1');
     }
 
+    public function it_should_build_tmp_subdomain()
+    {
+        $tenantId = 123;
+        $hashedTenantId = md5($tenantId);
+        $tenant = $this->generateTenantMock($tenantId);
+
+        $this->configMock->get('multi_tenant')
+            ->willReturn([
+                'subdomain_suffix' => 'minds.com',
+            ]);
+
+        $this->buildTmpSubdomain($tenant)->shouldBe("{$hashedTenantId}.minds.com");
+    }
+
     private function generateTenantMock(
         int      $id,
         int|null $trialStartTimestamp = null

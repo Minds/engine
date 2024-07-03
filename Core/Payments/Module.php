@@ -15,6 +15,7 @@ class Module implements ModuleInterface
         Checkout\Module::class,
         SiteMemberships\Module::class,
         SiteMemberships\PaywalledEntities\Module::class,
+        SiteMemberships\Webhooks\Module::class,
     ];
 
     /**

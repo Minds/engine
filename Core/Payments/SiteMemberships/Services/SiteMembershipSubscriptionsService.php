@@ -11,13 +11,13 @@ use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipPricingModelEnum;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipFoundException;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipSubscriptionFoundException;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipSubscriptionsRepository;
+use Minds\Core\Payments\SiteMemberships\Types\SiteMembershipSubscription;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
 use Minds\Core\Payments\Stripe\Checkout\Enums\CheckoutModeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Manager as StripeCheckoutManager;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
 use Minds\Core\Payments\Stripe\Checkout\Session\Services\SessionService as StripeCheckoutSessionService;
 use Minds\Core\Groups\V2\Membership\Manager as GroupMembershipService;
-use Minds\Core\Groups\V2\Membership\Membership;
 use Minds\Core\Payments\SiteMemberships\Repositories\DTO\SiteMembershipSubscriptionDTO;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
@@ -164,6 +164,44 @@ class SiteMembershipSubscriptionsService
     }
 
     /**
+     * @param int|null $tenantId
+     * @return iterable<SiteMembershipSubscription>
+     * @throws ServerErrorException
+     */
+    public function getAllSiteMemberships(
+        ?int $tenantId = null
+    ): iterable {
+        return $this->siteMembershipSubscriptionsRepository->getAllSiteMembershipSubscriptions($tenantId);
+    }
+
+    /**
+     * @param string $stripeSubscriptionId
+     * @return SiteMembershipSubscription
+     * @throws NoSiteMembershipSubscriptionFoundException
+     * @throws ServerErrorException
+     */
+    public function getSiteMembershipSubscriptionByStripeSubscriptionId(
+        string $stripeSubscriptionId
+    ): SiteMembershipSubscription {
+        return $this->siteMembershipSubscriptionsRepository->getSiteMembershipSubscriptionByStripeSubscriptionId($stripeSubscriptionId);
+    }
+
+    /**
+     * @param string $stripeSubscriptionId
+     * @param int $startTimestamp
+     * @param int $endTimestamp
+     * @return bool
+     * @throws ServerErrorException
+     */
+    public function renewSiteMembershipSubscription(
+        string $stripeSubscriptionId,
+        int $startTimestamp,
+        int $endTimestamp
+    ): bool {
+        return $this->siteMembershipSubscriptionsRepository->renewSiteMembershipSubscription($stripeSubscriptionId, $startTimestamp, $endTimestamp);
+    }
+
+    /*
      * Leaves a group if the membership subscription has expired
      */
     public function cleanupSiteMembershipGroupMemberships()
