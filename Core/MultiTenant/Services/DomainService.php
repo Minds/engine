@@ -127,7 +127,7 @@ class DomainService
     /**
      * Temporary subdomain builder
      */
-    private function buildTmpSubdomain(Tenant $tenant): string
+    public function buildTmpSubdomain(Tenant $tenant): string
     {
         $domainSuffix = $this->getDomainSuffix();
 

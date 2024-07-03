@@ -269,4 +269,49 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
         )
             ->shouldReturn("/memberships");
     }
+
+    public function it_should_get_all_site_memberships()
+    {
+        $tenantId = 123;
+
+        $this->siteMembershipSubscriptionsRepositoryMock->getAllSiteMembershipSubscriptions($tenantId)
+            ->shouldBeCalled()
+            ->willReturn([]);
+
+        $this->getAllSiteMemberships($tenantId)->shouldBe([]);
+    }
+
+    public function it_should_get_site_membership_subscription_by_stripe_subscription_id()
+    {
+        $subscriptionId = 'sub_id';
+
+        $siteMembershipSubscription = new SiteMembershipSubscription(
+            1,
+            1,
+            $subscriptionId,
+        );
+
+        $this->siteMembershipSubscriptionsRepositoryMock->getSiteMembershipSubscriptionByStripeSubscriptionId($subscriptionId)
+            ->shouldBeCalled()
+            ->willReturn($siteMembershipSubscription);
+
+        $this->getSiteMembershipSubscriptionByStripeSubscriptionId($subscriptionId)->shouldBe($siteMembershipSubscription);
+    }
+
+    public function it_should_renew_site_subscriptions()
+    {
+        $subscriptionId = 'sub_id';
+        $startTime = time();
+        $endTime = strtotime('+1 year', $startTime);
+
+        $this->siteMembershipSubscriptionsRepositoryMock->renewSiteMembershipSubscription(
+            $subscriptionId,
+            $startTime,
+            $endTime
+        )
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->renewSiteMembershipSubscription($subscriptionId, $startTime, $endTime)->shouldBe(true);
+    }
 }
