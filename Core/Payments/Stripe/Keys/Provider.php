@@ -9,6 +9,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Payments\Stripe\Keys\Controllers\StripeKeysController;
+use Minds\Core\Payments\Stripe\Webhooks\Services\SubscriptionsWebhookService;
 use Minds\Core\Security\Vault\VaultTransitService;
 
 class Provider extends DiProvider
@@ -29,8 +30,9 @@ class Provider extends DiProvider
 
         $this->di->bind(StripeKeysService::class, function (Di $di): StripeKeysService {
             return new StripeKeysService(
-                $di->get(StripeKeysRepository::class),
-                $di->get(VaultTransitService::class),
+                repository: $di->get(StripeKeysRepository::class),
+                vaultTransitService: $di->get(VaultTransitService::class),
+                subscriptionsWebhookService: $di->get(SubscriptionsWebhookService::class),
             );
         });
 

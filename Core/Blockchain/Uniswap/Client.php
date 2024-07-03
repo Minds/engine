@@ -269,6 +269,8 @@ class Client
             return new ForbiddenException(); // Only CLI can call for now
         }
 
+        \Sentry\captureMessage("Uniswap Client was called");
+
         $graphqlEndpoint = $this->config->get('uniswap')['url'];
 
         $response = $this->http->post(

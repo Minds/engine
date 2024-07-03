@@ -6,11 +6,15 @@ use Minds\Core;
 use Minds\Cli;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Interfaces;
 use Minds\Entities;
 use Minds\Core\Payments\Models\GetPaymentsOpts;
+use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipsRenewalsService;
 use Minds\Core\Supermind\Payments\SupermindPaymentProcessor;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
+use Minds\Core\Payments\Stripe\Keys\StripeKeysService;
+use Minds\Core\Payments\Stripe\Webhooks\Services\SubscriptionsWebhookService;
 use Minds\Core\Wire\Manager as WireManager;
 use Minds\Core\Wire\Wire;
 use Minds\Entities\User;
@@ -22,7 +26,9 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?IntentsManagerV2 $intentsManager = null,
         private ?SupermindPaymentProcessor $supermindPaymentProcessor = null,
-        private ?WireManager $wireManager = null
+        private ?WireManager $wireManager = null,
+        private ?MultiTenantBootService $multiTenantBootService = null,
+        private ?StripeKeysService $stripeKeysService = null,
     ) {
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
@@ -30,6 +36,8 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
         $this->intentsManager ??= new IntentsManagerV2();
         $this->supermindPaymentProcessor ??= new SupermindPaymentProcessor();
         $this->wireManager ??= Di::_()->get('Wire\Manager');
+        $this->multiTenantBootService ??= Di::_()->get(MultiTenantBootService::class);
+        $this->stripeKeysService ??= Di::_()->get(StripeKeysService::class);
     }
 
     public function help($command = null)
@@ -248,5 +256,44 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
         }
 
         $this->out("Completed. Processed $count PaymentIntents");
+    }
+
+    /**
+     * Sync site membership subscription webhooks for all tenants with Stripe kets set.
+     * Optionally also sync site memberships after syncing webhooks.
+     *
+     * Example usage:
+     * ```
+     * php cli.php Stripe sync_membership_webhooks --sync_site_memberships
+     * ```
+     * @return void
+     */
+    public function sync_membership_webhooks(): void
+    {
+        $this->out("Syncing membership webhooks...");
+        $keyPairs = $this->stripeKeysService->getAllKeys();
+
+        foreach ($keyPairs as $keyPair) {
+            $tenantId = (int) $keyPair['tenant_id'];
+            $this->out("Syncing webhook for tenant: {$tenantId}...");
+
+            try {
+                $this->multiTenantBootService->bootFromTenantId($tenantId);
+
+                $this->out(
+                    Di::_()->get(SubscriptionsWebhookService::class)->createSubscriptionsWebhook() ?
+                        "Webhook created, or already exists for tenant: {$tenantId}." :
+                        "Webhook not created for tenant: {$tenantId}"
+                );
+
+                if ($this->getOpt('sync_site_memberships')) {
+                    Di::_()->get(SiteMembershipsRenewalsService::class)->syncSiteMemberships($tenantId);
+                }
+            } catch(\Exception $e) {
+                $this->out($e->getMessage());
+            }
+        }
+
+        $this->out('Done.');
     }
 }
