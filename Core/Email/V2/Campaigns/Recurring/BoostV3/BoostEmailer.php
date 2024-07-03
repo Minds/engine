@@ -169,6 +169,13 @@ class BoostEmailer extends EmailCampaign
                 $ctaText = 'View Results';
                 $ctaPath = $this->getConsoleUrl($trackingQueryParams);
                 break;
+            case ActionEvent::ACTION_BOOST_CANCELLED:
+                $headerText = 'Your Boost was cancelled';
+                $preHeaderText = "Your Boost was cancelled";
+                $bodyText = "Your Boost has been cancelled by a moderator and is no longer running.";
+                $ctaText = 'View Status';
+                $ctaPath = $this->getConsoleUrl($trackingQueryParams);
+                break;
             default:
                 return null;
         }

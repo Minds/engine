@@ -53,11 +53,12 @@ class ViewsTopic extends AbstractTopic implements TopicInterface
      */
     private function createMessage(ViewEvent $event): Message
     {
+        $userGuid = $event->getUser() ? (string) $event->getUser()->getGuid() : null;
         return (new MessageBuilder())
             ->setEventTimestamp($event->getTimestamp() ?: time())
             ->setContent(
                 json_encode([
-                    'user_guid' => (string) $event->getUser()->getGuid(),
+                    'user_guid' => $userGuid,
                     'entity_urn' => (string) $event->getEntity()->getUrn(),
                     'entity_guid' => (string) $event->getEntity()->getUrn(),
                     'entity_owner_guid' => (string) $event->getEntity()->getOwnerGuid(),
@@ -73,6 +74,7 @@ class ViewsTopic extends AbstractTopic implements TopicInterface
                     'cm_position' => $event->cmPosition,
                     'cm_served_by_guid' => $event->cmServedByGuid,
                     'view_uuid' => $event->viewUUID,
+                    'external' => $event->external,
                     'tenant_id' => $this->config->get('tenant_id') ?: -1,
                 ])
             )
@@ -200,6 +202,10 @@ class ViewsTopic extends AbstractTopic implements TopicInterface
                 [
                     'name' => 'view_uuid',
                     'type' => 'string'
+                ],
+                [
+                    'name' => 'external',
+                    'type' => 'boolean'
                 ],
                 [
                     'name' => 'tenant_id',

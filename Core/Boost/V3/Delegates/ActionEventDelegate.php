@@ -82,6 +82,16 @@ class ActionEventDelegate
     }
 
     /**
+     * On boost cancellation, dispatch an ActionEvent to subscribers.
+     * @param Boost $boost - boost to dispatch event for.
+     * @return void
+     */
+    public function onCancel(Boost $boost): void
+    {
+        $this->send($boost, ActionEvent::ACTION_BOOST_CANCELLED);
+    }
+
+    /**
      * Dispatch an ActionEvent to subscribers.
      * @param Boost $boost - boost to dispatch event for.
      * @param string $action - action to be dispatched for.

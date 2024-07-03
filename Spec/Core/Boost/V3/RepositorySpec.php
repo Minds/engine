@@ -548,6 +548,28 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeEqualTo(true);
     }
 
+    public function it_should_cancel_by_entity_guid(
+        PDOStatement $statement
+    ): void {
+        $statement->execute()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->mysqlClientWriter->prepare(Argument::any())
+            ->shouldBeCalledOnce()
+            ->willReturn($statement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::that(function ($arg) {
+            return $arg['status'] = BoostStatus::CANCELLED &&
+                is_string($arg['updated_timestamp']) &&
+                $arg['entity_guid'] === '123';
+        }))
+            ->shouldBeCalledOnce();
+
+        $this->cancelByEntityGuid('123')
+            ->shouldBeEqualTo(true);
+    }
+
     public function it_should_get_admin_stats(PDOStatement $statement)
     {
         $expectedResponse = [

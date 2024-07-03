@@ -34,7 +34,31 @@ class Events
                 $event->setResponse(
                     $chatRoomService->isUserMemberOfRoom(
                         user: $user,
-                        roomGuid: $entity->roomGuid
+                        roomGuid: $entity instanceof ChatMessage ?
+                            $entity->roomGuid :
+                            $entity->guid
+                    )
+                );
+            }
+        );
+
+        $this->eventsDispatcher->register(
+            event: 'acl:write',
+            namespace: 'chat',
+            handler: function (Event $event): void {
+                $chatRoomService = $this->getChatRoomService();
+                /**
+                 * @var ChatMessage|ChatRoom $entity
+                 * @var User $user
+                 */
+                ['user' => $user, 'entity' => $entity] = $event->getParameters();
+
+                $event->setResponse(
+                    $chatRoomService->isUserMemberOfRoom(
+                        user: $user,
+                        roomGuid: $entity instanceof ChatMessage ?
+                            $entity->roomGuid :
+                            $entity->guid
                     )
                 );
             }

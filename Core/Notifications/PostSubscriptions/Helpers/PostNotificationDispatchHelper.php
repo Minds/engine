@@ -34,6 +34,11 @@ class PostNotificationDispatchHelper implements PostNotificationDispatchHelperIn
      */
     public function canDispatch(PostSubscription $postSubscription, Entity $forActivity): bool
     {
+        // Do not dispatch if post is older than 24 hours old
+        if ($forActivity->getTimeCreated() < time() - 86400) {
+            return false;
+        }
+
         $containerEntity = null;
 
         if ($forActivity->getContainerGuid()) {

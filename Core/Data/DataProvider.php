@@ -36,6 +36,10 @@ class DataProvider extends Provider
             return new cache\Cassandra();
         }, ['useFactory'=>true]);
 
+        $this->di->bind(cache\Cassandra::class, function (Di $di): cache\Cassandra {
+            return new cache\Cassandra();
+        }, ['useFactory' => true]);
+
         $this->di->bind(InMemoryCache::class, function (Di $di): InMemoryCache {
             return new InMemoryCache();
         }, ['useFactory' => true]);

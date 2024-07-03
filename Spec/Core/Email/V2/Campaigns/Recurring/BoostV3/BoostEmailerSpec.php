@@ -1423,4 +1423,127 @@ class BoostEmailerSpec extends ObjectBehavior
 
         $this->setBoost($boost)->setTopic($topic)->send();
     }
+
+    public function it_should_build_a_boost_cancelled_email(
+        Boost $boost,
+        User $user
+    ): void {
+        $topic = ActionEvent::ACTION_BOOST_CANCELLED;
+        $userGuid = '234';
+        $userUsername = 'minds_receiver';
+        $userEmail = 'no-reply@minds.com';
+        $campaign = 'when';
+        $tracking = "__e_ct_guid=$userGuid&campaign=when&topic=$topic";
+        $bodyText = "Your Boost has been cancelled by a moderator and is no longer running.";
+        $headerText = "Your Boost was cancelled";
+        $preHeaderText = "Your Boost was cancelled";
+        $url = '~url~';
+
+        $boost->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
+
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
+
+        
+        $user->get('guid')
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
+
+        $user->getEmail()
+            ->shouldBeCalled()
+            ->willReturn($userEmail);
+
+        $user->getUsername()
+            ->shouldBeCalled()
+            ->willReturn($userUsername);
+
+        $user->get('name')
+            ->shouldBeCalled()
+            ->willReturn($userUsername);
+
+        $this->entitiesBuilder->single($userGuid)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->consoleUrlBuilder->build($boost, [
+            '__e_ct_guid' => $userGuid,
+            'campaign' => $campaign,
+            'topic' => $topic,
+        ])
+            ->shouldBeCalled()
+            ->willReturn($url);
+
+        $this->template->setTemplate('default.v2.tpl')->shouldBeCalled();
+        $this->template->setBody('./template.tpl')->shouldBeCalled();
+
+        $this->template->set('user', $user)
+            ->shouldBeCalled();
+
+        $this->template->set('username', $userUsername)
+            ->shouldBeCalled();
+
+        $this->template->set('email', $userEmail)
+            ->shouldBeCalled();
+
+        $this->template->set('guid', $userGuid)
+            ->shouldBeCalled();
+
+        $this->template->set('campaign', 'when')
+            ->shouldBeCalled();
+
+        $this->template->set('topic', $topic)
+            ->shouldBeCalled();
+
+        $this->template->set('tracking', $tracking)
+            ->shouldBeCalled();
+
+        $this->template->set('title', '')
+            ->shouldBeCalled();
+
+        $this->template->set('state', '')
+            ->shouldBeCalled();
+
+        $this->template->set('preheader', $preHeaderText)
+            ->shouldBeCalled();
+
+        $this->template->set('bodyText', $bodyText)
+            ->shouldBeCalled();
+
+        $this->template->set('headerText', $headerText)
+            ->shouldBeCalled();
+
+        $this->template->set('additionalCtaText', '')
+            ->shouldBeCalled();
+
+        $this->template->set('additionalCtaPath', '')
+            ->shouldBeCalled();
+
+        $this->template->set('actionButton', Argument::type('string'))
+            ->shouldBeCalled()
+            ->willReturn($userUsername);
+
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->template->set('hide_unsubscribe_link', false)
+            ->shouldBeCalled();
+
+        $this->tenantTemplateVariableInjector->inject($this->template)
+            ->shouldBeCalled()
+            ->willReturn($this->template);
+
+        $this->mailer->send(Argument::any())->shouldBeCalled();
+
+        $this->emailManager->saveCampaignLog(Argument::that(function ($arg) {
+            return is_numeric($arg->getTimeSent()) &&
+                $arg->getEmailCampaignId() === "BoostEmailer";
+        }))
+            ->shouldBeCalled();
+
+        $this->setBoost($boost)->setTopic($topic)->send();
+    }
 }

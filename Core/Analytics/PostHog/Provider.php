@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Minds\Core\Analytics\PostHog;
 
 use Minds\Core\Config\Config;
-use Minds\Core\Data\cache\SharedCache;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
@@ -12,6 +11,7 @@ use Minds\Core\EntitiesBuilder;
 use PostHog\Client as PostHogClient;
 use GuzzleHttp\Client as GuzzleClient;
 use Minds\Core\Analytics\PostHog\Controllers\PostHogGqlController;
+use Minds\Core\Data\cache\Cassandra;
 
 class Provider extends DiProvider
 {
@@ -32,7 +32,7 @@ class Provider extends DiProvider
                     loadFeatureFlags: false,
                 ),
                 postHogConfig: $postHogConfig,
-                cache: $di->get(SharedCache::class),
+                cache: $di->get(Cassandra::class),
                 config: $di->get(Config::class),
             );
         });

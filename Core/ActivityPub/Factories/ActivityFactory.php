@@ -98,7 +98,7 @@ class ActivityFactory
 
         $activity->object = match (get_class($activity)) {
             FollowType::class => $this->actorFactory->fromUri(JsonLdHelper::getValueOrId($json['object'])),
-            UndoType::class => $this->fromJson($json['object'], $actor),
+            UndoType::class => is_array($json['object']) ? $this->fromJson($json['object'], $actor) : throw new NotImplementedException("Undo must provide a json object"),
             AcceptType::class => $this->fromJson($json['object'], $actor),
             LikeType::class => $this->objectFactory->fromUri(JsonLdHelper::getValueOrId($json['object'])),
             FlagType::class => is_array($json['object']) ? "" : $json['object'],

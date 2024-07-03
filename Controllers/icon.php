@@ -117,6 +117,10 @@ class icon extends core\page implements Interfaces\page
         //} else {
         $user = Di::_()->get(EntitiesBuilder::class)->single($guid, ['cacheTtl' => 259200]);
 
+        if (!$user) {
+            exit;
+        }
+
         if (isset($user->legacy_guid) && $user->legacy_guid) {
             $guid = $user->legacy_guid;
         }

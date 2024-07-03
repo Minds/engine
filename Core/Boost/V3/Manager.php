@@ -664,6 +664,35 @@ class Manager
     }
 
     /**
+     * Cancel boosts in given statuses, by entity guid.
+     * @param string $entityGuid - entity guid for which to cancel boosts.
+     * @param array $statuses - array of statuses to update status for.
+     * @return bool true on success.
+     */
+    public function cancelByEntityGuid(
+        string $entityGuid,
+        array $statuses = [BoostStatus::APPROVED, BoostStatus::PENDING]
+    ): bool {
+        $boosts = $this->repository->getBoosts(
+            entityGuid: $entityGuid,
+            targetStatus: BoostStatus::APPROVED
+        );
+
+        $success = $this->repository->cancelByEntityGuid(
+            entityGuid: $entityGuid,
+            statuses: $statuses
+        );
+
+        if ($success) {
+            foreach ($boosts as $boost) {
+                $this->actionEventDelegate->onCancel($boost);
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Update the status of a single boost.
      * @param string $boostGuid - guid of boost to update.
      * @return bool true if boost updated.

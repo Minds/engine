@@ -48,6 +48,7 @@ class RepositorySpec extends ObjectBehavior
         $view->getMedium()->shouldBeCalled()->willReturn('test');
         $view->getCampaign()->shouldBeCalled()->willReturn('urn:phpspec:234234');
         $view->getDelta()->shouldBeCalled()->willReturn(100);
+        $view->isExternal()->shouldBeCalled()->willReturn(false);
 
         $this->db->request(Argument::that(function (Custom $prepared) {
             $statement = $prepared->build();
@@ -88,6 +89,7 @@ class RepositorySpec extends ObjectBehavior
         $view->getMedium()->shouldBeCalled()->willReturn('test');
         $view->getCampaign()->shouldBeCalled()->willReturn('urn:phpspec:234234');
         $view->getDelta()->shouldBeCalled()->willReturn(100);
+        $view->isExternal()->shouldBeCalled()->willReturn(false);
 
         $this->db->request(Argument::that(function (Custom $prepared) use ($now) {
             $statement = $prepared->build();

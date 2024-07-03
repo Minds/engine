@@ -16,12 +16,16 @@ use Psr\SimpleCache\CacheInterface;
  */
 class Cassandra implements CacheInterface
 {
+    const IN_MEMORY_PREFIX = "cassandra:";
+
     public function __construct(
         private ?CassandraClient $cassandraClient = null,
-        private ?Logger          $logger = null
+        private ?Logger          $logger = null,
+        private ?InMemoryCache $inMemoryCache = null,
     ) {
         $this->cassandraClient ??= Di::_()->get('Database\Cassandra\Cql');
         $this->logger ??= Di::_()->get("Logger");
+        $this->inMemoryCache ??= Di::_()->get(InMemoryCache::class);
     }
 
     /**
@@ -29,8 +33,12 @@ class Cassandra implements CacheInterface
      * @inheritDoc
      * @throws Exception
      */
-    public function get($key, $default = null): ?string
+    public function get($key, $default = null)
     {
+        if ($this->inMemoryCache->has(self::IN_MEMORY_PREFIX . $key)) {
+            return $this->inMemoryCache->get(self::IN_MEMORY_PREFIX . $key);
+        }
+
         $query = (new PreparedStatement())
             ->query(
                 "SELECT *
@@ -51,7 +59,17 @@ class Cassandra implements CacheInterface
             return $default;
         }
 
-        return $response->first()['data'];
+        $value = $response->first()['data'];
+
+        if ($value !== false) {
+            $value = json_decode($value, true);
+
+            $this->inMemoryCache->set(self::IN_MEMORY_PREFIX . $key, $value);
+
+            return $value;
+        }
+
+        return $default;
     }
 
     /**
@@ -61,6 +79,10 @@ class Cassandra implements CacheInterface
      */
     public function set($key, $value, $ttl = null): bool
     {
+        $this->inMemoryCache->set(self::IN_MEMORY_PREFIX . $key, $value);
+
+        $value = json_encode($value);
+
         $query = (new PreparedStatement())
             ->query(
                 "INSERT INTO
@@ -95,6 +117,8 @@ class Cassandra implements CacheInterface
      */
     public function delete($key): bool
     {
+        $this->inMemoryCache->delete(self::IN_MEMORY_PREFIX . $key);
+
         $query = (new PreparedStatement())
             ->query(
                 "DELETE FROM cache WHERE key = ?",

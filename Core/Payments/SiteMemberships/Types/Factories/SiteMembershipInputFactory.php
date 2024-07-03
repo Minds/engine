@@ -44,6 +44,9 @@ class SiteMembershipInputFactory
         ?string                         $membershipDescription = null,
         ?array                          $roles = null,
         ?array                          $groups = null,
+        bool                            $isExternal = false,
+        ?string                         $purchaseUrl = null,
+        ?string                         $manageUrl = null,
     ): SiteMembership {
         return new SiteMembership(
             membershipGuid: (int)Guid::build(),
@@ -53,7 +56,10 @@ class SiteMembershipInputFactory
             membershipPricingModel: $membershipPricingModel,
             membershipDescription: $membershipDescription,
             roles: $roles,
-            groups: $groups ? $this->processGroups($groups) : null
+            groups: $groups ? $this->processGroups($groups) : null,
+            isExternal: $isExternal,
+            purchaseUrl: $purchaseUrl,
+            manageUrl: $manageUrl,
         );
     }
 
@@ -89,7 +95,9 @@ class SiteMembershipInputFactory
         string  $membershipName,
         ?string $membershipDescription = null,
         ?array  $roles = null,
-        ?array  $groups = null
+        ?array  $groups = null,
+        ?string $purchaseUrl = null,
+        ?string $manageUrl = null,
     ): SiteMembership {
         $siteMembership = $this->siteMembershipReaderService->getSiteMembership((int)$membershipGuid);
 
@@ -101,7 +109,10 @@ class SiteMembershipInputFactory
             membershipPricingModel: $siteMembership->membershipPricingModel,
             membershipDescription: $membershipDescription,
             roles: $roles,
-            groups: $groups ? $this->processGroups($groups) : null
+            groups: $groups ? $this->processGroups($groups) : null,
+            isExternal: $siteMembership->isExternal,
+            purchaseUrl: $purchaseUrl,
+            manageUrl: $manageUrl,
         );
     }
 }

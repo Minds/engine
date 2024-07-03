@@ -7,6 +7,7 @@ use Minds\Core\Di\Ref;
 use Minds\Core\MultiTenant\Controllers\TenantPsrController;
 use Minds\Core\Router\Enums\ApiScopeEnum;
 use Minds\Core\Router\Middleware\AdminMiddleware;
+use Minds\Core\Router\Middleware\LoggedInMiddleware;
 use Minds\Core\Router\Middleware\NotMultiTenantMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
@@ -25,6 +26,7 @@ class Routes extends ModuleRoutes
                 $route
                     ->withMiddleware([
                         NotMultiTenantMiddleware::class,
+                        LoggedInMiddleware::class,
                     ])
                     ->withScope(ApiScopeEnum::TENANT_CREATE_TRIAL)
                     ->post(

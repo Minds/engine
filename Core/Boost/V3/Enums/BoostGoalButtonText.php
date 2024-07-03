@@ -15,6 +15,8 @@ class BoostGoalButtonText
     public const GET_STARTED = 5;
     public const SIGN_UP = 6;
     public const TRY_FOR_FREE = 7;
+    public const SHOP_NOW = 8;
+    public const BUY_NOW = 9;
 
     /**
      * @var array A list of all valid values for the enum when the boost goal is subscribers - To be used for validation purposes
@@ -32,6 +34,8 @@ class BoostGoalButtonText
         self::LEARN_MORE,
         self::GET_STARTED,
         self::SIGN_UP,
-        self::TRY_FOR_FREE
+        self::TRY_FOR_FREE,
+        self::SHOP_NOW,
+        self::BUY_NOW
     ];
 }

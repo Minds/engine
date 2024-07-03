@@ -1094,3 +1094,7 @@ ALTER TABLE `minds_custom_navigation`
 
 ALTER TABLE minds_group_membership
     ADD site_membership_guid BIGINT DEFAULT NULL REFERENCES minds_site_membership_subscriptions (site_membership_guid);
+
+ALTER TABLE minds_site_membership_tiers ADD COLUMN is_external BOOLEAN DEFAULT FALSE AFTER archived;
+ALTER TABLE minds_site_membership_tiers ADD COLUMN purchase_url varchar(256) DEFAULT NULL AFTER is_external;
+ALTER TABLE minds_site_membership_tiers ADD COLUMN manage_url varchar(256) DEFAULT NULL AFTER purchase_url;

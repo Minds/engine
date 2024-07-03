@@ -26,7 +26,10 @@ class SiteMembership
         #[Field] public readonly string                          $priceCurrency = 'USD',
         private readonly ?array                                  $roles = null,
         private readonly ?array                                  $groups = null,
-        #[Field] public readonly bool                            $archived = false
+        #[Field] public readonly bool                            $archived = false,
+        #[Field] public readonly bool                            $isExternal = false,
+        #[Field] public readonly ?string                         $manageUrl = null,
+        #[Field] public readonly ?string                         $purchaseUrl = null,
     ) {
     }
 
