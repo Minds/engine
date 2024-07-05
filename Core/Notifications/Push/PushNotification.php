@@ -292,7 +292,7 @@ class PushNotification implements PushNotificationInterface
             case 'user':
                 return $this->getEnvBasedUri($entity->getUsername());
             case 'comment':
-                return $this->getEnvBasedUri('newsfeed/' . $entity->getEntityGuid() . '?focusedCommentUrn=' . $entity->getUrn());
+                return $this->getEnvBasedUri('newsfeed/' . $entity->getEntityGuid()) . '&focusedCommentUrn=' . $entity->getUrn();
             case 'supermind':
                 if ($entity instanceof SupermindRequest && $entity->getStatus() === SupermindRequestStatus::ACCEPTED) {
                     return $this->getEnvBasedUri('newsfeed/' . $entity->getReplyActivityGuid());
@@ -309,12 +309,15 @@ class PushNotification implements PushNotificationInterface
     /**
      * Needed to allow push notifications to be sent from dev environments
      * Note: Push notifications' deep links are not supported on dev environments
-     * @param string $route
-     * @return string
      */
     private function getEnvBasedUri(string $route): string
     {
-        return $this->config->get('site_url') . $route;
+        $queryParams = http_build_query([
+            'utm_source' => 'minds',
+            'utm_medium' => 'push-notification',
+            'utm_content' => $this->notification->getType(),
+        ]);
+        return $this->config->get('site_url') . $route . '?' . $queryParams;
     }
 
     /**

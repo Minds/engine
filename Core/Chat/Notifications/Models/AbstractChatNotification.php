@@ -24,7 +24,12 @@ abstract class AbstractChatNotification implements PushNotificationInterface
 
     protected function getEnvBasedUri(string $route): string
     {
-        return $this->config->get('site_url') . $route;
+        $queryParams = http_build_query([
+            'utm_source' => 'minds',
+            'utm_medium' => 'push-notification',
+            'utm_content' => 'chat',
+        ]);
+        return $this->config->get('site_url') . $route . '?' . $queryParams;
     }
 
     public function setDeviceSubscription(DeviceSubscription $deviceSubscription): void

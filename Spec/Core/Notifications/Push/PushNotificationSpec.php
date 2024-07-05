@@ -691,7 +691,7 @@ class PushNotificationSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($entity);
 
-        $this->getUri()->shouldReturn('https://www.minds.com/newsfeed/123');
+        $this->getUri()->shouldReturn('https://www.minds.com/newsfeed/123?utm_source=minds&utm_medium=push-notification&utm_content=boost_rejected');
     }
 
     public function it_should_get_uri_for_a_boost_rejected_notification_for_a_channel(
@@ -717,7 +717,7 @@ class PushNotificationSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($entity);
 
-        $this->getUri()->shouldReturn('https://www.minds.com/testuser');
+        $this->getUri()->shouldReturn('https://www.minds.com/testuser?utm_source=minds&utm_medium=push-notification&utm_content=boost_rejected');
     }
 
     public function it_should_build_post_subscription_notification()
@@ -756,7 +756,7 @@ class PushNotificationSpec extends ObjectBehavior
             ->shouldBe('Hello tests');
 
         $this->getUri()
-            ->shouldBe('https://www.minds.com/newsfeed/1');
+            ->shouldBe('https://www.minds.com/newsfeed/1?utm_source=minds&utm_medium=push-notification&utm_content=post_subscription');
     }
 
     public function it_should_build_post_subscription_notification_that_is_a_remind()
@@ -791,7 +791,7 @@ class PushNotificationSpec extends ObjectBehavior
             ->shouldBe('phpspec');
 
         $this->getUri()
-            ->shouldBe('https://www.minds.com/newsfeed/1');
+            ->shouldBe('https://www.minds.com/newsfeed/1?utm_source=minds&utm_medium=push-notification&utm_content=post_subscription');
     }
 
     public function it_should_return_body_text_for_post_subscription_entity_with_message(Activity $entity)
