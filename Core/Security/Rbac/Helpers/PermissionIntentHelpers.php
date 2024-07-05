@@ -29,7 +29,7 @@ class PermissionIntentHelpers
     public function getTenantDefaultIntentType(PermissionsEnum $permissionId): PermissionIntentTypeEnum
     {
         return match ($permissionId) {
-            PermissionsEnum::CAN_CREATE_POST => PermissionIntentTypeEnum::WARNING_MESSAGE,
+            PermissionsEnum::CAN_CREATE_POST => PermissionIntentTypeEnum::HIDE,
             PermissionsEnum::CAN_INTERACT => PermissionIntentTypeEnum::WARNING_MESSAGE,
             PermissionsEnum::CAN_UPLOAD_VIDEO => PermissionIntentTypeEnum::WARNING_MESSAGE,
             PermissionsEnum::CAN_CREATE_CHAT_ROOM => PermissionIntentTypeEnum::WARNING_MESSAGE,
@@ -52,22 +52,22 @@ class PermissionIntentHelpers
             ),
             new PermissionIntent(
                 permissionId: PermissionsEnum::CAN_INTERACT,
-                intentType: PermissionIntentTypeEnum::HIDE,
+                intentType: PermissionIntentTypeEnum::WARNING_MESSAGE,
                 membershipGuid: null
             ),
             new PermissionIntent(
                 permissionId: PermissionsEnum::CAN_UPLOAD_VIDEO,
-                intentType: PermissionIntentTypeEnum::HIDE,
+                intentType: PermissionIntentTypeEnum::WARNING_MESSAGE,
                 membershipGuid: null
             ),
             new PermissionIntent(
                 permissionId: PermissionsEnum::CAN_CREATE_CHAT_ROOM,
-                intentType: PermissionIntentTypeEnum::HIDE,
+                intentType: PermissionIntentTypeEnum::WARNING_MESSAGE,
                 membershipGuid: null
             ),
             new PermissionIntent(
                 permissionId: PermissionsEnum::CAN_COMMENT,
-                intentType: PermissionIntentTypeEnum::HIDE,
+                intentType: PermissionIntentTypeEnum::WARNING_MESSAGE,
                 membershipGuid: null
             )
         ];
