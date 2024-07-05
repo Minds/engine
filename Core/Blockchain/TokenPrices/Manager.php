@@ -25,24 +25,20 @@ class Manager
      */
     public function getPrices(): array
     {
+        $tokenAddress = $this->config->get('blockchain')['token_address'];
+
+        $cacheKey = "blockchain::token-balance::$tokenAddress";
+
+        if ($cached = $this->cache->get($cacheKey)) {
+            $prices = unserialize($cached);
+        } else {
+            $prices = $this->uniswapClient->getTokenUsdPrices($tokenAddress);
+            $this->cache->set($cacheKey, serialize($prices), 3600); // 1 hour
+        }
+
         return [
-            'eth' => 0,
-            'minds' => 0,
+            'eth' => $prices['eth'],
+            'minds' => $prices['token'],
         ];
-        // $tokenAddress = $this->config->get('blockchain')['token_address'];
-
-        // $cacheKey = "blockchain::token-balance::$tokenAddress";
-
-        // if ($cached = $this->cache->get($cacheKey)) {
-        //     $prices = unserialize($cached);
-        // } else {
-        //     $prices = $this->uniswapClient->getTokenUsdPrices($tokenAddress);
-        //     $this->cache->set($cacheKey, serialize($prices), 3600); // 1 hour
-        // }
-
-        // return [
-        //     'eth' => $prices['eth'],
-        //     'minds' => $prices['token'],
-        // ];
     }
 }
