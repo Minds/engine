@@ -57,7 +57,7 @@ class Digest extends EmailCampaign
         $this->tenantTemplateVariableInjector ??= Di::_()->get(TenantTemplateVariableInjector::class);
 
         $this->campaign = 'with';
-        $this->topic = 'top_posts';
+        $this->topic = 'posts_missed_since_login';
     }
 
     public function build(): ?Message
