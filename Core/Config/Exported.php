@@ -24,6 +24,7 @@ use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
 use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRepository;
 use Minds\Core\Rewards\Contributions\ContributionValues;
+use Minds\Core\Security\Rbac\Services\PermissionIntentsService;
 use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Core\Session;
 use Minds\Core\Supermind\Settings\Models\Settings as SupermindSettings;
@@ -67,6 +68,7 @@ class Exported
         private ?CustomNavigationService $customNavigationService = null,
         private ?ReceiptService $chatReceiptsService = null,
         private ?PostHogConfig $postHogConfig = null,
+        private ?PermissionIntentsService $permissionIntentsService = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->thirdPartyNetworks = $thirdPartyNetworks ?: Di::_()->get('ThirdPartyNetworks\Manager');
@@ -78,6 +80,7 @@ class Exported
         $this->customNavigationService ??= Di::_()->get(CustomNavigationService::class);
         $this->chatReceiptsService ??= Di::_()->get(ReceiptService::class);
         $this->postHogConfig ??= Di::_()->get(PostHogConfig::class);
+        $this->permissionIntentsService ??= Di::_()->get(PermissionIntentsService::class);
     }
 
     /**
@@ -171,6 +174,11 @@ class Exported
             $exported['permissions'] = array_map(function ($permission) {
                 return $permission->name;
             }, $this->rolesService->getUserPermissions($user));
+
+            $permissionIntents = $this->permissionIntentsService->getPermissionIntents();
+            if (count($permissionIntents)) {
+                $exported['permission_intents'] = array_map(fn ($intent) => $intent->export(), $permissionIntents);
+            }
         } else {
             $exported['permissions'] = [];
         }
