@@ -28,11 +28,13 @@ use Minds\Core\Payments\InAppPurchases\Models\ProductPurchase;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
+use Minds\Core\Payments\V2\Enums\FreePaymentMethodEnum;
 use Minds\Core\Payments\V2\Enums\PaymentStatus;
 use Minds\Core\Payments\V2\Exceptions\InvalidPaymentMethodException;
 use Minds\Core\Payments\V2\Exceptions\PaymentNotFoundException;
 use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
+use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -135,6 +137,7 @@ class PaymentProcessor
      * @throws BoostCashPaymentSetupFailedException
      * @throws GiftCardInsufficientFundsException
      * @throws ServerErrorException
+     * @throws UnauthorizedException
      * @throws GiftCardNotFoundException
      */
     private function setupCashPaymentIntent(Boost $boost, PaymentDetails $paymentDetails, User $user): bool
@@ -154,6 +157,14 @@ class PaymentProcessor
             );
             // Reset the inTransaction state
             $this->giftCardsManager->setInTransaction(!$this->inTransaction);
+            return true;
+        }
+
+        if (FreePaymentMethodEnum::tryFrom($boost->getPaymentMethodId())) {
+            if (!$user->isAdmin()) {
+                throw new UnauthorizedException('Only admins can create free admin Boosts');
+            }
+            $boost->setPaymentTxId(FreePaymentMethodEnum::FREE_ADMIN_BOOST->value);
             return true;
         }
 
@@ -277,7 +288,7 @@ class PaymentProcessor
             $boostOwner = null;
         }
 
-        if ($boost->getPaymentTxId() === GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
+        if (in_array($boost->getPaymentTxId(), [GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID, FreePaymentMethodEnum::FREE_ADMIN_BOOST->value], true)) {
             return true;
         }
         
@@ -362,6 +373,10 @@ class PaymentProcessor
             return true;
         }
         
+        if ($boost->getPaymentTxId() === FreePaymentMethodEnum::FREE_ADMIN_BOOST->value) {
+            return true;
+        }
+
         return $this->getIntentsManager()->cancelPaymentIntent($boost->getPaymentTxId(), $boostOwner);
     }
 
