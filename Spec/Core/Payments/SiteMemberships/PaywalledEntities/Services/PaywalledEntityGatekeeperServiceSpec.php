@@ -74,6 +74,7 @@ class PaywalledEntityGatekeeperServiceSpec extends ObjectBehavior
         $this->siteMembershipSubscriptionsServiceMock->getSiteMembershipSubscriptions($userMock)
             ->willReturn([
                 new SiteMembershipSubscription(
+                    userGuid: 456,
                     membershipSubscriptionId: 1,
                     membershipGuid: 2,
                     stripeSubscriptionId: 'stripe-id',
@@ -99,6 +100,7 @@ class PaywalledEntityGatekeeperServiceSpec extends ObjectBehavior
         $this->siteMembershipSubscriptionsServiceMock->getSiteMembershipSubscriptions($userMock)
             ->willReturn([
                 new SiteMembershipSubscription(
+                    userGuid: 456,
                     membershipSubscriptionId: 1,
                     membershipGuid: 2,
                     stripeSubscriptionId: 'stripe-id',
@@ -125,6 +127,7 @@ class PaywalledEntityGatekeeperServiceSpec extends ObjectBehavior
         $this->siteMembershipSubscriptionsServiceMock->getSiteMembershipSubscriptions($userMock)
             ->willReturn([
                 new SiteMembershipSubscription(
+                    userGuid: 456,
                     membershipSubscriptionId: 1,
                     membershipGuid: 2,
                     stripeSubscriptionId: 'stripe-id',
@@ -151,6 +154,7 @@ class PaywalledEntityGatekeeperServiceSpec extends ObjectBehavior
         $this->siteMembershipSubscriptionsServiceMock->getSiteMembershipSubscriptions($userMock)
             ->willReturn([
                 new SiteMembershipSubscription(
+                    userGuid: 456,
                     membershipSubscriptionId: 1,
                     membershipGuid: 2,
                     stripeSubscriptionId: 'stripe-id',

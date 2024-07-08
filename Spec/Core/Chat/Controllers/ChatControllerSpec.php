@@ -688,6 +688,28 @@ class ChatControllerSpec extends ObjectBehavior
             ->shouldEqual(true);
     }
 
+    public function it_should_add_members_to_a_chat_room(
+        User $loggedInUserMock
+    ): void {
+        $memberGuids = [Guid::build(), Guid::build()];
+        $roomGuid = Guid::build();
+
+        $this->roomServiceMock->addRoomMembers(
+            $roomGuid,
+            $memberGuids,
+            $loggedInUserMock
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->addMembersToChatRoom(
+            $roomGuid,
+            $memberGuids,
+            $loggedInUserMock
+        )
+            ->shouldEqual(true);
+    }
+
     public function it_should_remove_member_from_chat_room(
         User $loggedInUserMock
     ): void {

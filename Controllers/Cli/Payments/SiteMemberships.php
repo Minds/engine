@@ -8,6 +8,7 @@ use Minds\Core\Groups\V2\Membership\Manager as GroupMembershipService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipSubscriptionsService;
 use Minds\Cli\Controller;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
+use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipsRenewalsService;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Interfaces\CliControllerInterface;
@@ -18,13 +19,15 @@ class SiteMemberships extends Controller implements CliControllerInterface
     public function __construct(
         private ?SiteMembershipSubscriptionsService $siteMembershipSubscriptionsService = null,
         private ?GroupMembershipService $groupMembershipService = null,
-        private ?MultiTenantBootService $multiTenantBootService = null
+        private ?MultiTenantBootService $multiTenantBootService = null,
+        private ?MultiTenantDataService $multiTenantDataService = null,
     ) {
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
         $this->siteMembershipSubscriptionsService ??= Di::_()->get(SiteMembershipSubscriptionsService::class);
         $this->groupMembershipService ??= Di::_()->get(GroupMembershipService::class);
         $this->multiTenantBootService ??= Di::_()->get(MultiTenantBootService::class);
+        $this->multiTenantDataService ??= Di::_()->get(MultiTenantDataService::class);
     }
 
     public function exec()
@@ -67,8 +70,17 @@ class SiteMemberships extends Controller implements CliControllerInterface
         $siteMembershipsRenewalsService->syncSiteMemberships($tenantId);
     }
 
-    public function cleanupExpiredGroupMemberships()
+    /**
+     * Keep the site membership group assignments in sync
+     */
+    public function syncGroupMemberships()
     {
+        // Remove expired
         $this->groupMembershipService->cleanupExpiredGroupMemberships();
+        // Join any groups thats users should be in
+        foreach ($this->multiTenantDataService->getTenants(limit: 9999999) as $tenant) {
+            $this->multiTenantBootService->bootFromTenantId($tenant->id);
+            $this->siteMembershipSubscriptionsService->syncOutOfSyncSiteMemberships();
+        }
     }
 }

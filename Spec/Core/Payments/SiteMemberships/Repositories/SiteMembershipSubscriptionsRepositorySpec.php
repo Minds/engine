@@ -149,6 +149,7 @@ class SiteMembershipSubscriptionsRepositorySpec extends ObjectBehavior
 
         $selectQueryMock->columns([
             'id',
+            'user_guid',
             'membership_tier_guid',
             'stripe_subscription_id',
             'manual',
@@ -180,6 +181,7 @@ class SiteMembershipSubscriptionsRepositorySpec extends ObjectBehavior
             ->willReturn([
                 [
                     'id' => 1,
+                    'user_guid' => 456,
                     'membership_tier_guid' => 1,
                     'stripe_subscription_id' => 'stripe_subscription_id',
                     'auto_renew' => 1,
@@ -212,6 +214,7 @@ class SiteMembershipSubscriptionsRepositorySpec extends ObjectBehavior
 
         $selectQueryMock->columns([
             'id',
+            'user_guid',
             'membership_tier_guid',
             'stripe_subscription_id',
             'auto_renew',
@@ -256,6 +259,7 @@ class SiteMembershipSubscriptionsRepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn([
                 'id' => 1,
+                'user_guid' => 456,
                 'membership_tier_guid' => 1,
                 'stripe_subscription_id' => 'stripe_subscription_id',
                 'auto_renew' => 1,
@@ -317,6 +321,93 @@ class SiteMembershipSubscriptionsRepositorySpec extends ObjectBehavior
             $endTimestamp
         )
             ->shouldBe(true);
+    }
+
+    public function it_should_return_subscriptions_that_have_expired(SelectQuery $selectQueryMock, PDOStatement $pdoStatementMock)
+    {
+        $this->configMock->get('tenant_id')->willReturn(1);
+
+        $this->mysqlClientReaderHandlerMock->select()
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->from(Argument::type(RawExp::class))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->columns([
+            'msms.id',
+            'msms.user_guid',
+            'msms.membership_tier_guid',
+            'msms.stripe_subscription_id',
+            'msms.auto_renew',
+            'msms.manual',
+            'msms.valid_from',
+            'msms.valid_to',
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->join(Argument::type(RawExp::class), 'msmga.membership_tier_guid', Operator::EQ, 'msms.membership_tier_guid')
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->leftJoinRaw(Argument::type(RawExp::class), 'mgm.user_guid = msms.user_guid AND mgm.group_guid = msmga.group_guid')
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('mgm.user_guid', Operator::IS, null)
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('msms.valid_to', Operator::GT, Argument::type(RawExp::class))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('msms.tenant_id', Operator::EQ, 1)
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->groupBy('msms.id')
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->prepare()
+            ->shouldBeCalledOnce()
+            ->willReturn($pdoStatementMock);
+
+        $pdoStatementMock->execute()
+            ->shouldBeCalledOnce();
+
+        $pdoStatementMock->fetchAll(PDO::FETCH_ASSOC)
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                [
+                    'id' => 1,
+                    'user_guid' => 456,
+                    'membership_tier_guid' => 1,
+                    'stripe_subscription_id' => 'stripe_subscription_id',
+                    'auto_renew' => 1,
+                    'manual' => 0,
+                    'valid_from' => '2024-01-01 00:00:00',
+                    'valid_to' => '2025-01-01 00:00:00',
+                ],
+                [
+                    'id' => 2,
+                    'user_guid' => 789,
+                    'membership_tier_guid' => 1,
+                    'stripe_subscription_id' => 'stripe_subscription_id',
+                    'auto_renew' => 1,
+                    'manual' => 0,
+                    'valid_from' => '2024-01-01 00:00:00',
+                    'valid_to' => '2025-01-01 00:00:00',
+                ]
+            ]);
+
+        $result = $this->getOutOfSyncSiteMemberships();
+        $result->shouldHaveCount(2);
+        $result[0]->userGuid->shouldBe(456);
+        $result[1]->userGuid->shouldBe(789);
     }
 
     private function generateSiteMembershipSubscriptionDtoMock(
