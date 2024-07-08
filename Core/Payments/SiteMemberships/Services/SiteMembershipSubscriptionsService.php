@@ -5,6 +5,7 @@ namespace Minds\Core\Payments\SiteMemberships\Services;
 
 use DateTime;
 use Minds\Core\Config\Config;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipErrorEnum;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipPricingModelEnum;
@@ -36,6 +37,7 @@ class SiteMembershipSubscriptionsService
         private readonly StripeCheckoutSessionService          $stripeCheckoutSessionService,
         private readonly Config                                $config,
         private readonly GroupMembershipService                $groupMembershipService,
+        private readonly EntitiesBuilder                       $entitiesBuilder,
     ) {
     }
 
@@ -202,11 +204,21 @@ class SiteMembershipSubscriptionsService
     }
 
     /*
-     * Leaves a group if the membership subscription has expired
+     * Return a list of site memberships that are missing group assignmwents
      */
-    public function cleanupSiteMembershipGroupMemberships()
+    public function syncOutOfSyncSiteMemberships()
     {
+        $siteMembershipSubscriptions = $this->siteMembershipSubscriptionsRepository->getOutOfSyncSiteMemberships();
 
+        foreach ($siteMembershipSubscriptions as $siteMembershipSubscription) {
+            $user = $this->entitiesBuilder->single($siteMembershipSubscription->userGuid);
+            if (!$user instanceof User) {
+                continue;
+            }
+
+            $siteMembership = $this->siteMembershipReaderService->getSiteMembership($siteMembershipSubscription->membershipGuid);
+            $this->joinGroups($siteMembership, $user);
+        }
     }
 
     /**

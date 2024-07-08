@@ -59,6 +59,7 @@ class ServicesProvider extends Provider
                 stripeCheckoutSessionService: $di->get(StripeCheckoutSessionService::class),
                 config: $di->get(Config::class),
                 groupMembershipService: $di->get(GroupMembershipService::class),
+                entitiesBuilder: $di->get(EntitiesBuilder::class),
             )
         );
 

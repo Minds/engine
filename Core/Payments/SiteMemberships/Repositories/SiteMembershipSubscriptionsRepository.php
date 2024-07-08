@@ -73,6 +73,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
             ->from(self::TABLE_NAME)
             ->columns([
                 'id',
+                'user_guid',
                 'membership_tier_guid',
                 'stripe_subscription_id',
                 'auto_renew',
@@ -109,6 +110,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
             ->from(self::TABLE_NAME)
             ->columns([
                 'id',
+                'user_guid',
                 'membership_tier_guid',
                 'stripe_subscription_id',
                 'manual',
@@ -141,6 +143,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
     private function prepareSiteMembershipSubscription(array $data): SiteMembershipSubscription
     {
         return new SiteMembershipSubscription(
+            userGuid: (int) $data['user_guid'],
             membershipSubscriptionId: (int)$data['id'],
             membershipGuid: (int)$data['membership_tier_guid'],
             stripeSubscriptionId: $data['stripe_subscription_id'],
@@ -163,6 +166,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
             ->from(self::TABLE_NAME)
             ->columns([
                 'id',
+                'user_guid',
                 'membership_tier_guid',
                 'stripe_subscription_id',
                 'manual',
@@ -201,6 +205,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
             ->from(self::TABLE_NAME)
             ->columns([
                 'id',
+                'user_guid',
                 'membership_tier_guid',
                 'stripe_subscription_id',
                 'auto_renew',
@@ -244,6 +249,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
             ->from(self::TABLE_NAME)
             ->columns([
                 'id',
+                'user_guid',
                 'membership_tier_guid',
                 'stripe_subscription_id',
                 'auto_renew',
@@ -327,5 +333,43 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
         } catch (PDOException $e) {
             throw new ServerErrorException('Failed to renew site membership subscription', previous: $e);
         }
+    }
+
+    /**
+     * Returns a list of site memberships that
+     * @return SiteMembershipSubscription[]
+     */
+    public function getOutOfSyncSiteMemberships(): array
+    {
+        $query = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'msms.id',
+                'msms.user_guid',
+                'msms.membership_tier_guid',
+                'msms.stripe_subscription_id',
+                'msms.auto_renew',
+                'msms.manual',
+                'msms.valid_from',
+                'msms.valid_to',
+            ])
+            ->from(new RawExp(self::TABLE_NAME . ' AS msms'))
+            ->join(new RawExp('minds_site_membership_tiers_group_assignments msmga'), 'msmga.membership_tier_guid', Operator::EQ, 'msms.membership_tier_guid')
+            ->leftJoinRaw(new RawExp('minds_group_membership mgm'), 'mgm.user_guid = msms.user_guid AND mgm.group_guid = msmga.group_guid')
+            ->where('mgm.user_guid', Operator::IS, null)
+            ->where('msms.valid_to', Operator::GT, new RawExp('NOW()'))
+            ->where('msms.tenant_id', Operator::EQ, $this->config->get('tenant_id'))
+            ->groupBy('msms.id');
+
+        $stmt = $query->prepare();
+
+        $stmt->execute();
+
+        $return = [];
+
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $return[] = $this->prepareSiteMembershipSubscription($row);
+        }
+
+        return $return;
     }
 }
