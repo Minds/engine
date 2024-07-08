@@ -174,13 +174,13 @@ class Exported
             $exported['permissions'] = array_map(function ($permission) {
                 return $permission->name;
             }, $this->rolesService->getUserPermissions($user));
-
-            $permissionIntents = $this->permissionIntentsService->getPermissionIntents();
-            if (count($permissionIntents)) {
-                $exported['permission_intents'] = array_map(fn ($intent) => $intent->export(), $permissionIntents);
-            }
         } else {
             $exported['permissions'] = [];
+        }
+
+        $permissionIntents = $this->permissionIntentsService->getPermissionIntents();
+        if (count($permissionIntents)) {
+            $exported['permission_intents'] = array_map(fn ($intent) => $intent->export(), $permissionIntents);
         }
 
         if ($context === 'embed') {
