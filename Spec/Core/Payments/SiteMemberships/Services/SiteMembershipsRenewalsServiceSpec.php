@@ -194,6 +194,7 @@ class SiteMembershipsRenewalsServiceSpec extends ObjectBehavior
         $currentPeriodStart = time();
         $currentPeriodEnd = strtotime('+1 month');
         $siteMembershipMock = new SiteMembershipSubscription(
+            userGuid: 456,
             membershipSubscriptionId: 1,
             membershipGuid: 1,
             stripeSubscriptionId: 'sub_stripeSubscriptionId',
@@ -229,6 +230,7 @@ class SiteMembershipsRenewalsServiceSpec extends ObjectBehavior
     {
         $tenantId = 123;
         $siteMembershipMock = new SiteMembershipSubscription(
+            userGuid: 456,
             membershipSubscriptionId: 1,
             membershipGuid: 1,
             stripeSubscriptionId: 'pi_stripeSubscriptionId',
