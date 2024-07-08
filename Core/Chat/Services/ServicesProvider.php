@@ -33,7 +33,8 @@ class ServicesProvider extends Provider
                 blockManager: $di->get('Security\Block\Manager'),
                 rolesService: $di->get(RolesService::class),
                 groupMembershipManager: $di->get(GroupMembershipManager::class),
-                analyticsDelegate: $di->get(AnalyticsDelegate::class)
+                analyticsDelegate: $di->get(AnalyticsDelegate::class),
+                logger: $di->get('Logger')
             )
         );
 

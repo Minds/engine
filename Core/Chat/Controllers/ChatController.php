@@ -411,6 +411,28 @@ class ChatController
     }
 
     /**
+     * Add members to a chat room.
+     * @param string $roomGuid - The guid of the room.
+     * @param array<string> $memberGuids - The guids of the members to add.
+     * @return bool - True if the members were added successfully.
+     * @throws GraphQLException
+     * @throws ServerErrorException
+     */
+    #[Mutation]
+    #[Logged]
+    public function addMembersToChatRoom(
+        string $roomGuid,
+        array $memberGuids,
+        #[InjectUser] User $loggedInUser
+    ): bool {
+        return $this->roomService->addRoomMembers(
+            roomGuid: (int) $roomGuid,
+            memberGuids: $memberGuids,
+            user: $loggedInUser
+        );
+    }
+
+    /**
      * @param string $roomGuid
      * @param string $memberGuid
      * @return bool
