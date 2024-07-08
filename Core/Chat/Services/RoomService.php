@@ -24,6 +24,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\GraphQL\Types\UserNode;
 use Minds\Core\Guid;
 use Minds\Core\Groups\V2\Membership\Manager as GroupMembershipManager;
+use Minds\Core\Log\Logger;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\Block\BlockEntry;
 use Minds\Core\Security\Block\BlockLimitException;
@@ -47,7 +48,8 @@ class RoomService
         private readonly BlockManager            $blockManager,
         private readonly RolesService            $rolesService,
         private readonly GroupMembershipManager  $groupMembershipManager,
-        private readonly AnalyticsDelegate       $analyticsDelegate
+        private readonly AnalyticsDelegate       $analyticsDelegate,
+        private readonly Logger                  $logger
     ) {
     }
 
@@ -751,6 +753,76 @@ class RoomService
         );
 
         return $success;
+    }
+
+    /**
+     * Add members to a chat room.
+     * @param int $roomGuid - The guid of the room.
+     * @param array<string> $memberGuids - The guids of the members to add.
+     * @return bool - True if the members were added successfully.
+     * @throws GraphQLException
+     * @throws ServerErrorException
+     */
+    public function addRoomMembers(
+        int $roomGuid,
+        array $memberGuids,
+        User $user
+    ): bool {
+        $chatRoom = $this->getRoom(
+            roomGuid: $roomGuid,
+            loggedInUser: $user
+        )?->getNode()?->chatRoom;
+
+        if ($chatRoom->roomType !== ChatRoomTypeEnum::MULTI_USER) {
+            throw new GraphQLException(message: "You can only add members to multi-user rooms", code: 400);
+        }
+
+        $this->roomRepository->beginTransaction();
+
+        try {
+            foreach ($memberGuids as $memberGuid) {
+                $member = $this->entitiesBuilder->single($memberGuid);
+
+                if (!$member || !($member instanceof User)) {
+                    $this->logger->info("User with guid: {$memberGuid} was not found");
+                    continue;
+                }
+
+                if ($this->roomRepository->isUserMemberOfRoom(
+                    roomGuid: $roomGuid,
+                    user: $member,
+                )) {
+                    $this->logger->info("User {$memberGuid} is already a member of the chat room {$roomGuid}");
+                    continue;
+                }
+
+                $isSubscribed = $this->subscriptionsRepository->isSubscribed(
+                    userGuid: (int)$memberGuid,
+                    friendGuid: (int)$user->getGuid()
+                );
+
+                $this->roomRepository->addRoomMember(
+                    roomGuid: $chatRoom->guid,
+                    memberGuid: (int)$memberGuid,
+                    status: $isSubscribed ? ChatRoomMemberStatusEnum::ACTIVE : ChatRoomMemberStatusEnum::INVITE_PENDING,
+                    role: ChatRoomRoleEnum::MEMBER
+                );
+
+                $this->roomRepository->updateRoomMemberSettings(
+                    roomGuid: $chatRoom->guid,
+                    memberGuid: (int)$memberGuid,
+                    notificationStatus: ChatRoomNotificationStatusEnum::ALL
+                );
+            }
+        } catch (ServerErrorException $e) {
+            $this->logger->error($e);
+            $this->roomRepository->rollbackTransaction();
+            throw $e;
+        }
+
+        $this->roomRepository->commitTransaction();
+
+        return true;
     }
 
     /**
