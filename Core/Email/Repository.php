@@ -74,7 +74,8 @@ class Repository
         }
 
         if (isset($options['user_guid'])) {
-            $options['user_guids'] = [ $options['user_guid'] ];
+            $where[] = 'user_guid = ?';
+            $values[] = new Varint($options['user_guid']);
         }
 
         if ($where) {
@@ -130,9 +131,10 @@ class Repository
 
                     if (!isset($notifications[$key])) {
                         $notifications[$key] = ( new EmailSubscription())
-                        ->setTopic($topic)
-                        ->setUserGuid($userGuid)
-                        ->setValue(1);
+                            ->setCampaign($campaign)
+                            ->setTopic($topic)
+                            ->setUserGuid($userGuid)
+                            ->setValue(1);
                     }
                 }
             }

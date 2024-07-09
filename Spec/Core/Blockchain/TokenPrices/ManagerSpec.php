@@ -45,7 +45,7 @@ class ManagerSpec extends ObjectBehavior
         $this->cache->set('blockchain::token-balance::0x...', serialize([
             'eth' => '2521',
             'token' => '0.15',
-        ]), 300)->shouldBeCalled();
+        ]), 3600)->shouldBeCalled();
 
         $this->getPrices()
             ->shouldBe([

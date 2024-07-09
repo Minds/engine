@@ -112,17 +112,17 @@ class MultiTenantBootService
         $didConfig['domain'] = $domain;
         $this->setConfig('did', $didConfig);
 
-        // Tenant ID
-
-        $this->setConfig('tenant_id', $tenant->id);
-
         // Nake global the tenant object
 
         $this->setConfig('tenant', $tenant);
 
+        // System user guid
+
+        $this->setConfig('system_user_guid', $tenant->rootUserGuid);
+
         // Data root
 
-        $this->setConfig('dataroot', $this->config->get('dataroot') . 'tenant/' . $this->config->get('tenant_id') . '/');
+        $this->setConfig('dataroot', $this->config->get('dataroot') . 'tenant/' . $tenant->id . '/');
 
         // PostHog
 
@@ -131,6 +131,15 @@ class MultiTenantBootService
             $postHogConfig['api_key'] = $this->config->get('multi_tenant')['posthog']['api_key'];
             $postHogConfig['project_id'] = $this->config->get('multi_tenant')['posthog']['project_id'];
             $this->setConfig('posthog', $postHogConfig);
+        }
+
+        // Chatwoot
+
+        if (isset($this->config->get('multi_tenant')['chatwoot'])) {
+            $chatwootConfig = $this->config->get('chatwoot');
+            $chatwootConfig['website_token'] = $this->config->get('multi_tenant')['chatwoot']['website_token'];
+            $chatwootConfig['signing_key'] = $this->config->get('multi_tenant')['chatwoot']['signing_key'];
+            $this->setConfig('chatwoot', $chatwootConfig);
         }
 
         // Misc
@@ -183,6 +192,10 @@ class MultiTenantBootService
 
             $this->setConfig('nsfw_enabled', isset($tenant->config->nsfwEnabled) ? $tenant->config->nsfwEnabled : true);
         }
+
+        // Tenant ID (must be last so that rootConfigs are still saved)
+
+        $this->setConfig('tenant_id', $tenant->id);
     }
 
     private function setConfig(string $key, mixed $value): void

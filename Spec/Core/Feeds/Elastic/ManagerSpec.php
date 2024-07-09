@@ -62,9 +62,9 @@ class ManagerSpec extends ObjectBehavior
             ->getList([
                 'cache_key' => 'phpspec',
             ]);
-        $response[0]->getUrn()
-            ->shouldBe('urn:image:500');
         $response[1]->getUrn()
+            ->shouldBe('urn:image:500');
+        $response[0]->getUrn()
             ->shouldBe('urn:activity:5001');
     }
 
@@ -85,9 +85,9 @@ class ManagerSpec extends ObjectBehavior
                 'query' => 'Activity with #hashtags',
             ]);
         
-        $response[0]->getUrn()
-            ->shouldBe('urn:image:500');
         $response[1]->getUrn()
+            ->shouldBe('urn:image:500');
+        $response[0]->getUrn()
             ->shouldBe('urn:activity:5001');
     }
 
@@ -110,9 +110,9 @@ class ManagerSpec extends ObjectBehavior
                 'unseen' => true,
             ]);
 
-        $response[0]->getUrn()
-            ->shouldBe('urn:image:500');
         $response[1]->getUrn()
+            ->shouldBe('urn:image:500');
+        $response[0]->getUrn()
             ->shouldBe('urn:activity:5001');
     }
 
@@ -136,9 +136,9 @@ class ManagerSpec extends ObjectBehavior
                 'exclude' => ['fakeExcludedGuid']
             ]);
 
-        $response[0]->getUrn()
-            ->shouldBe('urn:image:500');
         $response[1]->getUrn()
+            ->shouldBe('urn:image:500');
+        $response[0]->getUrn()
             ->shouldBe('urn:activity:5001');
     }
 
@@ -162,9 +162,9 @@ class ManagerSpec extends ObjectBehavior
                 'unseen' => false,
             ]);
 
-        $response[0]->getUrn()
-            ->shouldBe('urn:image:500');
         $response[1]->getUrn()
+            ->shouldBe('urn:image:500');
+        $response[0]->getUrn()
             ->shouldBe('urn:activity:5001');
     }
 
@@ -221,6 +221,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn("urn:image:500");
 
+        $entity1->get('pinned')
+            ->willReturn(false);
+
         $scoredGuid2->getGuid()
             ->shouldBeCalled()
             ->willReturn(5001);
@@ -252,6 +255,9 @@ class ManagerSpec extends ObjectBehavior
         $entity2->getUrn()
             ->shouldBeCalled()
             ->willReturn("urn:activity:5001");
+
+        $entity2->get('pinned')
+            ->willReturn(false);
         
         $this->entitiesBuilder->get(['guids' => [5000, 5001]])
             ->shouldBeCalled()
@@ -268,5 +274,30 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn($count);
 
         $this->getCount($opts, true)->shouldBe($count);
+    }
+
+    public function it_should_return_pinned_posts_first(
+        ScoredGuid $scoredGuid1,
+        ScoredGuid $scoredGuid2,
+        Entity $entity1,
+        Entity $entity2
+    ) {
+        $this->mockScoredEntities($scoredGuid1, $scoredGuid2, $entity1, $entity2);
+        $entity1->get('pinned')
+            ->willReturn(true);
+
+        $this->repository->getList(Argument::withEntry('query', 'activity with hashtags'))
+            ->shouldBeCalled()
+            ->willReturn([$scoredGuid1, $scoredGuid2]);
+
+        $response = $this
+            ->getList([
+                'query' => 'Activity with #hashtags',
+            ]);
+        
+        $response[0]->getUrn()
+            ->shouldBe('urn:image:500');
+        $response[1]->getUrn()
+            ->shouldBe('urn:activity:5001');
     }
 }

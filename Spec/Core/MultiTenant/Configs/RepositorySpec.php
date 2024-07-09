@@ -61,6 +61,7 @@ class RepositorySpec extends ObjectBehavior
         $federationDisabled = true;
         $replyEmail = 'some@email.com';
         $nsfwEnabled = 1;
+        $boostEnabled = 1;
         $customHomePageEnabled = true;
         $customHomePageDescription = 'Hello world';
         $walledGardenEnabled = true;
@@ -87,6 +88,7 @@ class RepositorySpec extends ObjectBehavior
                 'federation_disabled' => $federationDisabled,
                 'reply_email' => $replyEmail,
                 'nsfw_enabled' => $nsfwEnabled,
+                'boost_enabled' => $boostEnabled,
                 'custom_home_page_enabled' => $customHomePageEnabled,
                 'custom_home_page_description' => $customHomePageDescription,
                 'walled_garden_enabled' => $walledGardenEnabled,
@@ -101,6 +103,7 @@ class RepositorySpec extends ObjectBehavior
             federationDisabled: $federationDisabled,
             replyEmail: $replyEmail,
             nsfwEnabled: $nsfwEnabled,
+            boostEnabled: $boostEnabled,
             customHomePageEnabled: $customHomePageEnabled,
             customHomePageDescription: $customHomePageDescription,
             walledGardenEnabled: $walledGardenEnabled,

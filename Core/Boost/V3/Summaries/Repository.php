@@ -4,53 +4,41 @@ declare(strict_types=1);
 namespace Minds\Core\Boost\V3\Summaries;
 
 use DateTime;
+use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Data\MySQL\Client;
 use PDO;
 use PDOException;
+use Selective\Database\RawExp;
 
-class Repository
+class Repository extends AbstractRepository
 {
-    public function __construct(private ?Client $mysqlClient = null)
-    {
-        $this->mysqlClient ??= new Client();
-    }
-    
-    /**
-     * Start the transaction
-     */
-    public function beginTransaction(): void
-    {
-        if ($this->getMasterConnection()->inTransaction()) {
-            throw new PDOException("Cannot initiate transaction. Previously initiated transaction still in progress.");
-        }
-
-        $this->getMasterConnection()->beginTransaction();
-    }
+    public const TABLE_NAME = 'boost_summaries';
 
     /**
-     * Commit the transaction
+     * Increments views
      */
-    public function commitTransaction(): void
+    public function incrementViews(int $tenantId, int $guid, DateTime $date, int $views): bool
     {
-        $this->getMasterConnection()->commit();
-    }
+        $query = $this->mysqlClientWriterHandler->insert()
+            ->into(self::TABLE_NAME)
+            ->set([
+                'tenant_id' => new RawExp(':tenant_id'),
+                'guid' => new RawExp(':guid'),
+                'date' => new RawExp(':date'),
+                'views' => new RawExp(':views'),
+            ])
+            ->onDuplicateKeyUpdate([
+                'views' => new RawExp('IFNULL(views, 0) + :views'),
+            ]);
 
-    /**
-     * @param string $guid
-     * @param DateTime $date
-     * @param int $views
-     * @return bool
-     */
-    public function add(string $guid, DateTime $date, int $views): bool
-    {
-        $statement = "INSERT INTO boost_summaries (guid, date, views) VALUES (:guid,:date,:views) ON DUPLICATE KEY UPDATE views=:views";
         $values = [
             'guid' => $guid,
             'date' => $date->format('c'),
-            'views' => $views
+            'views' => $views,
+            'tenant_id' => $tenantId,
         ];
 
-        $stmt = $this->mysqlClient->getConnection(Client::CONNECTION_MASTER)->prepare($statement);
+        $stmt = $query->prepare();
         return $stmt->execute($values);
     }
 
@@ -62,21 +50,28 @@ class Repository
      */
     public function incrementClicks(string $guid, DateTime $date): bool
     {
-        $statement = "INSERT INTO boost_summaries (guid, date, views, clicks) VALUES (:guid, :date, 0, 1) ON DUPLICATE KEY UPDATE clicks = IFNULL(clicks, 0) + 1";
+        $query = $this->mysqlClientWriterHandler->insert()
+            ->into(self::TABLE_NAME)
+            ->set([
+                'tenant_id' => new RawExp(':tenant_id'),
+                'guid' => new RawExp(':guid'),
+                'date' => new RawExp(':date'),
+                'views' => 0,
+                'clicks' => 1,
+            ])
+             ->onDuplicateKeyUpdate([
+                'clicks' => new RawExp('IFNULL(clicks, 0) + +1'),
+            ]);
+
         $values = [
             'guid' => $guid,
-            'date' => $date->format('c')
+            'date' => $date->format('c'),
+            'tenant_id' => $this->config->get('tenant_id') ?: -1
         ];
-        $statement = $this->mysqlClient->getConnection(Client::CONNECTION_MASTER)->prepare($statement);
+
+        $statement = $query->prepare();
         return $statement->execute($values);
     }
 
-    /**
-     * Returns the writer connection
-     * @return PDO
-     */
-    protected function getMasterConnection(): PDO
-    {
-        return $this->mysqlClient->getConnection(Client::CONNECTION_MASTER);
-    }
+
 }

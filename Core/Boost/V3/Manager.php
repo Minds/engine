@@ -26,6 +26,7 @@ use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Boost\V3\Models\BoostEntityWrapper;
 use Minds\Core\Boost\V3\PreApproval\Manager as PreApprovalManager;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
@@ -35,6 +36,7 @@ use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardInsufficientFundsException;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
 use Minds\Core\Payments\InAppPurchases\Apple\AppleInAppPurchasesClient;
@@ -72,7 +74,9 @@ class Manager
         private ?GuidLinkResolver    $guidLinkResolver = null,
         private ?UserSettingsManager $userSettingsManager = null,
         private ?ExperimentsManager  $experimentsManager = null,
-        private ?InAppPurchasesManager $inAppPurchasesManager = null
+        private ?InAppPurchasesManager $inAppPurchasesManager = null,
+        private ?Config              $config = null,
+        private ?MultiTenantBootService $tenantBootService = null,
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
         $this->paymentProcessor ??= new PaymentProcessor();
@@ -86,6 +90,8 @@ class Manager
         $this->userSettingsManager ??= Di::_()->get('Settings\Manager');
         $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
         $this->inAppPurchasesManager ??= Di::_()->get(InAppPurchasesManager::class);
+        $this->config ??= Di::_()->get('Config');
+        $this->tenantBootService ??= Di::_()->get(MultiTenantBootService::class);
     }
 
     /**
@@ -658,6 +664,35 @@ class Manager
     }
 
     /**
+     * Cancel boosts in given statuses, by entity guid.
+     * @param string $entityGuid - entity guid for which to cancel boosts.
+     * @param array $statuses - array of statuses to update status for.
+     * @return bool true on success.
+     */
+    public function cancelByEntityGuid(
+        string $entityGuid,
+        array $statuses = [BoostStatus::APPROVED, BoostStatus::PENDING]
+    ): bool {
+        $boosts = $this->repository->getBoosts(
+            entityGuid: $entityGuid,
+            targetStatus: BoostStatus::APPROVED
+        );
+
+        $success = $this->repository->cancelByEntityGuid(
+            entityGuid: $entityGuid,
+            statuses: $statuses
+        );
+
+        if ($success) {
+            foreach ($boosts as $boost) {
+                $this->actionEventDelegate->onCancel($boost);
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Update the status of a single boost.
      * @param string $boostGuid - guid of boost to update.
      * @return bool true if boost updated.
@@ -704,6 +739,13 @@ class Manager
         $this->logger->warning("Processing expired approved boosts");
         foreach ($this->repository->getExpiredApprovedBoosts() as $boost) {
             $this->logger->warning("Processing expired boost {$boost->getGuid()}", $boost->export());
+            
+            if ($boost->tenantId === -1) {
+                $this->tenantBootService->resetRootConfigs();
+            } else {
+                $this->tenantBootService->bootFromTenantId($boost->tenantId);
+            }
+
             $this->repository->updateStatus($boost->getGuid(), BoostStatus::COMPLETED);
 
             $this->actionEventDelegate->onComplete($boost);
@@ -815,6 +857,13 @@ class Manager
      */
     public function shouldShowBoosts(User $user, int $showBoostsAfterX = 604800): bool
     {
+        /**
+         * For tenants return boosts if they are enabled.
+         */
+        if ($this->config->get('tenant_id')) {
+            return (bool) $this->config->get('tenant')?->config?->boostEnabled;
+        }
+
         /**
          * Do not show boosts if plus and disabled flag
          */

@@ -63,7 +63,9 @@ class MetadataSpec extends ObjectBehavior
             'author' => 'author',
             'image' => 'image',
             'logo' => 'logo',
-            'iframe' => 'iframe'
+            'iframe' => 'iframe',
+            'date' => date('c', strtotime('midnight')),
+            'datePublished' => date('c', strtotime('midnight 2 days ago')),
         ];
 
         $this->fromMetascraperData($data, 'url');
@@ -88,6 +90,47 @@ class MetadataSpec extends ObjectBehavior
                     ]
                 ]
             ],
+            'date' => date('c', strtotime('midnight 2 days ago')),
+            'html' => 'iframe'
+        ]);
+    }
+
+    public function it_should_have_date_if_published_date_not_found()
+    {
+        $data = [
+            'url' => 'canonical_url',
+            'description' => 'description',
+            'title' => 'title',
+            'author' => 'author',
+            'image' => 'image',
+            'logo' => 'logo',
+            'iframe' => 'iframe',
+            'date' => date('c', strtotime('midnight')),
+        ];
+
+        $this->fromMetascraperData($data, 'url');
+
+        $this->export()->shouldBe([
+            'url' => 'url',
+            'meta' => [
+                'description' => 'description',
+                'title' => 'title',
+                'author' => 'author',
+                'canonical_url' => 'canonical_url'
+            ],
+            'links' => [
+                'thumbnail' => [
+                    [
+                        'href' => 'image'
+                    ]
+                ],
+                'icon' => [
+                    [
+                        'href' => 'logo'
+                    ]
+                ]
+            ],
+            'date' => date('c', strtotime('midnight')),
             'html' => 'iframe'
         ]);
     }

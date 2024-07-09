@@ -161,6 +161,71 @@ class SiteMembershipManagementServiceSpec extends ObjectBehavior
         $this->storeSiteMembership($siteMembershipMock)->shouldBeLike($siteMembershipMock);
     }
 
+    public function it_should_store_external_membership(): void
+    {
+        $siteMembershipMock = $this->generateSiteMembership(
+            1,
+            'Membership 1',
+            1599,
+            SiteMembershipBillingPeriodEnum::MONTHLY,
+            SiteMembershipPricingModelEnum::RECURRING,
+            '',
+            [],
+            [],
+            true,
+        );
+        $this->configMock->get('tenant_id')
+            ->shouldBeCalledOnce()
+            ->willReturn(1);
+
+        $this->siteMembershipRepositoryMock->getTotalSiteMemberships()
+            ->shouldBeCalledOnce()
+            ->willReturn(1);
+
+        $this->configMock->get('tenant')
+            ->shouldBeCalledOnce()
+            ->willReturn((object)[
+                'plan' => (object)[
+                    'name' => 'plan_name'
+                ]
+            ]);
+
+        $this->configMock->get('multi_tenant')
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'plan_memberships' => [
+                    'plan_name' => 10
+                ]
+            ]);
+
+        $this->siteMembershipRepositoryMock->beginTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->stripeProductServiceMock->createProduct(
+            $siteMembershipMock->membershipGuid,
+            $siteMembershipMock->membershipName,
+            $siteMembershipMock->membershipPriceInCents,
+            ProductPriceBillingPeriodEnum::tryFrom($siteMembershipMock->membershipBillingPeriod->value),
+            ProductPricingModelEnum::tryFrom($siteMembershipMock->membershipPricingModel->value),
+            ProductTypeEnum::SITE_MEMBERSHIP,
+            ProductPriceCurrencyEnum::USD,
+            $siteMembershipMock->membershipDescription
+        )
+            ->shouldNotBeCalled();
+
+        $this->siteMembershipRepositoryMock->storeSiteMembership(
+            $siteMembershipMock,
+            null,
+        )
+            ->shouldBeCalledOnce();
+
+        $this->siteMembershipRepositoryMock->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->storeSiteMembership($siteMembershipMock)->shouldBeLike($siteMembershipMock);
+    }
+
+
     private function generateSiteMembership(
         int                             $membershipGuid,
         string                          $membershipName,
@@ -169,7 +234,8 @@ class SiteMembershipManagementServiceSpec extends ObjectBehavior
         SiteMembershipPricingModelEnum  $membershipPricingModel,
         string|null                     $membershipDescription = null,
         ?array                          $roles = null,
-        ?array                          $groups = null
+        ?array                          $groups = null,
+        bool                            $isExternal = false,
     ): SiteMembership {
         return new SiteMembership(
             membershipGuid: $membershipGuid,
@@ -179,7 +245,8 @@ class SiteMembershipManagementServiceSpec extends ObjectBehavior
             membershipPricingModel: $membershipPricingModel,
             membershipDescription: $membershipDescription,
             roles: $roles,
-            groups: $groups
+            groups: $groups,
+            isExternal: $isExternal,
         );
     }
 

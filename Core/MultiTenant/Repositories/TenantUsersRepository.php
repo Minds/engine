@@ -7,6 +7,7 @@ use Exception;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\MultiTenant\Enums\TenantUserRoleEnum;
 use Minds\Core\MultiTenant\Types\TenantUser;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use PDO;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
@@ -18,12 +19,22 @@ class TenantUsersRepository extends AbstractRepository
      * Limit is optional
      * @return iterable<int>
      */
-    public function getUserGuids(int $tenantId, int $limit = null): iterable
+    public function getUserGuids(int $tenantId, int $limit = null, string $email = null): iterable
     {
+        $values = [
+            'tenant_id' => $tenantId,
+        ];
+
         $query = $this->mysqlClientReaderHandler->select()
             ->columns(['guid'])
             ->from('minds_entities_user')
-            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('source', Operator::EQ, FederatedEntitySourcesEnum::LOCAL->value);
+
+        if ($email) {
+            $query->where('email', Operator::EQ, new RawExp(':email'));
+            $values['email'] = $email;
+        }
 
         if ($limit) {
             $query->limit($limit);
@@ -31,9 +42,7 @@ class TenantUsersRepository extends AbstractRepository
 
         $stmt = $query->prepare();
 
-        $stmt->execute([
-            'tenant_id' => $tenantId,
-        ]);
+        $stmt->execute($values);
 
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
             yield (int) $row['guid'];

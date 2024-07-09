@@ -73,10 +73,11 @@ class AnalyticsDelegate
             return;
         }
 
-        $this->postHogService->withUser($user)
-            ->capture([
-                'event' => 'user_subscription_' . $event,
-                ...$properties
-            ]);
+        $this->postHogService
+            ->capture(
+                event: 'user_subscription_' . $event,
+                user: $user,
+                properties: $properties,
+            );
     }
 }

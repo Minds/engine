@@ -7,6 +7,7 @@
 namespace Minds\Core\Router;
 
 use Exception;
+use Minds\Core\Router\Enums\ApiScopeEnum;
 use Minds\Traits\MagicAttributes;
 
 /**
@@ -31,6 +32,9 @@ class RegistryEntry
     /** @var string[] */
     protected $middleware;
 
+    /** @var ApiScopeEnum[] */
+    protected $scopes = [];
+
     /**
      * @param string $route
      * @return RegistryEntry
@@ -38,6 +42,15 @@ class RegistryEntry
     public function setRoute(string $route): RegistryEntry
     {
         $this->route = trim($route, '/');
+        return $this;
+    }
+
+    /**
+     * @param ApiScopeEnum[]
+     */
+    public function setScopes(array $scopes): self
+    {
+        $this->scopes = $scopes;
         return $this;
     }
 
@@ -120,6 +133,14 @@ class RegistryEntry
         }
 
         return $parameters;
+    }
+
+    /**
+     * @return ApiScopeEnum[]
+     */
+    public function getScopes(): array
+    {
+        return $this->scopes;
     }
 
     /**

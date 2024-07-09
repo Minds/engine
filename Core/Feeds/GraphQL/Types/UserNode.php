@@ -107,4 +107,13 @@ class UserNode extends AbstractEntityNode
     {
         return $this->user->getIconURL();
     }
+
+    /**
+     * Gets the user from the user node.
+     * @return User The user entity.
+     */
+    public function getUser(): User
+    {
+        return $this->user;
+    }
 }

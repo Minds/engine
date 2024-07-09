@@ -57,7 +57,7 @@ class Digest extends EmailCampaign
         $this->tenantTemplateVariableInjector ??= Di::_()->get(TenantTemplateVariableInjector::class);
 
         $this->campaign = 'with';
-        $this->topic = 'top_posts';
+        $this->topic = 'posts_missed_since_login';
     }
 
     public function build(): ?Message
@@ -76,7 +76,7 @@ class Digest extends EmailCampaign
             $siteName = 'Minds';
         }
     
-        $subject = "Whats happening on $siteName";
+        $subject = "What's happening on $siteName";
 
         $this->template->setTemplate('default.v2.tpl');
         $this->template->setBody('./template.tpl');

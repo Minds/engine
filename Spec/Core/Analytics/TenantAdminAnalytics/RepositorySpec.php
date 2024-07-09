@@ -6,7 +6,6 @@ use Minds\Core\Analytics\TenantAdminAnalytics\Enums\AnalyticsMetricEnum;
 use Minds\Core\Analytics\TenantAdminAnalytics\Enums\AnalyticsResolutionEnum;
 use Minds\Core\Analytics\TenantAdminAnalytics\Repository;
 use Minds\Core\Config\Config;
-use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Data\MySQL;
 use Minds\Core\Data\MySQL\MySQLConnectionEnum;
 use Minds\Core\Di\Di;
@@ -26,11 +25,10 @@ class RepositorySpec extends ObjectBehavior
     public function let(
         MySQL\Client $mysqlClientMock,
         Logger $loggerMock,
-        PsrWrapper $cacheMock,
         PDO $mysqlMasterMock,
         PDO $mysqlReplicaMock,
     ) {
-        $this->beConstructedWith($mysqlClientMock, Di::_()->get(Config::class), $loggerMock, $cacheMock);
+        $this->beConstructedWith($mysqlClientMock, Di::_()->get(Config::class), $loggerMock);
 
         $this->mysqlClientMock = $mysqlClientMock;
 

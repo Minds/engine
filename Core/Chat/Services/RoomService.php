@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Chat\Services;
 
 use DateTimeImmutable;
+use Minds\Core\Chat\Delegates\AnalyticsDelegate;
 use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Entities\ChatRoomListItem;
 use Minds\Core\Chat\Enums\ChatRoomInviteRequestActionEnum;
@@ -22,14 +23,20 @@ use Minds\Core\Chat\Types\ChatRoomNode;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\GraphQL\Types\UserNode;
 use Minds\Core\Guid;
+use Minds\Core\Groups\V2\Membership\Manager as GroupMembershipManager;
+use Minds\Core\Log\Logger;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\Block\BlockEntry;
 use Minds\Core\Security\Block\BlockLimitException;
 use Minds\Core\Security\Block\Manager as BlockManager;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
+use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Core\Subscriptions\Relational\Repository as SubscriptionsRepository;
+use Minds\Entities\Group;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\UserErrorException;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class RoomService
@@ -38,7 +45,11 @@ class RoomService
         private readonly RoomRepository          $roomRepository,
         private readonly SubscriptionsRepository $subscriptionsRepository,
         private readonly EntitiesBuilder         $entitiesBuilder,
-        private readonly BlockManager            $blockManager
+        private readonly BlockManager            $blockManager,
+        private readonly RolesService            $rolesService,
+        private readonly GroupMembershipManager  $groupMembershipManager,
+        private readonly AnalyticsDelegate       $analyticsDelegate,
+        private readonly Logger                  $logger
     ) {
     }
 
@@ -54,10 +65,54 @@ class RoomService
     public function createRoom(
         User              $user,
         array             $otherMemberGuids,
-        ?ChatRoomTypeEnum $roomType = null
+        ?ChatRoomTypeEnum $roomType = null,
+        int               $groupGuid = null,
     ): ChatRoomEdge {
         if ($roomType === ChatRoomTypeEnum::GROUP_OWNED) {
-            throw new InvalidChatRoomTypeException();
+            // Check if a group room already exists
+            $rooms = $this->getRoomsByGroup($groupGuid);
+
+            if ($rooms) {
+                $chatRoom = $rooms[0];
+            } else {
+                // Get the group entity
+                $group = $this->entitiesBuilder->single($groupGuid);
+
+                if (!$group instanceof Group) {
+                    throw new UserErrorException("The provided group was not a group");
+                }
+
+                // Check if this user is a group admin
+                $groupMembership = $this->groupMembershipManager->getMembership($group, $user);
+
+                if (!$groupMembership->isOwner()) {
+                    throw new ForbiddenException('Only group owners can create a group owned room');
+                }
+
+                $chatRoom = new ChatRoom(
+                    guid: (int) Guid::build(),
+                    roomType: $roomType,
+                    createdByGuid: (int) $user->getGuid(),
+                    createdAt: new DateTimeImmutable(),
+                    groupGuid: $groupGuid,
+                );
+
+                $this->roomRepository->createRoom(
+                    roomGuid: $chatRoom->guid,
+                    roomType: $chatRoom->roomType,
+                    createdByGuid: $chatRoom->createdByGuid,
+                    createdAt: $chatRoom->createdAt,
+                    groupGuid: $chatRoom->groupGuid,
+                );
+            }
+
+            $chatRoom->setName($this->getRoomName($chatRoom, $user, []));
+
+            return new ChatRoomEdge(
+                node: new ChatRoomNode(chatRoom: $chatRoom)
+            );
+        } elseif ($groupGuid) {
+            throw new UserErrorException('Can not pass a groupGuid to a non group roomType');
         }
 
         if (!$roomType) {
@@ -74,6 +129,7 @@ class RoomService
                     firstMemberGuid: (int) $user->getGuid(),
                     secondMemberGuid: (int) $otherMemberGuids[0]
                 )) {
+                    $chatRoom->setName($this->getRoomName($chatRoom, $user, $otherMemberGuids));
                     return new ChatRoomEdge(
                         node: new ChatRoomNode(chatRoom: $chatRoom)
                     );
@@ -81,6 +137,10 @@ class RoomService
             } catch (ChatRoomNotFoundException $e) {
                 // Continue
             }
+        }
+
+        if (!$this->rolesService->hasPermission($user, PermissionsEnum::CAN_CREATE_CHAT_ROOM)) {
+            throw new GraphQLException(message: "You don't have permission to create a chat room", code: 403);
         }
 
         // TODO: Check with Mark if we need a minimum of 3 members for multi user rooms
@@ -156,6 +216,12 @@ class RoomService
 
         $this->roomRepository->commitTransaction();
 
+        $chatRoom->setName($this->getRoomName($chatRoom, $user, $otherMemberGuids));
+        $this->analyticsDelegate->onChatRoomCreate(
+            actor: $user,
+            chatRoom: $chatRoom
+        );
+
         return new ChatRoomEdge(
             node: new ChatRoomNode(chatRoom: $chatRoom)
         );
@@ -172,6 +238,7 @@ class RoomService
         $chatRoom = new ChatRoom(
             guid: (int)Guid::build(),
             roomType: ChatRoomTypeEnum::GROUP_OWNED,
+            groupGuid: $groupGuid,
             createdByGuid: (int)$user->getGuid(),
             createdAt: new DateTimeImmutable(),
         );
@@ -184,6 +251,11 @@ class RoomService
             groupGuid: $groupGuid,
         );
 
+        $this->analyticsDelegate->onChatRoomCreate(
+            actor: $user,
+            chatRoom: $chatRoom
+        );
+ 
         return new ChatRoomEdge(
             node: new ChatRoomNode(chatRoom: $chatRoom)
         );
@@ -216,33 +288,26 @@ class RoomService
 
         return [
             'edges' => array_map(
-                fn (ChatRoomListItem $chatRoomListItem) => new ChatRoomEdge(
-                    node: new ChatRoomNode(
-                        chatRoom: $chatRoomListItem->chatRoom
-                    ),
-                    cursor: ChatRoomEdgeCursorHelper::generateCursor(
-                        roomCreatedAtTimestamp: $chatRoomListItem->chatRoom->createdAt->getTimestamp(),
-                        lastMessageCreatedAtTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
-                    ),
-                    lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
-                    lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp,
-                    unreadMessagesCount: $chatRoomListItem->unreadMessagesCount,
-                ),
+                function (ChatRoomListItem $chatRoomListItem) use ($user) {
+                    $chatRoom = $chatRoomListItem->chatRoom;
+                    $chatRoom->setName($this->getRoomName($chatRoomListItem->chatRoom, $user, $chatRoomListItem->memberGuids));
+                    return new ChatRoomEdge(
+                        node: new ChatRoomNode(
+                            chatRoom: $chatRoom,
+                        ),
+                        cursor: ChatRoomEdgeCursorHelper::generateCursor(
+                            roomCreatedAtTimestamp: $chatRoomListItem->chatRoom->createdAt->getTimestamp(),
+                            lastMessageCreatedAtTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
+                        ),
+                        lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
+                        lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp,
+                        unreadMessagesCount: $chatRoomListItem->unreadMessagesCount,
+                    );
+                },
                 $chatRooms
             ),
             'hasMore' => $hasMore
         ];
-    }
-
-    /**
-     * @param User $user
-     * @return string[]
-     * @throws ServerErrorException
-     */
-    public function getRoomGuidsByMember(
-        User $user
-    ): array {
-        return iterator_to_array($this->roomRepository->getRoomGuidsByMember($user));
     }
 
     /**
@@ -303,7 +368,7 @@ class RoomService
         );
 
         return [
-            'edges' => array_map(
+            'edges' => array_values(array_filter(array_map(
                 function (array $member): ?ChatRoomMemberEdge {
                     $user = $this->entitiesBuilder->single($member['member_guid']);
                     if (!$user) {
@@ -323,7 +388,7 @@ class RoomService
                     );
                 },
                 $members
-            ),
+            ))),
             'hasMore' => $hasMore
         ];
     }
@@ -338,12 +403,19 @@ class RoomService
     public function getAllRoomMembers(
         int $roomGuid,
         User $user,
-        bool $excludeSelf = true
+        bool $excludeSelf = true,
+        /** @var ChatRoomMemberStatusEnum[] */
+        array $memberStatus = [ChatRoomMemberStatusEnum::ACTIVE, ChatRoomMemberStatusEnum::INVITE_PENDING],
     ): iterable {
-        foreach ($this->roomRepository->getAllRoomMembers(roomGuid: $roomGuid, user: $user, excludeSelf: $excludeSelf) as $member) {
+        foreach ($this->roomRepository->getAllRoomMembers(
+            roomGuid: $roomGuid,
+            user: $user,
+            excludeSelf: $excludeSelf,
+            memberStatus: $memberStatus
+        ) as $member) {
             $user = $this->entitiesBuilder->single($member['member_guid']);
             if (!$user) {
-                return null;
+                continue;
             }
 
             yield new ChatRoomMemberEdge(
@@ -370,6 +442,18 @@ class RoomService
         int  $roomGuid,
         User $loggedInUser
     ): ChatRoomEdge {
+        ['chatRooms' => $chatRooms] = $this->roomRepository->getRoomsByMember(
+            user: $loggedInUser,
+            targetMemberStatuses: [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            limit: 1,
+            roomGuid: $roomGuid
+        );
+
+        $chatRoomListItem = $chatRooms[0] ?? throw new ChatRoomNotFoundException();
+
         if (
             !$this->roomRepository->isUserMemberOfRoom(
                 roomGuid: $roomGuid,
@@ -383,36 +467,27 @@ class RoomService
             throw new GraphQLException(message: "You are not a member of this chat.", code: 403);
         }
 
-        ['chatRooms' => $chatRooms] = $this->roomRepository->getRoomsByMember(
-            user: $loggedInUser,
-            targetMemberStatuses: [
-                ChatRoomMemberStatusEnum::ACTIVE->name,
-                ChatRoomMemberStatusEnum::INVITE_PENDING->name
-            ],
-            limit: 1,
-            roomGuid: $roomGuid
-        );
-
-        $chatRoomListItem = $chatRooms[0] ?? throw new ChatRoomNotFoundException();
-
         $chatRoomMemberSettings = $this->roomRepository->getRoomMemberSettings(
             roomGuid: $roomGuid,
             memberGuid: (int)$loggedInUser->getGuid()
         );
 
+        $chatRoom = $chatRoomListItem->chatRoom;
+        $chatRoom->setName($this->getRoomName($chatRoom, $loggedInUser, $chatRoomListItem->memberGuids));
         return new ChatRoomEdge(
             node: new ChatRoomNode(
-                chatRoom: $chatRoomListItem->chatRoom,
-                isChatRequest: $this->roomRepository->getUserStatusInRoom(
-                    user: $loggedInUser,
-                    roomGuid: $roomGuid
-                ) === ChatRoomMemberStatusEnum::INVITE_PENDING,
+                chatRoom: $chatRoom,
+                isChatRequest: $chatRoom->roomType === ChatRoomTypeEnum::GROUP_OWNED ? false // groups do not have invite requests
+                    : $this->roomRepository->getUserStatusInRoom(
+                        user: $loggedInUser,
+                        roomGuid: $roomGuid
+                    ) === ChatRoomMemberStatusEnum::INVITE_PENDING,
                 isUserRoomOwner: $this->roomRepository->isUserRoomOwner(
                     roomGuid: $roomGuid,
                     user: $loggedInUser
                 ),
                 chatRoomNotificationStatus:
-                    $chatRoomMemberSettings['notifications_status'] ?
+                    isset($chatRoomMemberSettings['notifications_status']) ?
                         constant(ChatRoomNotificationStatusEnum::class . '::' . $chatRoomMemberSettings['notifications_status']) :
                         ChatRoomNotificationStatusEnum::MUTED,
             ),
@@ -451,17 +526,21 @@ class RoomService
 
         return [
             'edges' => array_map(
-                fn (ChatRoomListItem $chatRoomListItem) => new ChatRoomEdge(
-                    node: new ChatRoomNode(
-                        chatRoom: $chatRoomListItem->chatRoom
-                    ),
-                    cursor: ChatRoomEdgeCursorHelper::generateCursor(
-                        roomCreatedAtTimestamp: $chatRoomListItem->chatRoom->createdAt->getTimestamp(),
-                        lastMessageCreatedAtTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
-                    ),
-                    lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
-                    lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
-                ),
+                function (ChatRoomListItem $chatRoomListItem) use ($user) {
+                    $chatRoom = $chatRoomListItem->chatRoom;
+                    $chatRoom->setName($this->getRoomName($chatRoom, $user, $chatRoomListItem->memberGuids));
+                    return  new ChatRoomEdge(
+                        node: new ChatRoomNode(
+                            chatRoom: $chatRoom,
+                        ),
+                        cursor: ChatRoomEdgeCursorHelper::generateCursor(
+                            roomCreatedAtTimestamp: $chatRoomListItem->chatRoom->createdAt->getTimestamp(),
+                            lastMessageCreatedAtTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
+                        ),
+                        lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
+                        lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
+                    );
+                },
                 $chatRooms
             ),
             'hasMore' => $hasMore
@@ -543,6 +622,22 @@ class RoomService
 
             $this->roomRepository->commitTransaction();
 
+            switch($chatRoomInviteRequestAction) {
+                case ChatRoomInviteRequestActionEnum::ACCEPT:
+                    $this->analyticsDelegate->onChatRequestAccept(
+                        actor: $user,
+                        chatRoom: $chatRoomEdge->getNode()->chatRoom
+                    );
+                    break;
+                case ChatRoomInviteRequestActionEnum::REJECT:
+                case ChatRoomInviteRequestActionEnum::REJECT_AND_BLOCK:
+                    $this->analyticsDelegate->onChatRequestDecline(
+                        actor: $user,
+                        chatRoom: $chatRoomEdge->getNode()->chatRoom
+                    );
+                    break;
+            }
+
             return true;
         } catch (ServerErrorException|BlockLimitException $e) {
             $this->roomRepository->rollbackTransaction();
@@ -571,27 +666,59 @@ class RoomService
     }
 
     /**
-     * @param int $roomGuid
-     * @param User $user
-     * @return bool
+     * Delete a chat room by room GUID.
+     * @param int $roomGuid - The room GUID.
+     * @param User $user - The user requesting deletion.
+     * @return bool - True if the chat room was deleted.
+     * @throws GraphQLException
+     * @throws ServerErrorException
+     */
+    public function deleteChatRoomByRoomGuid(
+        int $roomGuid,
+        User $user
+    ): bool {
+        $chatRoomEdge = $this->getRoom(
+            roomGuid: $roomGuid,
+            loggedInUser: $user
+        );
+
+        if (!$chatRoomEdge?->getNode()?->chatRoom) {
+            throw new GraphQLException(message: "Chat room could not be found.", code: 404);
+        }
+
+        return $this->deleteChatRoom($chatRoomEdge->getNode()->chatRoom, $user);
+    }
+
+    /**
+     * Delete a chat room.
+     * @param ChatRoom $chatRoom - The chat room.
+     * @param User $user - The user requesting deletion.
+     * @return bool - True if the chat room was deleted.
      * @throws GraphQLException
      * @throws ServerErrorException
      */
     public function deleteChatRoom(
-        int $roomGuid,
+        ChatRoom $chatRoom,
         User $user
     ): bool {
         if (!$this->roomRepository->isUserRoomOwner(
-            roomGuid: $roomGuid,
+            roomGuid: $chatRoom->guid,
             user: $user
         )) {
             throw new GraphQLException(message: "You are not the owner of this chat.", code: 403);
         }
 
         $this->roomRepository->beginTransaction();
+
         try {
-            $results = $this->roomRepository->deleteRoom($roomGuid);
+            $results = $this->roomRepository->deleteRoom($chatRoom->guid);
             $this->roomRepository->commitTransaction();
+
+            $this->analyticsDelegate->onChatRoomDelete(
+                actor: $user,
+                chatRoom: $chatRoom
+            );
+
             return $results;
         } catch (ServerErrorException $e) {
             $this->roomRepository->rollbackTransaction();
@@ -609,11 +736,93 @@ class RoomService
         int $roomGuid,
         User $user
     ): bool {
-        return $this->roomRepository->updateRoomMemberStatus(
+        $chatRoomEdge = $this->getRoom(
+            roomGuid: $roomGuid,
+            loggedInUser: $user
+        );
+
+        $success = $this->roomRepository->updateRoomMemberStatus(
             roomGuid: $roomGuid,
             user: $user,
             memberStatus: ChatRoomMemberStatusEnum::LEFT
         );
+
+        $this->analyticsDelegate->onChatRoomLeave(
+            actor: $user,
+            chatRoom: $chatRoomEdge?->getNode()?->chatRoom
+        );
+
+        return $success;
+    }
+
+    /**
+     * Add members to a chat room.
+     * @param int $roomGuid - The guid of the room.
+     * @param array<string> $memberGuids - The guids of the members to add.
+     * @return bool - True if the members were added successfully.
+     * @throws GraphQLException
+     * @throws ServerErrorException
+     */
+    public function addRoomMembers(
+        int $roomGuid,
+        array $memberGuids,
+        User $user
+    ): bool {
+        $chatRoom = $this->getRoom(
+            roomGuid: $roomGuid,
+            loggedInUser: $user
+        )?->getNode()?->chatRoom;
+
+        if ($chatRoom->roomType !== ChatRoomTypeEnum::MULTI_USER) {
+            throw new GraphQLException(message: "You can only add members to multi-user rooms", code: 400);
+        }
+
+        $this->roomRepository->beginTransaction();
+
+        try {
+            foreach ($memberGuids as $memberGuid) {
+                $member = $this->entitiesBuilder->single($memberGuid);
+
+                if (!$member || !($member instanceof User)) {
+                    $this->logger->info("User with guid: {$memberGuid} was not found");
+                    continue;
+                }
+
+                if ($this->roomRepository->isUserMemberOfRoom(
+                    roomGuid: $roomGuid,
+                    user: $member,
+                )) {
+                    $this->logger->info("User {$memberGuid} is already a member of the chat room {$roomGuid}");
+                    continue;
+                }
+
+                $isSubscribed = $this->subscriptionsRepository->isSubscribed(
+                    userGuid: (int)$memberGuid,
+                    friendGuid: (int)$user->getGuid()
+                );
+
+                $this->roomRepository->addRoomMember(
+                    roomGuid: $chatRoom->guid,
+                    memberGuid: (int)$memberGuid,
+                    status: $isSubscribed ? ChatRoomMemberStatusEnum::ACTIVE : ChatRoomMemberStatusEnum::INVITE_PENDING,
+                    role: ChatRoomRoleEnum::MEMBER
+                );
+
+                $this->roomRepository->updateRoomMemberSettings(
+                    roomGuid: $chatRoom->guid,
+                    memberGuid: (int)$memberGuid,
+                    notificationStatus: ChatRoomNotificationStatusEnum::ALL
+                );
+            }
+        } catch (ServerErrorException $e) {
+            $this->logger->error($e);
+            $this->roomRepository->rollbackTransaction();
+            throw $e;
+        }
+
+        $this->roomRepository->commitTransaction();
+
+        return true;
     }
 
     /**
@@ -672,7 +881,7 @@ class RoomService
             first: 1
         )['edges'][0]->getNode()->getGuid();
 
-        if (!$this->deleteChatRoom(
+        if (!$this->deleteChatRoomByRoomGuid(
             roomGuid: $roomGuid,
             user: $user
         )) {
@@ -714,6 +923,110 @@ class RoomService
             roomGuid: $roomGuid,
             memberGuid: (int) $user->getGuid(),
             notificationStatus: $notificationStatus
+        );
+    }
+
+    /**
+     * Get chat rooms by group guid.
+     * @param integer $groupGuid - Group guid.
+     * @return array - Chat rooms.
+     */
+    public function getRoomsByGroup(int $groupGuid): array
+    {
+        $chatRooms = $this->roomRepository->getGroupRooms($groupGuid);
+
+        if (!count($chatRooms)) {
+            return [];
+        }
+
+        return $chatRooms;
+    }
+
+    /**
+     * Builds the name of the chat room
+     * @param int[] $memberGuids
+     */
+    public function getRoomName(
+        ChatRoom $chatRoom,
+        User $currentUser,
+        array $memberGuids = [],
+    ): string {
+        if ($chatRoom->name) {
+            return $chatRoom->name;
+        }
+
+        if ($chatRoom->roomType === ChatRoomTypeEnum::GROUP_OWNED) {
+            $group = $this->entitiesBuilder->single($chatRoom->groupGuid);
+
+            if (!$group instanceof Group) {
+                return 'Unkown group';
+            }
+
+            return (string) $group->getName();
+        }
+
+        $memberGuids = array_diff($memberGuids, [(int) $currentUser->getGuid()]);
+
+        if (empty($memberGuids)) {
+            return '';
+        }
+ 
+        $names = array_map(function ($guid) {
+            $member = $this->entitiesBuilder->single($guid);
+
+            if (!$member instanceof User) {
+                return 'Unknown User';
+            }
+
+            return $member->getName();
+        }, array_slice($memberGuids, 0, 3));
+
+        $namesCount = count($names);
+
+        if ($namesCount === 1) {
+            return $names[0];
+        } elseif ($namesCount === 2) {
+            return "{$names[0]} & $names[1]";
+        } else {
+            return "{$names[0]}, $names[1] & {$names[2]}";
+        }
+    }
+
+    /**
+     * Update the name of a chat room.
+     * @param int $roomGuid - The room GUID.
+     * @param string $roomName - The new room name.
+     * @param User $user - The user requesting the update.
+     * @return bool - True if the room name was updated.
+     */
+    public function updateRoomName(
+        int $roomGuid,
+        string $roomName,
+        User $user
+    ): bool {
+        $chatRoomEdge = $this->getRoom(
+            roomGuid: $roomGuid,
+            loggedInUser: $user
+        );
+
+        if (!$this->roomRepository->isUserRoomOwner(
+            roomGuid: $roomGuid,
+            user: $user
+        )) {
+            throw new GraphQLException(message: "You are not the owner of this chat.", code: 403);
+        }
+
+        if ($chatRoomEdge?->getNode()?->getRoomType() !== ChatRoomTypeEnum::MULTI_USER) {
+            throw new GraphQLException(message: "Only multi-user chat names can have their names changed.", code: 400);
+        }
+
+        if (strlen($roomName) > 128) {
+            throw new UserErrorException("Room name must be under 128 characters", code: 400);
+        }
+
+        return $this->roomRepository->updateRoomName(
+            roomGuid: $roomGuid,
+            roomName: $roomName
         );
     }
 }

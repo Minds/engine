@@ -11,7 +11,6 @@ use Minds\Exceptions\NotFoundException;
 use PDO;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
-use Selective\Database\SelectQuery;
 
 class Repository extends MySQL\AbstractRepository
 {
@@ -40,40 +39,22 @@ class Repository extends MySQL\AbstractRepository
             return unserialize($cached);
         }
 
-        $inferredByMembershipQuery = $this->buildInferredMembershipQuery();
-
         $query = $this->mysqlClientReaderHandler->select()
             ->columns([
                 'group_guid',
                 'user_guid',
                 'created_timestamp',
                 'membership_level',
+                'site_membership_guid',
             ])
-            ->from(function (SelectQuery $subQuery) use ($inferredByMembershipQuery) {
-                $subQuery
-                    ->columns([
-                        'group_guid',
-                        'user_guid',
-                        'created_timestamp',
-                        'membership_level',
-                    ])
-                    ->from('minds_group_membership')
-                    ->union($inferredByMembershipQuery)
-                    ->alias('a');
-            })
-            ->where('group_guid', Operator::EQ, new RawExp(':group_guid'))
-            ->where('user_guid', Operator::EQ, new RawExp(':user_guid'))
+            ->from('minds_group_membership')
+            ->where('group_guid', Operator::EQ, $groupGuid)
+            ->where('user_guid', Operator::EQ, $userGuid)
             ->limit(1);
-
-        $stmt = $query->prepare();
-
-        $stmt->execute([
-            'group_guid' => $groupGuid,
-            'user_guid' => $userGuid,
-        ]);
+        
+        $stmt = $query->execute();
 
         if (!$stmt->rowCount()) {
-            // No membership, lets check if user is
             throw new NotFoundException("User doesn't appear to be in the group");
         }
 
@@ -84,7 +65,8 @@ class Repository extends MySQL\AbstractRepository
             groupGuid: $row['group_guid'],
             userGuid: $row['user_guid'],
             createdTimestamp: new DateTime($row['created_timestamp']),
-            membershipLevel: GroupMembershipLevelEnum::from($row['membership_level'])
+            membershipLevel: GroupMembershipLevelEnum::from($row['membership_level']),
+            siteMembershipGuid: $row['site_membership_guid'],
         );
 
         // Update the cache
@@ -105,57 +87,35 @@ class Repository extends MySQL\AbstractRepository
         int $limit = 12,
         int $offset = 0,
     ): iterable {
-        $values = [];
-
-        $inferredByMembershipQuery = $this->buildInferredMembershipQuery();
-
         $query = $this->mysqlClientReaderHandler->select()
             ->columns([
                 'group_guid',
                 'user_guid',
-                'created_timestamp' => new RawExp('MIN(created_timestamp)'),
-                'membership_level' => new RawExp('MIN(membership_level)')
+                'created_timestamp',
+                'membership_level',
+                'site_membership_guid',
             ])
-            ->from(function (SelectQuery $subQuery) use ($inferredByMembershipQuery) {
-                $subQuery
-                    ->columns([
-                        'group_guid',
-                        'user_guid',
-                        'created_timestamp',
-                        'membership_level',
-                    ])
-                    ->from('minds_group_membership')
-                    ->union($inferredByMembershipQuery)
-                    ->alias('a');
-            })
-            ->groupBy('group_guid', 'user_guid')
+            ->from('minds_group_membership')
             ->limit($limit)
             ->offset($offset);
 
         if ($groupGuid) {
-            $values['group_guid'] = $groupGuid;
-            $query->where('group_guid', Operator::EQ, new RawExp(':group_guid'));
+            $query->where('group_guid', Operator::EQ, $groupGuid);
         }
 
         if ($userGuid) {
-            $values['user_guid'] = $userGuid;
-            $query->where('user_guid', Operator::EQ, new RawExp(':user_guid'));
+            $query->where('user_guid', Operator::EQ, $userGuid);
         }
 
         if (!$membershipLevel) {
-            $membershipLevel = GroupMembershipLevelEnum::MEMBER;
-            $query->where('membership_level', Operator::GTE, new RawExp(':membership_level'));
+            $query->where('membership_level', Operator::GTE, GroupMembershipLevelEnum::MEMBER->value);
         } elseif ($membershipLevelGte) {
-            $query->where('membership_level', Operator::GTE, new RawExp(':membership_level'));
+            $query->where('membership_level', Operator::GTE, $membershipLevel->value);
         } else {
-            $query->where('membership_level', Operator::EQ, new RawExp(':membership_level'));
+            $query->where('membership_level', Operator::EQ, $membershipLevel->value);
         }
 
-        $values['membership_level'] = $membershipLevel->value;
-
-        $pdoStatement = $query->prepare();
-        
-        $pdoStatement->execute($values);
+        $pdoStatement = $query->execute();
 
         $rows = $pdoStatement->fetchAll(PDO::FETCH_ASSOC);
 
@@ -164,7 +124,8 @@ class Repository extends MySQL\AbstractRepository
                 groupGuid: $row['group_guid'],
                 userGuid: $row['user_guid'],
                 createdTimestamp: new DateTime($row['created_timestamp']),
-                membershipLevel: GroupMembershipLevelEnum::from($row['membership_level'])
+                membershipLevel: GroupMembershipLevelEnum::from($row['membership_level']),
+                siteMembershipGuid: $row['site_membership_guid'],
             );
             yield $membership;
         }
@@ -221,6 +182,11 @@ class Repository extends MySQL\AbstractRepository
                 'user_guid' => $membership->userGuid,
                 'created_timestamp' => $membership->createdTimestamp->format('c'),
                 'membership_level' => $membership->membershipLevel->value,
+                'site_membership_guid' => $membership->siteMembershipGuid,
+            ])
+            ->onDuplicateKeyUpdate([
+                'membership_level' => $membership->membershipLevel->value,
+                'site_membership_guid' => $membership->siteMembershipGuid,
             ])
             ->execute();
 
@@ -345,21 +311,31 @@ class Repository extends MySQL\AbstractRepository
         }
     }
 
-    private function buildInferredMembershipQuery(): SelectQuery
+    /**
+     * Returns a list of memberships that should be revoked, because their site membership has lapsed
+     * @return iterable<Membership>
+     */
+    public function getExpiredGroupMemberships(): iterable
     {
-        return $this->mysqlClientReaderHandler->select()
-            ->columns([
-                'group_guid' => 'mga.group_guid',
-                'user_guid' => 's.user_guid',
-                'created_timestamp' => 's.valid_from',
-                'membership_level' => new RawExp(GroupMembershipLevelEnum::MEMBER->value),
-            ])
-            ->from(new RawExp('minds_site_membership_tiers_group_assignments mga'))
-            ->innerJoin(['s' => 'minds_site_membership_subscriptions'], 's.membership_tier_guid', Operator::EQ, 'mga.membership_tier_guid')
-            ->leftJoinRaw('minds_group_membership', 'minds_group_membership.group_guid = mga.group_guid AND minds_group_membership.user_guid = s.user_guid')
-            ->where('minds_group_membership.group_guid', Operator::IS, null)
-            ->where('minds_group_membership.user_guid', Operator::IS, null)
-            ->where('s.valid_to', Operator::GTE, new RawExp('CURRENT_TIMESTAMP()'));
+        $query = $this->mysqlClientReaderHandler->select()
+            ->from('minds_group_membership')
+            ->joinRaw(['msms' => 'minds_site_membership_subscriptions'], 'minds_group_membership.user_guid = msms.user_guid AND minds_group_membership.site_membership_guid = msms.membership_tier_guid')
+            ->where('valid_to', Operator::LTE, new RawExp('NOW()'));
+    
+        $pdoStatement = $query->execute();
+
+        $rows = $pdoStatement->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($rows as $row) {
+            $membership = new Membership(
+                groupGuid: $row['group_guid'],
+                userGuid: $row['user_guid'],
+                createdTimestamp: new DateTime($row['created_timestamp']),
+                membershipLevel: GroupMembershipLevelEnum::from($row['membership_level']),
+                siteMembershipGuid: $row['site_membership_guid'],
+            );
+            yield $membership;
+        }
     }
 
     private function getMemberCountCacheKey(int $groupGuid, GroupMembershipLevelEnum $membershipLevel = null): string

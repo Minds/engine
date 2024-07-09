@@ -24,5 +24,6 @@ class Module implements ModuleInterface
     {
         (new GraphQLMappings())->register();
         (new Provider())->register();
+        (new Routes())->register();
     }
 }

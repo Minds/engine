@@ -90,8 +90,11 @@ class Minds extends base
         Comments\GraphQL\Module::class,
         Reports\V2\Module::class,
         Strapi\Module::class,
-        Chat\Module::class,
         PWA\Module::class,
+        Custom\Navigation\Module::class,
+        Chat\Module::class,
+        SEO\Robots\Module::class,
+        DeepLink\Module::class
     ];
 
     /**

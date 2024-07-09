@@ -7,6 +7,7 @@
 namespace Minds\Core\Router;
 
 use Exception;
+use Minds\Core\Router\Enums\ApiScopeEnum;
 use Minds\Traits\MagicAttributes;
 
 /**
@@ -30,6 +31,9 @@ class Route
     /** @var Registry */
     protected $registry;
 
+    /** @var ApiScopeEnum[] */
+    protected $scopes = [];
+
     /** @var string[] */
     const ALLOWED_METHODS = ['get','post','put','delete'];
 
@@ -52,6 +56,13 @@ class Route
         $instance = clone($this);
         $instance->setPrefix(sprintf("/%s/%s", trim($instance->getPrefix(), '/'), trim($prefix, '/')));
 
+        return $instance;
+    }
+
+    public function withScope(ApiScopeEnum $scope): Route
+    {
+        $instance = clone($this);
+        $instance->scopes = [...$this->scopes, $scope];
         return $instance;
     }
 
@@ -94,7 +105,7 @@ class Route
         $route = trim($route, '/');
 
         foreach ($methods as $method) {
-            $this->registry->register($method, $route, $binding, $this->middleware);
+            $this->registry->register($method, $route, $binding, $this->middleware, $this->scopes);
         }
 
         return true;

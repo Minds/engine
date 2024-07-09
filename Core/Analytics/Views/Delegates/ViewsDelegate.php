@@ -31,16 +31,13 @@ class ViewsDelegate
     {
         $user = Session::getLoggedinUser();
 
-        if (!$user) {
-            // TODO; https://gitlab.com/minds/engine/-/issues/2567
-            // Bypass sending through to Pulsar for now
-            return;
-        }
-
         $viewEvent = (new ViewEvent())
-            ->setUser($user)
             ->setEntity($entity)
             ->setTimestamp($view->getTimestamp());
+
+        if ($user) {
+            $viewEvent->setUser($user);
+        }
 
         $viewEvent->cmPlatform = $view->getPlatform();
         $viewEvent->cmSource = $view->getSource();
@@ -51,6 +48,7 @@ class ViewsDelegate
         $viewEvent->cmDelta = $view->getDelta();
         $viewEvent->cmPosition = $view->getPosition();
         $viewEvent->cmServedByGuid = $view->getServedByGuid();
+        $viewEvent->external = $view->isExternal();
 
         $viewEvent->viewUUID = $view->getUuid();
 

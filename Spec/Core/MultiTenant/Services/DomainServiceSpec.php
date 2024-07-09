@@ -21,6 +21,10 @@ use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 use ReflectionClass;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
+use GuzzleHttp\Client;
+use Minds\Core\Log\Logger;
+use Psr\Http\Message\ResponseInterface;
+use GuzzleHttp\Exception\TransferException;
 
 class DomainServiceSpec extends ObjectBehavior
 {
@@ -29,6 +33,8 @@ class DomainServiceSpec extends ObjectBehavior
     private Collaborator $multiTenantCacheHandlerMock;
     private Collaborator $cloudflareClientMock;
     private Collaborator $domainsRepositoryMock;
+    private Collaborator $httpClientMock;
+    private Collaborator $loggerMock;
 
     private ReflectionClass $tenantMockFactory;
 
@@ -38,15 +44,19 @@ class DomainServiceSpec extends ObjectBehavior
         MultiTenantCacheHandler $multiTenantCacheHandler,
         CloudflareClient        $cloudflareClientMock,
         DomainsRepository       $domainsRepositoryMock,
+        Client                  $httpClientMock,
+        Logger                  $loggerMock
     ) {
         $this->tenantMockFactory = new ReflectionClass(Tenant::class);
 
-        $this->beConstructedWith($configMock, $dataServiceMock, $multiTenantCacheHandler, $cloudflareClientMock, $domainsRepositoryMock);
+        $this->beConstructedWith($configMock, $dataServiceMock, $multiTenantCacheHandler, $cloudflareClientMock, $domainsRepositoryMock, $httpClientMock, $loggerMock);
         $this->configMock = $configMock;
         $this->dataServiceMock = $dataServiceMock;
         $this->multiTenantCacheHandlerMock = $multiTenantCacheHandler;
         $this->cloudflareClientMock = $cloudflareClientMock;
         $this->domainsRepositoryMock = $domainsRepositoryMock;
+        $this->httpClientMock = $httpClientMock;
+        $this->loggerMock = $loggerMock;
     }
 
     public function it_is_initializable()
@@ -134,6 +144,71 @@ class DomainServiceSpec extends ObjectBehavior
             id: 123,
         );
         $this->buildDomain($tenant)->shouldbe('202cb962ac59075b964b07152d234b70.minds.com');
+    }
+
+    public function it_should_build_navigatable_custom_domain(
+        ResponseInterface $response
+    ) {
+        $tenant = new Tenant(
+            id: 123,
+            domain: 'custom.domain',
+        );
+
+        $response->getStatusCode()
+            ->shouldBeCalled()
+            ->willReturn(200);
+
+        $this->httpClientMock->request('GET', $tenant->domain, ['timeout' => 10])
+            ->shouldBeCalled()
+            ->willReturn($response);
+
+        $this->buildNavigatableDomain($tenant)->shouldbe('custom.domain');
+    }
+
+    public function it_should_build_temp_subdomain_when_custom_domain_is_not_set()
+    {
+        $tenant = new Tenant(
+            id: 123
+        );
+
+        $this->httpClientMock->request('GET', $tenant->domain, ['timeout' => 10])
+            ->shouldNotBeCalled();
+
+        $this->buildNavigatableDomain($tenant)->shouldbe('202cb962ac59075b964b07152d234b70.minds.com');
+    }
+
+    public function it_should_build_temp_subdomain_when_custom_domain_is_not_navigatable(
+        ResponseInterface $response
+    ) {
+        $tenant = new Tenant(
+            id: 123,
+            domain: 'custom.domain',
+        );
+
+        $response->getStatusCode()
+            ->shouldBeCalled()
+            ->willReturn(500);
+
+        $this->httpClientMock->request('GET', $tenant->domain, ['timeout' => 10])
+            ->shouldBeCalled()
+            ->willReturn($response);
+
+        $this->buildNavigatableDomain($tenant)->shouldbe('202cb962ac59075b964b07152d234b70.minds.com');
+    }
+
+    public function it_should_build_temp_subdomain_when_custom_domain_request_throws_exception(
+
+    ) {
+        $tenant = new Tenant(
+            id: 123,
+            domain: 'custom.domain'
+        );
+
+        $this->httpClientMock->request('GET', $tenant->domain, ['timeout' => 10])
+            ->shouldBeCalled()
+            ->willThrow(new TransferException());
+
+        $this->buildNavigatableDomain($tenant)->shouldbe('202cb962ac59075b964b07152d234b70.minds.com');
     }
 
     public function it_should_invalidate_global_tenant_cache()
@@ -397,6 +472,20 @@ class DomainServiceSpec extends ObjectBehavior
 
         $domain->dnsRecord->type->shouldBe(DnsRecordEnum::A);
         $domain->dnsRecord->value->shouldBe('127.0.0.1');
+    }
+
+    public function it_should_build_tmp_subdomain()
+    {
+        $tenantId = 123;
+        $hashedTenantId = md5($tenantId);
+        $tenant = $this->generateTenantMock($tenantId);
+
+        $this->configMock->get('multi_tenant')
+            ->willReturn([
+                'subdomain_suffix' => 'minds.com',
+            ]);
+
+        $this->buildTmpSubdomain($tenant)->shouldBe("{$hashedTenantId}.minds.com");
     }
 
     private function generateTenantMock(

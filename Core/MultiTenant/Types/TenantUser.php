@@ -18,4 +18,20 @@ class TenantUser
         public readonly string                              $plainPassword = '',
     ) {
     }
+
+    /**
+     * Return a cloned TenantUser with given user guid.
+     * @param int $guid - user guid.
+     * @return TenantUser - cloned TenantUser with given user guid.
+     */
+    public function withGuid(int $guid): TenantUser
+    {
+        return new TenantUser(
+            guid: $guid,
+            username: $this->username,
+            tenantId: $this->tenantId,
+            role: $this->role,
+            plainPassword: $this->plainPassword,
+        );
+    }
 }

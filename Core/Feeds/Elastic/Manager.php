@@ -236,22 +236,25 @@ class Manager
                 $entities[] = $entity;
             }
 
-            // TODO: confirm if the following is actually necessary
-            // especially after the first 12
+            usort($entities, function ($a, $b) use ($scores) {
+                if (($a instanceof FeedSyncEntity && $a->getEntity()->pinned) ||
+                    ($b instanceof FeedSyncEntity && $b->getEntity()->pinned)
+                ) {
+                    return 0;
+                }
 
-            /*usort($entities, function ($a, $b) use ($scores) {
-               $aGuid = $a instanceof FeedSyncEntity ? $a->getGuid() : $a->guid;
-               $bGuid = $b instanceof FeedSyncEntity ? $b->getGuid() : $b->guid;
+                $aGuid = $a instanceof FeedSyncEntity ? $a->getGuid() : $a->guid;
+                $bGuid = $b instanceof FeedSyncEntity ? $b->getGuid() : $b->guid;
 
-               $aScore = $scores[(string) $aGuid];
-               $bScore = $scores[(string) $bGuid];
+                $aScore = $scores[(string) $aGuid];
+                $bScore = $scores[(string) $bGuid];
 
-               if ($aScore === $bScore) {
-                   return 0;
-               }
+                if ($aScore === $bScore) {
+                    return 0;
+                }
 
-               return $aScore < $bScore ? 1 : -1;
-           });*/
+                return $aScore < $bScore ? 1 : -1;
+            });
         }
 
         $response = new Response($entities);

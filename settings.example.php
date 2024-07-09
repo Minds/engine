@@ -12,6 +12,10 @@ $CONFIG->set('multi_tenant', [
         'localhost',
     ],
     'subdomain_suffix' => 'networks.localhost',
+    'chatwoot' => [
+        'website_token' => '',
+        'signing_key' => ''
+    ]
 ]);
 
 /*

@@ -89,4 +89,23 @@ class StripeKeysRepositorySpec extends ObjectBehavior
     
         $this->getKeys()->shouldBe(null);
     }
+
+    public function it_should_get_all_keys(PDOStatement $stmtMock)
+    {
+        $this->mysqlReplicaMock->quote(Argument::any())->willReturn("");
+        $this->mysqlReplicaMock->prepare(Argument::any())->willReturn($stmtMock);
+
+        $stmtMock->execute()->willReturn(true);
+
+        $stmtMock->rowCount()->willReturn(1);
+
+        $stmtMock->fetchAll(PDO::FETCH_ASSOC)
+            ->willReturn([
+                'pub', 'sec'
+            ]);
+
+        $this->getAllKeys()->shouldBe([
+            'pub', 'sec'
+        ]);
+    }
 }

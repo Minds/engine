@@ -3,12 +3,17 @@ declare(strict_types=1);
 
 namespace Minds\Core\Chat\Services;
 
+use Minds\Core\Chat\Delegates\AnalyticsDelegate;
 use Minds\Core\Chat\Entities\ChatMessage;
+use Minds\Core\Chat\Entities\ChatRoom;
+use Minds\Core\Chat\Entities\ChatRoomListItem;
 use Minds\Core\Chat\Enums\ChatMessageTypeEnum;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Events\Sockets\ChatEvent;
 use Minds\Core\Chat\Events\Sockets\Enums\ChatEventTypeEnum;
 use Minds\Core\Chat\Exceptions\ChatMessageNotFoundException;
+use Minds\Core\Chat\Exceptions\ChatRoomNotFoundException;
 use Minds\Core\Chat\Notifications\Events\ChatNotificationEvent;
 use Minds\Core\Chat\Repositories\MessageRepository;
 use Minds\Core\Chat\Repositories\RoomRepository;
@@ -18,6 +23,8 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\Topics\ChatNotificationsTopic;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
 use Minds\Core\Guid;
+use Minds\Core\Log\Logger;
+use Minds\Core\Security\ACL;
 use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -33,7 +40,10 @@ class MessageService
         private readonly EntitiesBuilder $entitiesBuilder,
         private readonly SocketEvents $socketEvents,
         private readonly ChatNotificationsTopic $chatNotificationsTopic,
-        private readonly RichEmbedService $chatRichEmbedService
+        private readonly RichEmbedService $chatRichEmbedService,
+        private readonly AnalyticsDelegate $analyticsDelegate,
+        private readonly ACL $acl,
+        private readonly Logger $logger
     ) {
     }
 
@@ -56,13 +66,10 @@ class MessageService
             throw new GraphQLException(message: "Message cannot be empty", code: 400);
         }
 
-        if (
-            !$this->roomRepository->isUserMemberOfRoom(
-                roomGuid: $roomGuid,
-                user: $user
-            )
-        ) {
-            throw new GraphQLException(message: "You are not a member of this room", code: 403);
+        $chatRoomListItem = $this->getChatRoomListItem($user, $roomGuid);
+
+        if (!$this->acl->write(entity: $chatRoomListItem->chatRoom, user: $user)) {
+            throw new GraphQLException(message: "You cannot add a message to this room", code: 403);
         }
 
         $messageType = ChatMessageTypeEnum::TEXT;
@@ -125,6 +132,12 @@ class MessageService
             $this->messageRepository->rollbackTransaction();
         }
 
+        $this->handleSendMessageAnalyticsEvent(
+            user: $user,
+            chatMessage: $chatMessage,
+            chatRoom: $chatRoomListItem->chatRoom
+        );
+
         return new ChatMessageEdge(
             node: new ChatMessageNode(
                 chatMessage: $chatMessage,
@@ -174,20 +187,33 @@ class MessageService
 
         usort($messages, fn (ChatMessage $a, ChatMessage $b): bool => $a->createdAt > $b->createdAt);
 
-        return [
-            'edges' => array_map(
-                fn (ChatMessage $message) => new ChatMessageEdge(
-                    node: new ChatMessageNode(
-                        chatMessage: $message,
-                        sender: new UserEdge(
-                            user: $this->entitiesBuilder->single($message->senderGuid),
-                            cursor: ''
-                        )
-                    ),
-                    cursor: base64_encode((string) $message->guid)
+
+        $edges = [];
+
+        foreach ($messages as $message) {
+            $user = $this->entitiesBuilder->single($message->senderGuid);
+
+            if (!$user instanceof User) {
+                continue;
+            }
+
+            $edges[] = new ChatMessageEdge(
+                node: new ChatMessageNode(
+                    chatMessage: $message,
+                    sender: new UserEdge(
+                        user: $user,
+                        cursor: ''
+                    )
                 ),
-                $messages
-            ),
+                cursor: base64_encode((string) $message->guid)
+            );
+        }
+
+        $chatRoomListItem = $this->getChatRoomListItem($user, $roomGuid);
+        $edges = $this->removeDisallowedSendersFromEdges($edges, $chatRoomListItem->chatRoom);
+
+        return [
+            'edges' => $edges,
             'hasMore' => $hasMore
         ];
     }
@@ -242,9 +268,20 @@ class MessageService
         User $loggedInUser
     ): bool {
         $message = $this->getMessage($roomGuid, $messageGuid, $loggedInUser);
-        if (!$loggedInUser->isAdmin() && $message->senderGuid !== (int) $loggedInUser->getGuid()) {
+        $chatRoom = $this->getChatRoomListItem($loggedInUser, $roomGuid);
+        $isUserRoomOwner = $this->roomRepository->isUserRoomOwner(
+            roomGuid: $roomGuid,
+            user: $loggedInUser
+        );
+
+        if (
+            !$loggedInUser->isAdmin() &&
+            $message->senderGuid !== (int) $loggedInUser->getGuid() &&
+            !($chatRoom->chatRoom->roomType === ChatRoomTypeEnum::GROUP_OWNED && $isUserRoomOwner)
+        ) {
             throw new GraphQLException(message: 'You are not allowed to delete this message', code: 403);
         }
+
         $this->messageRepository->beginTransaction();
         try {
             if (!$this->receiptService->deleteAllMessageReadReceipts($roomGuid, $messageGuid)) {
@@ -268,9 +305,111 @@ class MessageService
             }
 
             $this->messageRepository->commitTransaction();
+
+            try {
+                $this->socketEvents
+                    ->setRoom("chat:$roomGuid")
+                    ->emit(
+                        "chat:$roomGuid",
+                        json_encode(new ChatEvent(
+                            type: ChatEventTypeEnum::MESSAGE_DELETED,
+                            metadata: [
+                                'messageGuid' => (string) $messageGuid
+                            ],
+                        ))
+                    );
+            } catch (\Exception $e) {
+                $this->logger->error($e); // Log but continue.
+            }
+
             return true;
         } catch (ServerErrorException $e) {
             throw new GraphQLException(message: 'Failed to delete message', code: 500);
         }
+    }
+
+    /**
+     * Handle analytics event firing on message send.
+     * @param User $user - the message sender.
+     * @param ChatMessage $chatMessage - the message.
+     * @param ChatRoom $chatRoom - the room chat room.
+     * @return void
+     */
+    private function handleSendMessageAnalyticsEvent(
+        User $user,
+        ChatMessage $chatMessage,
+        ChatRoom $chatRoom
+    ) {
+        try {
+            $this->analyticsDelegate->onMessageSend(
+                actor: $user,
+                message: $chatMessage,
+                chatRoom: $chatRoom
+            );
+        } catch (\Exception $e) {
+            $this->logger->error($e);
+        }
+    }
+
+    /**
+     * Get the chat room list item.
+     * @param User $user - the user.
+     * @param integer $roomGuid - the room guid.
+     * @throws ChatRoomNotFoundException - if the chat room is not found.
+     * @return ChatRoomListItem - the chat room list item.
+     */
+    private function getChatRoomListItem(
+        User $user,
+        int $roomGuid
+    ): ChatRoomListItem {
+        ['chatRooms' => $chatRooms] = $this->roomRepository->getRoomsByMember(
+            user: $user,
+            targetMemberStatuses: [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            limit: 1,
+            roomGuid: $roomGuid
+        );
+
+        return $chatRooms[0] ?? throw new ChatRoomNotFoundException();
+    }
+
+    /**
+     * Remove messages from disallowed senders.
+     * @param array $edges - the edges.
+     * @return array - the filtered edges.
+     */
+    private function removeDisallowedSendersFromEdges(array $edges, ChatRoom $chatRoom): array
+    {
+        $disallowedMessageSenders = [];
+        $allowedMessageSenders = [];
+
+        return array_values(array_filter(
+            $edges,
+            function (ChatMessageEdge $edge) use (&$disallowedMessageSenders, &$allowedMessageSenders, $chatRoom) {
+                $sender = $edge->getNode()->sender->getNode()->getUser();
+        
+                // If we already know the sender is allowed, don't check them again.
+                if (in_array($sender->getGuid(), $allowedMessageSenders, true)) {
+                    return true;
+                }
+
+                // If we already know the sender is disallowed, don't check them again.
+                if (in_array($sender->getGuid(), $disallowedMessageSenders, true)) {
+                    return false;
+                }
+
+                $isAllowed = $this->acl->write(entity: $chatRoom, user: $sender);
+
+                if ($isAllowed) {
+                    $allowedMessageSenders[] = $sender->getGuid();
+                } else {
+                    $disallowedMessageSenders[] = $sender->getGuid();
+                }
+
+                return $isAllowed;
+            }
+        ));
     }
 }

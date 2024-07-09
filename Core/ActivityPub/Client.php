@@ -62,7 +62,8 @@ class Client
         $request = $context->signer()->signWithDigest($request);
 
         $opts = [
-            'connect_timeout' => 5
+            'connect_timeout' => 5,
+            'read_timeout' => 5,
         ];
 
         if (($httpProxy = $this->config->get('http_proxy'))) {

@@ -44,7 +44,7 @@ class MobileConfigReaderService
         $config = new AppReadyMobileConfig(
             appName: $tenant->config?->siteName ?? '',
             tenantId: $tenant->id,
-            appHost: $this->config->get('site_url'),
+            appHost: parse_url($this->config->get('site_url'), PHP_URL_HOST),
             appSplashResize: strtolower($mobileConfig->splashScreenType->name),
             accentColorLight: $tenant->config?->primaryColor ?? '',
             accentColorDark: $tenant->config?->primaryColor ?? '',
@@ -84,11 +84,12 @@ class MobileConfigReaderService
     private function prepareAppReadyMobileConfigAssets(Tenant $tenant): array
     {
         $assets = [];
+        $md5 = md5(strval($tenant->id));
 
         foreach (MobileConfigImageTypeEnum::cases() as $imageType) {
             $assets[] = new KeyValuePair(
                 key: $imageType->value,
-                value: "{$this->config->get('site_url')}api/v3/multi-tenant/mobile-configs/image/$imageType->value" . "?" . time()
+                value: "https://{$md5}.networks.minds.com/api/v3/multi-tenant/mobile-configs/image/$imageType->value" . "?" . time()
             );
         }
 

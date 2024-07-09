@@ -82,7 +82,7 @@ class Manager
          * Grab all the boosts are scheduled to be delivered
          */
         foreach ($this->repository->getBoostShareRatios() as $boostShareRatio) {
-            $this->activeBoostsCache[$boostShareRatio->getGuid()] = $boostShareRatio;
+            $this->activeBoostsCache[$boostShareRatio->guid] = $boostShareRatio;
         }
 
         /**
@@ -101,7 +101,7 @@ class Manager
                 BoostTargetAudiences::SAFE => $boost->getTargetAudienceShare(BoostTargetAudiences::SAFE), // Only safe boosts will go here
             ];
 
-            $ranking = new BoostRanking($boost->getGuid());
+            $ranking = new BoostRanking($boost->tenantId, $boost->guid);
         
             foreach ($targetAudiences as $targetAudience => $shareOfBids) {
                 // This is our ideal target
@@ -110,14 +110,14 @@ class Manager
                 $viewsTarget = $totalViews * $shareOfBids; // ie. 250
 
                 // What we've actual had in the time window
-                $viewsActual =  $this->viewsByBoostGuid[$boost->getGuid()] ?? 0; // ie. 125
+                $viewsActual =  $this->viewsByBoostGuid[$boost->guid] ?? 0; // ie. 125
 
                 // Work out the rank
                 $rank = $viewsTarget / max($viewsActual, 1);
 
                 $ranking->setRank($targetAudience, $rank);
 
-                $this->logger->info("Setting {$boost->getGuid()} rank to $rank", [
+                $this->logger->info("Setting {$boost->guid} rank to $rank", [
                     'totalViews' => $totalViews,
                     'target' => $viewsTarget,
                     'actual' => $viewsActual,
@@ -279,10 +279,10 @@ class Manager
             $this->totalViews[$targetLocation . '_' . BoostTargetAudiences::SAFE] += $val;
         }
 
-        if (!isset($this->viewsByBoostGuid[$boost->getGuid()])) {
-            $this->viewsByBoostGuid[$boost->getGuid()] = $val;
+        if (!isset($this->viewsByBoostGuid[$boost->guid])) {
+            $this->viewsByBoostGuid[$boost->guid] = $val;
         } else {
-            $this->viewsByBoostGuid[$boost->getGuid()] += $val;
+            $this->viewsByBoostGuid[$boost->guid] += $val;
         }
     }
 

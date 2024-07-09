@@ -3,11 +3,9 @@
 namespace Spec\Minds\Core\Rewards;
 
 use Brick\Math\BigDecimal;
-use Minds\Common\Repository\Response;
 use Minds\Core\Blockchain\Token;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-
 use Minds\Core\Rewards\Contributions\Manager as ContributionsManager;
 use Minds\Core\Blockchain\Transactions\Repository as TxRepository;
 use Minds\Core\Blockchain\Wallets\OffChain\Transactions;
@@ -126,7 +124,7 @@ class ManagerSpec extends ObjectBehavior
             ]);
         $this->repository->add(Argument::that(function ($rewardEntry) {
             return $rewardEntry->getUserGuid() === '123'
-                && $rewardEntry->getScore()->toFloat() === (float) 10
+                && $rewardEntry->getScore()->toFloat() === (float) 30
                 && $rewardEntry->getRewardType() === 'engagement';
         }))->shouldBeCalled();
 
@@ -140,23 +138,11 @@ class ManagerSpec extends ObjectBehavior
                         ->setUserGuid('123')
                         ->setUserLiquidityTokens(BigDecimal::of(10)),
                 ]);
-        // We request yesterdays RewardEntry
-        $this->repository->getList(Argument::that(function ($opts) {
-            return $opts->getUserGuid() === '123'
-                && $opts->getDateTs()  === time() - 86400;
-        }))
-            ->willReturn(new Response([
-                (new RewardEntry())
-                    ->setRewardType('liquidity')
-                    ->setMultiplier(BigDecimal::of(1)),
-                (new RewardEntry())
-                    ->setRewardType('holding')
-                    ->setMultiplier(BigDecimal::of('1.0054794520540')),
-            ]));
+
         // Add to the repository
         $this->repository->add(Argument::that(function ($rewardEntry) {
             return $rewardEntry->getUserGuid() === '123'
-                && (string) $rewardEntry->getScore() === '10.054794520550'
+                && (string) $rewardEntry->getScore() === '30'
                 && $rewardEntry->getRewardType() === 'liquidity';
         }))->shouldBeCalled();
 
@@ -225,7 +211,7 @@ class ManagerSpec extends ObjectBehavior
             ]);
         $this->repository->add(Argument::that(function ($rewardEntry) {
             return $rewardEntry->getUserGuid() === '123'
-                && $rewardEntry->getScore()->toFloat() === (float) 10
+                && $rewardEntry->getScore()->toFloat() === (float) 30
                 && $rewardEntry->getRewardType() === 'engagement';
         }))->shouldBeCalled();
 
@@ -239,23 +225,11 @@ class ManagerSpec extends ObjectBehavior
                         ->setUserGuid('123')
                         ->setUserLiquidityTokens(BigDecimal::of(10)),
                 ]);
-        // We request yesterdays RewardEntry
-        $this->repository->getList(Argument::that(function ($opts) {
-            return $opts->getUserGuid() === '123'
-                && $opts->getDateTs()  === time() - 86400;
-        }))
-            ->willReturn(new Response([
-                (new RewardEntry())
-                    ->setRewardType('liquidity')
-                    ->setMultiplier(BigDecimal::of(1)),
-                (new RewardEntry())
-                    ->setRewardType('holding')
-                    ->setMultiplier(BigDecimal::of('1.0054794520540')),
-            ]));
+
         // Add to the repository
         $this->repository->add(Argument::that(function ($rewardEntry) {
             return $rewardEntry->getUserGuid() === '123'
-                && (string) $rewardEntry->getScore() === '10.054794520550'
+                && (string) $rewardEntry->getScore() === '30'
                 && $rewardEntry->getRewardType() === 'liquidity';
         }))->shouldBeCalled();
 
@@ -280,7 +254,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->repository->add(Argument::that(function ($rewardEntry) {
             return $rewardEntry->getUserGuid() === '123'
-                && (string) $rewardEntry->getScore() === "10.1095890410900"
+                && (string) $rewardEntry->getScore() === "30"
                 && $rewardEntry->getRewardType() === 'holding';
         }))->shouldBeCalled();
 

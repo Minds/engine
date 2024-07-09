@@ -62,8 +62,8 @@ class MobileConfigReaderServiceSpec extends ObjectBehavior
         $mobileConfigMock = new MobileConfig(
             updateTimestamp: time(),
         );
-
-        $siteUrl = 'test';
+        $md5 = md5(strval($tenantMock->id));
+        $siteUrl = 'https://example.minds.com/';
 
         $this->multiTenantBootServiceMock->bootFromTenantId(1)
             ->shouldBeCalledOnce();
@@ -90,7 +90,7 @@ class MobileConfigReaderServiceSpec extends ObjectBehavior
 
         $response->appName->shouldBe('test');
         $response->tenantId->shouldBe(1);
-        $response->appHost->shouldBe($siteUrl);
+        $response->appHost->shouldBe('example.minds.com');
         $response->appSplashResize->shouldBe(strtolower($mobileConfigMock->splashScreenType->name));
         $response->accentColorLight->shouldBe('test');
         $response->accentColorDark->shouldBe('test');
@@ -100,7 +100,7 @@ class MobileConfigReaderServiceSpec extends ObjectBehavior
 
         $imageTypes = array_map(fn (MobileConfigImageTypeEnum $imageType): string => $imageType->value, MobileConfigImageTypeEnum::cases());
 
-        $response->getAssets()->shouldCompleteCallback(function (array $assets) use ($imageTypes, $siteUrl): bool {
+        $response->getAssets()->shouldCompleteCallback(function (array $assets) use ($imageTypes, $siteUrl, $md5): bool {
             if (count($assets) !== count($imageTypes)) {
                 throw new FailureException("The total amount of returned assets (" . count($assets) . ") does not match the total amount of image types (" . count($imageTypes) . ")");
             }
@@ -111,7 +111,7 @@ class MobileConfigReaderServiceSpec extends ObjectBehavior
                 if (!in_array($asset->key, $imageTypes, true)) {
                     throw new FailureException("The asset key (" . $asset->key . ") is not a valid image type");
                 }
-                if (!str_starts_with($asset->value, "{$siteUrl}api/v3/multi-tenant/mobile-configs/image/$asset->key?")) {
+                if (!str_starts_with($asset->value, "https://{$md5}.networks.minds.com/api/v3/multi-tenant/mobile-configs/image/$asset->key?")) {
                     throw new FailureException("The asset value (" . $asset->value . ") does not match the expected value ({$siteUrl}api/v3/multi-tenant/mobile-configs/image/$asset->key)");
                 }
             }

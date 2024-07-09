@@ -71,7 +71,10 @@ class SiteMembershipReaderService
             priceCurrency: strtoupper($siteMembershipDetails['currency']),
             roles: $this->prepareSiteMembershipRoles($siteMembershipGuid),
             groups: $this->prepareSiteMembershipGroups($siteMembershipGuid),
-            archived: (bool)$siteMembershipDetails['archived']
+            archived: (bool) $siteMembershipDetails['archived'],
+            isExternal: (bool) $siteMembershipDetails['is_external'],
+            purchaseUrl: $siteMembershipDetails['purchase_url'],
+            manageUrl: $siteMembershipDetails['manage_url'],
         );
     }
 

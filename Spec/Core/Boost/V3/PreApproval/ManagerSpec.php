@@ -44,6 +44,10 @@ class ManagerSpec extends ObjectBehavior
         $userGuid = '123';
         $threshold = 3;
 
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $this->experimentsManager->isOn('front-5882-boost-preapprovals')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -71,10 +75,27 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
+    public function it_should_return_false_when_boost_should_not_be_approved_because_it_is_on_a_tenant_network(User $user): void
+    {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $this->experimentsManager->isOn('front-5882-boost-preapprovals')
+            ->shouldNotBeCalled();
+        
+        $this->callOnWrappedObject('shouldPreApprove', [$user])
+            ->shouldBe(false);
+    }
+
     public function it_should_return_false_when_boost_should_NOT_be_preapproved_because_there_was_not_enough_boosts(User $user): void
     {
         $userGuid = '123';
         $threshold = 3;
+
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
 
         $this->experimentsManager->isOn('front-5882-boost-preapprovals')
             ->shouldBeCalled()
@@ -108,6 +129,11 @@ class ManagerSpec extends ObjectBehavior
         $userGuid = '123';
         $threshold = 3;
 
+
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $this->experimentsManager->isOn('front-5882-boost-preapprovals')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -140,6 +166,10 @@ class ManagerSpec extends ObjectBehavior
         $userGuid = '123';
         $threshold = 3;
 
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $this->experimentsManager->isOn('front-5882-boost-preapprovals')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -169,6 +199,10 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_return_false_when_boost_should_NOT_be_preapproved_because_experiment_is_off(User $user): void
     {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $this->experimentsManager->isOn('front-5882-boost-preapprovals')
             ->shouldBeCalled()
             ->willReturn(false);

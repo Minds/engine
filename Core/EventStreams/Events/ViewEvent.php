@@ -17,4 +17,5 @@ class ViewEvent implements EventInterface
     use ClientMetaEventTrait;
 
     public string $viewUUID;
+    public bool $external = false;
 }

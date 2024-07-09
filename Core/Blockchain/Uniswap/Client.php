@@ -6,6 +6,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Http;
 use Minds\Core\Blockchain\Services\BlockFinder;
 use Minds\Core\Config\Config;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Exceptions\ServerErrorException;
 
 class Client
@@ -264,6 +265,12 @@ class Client
      */
     private function request($query, $variables): array
     {
+        if (php_sapi_name() !== 'cli') {
+            return new ForbiddenException(); // Only CLI can call for now
+        }
+
+        \Sentry\captureMessage("Uniswap Client was called");
+
         $graphqlEndpoint = $this->config->get('uniswap')['url'];
 
         $response = $this->http->post(

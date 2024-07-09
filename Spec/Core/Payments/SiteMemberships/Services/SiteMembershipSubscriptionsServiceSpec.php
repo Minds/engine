@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Spec\Minds\Core\Payments\SiteMemberships\Services;
 
 use Minds\Core\Config\Config;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipPricingModelEnum;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipSubscriptionsRepository;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipReaderService;
@@ -20,6 +21,9 @@ use PhpSpec\Wrapper\Collaborator;
 use ReflectionClass;
 use Stripe\Checkout\Session as StripeCheckoutSession;
 use Stripe\Product as StripeProduct;
+use Minds\Core\Groups\V2\Membership\Manager as GroupMembershipService;
+use Minds\Core\Payments\SiteMemberships\Repositories\DTO\SiteMembershipSubscriptionDTO;
+use Prophecy\Argument;
 
 class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
 {
@@ -29,6 +33,8 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
     private Collaborator $stripeProductServiceMock;
     private Collaborator $stripeCheckoutSessionServiceMock;
     private Collaborator $configMock;
+    private Collaborator $groupMembershipServiceMock;
+    private Collaborator $entitiesBuilderMock;
 
     private ReflectionClass $siteMembershipSubscriptionMockFactory;
     private ReflectionClass $siteMembershipMockFactory;
@@ -41,7 +47,9 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
         StripeCheckoutManager                 $stripeCheckoutManager,
         StripeProductService                  $stripeProductService,
         StripeCheckoutSessionService          $stripeCheckoutSessionService,
-        Config                                $config
+        Config                                $config,
+        GroupMembershipService                $groupMembershipServiceMock,
+        EntitiesBuilder                       $entitiesBuilderMock,
     ): void {
         $this->siteMembershipSubscriptionsRepositoryMock = $siteMembershipSubscriptionsRepository;
         $this->siteMembershipReaderServiceMock = $siteMembershipReaderService;
@@ -49,6 +57,8 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
         $this->stripeProductServiceMock = $stripeProductService;
         $this->stripeCheckoutSessionServiceMock = $stripeCheckoutSessionService;
         $this->configMock = $config;
+        $this->groupMembershipServiceMock = $groupMembershipServiceMock;
+        $this->entitiesBuilderMock = $entitiesBuilderMock;
 
         $this->siteMembershipSubscriptionMockFactory = new ReflectionClass(SiteMembershipSubscription::class);
         $this->siteMembershipMockFactory = new ReflectionClass(SiteMembership::class);
@@ -61,7 +71,9 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
             $this->stripeCheckoutManagerMock,
             $this->stripeProductServiceMock,
             $this->stripeCheckoutSessionServiceMock,
-            $this->configMock
+            $this->configMock,
+            $this->groupMembershipServiceMock,
+            $this->entitiesBuilderMock,
         );
     }
 
@@ -122,12 +134,14 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
     private function generateSiteMembershipMock(
         int                            $siteMembershipGuid,
         string                         $stripeProductId,
-        SiteMembershipPricingModelEnum $membershipPricingModel
+        SiteMembershipPricingModelEnum $membershipPricingModel,
+        array                          $groups = [],
     ): SiteMembership {
         $siteMembershipMock = $this->siteMembershipMockFactory->newInstanceWithoutConstructor();
         $this->siteMembershipMockFactory->getProperty('membershipGuid')->setValue($siteMembershipMock, $siteMembershipGuid);
         $this->siteMembershipMockFactory->getProperty('stripeProductId')->setValue($siteMembershipMock, $stripeProductId);
         $this->siteMembershipMockFactory->getProperty('membershipPricingModel')->setValue($siteMembershipMock, $membershipPricingModel);
+        $this->siteMembershipMockFactory->getProperty('groups')->setValue($siteMembershipMock, $groups);
 
         return $siteMembershipMock;
     }
@@ -249,16 +263,87 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
             ->willReturn($siteMembershipMock);
 
         $this->siteMembershipSubscriptionsRepositoryMock->storeSiteMembershipSubscription(
-            $userMock,
-            $siteMembershipMock,
-            'sub_123',
+            Argument::type(SiteMembershipSubscriptionDTO::class)
         )
-            ->shouldBeCalledOnce();
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
 
         $this->completeSiteMembershipCheckout(
             "checkout_session_id",
             $userMock
         )
             ->shouldReturn("/memberships");
+    }
+
+    public function it_should_get_all_site_memberships()
+    {
+        $tenantId = 123;
+
+        $this->siteMembershipSubscriptionsRepositoryMock->getAllSiteMembershipSubscriptions($tenantId)
+            ->shouldBeCalled()
+            ->willReturn([]);
+
+        $this->getAllSiteMemberships($tenantId)->shouldBe([]);
+    }
+
+    public function it_should_get_site_membership_subscription_by_stripe_subscription_id()
+    {
+        $subscriptionId = 'sub_id';
+
+        $siteMembershipSubscription = new SiteMembershipSubscription(
+            456,
+            1,
+            1,
+            $subscriptionId,
+        );
+
+        $this->siteMembershipSubscriptionsRepositoryMock->getSiteMembershipSubscriptionByStripeSubscriptionId($subscriptionId)
+            ->shouldBeCalled()
+            ->willReturn($siteMembershipSubscription);
+
+        $this->getSiteMembershipSubscriptionByStripeSubscriptionId($subscriptionId)->shouldBe($siteMembershipSubscription);
+    }
+
+    public function it_should_renew_site_subscriptions()
+    {
+        $subscriptionId = 'sub_id';
+        $startTime = time();
+        $endTime = strtotime('+1 year', $startTime);
+
+        $this->siteMembershipSubscriptionsRepositoryMock->renewSiteMembershipSubscription(
+            $subscriptionId,
+            $startTime,
+            $endTime
+        )
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->renewSiteMembershipSubscription($subscriptionId, $startTime, $endTime)->shouldBe(true);
+    }
+
+    public function it_should_sync_out_of_sync_site_memberships(SiteMembership $siteMembershipMock)
+    {
+        $this->siteMembershipSubscriptionsRepositoryMock->getOutOfSyncSiteMemberships()
+            ->willReturn([
+                new SiteMembershipSubscription(
+                    456,
+                    1,
+                    1,
+                    null,
+                )
+            ]);
+
+        $user1 = new User();
+
+        $this->entitiesBuilderMock->single(456)
+            ->willReturn($user1);
+
+        $this->siteMembershipReaderServiceMock->getSiteMembership(1)
+            ->willReturn($siteMembershipMock);
+
+        $siteMembershipMock->getGroups()
+            ->willReturn([]);
+
+        $this->syncOutOfSyncSiteMemberships();
     }
 }
