@@ -54,7 +54,7 @@ class PermissionIntentsRepository extends AbstractRepository
 
         // Ensure that we have missing values added and items are in the correct order.
         foreach ($this->permissionIntentHelpers::CONTROLLABLE_PERMISSION_IDS as $controllablePermissionId) {
-            $resultIntent = $resultIntent = array_values(array_filter(
+            $resultIntent = array_values(array_filter(
                 $results,
                 fn ($result) => $result['permission_id'] === $controllablePermissionId->name,
             ))[0] ?? null;
