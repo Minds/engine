@@ -14,7 +14,7 @@ class PermissionIntent
 {
     public function __construct(
         #[Field] public readonly PermissionsEnum $permissionId,
-        #[Field] public ?PermissionIntentTypeEnum $intentType,
+        #[Field] public PermissionIntentTypeEnum $intentType,
         #[Field(outputType: 'String')] public ?int $membershipGuid
     ) {
     }
