@@ -28,7 +28,7 @@ class PermissionIntent
         return [
             'permission_id' => $this->permissionId->name,
             'intent_type' => $this->intentType->name,
-            'membership_guid' => (string) $this->membershipGuid
+            'membership_guid' => $this->membershipGuid ? (string) $this->membershipGuid : null
         ];
     }
 }
