@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Torrent;
 
+use AllowDynamicProperties;
 use Exception;
 
 /**
@@ -69,6 +70,7 @@ use Exception;
  *
  * @version  0.0.3
  */
+#[AllowDynamicProperties]
 class TorrentFile
 {
     /**

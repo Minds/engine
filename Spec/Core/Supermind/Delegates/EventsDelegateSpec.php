@@ -50,7 +50,7 @@ class EventsDelegateSpec extends ObjectBehavior
             ->setPaymentAmount(42)
             ->setPaymentMethod(0)
             ->setStatus(0)
-            ->setPaymentTxId('789')
+            ->setPaymentTxID('789')
             ->setCreatedAt(12345);
 
         $actionEventsTopic->send(Argument::that(function ($actionEvent) {
@@ -80,7 +80,7 @@ class EventsDelegateSpec extends ObjectBehavior
             ->setPaymentAmount(42)
             ->setPaymentMethod(0)
             ->setStatus(0)
-            ->setPaymentTxId('789')
+            ->setPaymentTxID('789')
             ->setCreatedAt(12345);
 
         $actionEventsTopic->send(Argument::that(function ($actionEvent) {
@@ -109,7 +109,7 @@ class EventsDelegateSpec extends ObjectBehavior
             ->setPaymentAmount(42)
             ->setPaymentMethod(0)
             ->setStatus(0)
-            ->setPaymentTxId('789')
+            ->setPaymentTxID('789')
             ->setCreatedAt(12345);
 
         $actionEventsTopic->send(Argument::that(function ($actionEvent) {
@@ -132,7 +132,7 @@ class EventsDelegateSpec extends ObjectBehavior
             ->setPaymentAmount(42)
             ->setPaymentMethod(0)
             ->setStatus(0)
-            ->setPaymentTxId('789')
+            ->setPaymentTxID('789')
             ->setCreatedAt(12345);
 
         $actionEventsTopic->send(Argument::that(function ($actionEvent) {
@@ -161,7 +161,7 @@ class EventsDelegateSpec extends ObjectBehavior
             ->setPaymentAmount(42)
             ->setPaymentMethod(0)
             ->setStatus(0)
-            ->setPaymentTxId('789')
+            ->setPaymentTxID('789')
             ->setCreatedAt(12345);
 
         $actionEventsTopic->send(Argument::that(function ($actionEvent) {

@@ -1,4 +1,5 @@
-FROM php:8.1-fpm-alpine3.18
+FROM php:8.2-fpm-alpine3.19
+
 
 # Install AWS CLI
 RUN apk update \
@@ -21,6 +22,7 @@ RUN apk add --virtual build-deps \
     libpng \
     libjpeg \
     nodejs \
+    linux-headers \
     # Install PHP extension
     && docker-php-ext-install -j$(nproc) bcmath \
     && docker-php-ext-install -j$(nproc) zip \
@@ -81,7 +83,7 @@ RUN apk add --virtual build-deps \
     && cd ../../ \
     && rm -rf secp256k1 secp256k1-php \
     && apk del build-deps \
-    && export BUILD_DEPS=$'\
+    && export BUILD_DEPS=$' \
     cmake \
     make \
     pcre-dev \
@@ -91,14 +93,19 @@ RUN apk add --virtual build-deps \
     libtool \
     openssl-dev \
     libstdc++ \
-    zlib-dev' \
+    zlib-dev \
+    unzip \
+    mlocate \
+    ninja-build \
+    ninja \
+    openssl' \
     && export INSTALL_DIR=/usr/src/datastax-php-driver \
     # Cassandra extension \
     && apk add --no-cache --virtual build-deps $BUILD_DEPS $PHPIZE_DEPS \
     && apk add --no-cache libuv gmp libstdc++ \
     && git clone --branch=v1.3.x https://github.com/he4rt/scylladb-php-driver.git $INSTALL_DIR \
     && cd $INSTALL_DIR \
-    && git checkout 7f871a5be0a21d22cf7754b6b0281ab0b0c92999 \
+    && git checkout 1cf12c5ce49ed43a2c449bee4b7b23ce02a37bf0 \
     && git submodule update --init \
     # Install CPP Driver
     && cd $INSTALL_DIR/lib/cpp-driver \
@@ -110,7 +117,7 @@ RUN apk add --virtual build-deps \
     && phpize && ./configure && make && make install \
     && docker-php-ext-enable cassandra \
     && apk del build-deps \
-    && rm -rf $INSTALL_DIR \
+    && rm -rf $INSTALL_DIR $DRIVER_INSTALL_DIR \
     # blurhash extension
     && cd $WORKDIR \
     && apk add --virtual build-deps $BUILD_DEPS $PHPIZE_DEPS \
@@ -167,14 +174,16 @@ RUN apk add --virtual build-deps \
     py3-setuptools \
     python3-dev \
     protobuf-dev \
+    build-base \
     curl-dev \
     gtest-dev gmock \
+    libstdc++ \
     $PHPIZE_DEPS \
     # PHP CPP
     && export INSTALL_DIR=/usr/src/php-cpp \
     && git clone https://github.com/fast-debug/PHP-CPP.git $INSTALL_DIR \
     && cd $INSTALL_DIR \
-    && make -j4 \
+    && make -j4 COMPILER_FLAGS="-Wall -c -std=c++17 -fvisibility=hidden -DBUILDING_PHPCPP -Wno-write-strings -MD -g" \
     && make install \
     && rm -rf $INSTALL_DIR \
     && cd .. \
@@ -183,20 +192,20 @@ RUN apk add --virtual build-deps \
     && git clone --depth 1 https://github.com/apache/pulsar-client-cpp.git $INSTALL_DIR \
     && echo "cloned" \
     && cd $INSTALL_DIR \
-    && cmake . -DBUILD_TESTS=OFF \
+    && cmake . -DINTEGRATE_VCPKG=OFF -DCMAKE_CXX_STANDARD=17 -DBUILD_TESTS=OFF \
     && make -j2 \
     && make install \
     && rm -rf $INSTALL_DIR \
     && cd .. \
     # Pulsar PHP Client
     && export INSTALL_DIR=/usr/src/pulsar-php-client \
+    && apk add protobuf-dev \
     && git clone https://gitlab.com/minds/pulsar-php-client $INSTALL_DIR \
     && cd $INSTALL_DIR \
     && make -j4 \
     && cp output/pulsar.so $(php-config --extension-dir)/pulsar.so \
     && rm -rf $INSTALL_DIR \
-    && apk del build-deps \
-    && apk add protobuf-dev
+    && apk del build-deps
 
 # PHP INI
 COPY php.ini /usr/local/etc/php/

@@ -7,7 +7,7 @@ use Minds\Interfaces\SentryExceptionExclusionInterface;
 use Stripe\Exception\RateLimitException;
 
 // Log all before the autoload by default, as there could be initialisation issues
-error_reporting(E_ALL);
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
 
 date_default_timezone_set('UTC');
 
