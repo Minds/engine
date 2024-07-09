@@ -5,6 +5,8 @@ ini_set('memory_limit', '512M');
 # Redirect error_log output to blackhole
 ini_set('error_log', '/dev/null');
 
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
+
 global $CONFIG;
 
 date_default_timezone_set('UTC');
