@@ -241,7 +241,7 @@ class Manager
                     ($a instanceof FeedSyncEntity && $a->getEntity()->pinned) ||
                     ($b instanceof FeedSyncEntity && $b->getEntity()->pinned)
                 ) {
-                    return 1;
+                    return ($b instanceof FeedSyncEntity && $b->getEntity()->pinned) <=> ($a instanceof FeedSyncEntity && $a->getEntity()->pinned);
                 }
 
                 $aGuid = $a instanceof FeedSyncEntity ? $a->getGuid() : $a->guid;
