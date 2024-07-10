@@ -295,9 +295,9 @@ class ManagerSpec extends ObjectBehavior
                 'query' => 'Activity with #hashtags',
             ]);
         
-        $response[0]->getUrn()
-            ->shouldBe('urn:image:500');
         $response[1]->getUrn()
+            ->shouldBe('urn:image:500');
+        $response[0]->getUrn()
             ->shouldBe('urn:activity:5001');
     }
 }
