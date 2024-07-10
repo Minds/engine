@@ -1,6 +1,8 @@
 <?php
 namespace Minds\Core\Config;
 
+use AllowDynamicProperties;
+
 /**
  * Minds Config manager
  *
@@ -8,6 +10,7 @@ namespace Minds\Core\Config;
  * @todo - make this not an array access but simple 1 param
  * @todo - make so we don't have a global $CONFIG.
  */
+#[AllowDynamicProperties]
 class Config
 {
     public static $_;
