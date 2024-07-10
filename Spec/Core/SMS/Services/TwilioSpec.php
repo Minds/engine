@@ -48,6 +48,9 @@ class TwilioSpec extends ObjectBehavior
         $message = 'Hello';
         $ipAddress = md5('127.0.0.1');
 
+        $this->config->get('twilio')
+            ->willReturn([]);
+
         $this->config->get('phone_number_hash_salt')
             ->shouldBeCalled()
             ->willReturn('123');

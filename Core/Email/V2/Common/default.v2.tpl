@@ -388,8 +388,8 @@
 
                         <a href="<?php echo $vars['site_url']; ?>settings/account/email-notifications" class="link" target="_blank"
                            <?= $emailStylesV2->getStyles(['m-footer__link']) ?>>
-                            <?= $vars['translator']->trans('Manage email settings') ?>
-                        </a>
+                            <?= $vars['translator']->trans('Manage email settings') ?></a
+                        >
                         <?php
                         if (isset($vars['campaign']) && !(isset($vars['hide_unsubscribe_link']) && $vars['hide_unsubscribe_link'])) {
                             ?>

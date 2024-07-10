@@ -10,9 +10,12 @@ use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\V2\Campaigns\Recurring\GiftCard\Emailer;
 use Minds\Core\Email\V2\Campaigns\Recurring\GiftCard\Issuer\Emailer as IssuerEmailer;
+use Minds\Core\Email\V2\Campaigns\Recurring\TenantUserWelcome\TenantUserWelcomeEmailer;
 use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Common\TenantTemplateVariableInjector;
+use Minds\Core\MultiTenant\Services\FeaturedEntityService;
 use Minds\Core\Payments\Manager as PaymentManager;
+use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipReaderService;
 
 class Provider extends DiProvider
 {
@@ -45,6 +48,20 @@ class Provider extends DiProvider
                     $di->get('EntitiesBuilder'),
                     $di->get('Config'),
                     $di->get('Logger'),
+                    $di->get('Email\Manager')
+                )
+        );
+
+        $this->di->bind(
+            TenantUserWelcomeEmailer::class,
+            fn (Di $di): TenantUserWelcomeEmailer =>
+                new TenantUserWelcomeEmailer(
+                    new Template(),
+                    new Mailer(),
+                    $di->get(Config::class),
+                    $di->get(TenantTemplateVariableInjector::class),
+                    $di->get(SiteMembershipReaderService::class),
+                    $di->get(FeaturedEntityService::class),
                     $di->get('Email\Manager')
                 )
         );
