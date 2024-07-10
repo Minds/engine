@@ -2,7 +2,10 @@
 namespace Minds\Core\Authentication\Oidc\Services;
 
 use Minds\Core\Authentication\Oidc\Repositories\OidcUserRepository;
+use Minds\Core\Config\Config;
+use Minds\Core\Email\V2\Campaigns\Recurring\TenantUserWelcome\TenantUserWelcomeEmailer;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
 use Minds\Core\Queue\LegacyClient;
 use Minds\Core\Security\ACL;
 use Minds\Entities\User;
@@ -15,6 +18,9 @@ class OidcUserService
         private EntitiesBuilder $entitiesBuilder,
         private ACL $acl,
         private LegacyClient $registerQueue,
+        private ?TenantUserWelcomeEmailer $tenantUserWelcomeEmailer = null,
+        private ?Config $config = null,
+        private ?Logger $logger = null
     ) {
         
     }
@@ -68,6 +74,16 @@ class OidcUserService
         // Link this user to the oidc map
         $this->oidcUserRepository->linkSubToUserGuid($sub, $providerId, (int) $user->getGuid());
 
+        try {
+            if((bool) $this->config->get('tenant_id')) {
+                $this->tenantUserWelcomeEmailer
+                    ->setUser($user)
+                    ->queue($user);
+            }
+        } catch(\Exception $e) {
+            $this->logger->error($e);
+        }
+   
         $this->registerQueue->send([
             'user_guid' => (string) $user->getGuid(),
             'invite_token' => null,
