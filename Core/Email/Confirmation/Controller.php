@@ -2,9 +2,12 @@
 
 namespace Minds\Core\Email\Confirmation;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\Confirmation\Exceptions\EmailConfirmationInvalidCodeException;
 use Minds\Core\Email\Confirmation\Exceptions\EmailConfirmationMissingHeadersException;
+use Minds\Core\Email\V2\Campaigns\Recurring\TenantUserWelcome\TenantUserWelcomeEmailer;
+use Minds\Core\Log\Logger;
 use Minds\Core\Security\TwoFactor\Manager;
 use Minds\Core\Security\TwoFactor\TwoFactorInvalidCodeException;
 use Minds\Core\Security\TwoFactor\TwoFactorRequiredException;
@@ -24,9 +27,15 @@ class Controller
      * @param ?Manager $manager - TwoFactor manager.
      */
     public function __construct(
-        private ?Manager $manager = null
+        private ?Manager $manager = null,
+        private ?TenantUserWelcomeEmailer $tenantUserWelcomeEmailer = null,
+        private ?Config $config = null,
+        private ?Logger $logger = null
     ) {
         $this->manager ??= Di::_()->get('Security\TwoFactor\Manager');
+        $this->config ??= Di::_()->get(Config::class);
+        $this->tenantUserWelcomeEmailer ??= Di::_()->get(TenantUserWelcomeEmailer::class);
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -99,6 +108,16 @@ class Controller
             $this->manager->authenticateEmailTwoFactor($user, $code);
         } catch(TwoFactorInvalidCodeException $e) {
             throw new EmailConfirmationInvalidCodeException();
+        }
+
+        try {
+            if((bool) $this->config->get('tenant_id')) {
+                $this->tenantUserWelcomeEmailer
+                    ->setUser($user)
+                    ->queue($user);
+            }
+        } catch(\Exception $e) {
+            $this->logger->error($e);
         }
 
         return new JsonResponse([
