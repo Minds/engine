@@ -1098,3 +1098,6 @@ ALTER TABLE minds_group_membership
 ALTER TABLE minds_site_membership_tiers ADD COLUMN is_external BOOLEAN DEFAULT FALSE AFTER archived;
 ALTER TABLE minds_site_membership_tiers ADD COLUMN purchase_url varchar(256) DEFAULT NULL AFTER is_external;
 ALTER TABLE minds_site_membership_tiers ADD COLUMN manage_url varchar(256) DEFAULT NULL AFTER purchase_url;
+
+ALTER TABLE minds_entities_user ADD COLUMN pinned_posts JSON AFTER public_dob;
+ALTER TABLE `minds_entities_group` ADD COLUMN pinned_posts JSON AFTER show_boost;

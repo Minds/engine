@@ -537,6 +537,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     'canonical_url' => MySQLDataTypeEnum::TEXT,
                     'source' => MySQLDataTypeEnum::TEXT,
                     'opt_out_analytics' => MySQLDataTypeEnum::BOOL,
+                    'pinned_posts' => MySQLDataTypeEnum::JSON,
                 ];
             case Activity::class:
                 return [
@@ -616,6 +617,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     //'nsfw__lock' => MySQLDataTypeEnum::JSON,
                     'time_created' => MySQLDataTypeEnum::TIMESTAMP,
                     'time_updated' => MySQLDataTypeEnum::TIMESTAMP,
+                    'pinned_posts' => MySQLDataTypeEnum::JSON,
                 ];
         }
         return [];
