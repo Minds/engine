@@ -56,6 +56,7 @@ class Repository extends AbstractRepository
             customHomePageEnabled: (bool) $row['custom_home_page_enabled'] ?? false,
             customHomePageDescription: $row['custom_home_page_description'] ?? null,
             walledGardenEnabled: (bool) $row['walled_garden_enabled'] ?? false,
+            digestEmailEnabled: (bool) $row['digest_email_enabled'] ?? true,
             lastCacheTimestamp: isset($row['last_cache_timestamp']) ? strtotime($row['last_cache_timestamp']) : null,
             updatedTimestamp: isset($row['updated_timestamp']) ? strtotime($row['updated_timestamp']) : null
         );
@@ -75,6 +76,7 @@ class Repository extends AbstractRepository
      * @param ?string $customHomePageEnabled - whether custom home page is enabled.
      * @param ?string $customHomePageDescription - custom home page description.
      * @param ?bool $walledGardenEnabled - whether wallet garden mode is enabled.
+     * @param ?bool $digestEmailEnabled - whether digest email is enabled.
      * @param ?int $lastCacheTimestamp - timestamp of last caching.
      * @return bool - true on success.
      */
@@ -90,6 +92,7 @@ class Repository extends AbstractRepository
         ?bool $customHomePageEnabled = null,
         ?string $customHomePageDescription = null,
         ?bool $walledGardenEnabled = null,
+        ?bool $digestEmailEnabled = null,
         ?int $lastCacheTimestamp = null
     ): bool {
         $boundValues = ['tenant_id' => $tenantId];
@@ -149,6 +152,11 @@ class Repository extends AbstractRepository
         if ($walledGardenEnabled !== null) {
             $rawValues['walled_garden_enabled'] = new RawExp(':walled_garden_enabled');
             $boundValues['walled_garden_enabled'] = $walledGardenEnabled;
+        }
+
+        if ($digestEmailEnabled !== null) {
+            $rawValues['digest_email_enabled'] = new RawExp(':digest_email_enabled');
+            $boundValues['digest_email_enabled'] = $digestEmailEnabled;
         }
 
         $query = $this->mysqlClientWriterHandler

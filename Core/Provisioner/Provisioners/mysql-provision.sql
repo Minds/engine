@@ -1101,3 +1101,7 @@ ALTER TABLE minds_site_membership_tiers ADD COLUMN manage_url varchar(256) DEFAU
 
 ALTER TABLE minds_entities_user ADD COLUMN pinned_posts JSON AFTER public_dob;
 ALTER TABLE `minds_entities_group` ADD COLUMN pinned_posts JSON AFTER show_boost;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD digest_email_enabled boolean DEFAULT TRUE
+    AFTER walled_garden_enabled;

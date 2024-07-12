@@ -150,5 +150,15 @@ class ServicesProvider extends Provider
                 emailService: new TenantTrialEmailer(),
             )
         );
+
+        $this->di->bind(
+            TenantEmailService::class,
+            fn (Di $di) => new TenantEmailService(
+                multiTenantBootService: $di->get(MultiTenantBootService::class),
+                multiTenantDataService: $di->get(MultiTenantDataService::class),
+                multiTenantUsersService: $di->get(TenantUsersService::class),
+                logger: $di->get('Logger')
+            )
+        );
     }
 }
