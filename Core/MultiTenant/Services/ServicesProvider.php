@@ -28,6 +28,7 @@ use Minds\Core\Notifications\PostSubscriptions\Services\PostSubscriptionsService
 use GuzzleHttp\Client;
 use Minds\Core\Authentication\Services\RegisterService;
 use Minds\Core\Email\V2\Campaigns\Recurring\TenantTrial\TenantTrialEmailer;
+use Minds\Core\Media\Services\OciS3Client;
 
 class ServicesProvider extends Provider
 {
@@ -148,6 +149,17 @@ class ServicesProvider extends Provider
                 tenantsService: $di->get(TenantsService::class),
                 usersService: $di->get(TenantUsersService::class),
                 emailService: new TenantTrialEmailer(),
+            )
+        );
+
+        $this->di->bind(
+            TenantLifecyleService::class,
+            fn (Di $di) => new TenantLifecyleService(
+                repository: $di->get(Repository::class),
+                multiTenantCacheHandler: $di->get(MultiTenantCacheHandler::class),
+                logger: $di->get('Logger'),
+                config: $di->get(Config::class),
+                s3Client: $di->get(OciS3Client::class),
             )
         );
     }
