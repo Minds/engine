@@ -12,12 +12,12 @@ use ReflectionClass;
 class SerializationHelper
 {
     /**
-     * Get any uninitialized properties of the given parent class along with the 
-     * default values that should be set. Useful to handle deserialization 
+     * Get any uninitialized properties of the given parent class along with the
+     * default values that should be set. Useful to handle deserialization
      * (for example from cache) without leaving newly added properties uninitialized.
      * Note that deserialization could still fail if the property is not nullable
      * and has no default value.
-     * 
+     *
      * Usage example:
      *
      * ```php
