@@ -4,6 +4,7 @@ namespace Spec\Minds\Core\Security\Rbac\Services;
 
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Enums\RolesEnum;
 use Minds\Core\Security\Rbac\Models\Role;
@@ -90,6 +91,10 @@ class RolesServiceSpec extends ObjectBehavior
         $this->configMock->get('tenant_id')
             ->willReturn(1);
 
+        $tenant = new Tenant(id: 1);
+        $this->configMock->get('tenant')
+            ->willReturn($tenant);
+
         $subjectUser->getGuid()->willReturn(1);
 
         $this->repositoryMock->getUserRoles(Argument::any())
@@ -132,6 +137,10 @@ class RolesServiceSpec extends ObjectBehavior
         $this->configMock->get('tenant_id')
             ->willReturn(1);
 
+        $tenant = new Tenant(id: 1);
+        $this->configMock->get('tenant')
+            ->willReturn($tenant);
+
         $subjectUser = new User();
 
         $this->repositoryMock->getUserRoles(Argument::any())
@@ -158,6 +167,37 @@ class RolesServiceSpec extends ObjectBehavior
         $permissions->shouldBe([
             PermissionsEnum::CAN_BOOST,
             PermissionsEnum::CAN_CREATE_POST,
+        ]);
+    }
+
+    public function it_should_return_resitricted_permissions_for_suspended_tenant()
+    {
+        $this->configMock->get('tenant_id')
+            ->willReturn(1);
+
+        $tenant = new Tenant(id: 1, suspendedTimestamp: time());
+        $this->configMock->get('tenant')
+            ->willReturn($tenant);
+
+        $subjectUser = new User();
+
+        $this->repositoryMock->getUserRoles(Argument::any())
+            ->shouldNotBeCalled();
+        
+        $this->repositoryMock->getRoles()
+            ->willReturn([
+                RolesEnum::DEFAULT->value => new Role(
+                    RolesEnum::DEFAULT->value,
+                    RolesEnum::DEFAULT->name,
+                    [
+                        PermissionsEnum::CAN_CREATE_POST,
+                    ]
+                ),
+            ]);
+
+        $permissions = $this->getUserPermissions($subjectUser);
+        $permissions->shouldHaveCount(0);
+        $permissions->shouldBe([
         ]);
     }
 
