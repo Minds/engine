@@ -188,7 +188,7 @@ class DomainService
      */
     protected function getCacheKey(string $domain): string
     {
-        return strtolower('global:tenant:domain:' . $domain);
+        return strtolower('global:tenants:domain:' . $domain);
     }
 
     /**

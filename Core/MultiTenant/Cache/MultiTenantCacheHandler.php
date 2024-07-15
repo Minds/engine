@@ -63,7 +63,7 @@ class MultiTenantCacheHandler
     ): bool {
         $domain = $domainService?->buildDomain($tenant) ?? $tenant->domain;
 
-        $cacheKey = 'global:tenant:domain:' . $domain;
+        $cacheKey = 'global:tenants:domain:' . $domain;
 
         $this->cache->withTenantPrefix($useTenantPrefix)->set($cacheKey, serialize($tenant));
         return true;
