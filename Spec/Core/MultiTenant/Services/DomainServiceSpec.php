@@ -72,12 +72,12 @@ class DomainServiceSpec extends ObjectBehavior
                 domain: 'phpspec.local'
             ));
 
-        $this->multiTenantCacheHandlerMock->getKey('global:tenant:domain:phpspec.local')
+        $this->multiTenantCacheHandlerMock->getKey('global:tenants:domain:phpspec.local')
             ->willReturn(null);
 
         $this->multiTenantCacheHandlerMock
             ->setKey(
-                "global:tenant:domain:phpspec.local",
+                "global:tenants:domain:phpspec.local",
                 Argument::type('string')
             )
             ->shouldBeCalled()
@@ -101,12 +101,12 @@ class DomainServiceSpec extends ObjectBehavior
                 domain: null,
             ));
 
-        $this->multiTenantCacheHandlerMock->getKey('global:tenant:domain:202cb962ac59075b964b07152d234b70.networks.phpspec.local')
+        $this->multiTenantCacheHandlerMock->getKey('global:tenants:domain:202cb962ac59075b964b07152d234b70.networks.phpspec.local')
             ->willReturn(null);
 
         $this->multiTenantCacheHandlerMock
             ->setKey(
-                "global:tenant:domain:202cb962ac59075b964b07152d234b70.networks.phpspec.local",
+                "global:tenants:domain:202cb962ac59075b964b07152d234b70.networks.phpspec.local",
                 Argument::type('string')
             )
             ->shouldBeCalled()
@@ -220,11 +220,11 @@ class DomainServiceSpec extends ObjectBehavior
             domain: $domain
         );
 
-        $this->multiTenantCacheHandlerMock->deleteKey("global:tenant:domain:$domain")
+        $this->multiTenantCacheHandlerMock->deleteKey("global:tenants:domain:$domain")
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->multiTenantCacheHandlerMock->deleteKey("global:tenant:domain:202cb962ac59075b964b07152d234b70.minds.com")
+        $this->multiTenantCacheHandlerMock->deleteKey("global:tenants:domain:202cb962ac59075b964b07152d234b70.minds.com")
             ->shouldBeCalled()
             ->willReturn(true);
 
