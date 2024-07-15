@@ -16,6 +16,7 @@ use Minds\Entities\User;
 use Minds\Interfaces\SenderInterface;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
+use Prophecy\Argument;
 
 class TenantEmailServiceSpec extends ObjectBehavior
 {
@@ -84,18 +85,21 @@ class TenantEmailServiceSpec extends ObjectBehavior
     ) {
         $tenant1Id = (int) Guid::build();
         $tenant2Id = (int) Guid::build();
-        $tenant3Id = (int) Guid::build();
 
-        $tenant1 = new Tenant(id: $tenant1Id);
-        $tenant2 = new Tenant(id: $tenant2Id);
-        $tenant3 = new Tenant(id: $tenant3Id);
+        $tenant1 = new Tenant(
+            id: $tenant1Id,
+            config: new MultiTenantConfig(digestEmailEnabled: true)
+        );
+        $tenant2 = new Tenant(
+            id: $tenant2Id,
+            config: new MultiTenantConfig(digestEmailEnabled: true)
+        );
 
         $this->multiTenantDataServiceMock->getTenants(limit: 9999999)
             ->shouldBeCalled()
             ->willReturn([
                 $tenant1,
-                $tenant2,
-                $tenant3
+                $tenant2
             ]);
 
         $this->multiTenantUsersServiceMock->getUsers(tenantId: $tenant1Id)
@@ -106,18 +110,14 @@ class TenantEmailServiceSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([$user2]);
 
-        $this->multiTenantUsersServiceMock->getUsers(tenantId: $tenant3Id)
-            ->shouldBeCalled()
-            ->willReturn([$user3]);
-
-        $emailSender->send($user1)
+        $this->multiTenantBootServiceMock->bootFromTenantId($tenant1Id)
             ->shouldBeCalled();
 
-        $emailSender->send($user2)
+        $this->multiTenantBootServiceMock->bootFromTenantId($tenant2Id)
             ->shouldBeCalled();
 
-        $emailSender->send($user3)
-            ->shouldBeCalled();
+        $emailSender->send(Argument::any())
+            ->shouldBeCalledTimes(2);
 
         $this->sendToAllUsersAcrossTenants($emailSender);
     }
