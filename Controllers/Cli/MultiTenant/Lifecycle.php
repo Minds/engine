@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Controllers\Cli\MultiTenant;
 
 use Minds\Cli\Controller;
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\MultiTenant\Services\TenantLifecyleService;
 use Minds\Interfaces\CliControllerInterface;
@@ -15,6 +16,7 @@ class Lifecycle extends Controller implements CliControllerInterface
 
     public function __construct()
     {
+        Di::_()->get(Config::class)->set('min_log_level', 'info');
         $this->service = Di::_()->get(TenantLifecyleService::class);
     }
 
@@ -29,9 +31,6 @@ class Lifecycle extends Controller implements CliControllerInterface
      */
     public function exec(): void
     {
-        error_reporting(E_ALL);
-        ini_set('display_errors', 1);
-
         $this->service->suspendExpiredTrials();
         $this->service->deleteSuspendedTenants();
     }
