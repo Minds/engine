@@ -193,7 +193,7 @@ class RolesServiceSpec extends ObjectBehavior
 
     public function it_should_return_a_list_of_users()
     {
-        $this->repositoryMock->getUsersByRole(null, 13, 0)
+        $this->repositoryMock->getUsersByRole(null, null, 13, 0)
             ->shouldBeCalled()
             ->willYield([
                 1 => [ RolesEnum::OWNER->value, RolesEnum::ADMIN->value ],

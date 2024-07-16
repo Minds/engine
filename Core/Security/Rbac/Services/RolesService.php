@@ -119,6 +119,7 @@ class RolesService
     */
     public function getUsersByRole(
         ?int $roleId = null,
+        ?string $username = null,
         int $limit = 12,
         string &$loadAfter = null,
         bool &$hasMore = null
@@ -137,7 +138,8 @@ class RolesService
         $userGuidsAndRoles = iterator_to_array($this->repository->getUsersByRole(
             roleId: $roleId,
             limit: $limit + 1, // Max iteration size
-            offset: $offset
+            offset: $offset,
+            username: $username
         ));
 
         if (count($userGuidsAndRoles) > $limit) {
