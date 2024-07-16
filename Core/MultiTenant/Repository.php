@@ -70,6 +70,8 @@ class Repository extends AbstractRepository
                 'minds_tenants.tenant_id',
                 'minds_tenants.plan',
                 'minds_tenants.trial_start_timestamp',
+                'minds_tenants.suspended_timestamp',
+                'minds_tenants.deleted_timestamp',
                 'minds_tenants_domain_details.domain',
                 'owner_guid',
                 'root_user_guid',
@@ -86,7 +88,8 @@ class Repository extends AbstractRepository
                 'last_cache_timestamp',
                 'updated_timestamp',
                 'nsfw_enabled',
-            ]);
+            ])
+            ->where('deleted_timestamp', Operator::IS, null);
     }
 
     private function buildTenantModel(array $row): Tenant
@@ -110,6 +113,8 @@ class Repository extends AbstractRepository
         $lastCacheTimestamp = $row['last_cache_timestamp'] ?? null;
         $nsfwEnabled = $row['nsfw_enabled'] ?? true;
         $trialStartTimestamp = $row['trial_start_timestamp'] ?? null;
+        $suspendedTimestamp = $row['suspended_timestamp'] ?? null;
+        $deletedTimestamp = $row['deleted_timestamp'] ?? null;
 
         return new Tenant(
             id: $tenantId,
@@ -127,12 +132,14 @@ class Repository extends AbstractRepository
                 nsfwEnabled: $nsfwEnabled,
                 customHomePageEnabled: $customHomePageEnabled,
                 customHomePageDescription: $customHomePageDescription,
-                walledGardenEnabled: $walledGardenEnabled,
+                walledGardenEnabled: $suspendedTimestamp ? true : $walledGardenEnabled, // suspended state will always be walled garden
                 updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null,
                 lastCacheTimestamp: $lastCacheTimestamp ? strtotime($lastCacheTimestamp) : null,
             ),
             plan: TenantPlanEnum::fromString($plan),
-            trialStartTimestamp: $trialStartTimestamp ? strtotime($trialStartTimestamp) : null
+            trialStartTimestamp: $trialStartTimestamp ? strtotime($trialStartTimestamp) : null,
+            suspendedTimestamp: $suspendedTimestamp ? strtotime($suspendedTimestamp) : null,
+            deletedTimestamp: $deletedTimestamp ? strtotime($deletedTimestamp) : null,
         );
     }
 
@@ -264,5 +271,146 @@ class Repository extends AbstractRepository
             plan: $plan,
             trialStartTimestamp: null
         );
+    }
+    
+    /**
+     * Returns all expired trials that are not suspended
+     */
+    public function getExpiredTrialsTenants(): array
+    {
+        $query = $this->buildGetTenantQuery()
+            ->where('trial_start_timestamp', Operator::LT, new RawExp('CURRENT_TIMESTAMP - INTERVAL ' . Tenant::TRIAL_LENGTH_IN_DAYS . ' DAY'))
+            ->where('suspended_timestamp', Operator::IS, null);
+
+        $statement = $query->prepare();
+
+        $statement->execute();
+
+        $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        if (!$rows) {
+            return [];
+        }
+
+        $tenants = array_map(fn ($row) => $this->buildTenantModel($row), $rows);
+
+        return $tenants;
+    }
+
+    /**
+     * Returns all suspended tenants that are not soft deleted
+     */
+    public function getSuspendedTenants(): array
+    {
+        $query = $this->buildGetTenantQuery()
+            ->where('suspended_timestamp', Operator::LT, new RawExp('CURRENT_TIMESTAMP - INTERVAL ' . Tenant::GRACE_PERIOD_BEFORE_DELETION_IN_DAYS . ' DAY'))
+            ->where('deleted_timestamp', Operator::IS, null);
+
+        $statement = $query->prepare();
+
+        $statement->execute();
+
+        $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        if (!$rows) {
+            return [];
+        }
+
+        $tenants = array_map(fn ($row) => $this->buildTenantModel($row), $rows);
+
+        return $tenants;
+    }
+
+    /**
+     * Set the suspended timestamp for the tenant
+     */
+    public function suspendTenant(int $tenantId): bool
+    {
+        $statement = $this->mysqlClientWriterHandler->update()
+            ->table('minds_tenants')
+            ->set([
+                'suspended_timestamp' => date('c'),
+            ])
+            ->where('tenant_id', Operator::EQ, $tenantId)
+            ->prepare();
+
+        return $statement->execute();
+    }
+
+    /**
+     * Soft delete a tenant and hard delete all its data
+     */
+    public function deleteTenant(int $tenantId): bool
+    {
+        $this->beginTransaction();
+        $statement = $this->mysqlClientWriterHandler->update()
+            ->table('minds_tenants')
+            ->set([
+                'deleted_timestamp' => date('c'),
+            ])
+            ->where('tenant_id', Operator::EQ, $tenantId)
+            ->prepare();
+        $statement->execute();
+
+        $tables = [
+            'boost_rankings',
+            'boost_summaries',
+            'boosts',
+            'minds_personal_api_key_scopes',
+            'minds_personal_api_keys',
+            'minds_chat_rich_embeds',
+            'minds_chat_room_member_settings',
+            'minds_chat_receipts',
+            'minds_chat_members',
+            'minds_chat_messages',
+            'minds_chat_rooms',
+            'minds_user_rss_imports',
+            'minds_custom_navigation',
+            'minds_payments_config',
+            'minds_site_membership_entities',
+            'minds_stripe_keys',
+            'minds_site_membership_subscriptions',
+            'minds_site_membership_tiers_group_assignments',
+            'minds_site_membership_tiers_role_assignments',
+            'minds_site_membership_tiers',
+            'minds_tenant_mobile_configs',
+            'minds_push_notification_config',
+            'minds_custom_pages',
+            'minds_post_notification_subscriptions',
+            'minds_tenant_invites',
+            'minds_oidc_providers',
+            'minds_embedded_comments_settings',
+            'minds_embedded_comments_activity_map',
+            'minds_activitypub_actors',
+            'minds_activitypub_uris',
+            'minds_activitypub_keys',
+            'minds_role_user_assignments',
+            'minds_role_permissions',
+            'minds_user_rss_feeds',
+            'minds_reports',
+            'friends',
+            'minds_tenant_featured_entities',
+            'minds_votes',
+            'minds_tenants_domain_details',
+            'minds_entities_object_video',
+            'minds_entities_object_image',
+            'minds_entities_activity',
+            'minds_entities_group',
+            'minds_entities_user',
+            'minds_entities',
+            'minds_tenant_configs',
+            'minds_asset_storage',
+        ];
+        foreach ($tables as $table) {
+            $statement = $this->mysqlClientWriterHandler->delete()
+                ->from($table)
+                ->where('tenant_id', Operator::EQ, $tenantId)
+                ->prepare();
+            $statement->execute();
+        }
+
+        $this->commitTransaction();
+
+        return true;
     }
 }

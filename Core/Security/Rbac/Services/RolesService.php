@@ -53,6 +53,14 @@ class RolesService
         $roles = [];
 
         if ($this->isMultiTenant()) {
+
+            if ($this->config->get('tenant')->suspendedTimestamp) {
+                return array_map(function (Role $role) {
+                    $role->permissions = []; // No permissions if suspended
+                    return $role;
+                }, $this->buildRoles());
+            }
+
             try {
                 $roles = $this->repository->getUserRoles((int) $user->getGuid());
             } catch (RbacNotConfigured) {
