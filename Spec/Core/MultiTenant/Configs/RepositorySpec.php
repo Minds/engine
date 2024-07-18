@@ -65,6 +65,7 @@ class RepositorySpec extends ObjectBehavior
         $customHomePageEnabled = true;
         $customHomePageDescription = 'Hello world';
         $walledGardenEnabled = true;
+        $digestEmailEnabled = true;
         $updatedTimestamp = date('c', time());
 
         $this->mysqlMasterMock->prepare(Argument::any())
@@ -92,6 +93,7 @@ class RepositorySpec extends ObjectBehavior
                 'custom_home_page_enabled' => $customHomePageEnabled,
                 'custom_home_page_description' => $customHomePageDescription,
                 'walled_garden_enabled' => $walledGardenEnabled,
+                'digest_email_enabled' => $digestEmailEnabled,
                 'updated_timestamp' => $updatedTimestamp,
             ]);
 
@@ -107,6 +109,7 @@ class RepositorySpec extends ObjectBehavior
             customHomePageEnabled: $customHomePageEnabled,
             customHomePageDescription: $customHomePageDescription,
             walledGardenEnabled: $walledGardenEnabled,
+            digestEmailEnabled: $digestEmailEnabled,
             updatedTimestamp: strtotime($updatedTimestamp)
         ));
     }
@@ -147,6 +150,7 @@ class RepositorySpec extends ObjectBehavior
         $customHomePageEnabled = true;
         $customHomePageDescription = 'Hello world';
         $walledGardenEnabled = true;
+        $digestEmailEnabled = true;
 
         $this->mysqlMasterMock->prepare(Argument::any())
             ->willReturn($statement);
@@ -161,7 +165,8 @@ class RepositorySpec extends ObjectBehavior
             'nsfw_enabled' => $nsfwEnabled,
             'custom_home_page_enabled' => $customHomePageEnabled,
             'custom_home_page_description' => $customHomePageDescription,
-            'walled_garden_enabled' => $walledGardenEnabled
+            'walled_garden_enabled' => $walledGardenEnabled,
+            'digest_email_enabled' => $digestEmailEnabled,
         ])->shouldBeCalled();
 
         $statement->execute()
@@ -175,10 +180,11 @@ class RepositorySpec extends ObjectBehavior
             primaryColor: $primaryColor,
             federationDisabled: $federationDisabled,
             replyEmail: $replyEmail,
-            nsfwEnabled: $nsfwEnabled,
+            nsfwEnabled: $nsfwEnabled ? 1 : 0,
             customHomePageEnabled: $customHomePageEnabled,
             customHomePageDescription: $customHomePageDescription,
-            walledGardenEnabled: $walledGardenEnabled
+            walledGardenEnabled: $walledGardenEnabled,
+            digestEmailEnabled: $digestEmailEnabled
         )->shouldBe(true);
     }
 }

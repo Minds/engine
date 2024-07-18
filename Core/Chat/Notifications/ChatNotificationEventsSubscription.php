@@ -9,10 +9,12 @@ use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Enums\ChatMessageTypeEnum;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomNotificationStatusEnum;
+use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Notifications\Events\ChatNotificationEvent;
 use Minds\Core\Chat\Notifications\Models\PlainTextMessageNotification;
 use Minds\Core\Chat\Notifications\Models\RichEmbedMessageNotification;
 use Minds\Core\Chat\Services\RoomService;
+use Minds\Core\Chat\Types\ChatRoomMemberEdge;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Core\EntitiesBuilder;
@@ -129,9 +131,10 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
             roomGuid: $chatMessage->roomGuid,
             user: $sender,
             memberStatus: [ChatRoomMemberStatusEnum::ACTIVE],
+            excludeSelf: false,
         );
 
-        $chatRoomEdge = $this->roomService->getRoom($chatMessage->roomGuid, $sender);
+        $chatRoomEdge = $this->roomService->getRoom($chatMessage->roomGuid, $sender, false);
         $chatRoom = $chatRoomEdge->getNode()->chatRoom;
 
         $notification = match ($chatMessage->messageType) {
@@ -148,7 +151,19 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
             default => throw new InvalidArgumentException('Invalid chat message type'),
         };
 
+        // Get the guids of all the room members, if not a group
+        if ($chatRoom->roomType !== ChatRoomTypeEnum::GROUP_OWNED) {
+            $roomMembers = iterator_to_array($roomMembers);
+            $roomMemberGuids = array_map(fn (ChatRoomMemberEdge $roomMember) => $roomMember->getNode()->getGuid(), $roomMembers);
+        } else {
+            $roomMemberGuids = [];
+        }
+
         foreach ($roomMembers as $roomMember) {
+            if ($roomMember->getNode()->getGuid() === $sender->getGuid()) {
+                continue; // Don't send to self
+            }
+
             if ($roomMember->notificationStatus === ChatRoomNotificationStatusEnum::MUTED) {
                 continue;
             }
@@ -160,7 +175,7 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
             }
 
             // Avoid having your own name in the list
-            $notification->title = $this->roomService->getRoomName($chatRoom, $receiver);
+            $notification->title = $this->roomService->getRoomName($chatRoom, $receiver, $roomMemberGuids);
 
             $notification->setNotificationRecipient((int) $receiver->getGuid());
 

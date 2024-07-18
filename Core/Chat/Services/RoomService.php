@@ -440,7 +440,8 @@ class RoomService
      */
     public function getRoom(
         int  $roomGuid,
-        User $loggedInUser
+        User $loggedInUser,
+        bool $patchRoomName = true,
     ): ChatRoomEdge {
         ['chatRooms' => $chatRooms] = $this->roomRepository->getRoomsByMember(
             user: $loggedInUser,
@@ -473,7 +474,9 @@ class RoomService
         );
 
         $chatRoom = $chatRoomListItem->chatRoom;
-        $chatRoom->setName($this->getRoomName($chatRoom, $loggedInUser, $chatRoomListItem->memberGuids));
+        if ($patchRoomName) {
+            $chatRoom->setName($this->getRoomName($chatRoom, $loggedInUser, $chatRoomListItem->memberGuids));
+        }
         return new ChatRoomEdge(
             node: new ChatRoomNode(
                 chatRoom: $chatRoom,

@@ -266,7 +266,7 @@ class Client
     private function request($query, $variables): array
     {
         if (php_sapi_name() !== 'cli') {
-            return new ForbiddenException(); // Only CLI can call for now
+            throw new ForbiddenException(); // Only CLI can call for now
         }
 
         \Sentry\captureMessage("Uniswap Client was called");
