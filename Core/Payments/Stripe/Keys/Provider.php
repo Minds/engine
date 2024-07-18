@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Payments\Stripe\Keys;
 
 use Minds\Core\Config\Config;
+use Minds\Core\Data\cache\InMemoryCache;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
@@ -22,6 +23,7 @@ class Provider extends DiProvider
     {
         $this->di->bind(StripeKeysRepository::class, function (Di $di): StripeKeysRepository {
             return new StripeKeysRepository(
+                $di->get(InMemoryCache::class),
                 $di->get(Client::class),
                 $di->get(Config::class),
                 $di->get('Logger'),
