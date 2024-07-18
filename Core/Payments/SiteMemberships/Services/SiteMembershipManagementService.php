@@ -181,9 +181,12 @@ class SiteMembershipManagementService
         int $siteMembershipGuid
     ): bool {
         $siteMembershipDbInfo = $this->siteMembershipRepository->getSiteMembership($siteMembershipGuid);
-        $this->stripeProductService->archiveProduct(
-            productId: $siteMembershipDbInfo['stripe_product_id']
-        );
+        
+        if ($siteMembershipDbInfo['stripe_product_id'] ?? null) {
+            $this->stripeProductService->archiveProduct(
+                productId: $siteMembershipDbInfo['stripe_product_id']
+            );
+        }
 
         $this->siteMembershipRepository->archiveSiteMembership($siteMembershipGuid);
         return true;

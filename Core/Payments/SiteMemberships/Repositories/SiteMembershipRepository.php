@@ -51,7 +51,7 @@ class SiteMembershipRepository extends AbstractRepository
                 'billing_period' => $siteMembership->membershipBillingPeriod->value,
                 'pricing_model' => $siteMembership->membershipPricingModel->value,
                 'currency' => strtolower($siteMembership->priceCurrency),
-                'is_external' => $siteMembership->isExternal,
+                'is_external' => (int) $siteMembership->isExternal,
                 'purchase_url'=> $siteMembership->purchaseUrl,
                 'manage_url' => $siteMembership->manageUrl,
             ]);
