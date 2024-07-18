@@ -60,7 +60,8 @@ class Controller
             boostEnabled: $multiTenantConfigInput->boostEnabled,
             customHomePageEnabled: $multiTenantConfigInput->customHomePageEnabled,
             customHomePageDescription: $multiTenantConfigInput->customHomePageDescription,
-            walledGardenEnabled: $multiTenantConfigInput->walledGardenEnabled
+            walledGardenEnabled: $multiTenantConfigInput->walledGardenEnabled,
+            digestEmailEnabled: $multiTenantConfigInput->digestEmailEnabled
         );
     }
 }

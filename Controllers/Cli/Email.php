@@ -4,7 +4,6 @@ namespace Minds\Controllers\Cli;
 
 use Minds\Cli;
 use Minds\Core;
-use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\Invites\Services\InviteSenderService;
 use Minds\Core\Email\V2\Campaigns;
@@ -22,26 +21,21 @@ use Minds\Core\Email\V2\Campaigns\Recurring\ForgotPassword\ForgotPasswordEmailer
 use Minds\Core\Email\V2\Campaigns\Recurring\TenantUserWelcome\TenantUserWelcomeEmailer;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
-use Minds\Core\MultiTenant\Services\MultiTenantDataService;
-use Minds\Core\MultiTenant\Services\TenantUsersService;
+use Minds\Core\MultiTenant\Services\TenantEmailService;
 use Minds\Core\Security\ACL;
 use Minds\Core\Security\Password;
 
 class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 {
     private EntitiesBuilder $entitiesBuilder;
-    private Config $config;
-    private MultiTenantDataService $multiTenantDataService;
     private MultiTenantBootService $multiTenantBootService;
-    private TenantUsersService $multiTenantUsersService;
+    private TenantEmailService $tenantEmailService;
 
     public function __construct()
     {
         $this->entitiesBuilder = Di::_()->get(EntitiesBuilder::class);
-        $this->config = Di::_()->get(Config::class);
-        $this->multiTenantDataService = Di::_()->get(MultiTenantDataService::class);
         $this->multiTenantBootService = Di::_()->get(MultiTenantBootService::class);
-        $this->multiTenantUsersService = Di::_()->get(TenantUsersService::class);
+        $this->tenantEmailService = Di::_()->get(TenantEmailService::class);
     }
 
     public function help($command = null)
@@ -315,20 +309,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 
     public function tenantsSendDigests()
     {
-        foreach ($this->multiTenantDataService->getTenants(limit: 9999999) as $tenant) {
-            $this->multiTenantBootService->bootFromTenantId($tenant->id);
-
-            if ($tenant->id === 75) {
-                continue;
-            }
-
-            foreach ($this->multiTenantUsersService->getUsers(tenantId: $tenant->id) as $user) {
-                $digest = new DigestSender();
-                $digest->send($user);
-
-                $this->out($user->getGuid() . '... sent');
-            }
-        }
+        $this->tenantEmailService->sendToAllUsersAcrossTenants(new DigestSender());
     }
 
     public function testPlusTrial()
