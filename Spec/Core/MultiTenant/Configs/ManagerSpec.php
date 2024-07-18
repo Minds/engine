@@ -123,6 +123,7 @@ class ManagerSpec extends ObjectBehavior
         $customHomePageEnabled = true;
         $customHomePageDescription = 'Hello world';
         $walledGardenEnabled = true;
+        $digestEmailEnabled = true;
 
         $this->config->get('tenant_id')
             ->shouldBeCalled()
@@ -140,6 +141,7 @@ class ManagerSpec extends ObjectBehavior
             $customHomePageEnabled,
             $customHomePageDescription,
             $walledGardenEnabled,
+            $digestEmailEnabled,
             $lastCacheTimestamp
         )
             ->shouldBeCalled()
@@ -163,6 +165,7 @@ class ManagerSpec extends ObjectBehavior
             $customHomePageEnabled,
             $customHomePageDescription,
             $walledGardenEnabled,
+            $digestEmailEnabled,
             $lastCacheTimestamp
         )->shouldBe($result);
     }
@@ -181,6 +184,7 @@ class ManagerSpec extends ObjectBehavior
         $customHomePageEnabled = true;
         $customHomePageDescription = 'Hello world';
         $walledGardenEnabled = true;
+        $digestEmailEnabled = true;
         $lastCacheTimestamp = time();
 
         $this->config->get('tenant_id')
@@ -199,6 +203,7 @@ class ManagerSpec extends ObjectBehavior
             customHomePageEnabled: $customHomePageEnabled,
             customHomePageDescription: $customHomePageDescription,
             walledGardenEnabled: $walledGardenEnabled,
+            digestEmailEnabled: $digestEmailEnabled,
             lastCacheTimestamp: $lastCacheTimestamp
         )
             ->shouldBeCalled()
@@ -221,6 +226,7 @@ class ManagerSpec extends ObjectBehavior
             $customHomePageEnabled,
             $customHomePageDescription,
             $walledGardenEnabled,
+            $digestEmailEnabled,
             $lastCacheTimestamp
         )->shouldBe($result);
     }

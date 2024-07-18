@@ -7,6 +7,7 @@ namespace Minds\Core\MultiTenant\Configs\Models;
 use Minds\Core\Di\Di;
 use Minds\Core\MultiTenant\Configs\Enums\MultiTenantColorScheme;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
+use Minds\Helpers\SerializationHelper;
 use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\Type;
 
@@ -28,6 +29,7 @@ class MultiTenantConfig
         #[Field] public readonly ?bool $customHomePageEnabled = false,
         #[Field] public readonly ?string $customHomePageDescription = null,
         #[Field] public readonly ?bool $walledGardenEnabled = false,
+        #[Field] public readonly ?bool $digestEmailEnabled = true,
         #[Field] public readonly ?int $updatedTimestamp = null,
         #[Field] public readonly ?int $lastCacheTimestamp = null
     ) {
@@ -41,5 +43,19 @@ class MultiTenantConfig
     public function canEnableFederation(): bool
     {
         return (bool) Di::_()->get(MultiTenantBootService::class)->getTenant()?->domain;
+    }
+
+    /**
+     * Handle deserialization (for example from Cache) without leaving
+     * newly added properties uninitialized. Note that deserialization could
+     * still fail if the property is not nullable and has no default value.
+     * @return void
+     */
+    public function __wakeup(): void
+    {
+        $propertiesToInitialize = (new SerializationHelper())->getUnititializedProperties($this);
+        foreach ($propertiesToInitialize as $propName => $propValue) {
+            $this->{$propName} = $propValue;
+        }
     }
 }

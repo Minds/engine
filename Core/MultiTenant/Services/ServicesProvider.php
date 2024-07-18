@@ -153,6 +153,16 @@ class ServicesProvider extends Provider
         );
 
         $this->di->bind(
+            TenantEmailService::class,
+            fn (Di $di) => new TenantEmailService(
+                multiTenantBootService: $di->get(MultiTenantBootService::class),
+                multiTenantDataService: $di->get(MultiTenantDataService::class),
+                multiTenantUsersService: $di->get(TenantUsersService::class),
+                logger: $di->get('Logger')
+            )
+        );
+
+        $this->di->bind(
             TenantLifecyleService::class,
             fn (Di $di) => new TenantLifecyleService(
                 repository: $di->get(Repository::class),
