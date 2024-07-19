@@ -231,7 +231,7 @@ class SiteMembershipSubscriptionsService
         int $endTimestamp,
         ?int $userGuid = null
     ): bool {
-        $success =  $this->siteMembershipSubscriptionsRepository->renewSiteMembershipSubscription($stripeSubscriptionId, $startTimestamp, $endTimestamp);
+        $success = $this->siteMembershipSubscriptionsRepository->renewSiteMembershipSubscription($stripeSubscriptionId, $startTimestamp, $endTimestamp);
 
         if ($success && $userGuid) {
             $this->hasActiveSiteMembershipCacheService->set(
