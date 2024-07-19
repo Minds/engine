@@ -211,7 +211,7 @@ class SiteMembershipSubscriptionsService
         $this->hasActiveSiteMembershipCacheService->set(
             (int) $user->getGuid(),
             $hasActiveSiteMembership,
-            $hasActiveSiteMembership ? $lastExpiringSubscription->validToTimestamp : null
+            $hasActiveSiteMembership ? ($lastExpiringSubscription->validToTimestamp - time()) : null
         );
 
         return $hasActiveSiteMembership;
@@ -221,15 +221,27 @@ class SiteMembershipSubscriptionsService
      * @param string $stripeSubscriptionId
      * @param int $startTimestamp
      * @param int $endTimestamp
+     * @param int|null $userGuid
      * @return bool
      * @throws ServerErrorException
      */
     public function renewSiteMembershipSubscription(
         string $stripeSubscriptionId,
         int $startTimestamp,
-        int $endTimestamp
+        int $endTimestamp,
+        ?int $userGuid = null
     ): bool {
-        return $this->siteMembershipSubscriptionsRepository->renewSiteMembershipSubscription($stripeSubscriptionId, $startTimestamp, $endTimestamp);
+        $success =  $this->siteMembershipSubscriptionsRepository->renewSiteMembershipSubscription($stripeSubscriptionId, $startTimestamp, $endTimestamp);
+
+        if ($success && $userGuid) {
+            $this->hasActiveSiteMembershipCacheService->set(
+                $userGuid,
+                true,
+                $endTimestamp - time()
+            );
+        }
+
+        return $success;
     }
 
     /*

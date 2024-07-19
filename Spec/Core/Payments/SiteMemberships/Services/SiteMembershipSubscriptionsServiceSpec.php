@@ -437,6 +437,7 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
         $siteMembershipValidTo1 = strtotime('+1 day');
         $siteMembershipValidTo2 = strtotime('+1 year');
         $siteMembershipValidTo3 = strtotime('+1 month');
+        $expectedCacheTtl = $siteMembershipValidTo2 - time();
         
         $userMock->getGuid()
             ->shouldBeCalled()
@@ -484,7 +485,16 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
         $this->hasActiveSiteMembershipCacheServiceMock->set(
             $userGuid,
             true,
-            $siteMembershipValidTo2
+            Argument::that(function ($value) use ($expectedCacheTtl) {
+                return filter_var(
+                    $value,
+                    FILTER_VALIDATE_INT,
+                    [ 'options' => [
+                        'min_range' => $expectedCacheTtl - 60, // within 1 minute.
+                        'max_range' => $expectedCacheTtl + 60
+                    ]]
+                );
+            }),
         )->shouldBeCalled();
 
         $this->hasActiveSiteMembershipSubscription($userMock)

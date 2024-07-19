@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\Payments\SiteMemberships\Services;
 
+use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipSubscriptionFoundException;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipsRenewalsService;
@@ -60,6 +61,15 @@ class SiteMembershipsRenewalsServiceSpec extends ObjectBehavior
         $stripeWebhookSecret = 'stripeWebhookSecret';
         $currentPeriodStart = time();
         $currentPeriodEnd = strtotime('+1 month');
+        $userGuid = (int) Guid::build();
+        $siteMembershipSubscriptionMock = new SiteMembershipSubscription(
+            userGuid: $userGuid,
+            membershipSubscriptionId: 1,
+            membershipGuid: 1,
+            stripeSubscriptionId: 'subscriptionId',
+            autoRenew: false,
+            isManual: false
+        );
 
         $this->subscriptionsWebhookServiceMock
             ->getSubscriptionsWebhookDetails()
@@ -81,7 +91,8 @@ class SiteMembershipsRenewalsServiceSpec extends ObjectBehavior
         $this->siteMembershipSubscriptionsServiceMock
             ->getSiteMembershipSubscriptionByStripeSubscriptionId(
                 stripeSubscriptionId: 'subscriptionId'
-            )->shouldBeCalled();
+            )->shouldBeCalled()
+            ->willReturn($siteMembershipSubscriptionMock);
 
         $this->stripeSubscriptionsServiceMock->retrieveSubscription(
             subscriptionId: 'subscriptionId'
@@ -97,7 +108,8 @@ class SiteMembershipsRenewalsServiceSpec extends ObjectBehavior
         $this->siteMembershipSubscriptionsServiceMock->renewSiteMembershipSubscription(
             stripeSubscriptionId: '1',
             startTimestamp: $currentPeriodStart,
-            endTimestamp: $currentPeriodEnd
+            endTimestamp: $currentPeriodEnd,
+            userGuid: $userGuid
         )
             ->shouldBeCalled()
             ->willReturn(true);
@@ -193,8 +205,9 @@ class SiteMembershipsRenewalsServiceSpec extends ObjectBehavior
         $tenantId = 123;
         $currentPeriodStart = time();
         $currentPeriodEnd = strtotime('+1 month');
+        $userGuid = (int) Guid::build();
         $siteMembershipMock = new SiteMembershipSubscription(
-            userGuid: 456,
+            userGuid: $userGuid,
             membershipSubscriptionId: 1,
             membershipGuid: 1,
             stripeSubscriptionId: 'sub_stripeSubscriptionId',
@@ -218,7 +231,8 @@ class SiteMembershipsRenewalsServiceSpec extends ObjectBehavior
         $this->siteMembershipSubscriptionsServiceMock->renewSiteMembershipSubscription(
             stripeSubscriptionId: '1',
             startTimestamp: $currentPeriodStart,
-            endTimestamp: $currentPeriodEnd
+            endTimestamp: $currentPeriodEnd,
+            userGuid: $userGuid
         )
             ->shouldBeCalled()
             ->willReturn(true);
