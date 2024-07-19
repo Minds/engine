@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\Payments\SiteMemberships\Services;
 
+use ArrayObject;
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipPricingModelEnum;
@@ -22,13 +23,16 @@ use ReflectionClass;
 use Stripe\Checkout\Session as StripeCheckoutSession;
 use Stripe\Product as StripeProduct;
 use Minds\Core\Groups\V2\Membership\Manager as GroupMembershipService;
+use Minds\Core\Guid;
 use Minds\Core\Payments\SiteMemberships\Repositories\DTO\SiteMembershipSubscriptionDTO;
+use Minds\Core\Payments\SiteMemberships\Services\HasActiveSiteMembershipCacheService;
 use Prophecy\Argument;
 
 class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
 {
     private Collaborator $siteMembershipSubscriptionsRepositoryMock;
     private Collaborator $siteMembershipReaderServiceMock;
+    private Collaborator $hasActiveSiteMembershipCacheServiceMock;
     private Collaborator $stripeCheckoutManagerMock;
     private Collaborator $stripeProductServiceMock;
     private Collaborator $stripeCheckoutSessionServiceMock;
@@ -44,6 +48,7 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
     public function let(
         SiteMembershipSubscriptionsRepository $siteMembershipSubscriptionsRepository,
         SiteMembershipReaderService           $siteMembershipReaderService,
+        HasActiveSiteMembershipCacheService   $hasActiveSiteMembershipCacheServiceMock,
         StripeCheckoutManager                 $stripeCheckoutManager,
         StripeProductService                  $stripeProductService,
         StripeCheckoutSessionService          $stripeCheckoutSessionService,
@@ -53,6 +58,7 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
     ): void {
         $this->siteMembershipSubscriptionsRepositoryMock = $siteMembershipSubscriptionsRepository;
         $this->siteMembershipReaderServiceMock = $siteMembershipReaderService;
+        $this->hasActiveSiteMembershipCacheServiceMock = $hasActiveSiteMembershipCacheServiceMock;
         $this->stripeCheckoutManagerMock = $stripeCheckoutManager;
         $this->stripeProductServiceMock = $stripeProductService;
         $this->stripeCheckoutSessionServiceMock = $stripeCheckoutSessionService;
@@ -68,6 +74,7 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
         $this->beConstructedWith(
             $this->siteMembershipSubscriptionsRepositoryMock,
             $this->siteMembershipReaderServiceMock,
+            $this->hasActiveSiteMembershipCacheServiceMock,
             $this->stripeCheckoutManagerMock,
             $this->stripeProductServiceMock,
             $this->stripeCheckoutSessionServiceMock,
@@ -250,6 +257,8 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
     public function it_should_complete_site_membership_checkout(
         User $userMock
     ): void {
+        $userGuid = Guid::build();
+
         $this->stripeCheckoutSessionServiceMock->retrieveCheckoutSession(
             "checkout_session_id"
         )
@@ -267,6 +276,13 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
         )
             ->shouldBeCalledOnce()
             ->willReturn(true);
+
+        $userMock->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
+
+        $this->hasActiveSiteMembershipCacheServiceMock->delete($userGuid)
+            ->shouldBeCalledOnce();
 
         $this->completeSiteMembershipCheckout(
             "checkout_session_id",
@@ -345,5 +361,133 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
             ->willReturn([]);
 
         $this->syncOutOfSyncSiteMemberships();
+    }
+
+    // hasActiveSiteMembershipSubscription
+
+    public function it_should_return_that_a_user_has_an_active_site_membership_subscription_from_cache(
+        User $userMock
+    ) {
+        $cachedValue = true;
+        $userGuid = Guid::build();
+
+        $userMock->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
+
+        $this->hasActiveSiteMembershipCacheServiceMock->get($userGuid)
+            ->shouldBeCalled()
+            ->willReturn($cachedValue);
+
+        $this->hasActiveSiteMembershipSubscription($userMock)
+            ->shouldBe(true);
+    }
+
+    public function it_should_return_that_a_user_has_no_active_site_membership_subscription_from_cache(
+        User $userMock
+    ) {
+        $cachedValue = false;
+        $userGuid = Guid::build();
+
+        $userMock->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
+
+        $this->hasActiveSiteMembershipCacheServiceMock->get($userGuid)
+            ->shouldBeCalled()
+            ->willReturn($cachedValue);
+
+        $this->hasActiveSiteMembershipSubscription($userMock)
+            ->shouldBe(false);
+    }
+
+    public function it_should_return_that_a_user_has_no_active_site_membership_subscriptions(
+        User $userMock
+    ) {
+        $cachedValue = null;
+        $userGuid = Guid::build();
+
+        $userMock->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
+
+        $this->hasActiveSiteMembershipCacheServiceMock->get($userGuid)
+            ->shouldBeCalled()
+            ->willReturn($cachedValue);
+
+        $this->siteMembershipSubscriptionsRepositoryMock->getSiteMembershipSubscriptions($userMock)
+            ->shouldBeCalled()
+            ->willReturn(new ArrayObject([]));
+        
+        $this->hasActiveSiteMembershipCacheServiceMock->set(
+            $userGuid,
+            false,
+            null
+        )->shouldBeCalled();
+
+        $this->hasActiveSiteMembershipSubscription($userMock)
+            ->shouldBe(false);
+    }
+    
+    public function it_should_return_that_a_user_has_active_site_membership_subscriptions_and_cache_with_largest_valid_to_value(
+        User $userMock
+    ) {
+        $cachedValue = null;
+        $userGuid = Guid::build();
+        $siteMembershipValidTo1 = strtotime('+1 day');
+        $siteMembershipValidTo2 = strtotime('+1 year');
+        $siteMembershipValidTo3 = strtotime('+1 month');
+        
+        $userMock->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
+
+        $this->hasActiveSiteMembershipCacheServiceMock->get($userGuid)
+            ->shouldBeCalled()
+            ->willReturn($cachedValue);
+
+        $this->siteMembershipSubscriptionsRepositoryMock->getSiteMembershipSubscriptions($userMock)
+            ->shouldBeCalled()
+            ->willReturn(new ArrayObject([
+                new SiteMembershipSubscription(
+                    (int) $userGuid,
+                    (int) Guid::build(),
+                    (int) Guid::build(),
+                    'sub_id',
+                    true,
+                    false,
+                    time(),
+                    $siteMembershipValidTo1
+                ),
+                new SiteMembershipSubscription(
+                    (int) $userGuid,
+                    (int) Guid::build(),
+                    (int) Guid::build(),
+                    'sub_id',
+                    true,
+                    false,
+                    time(),
+                    $siteMembershipValidTo2
+                ),
+                new SiteMembershipSubscription(
+                    (int) $userGuid,
+                    (int) Guid::build(),
+                    (int) Guid::build(),
+                    'sub_id',
+                    true,
+                    false,
+                    time(),
+                    $siteMembershipValidTo3
+                ),
+            ]));
+        
+        $this->hasActiveSiteMembershipCacheServiceMock->set(
+            $userGuid,
+            true,
+            $siteMembershipValidTo2
+        )->shouldBeCalled();
+
+        $this->hasActiveSiteMembershipSubscription($userMock)
+            ->shouldBe(true);
     }
 }

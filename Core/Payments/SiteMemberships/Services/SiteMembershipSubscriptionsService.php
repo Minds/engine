@@ -32,6 +32,7 @@ class SiteMembershipSubscriptionsService
     public function __construct(
         private readonly SiteMembershipSubscriptionsRepository $siteMembershipSubscriptionsRepository,
         private readonly SiteMembershipReaderService           $siteMembershipReaderService,
+        private readonly HasActiveSiteMembershipCacheService   $hasActiveSiteMembershipCacheService,
         private readonly StripeCheckoutManager                 $stripeCheckoutManager,
         private readonly StripeProductService                  $stripeProductService,
         private readonly StripeCheckoutSessionService          $stripeCheckoutSessionService,
@@ -151,6 +152,10 @@ class SiteMembershipSubscriptionsService
             $this->joinGroups($siteMembershipSubscription->siteMembership, $siteMembershipSubscription->user);
         }
 
+        $this->hasActiveSiteMembershipCacheService->delete(
+            (int) $siteMembershipSubscription->user->getGuid()
+        );
+
         return $success;
     }
 
@@ -189,6 +194,29 @@ class SiteMembershipSubscriptionsService
     }
 
     /**
+     * Whether the user has an active site membership subscription.
+     * @param User $user - the user to check for an active site membership subscription.
+     * @return bool - whether the user has an active site membership subscription.
+     */
+    public function hasActiveSiteMembershipSubscription(User $user): bool {    
+        $cachedValue = $this->hasActiveSiteMembershipCacheService->get((int) $user->getGuid());
+        if ($cachedValue !== null) {
+            return $cachedValue;
+        }
+
+        $lastExpiringSubscription = $this->getLastExpiringSiteMembershipSubscription($user);
+        $hasActiveSiteMembership = $lastExpiringSubscription !== null;
+
+        $this->hasActiveSiteMembershipCacheService->set(
+            (int) $user->getGuid(),
+            $hasActiveSiteMembership,
+            $hasActiveSiteMembership ? $lastExpiringSubscription->validToTimestamp : null
+        );
+
+        return $hasActiveSiteMembership;
+    }
+
+    /**
      * @param string $stripeSubscriptionId
      * @param int $startTimestamp
      * @param int $endTimestamp
@@ -219,6 +247,29 @@ class SiteMembershipSubscriptionsService
             $siteMembership = $this->siteMembershipReaderService->getSiteMembership($siteMembershipSubscription->membershipGuid);
             $this->joinGroups($siteMembership, $user);
         }
+    }
+
+    /**
+     * Gets the users last expiring site membership subscription.
+     * @param User $user - the user to get the last expiring site membership subscription for.
+     * @return SiteMembershipSubscription|null - the last expiring site membership subscription,
+     * or null if the user has none.
+     */
+    private function getLastExpiringSiteMembershipSubscription(User $user): ?SiteMembershipSubscription
+    {
+        $siteMembershipSubscriptions = $this->getSiteMembershipSubscriptions($user);
+        $lastExpiringSubscription = null;
+
+        foreach ($siteMembershipSubscriptions as $siteMembershipSubscription) {
+            if (
+                $lastExpiringSubscription === null ||
+                $siteMembershipSubscription->validToTimestamp > $lastExpiringSubscription->validToTimestamp
+            ) {
+                $lastExpiringSubscription = $siteMembershipSubscription;
+            }
+        }
+        
+        return $lastExpiringSubscription;
     }
 
     /**
