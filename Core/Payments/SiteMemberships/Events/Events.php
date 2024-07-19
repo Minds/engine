@@ -11,8 +11,9 @@ use Minds\Entities\User;
 class Events
 {
     public function __construct(
-      private ?SiteMembershipSubscriptionsService $siteMembershipSubscriptionsService = null
-    ) {}
+        private ?SiteMembershipSubscriptionsService $siteMembershipSubscriptionsService = null
+    ) {
+    }
 
     public function register(): void
     {
@@ -26,8 +27,8 @@ class Events
             }
 
             if ($user->fullExport && (bool) $user->tenant_id) {
-              $export['has_active_site_membership'] = $this->getSiteMembershipSubscriptionsService()
-                ->hasActiveSiteMembershipSubscription(user: $user);
+                $export['has_active_site_membership'] = $this->getSiteMembershipSubscriptionsService()
+                  ->hasActiveSiteMembershipSubscription(user: $user);
             }
 
             $event->setResponse($export);
@@ -40,6 +41,6 @@ class Events
      */
     private function getSiteMembershipSubscriptionsService(): SiteMembershipSubscriptionsService
     {
-    	return $this->siteMembershipSubscriptionsService ??= Di::_()->get(SiteMembershipSubscriptionsService::class);
+        return $this->siteMembershipSubscriptionsService ??= Di::_()->get(SiteMembershipSubscriptionsService::class);
     }
 }

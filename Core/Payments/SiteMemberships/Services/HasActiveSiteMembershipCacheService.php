@@ -15,14 +15,16 @@ class HasActiveSiteMembershipCacheService
 
     public function __construct(
         private readonly PsrWrapper $cache
-    ) {}
+    ) {
+    }
 
     /**
      * Get the value from cache.
      * @param int $userGuid - user GUID.
      * @return bool|null
      */
-    public function get(int $userGuid): ?bool {
+    public function get(int $userGuid): ?bool
+    {
         $cachedValue = $this->cache->get($this->buildCacheKey($userGuid));
         return in_array($cachedValue, [1, 0], true) ? $cachedValue === 1 : null;
     }
@@ -34,7 +36,8 @@ class HasActiveSiteMembershipCacheService
      * @param int|null $ttl - TTL in seconds.
      * @return void
      */
-    public function set(int $userGuid, bool $value, ?int $ttl): void {
+    public function set(int $userGuid, bool $value, ?int $ttl): void
+    {
         $this->cache->set(
             key: $this->buildCacheKey($userGuid),
             value: $value ? 1 : 0,
@@ -47,7 +50,8 @@ class HasActiveSiteMembershipCacheService
      * @param integer $userGuid - user GUID.
      * @return void
      */
-    public function delete(int $userGuid): void {
+    public function delete(int $userGuid): void
+    {
         $this->cache->delete($this->buildCacheKey($userGuid));
     }
 
@@ -56,7 +60,8 @@ class HasActiveSiteMembershipCacheService
      * @param int $userGuid - user GUID.
      * @return string - cache key.
      */
-    private function buildCacheKey(int $userGuid): string {
+    private function buildCacheKey(int $userGuid): string
+    {
         return self::CACHE_KEY_BASE . $userGuid;
     }
 }

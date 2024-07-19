@@ -198,7 +198,8 @@ class SiteMembershipSubscriptionsService
      * @param User $user - the user to check for an active site membership subscription.
      * @return bool - whether the user has an active site membership subscription.
      */
-    public function hasActiveSiteMembershipSubscription(User $user): bool {    
+    public function hasActiveSiteMembershipSubscription(User $user): bool
+    {
         $cachedValue = $this->hasActiveSiteMembershipCacheService->get((int) $user->getGuid());
         if ($cachedValue !== null) {
             return $cachedValue;

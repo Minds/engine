@@ -27,7 +27,8 @@ class HasActiveSiteMembershipCacheServiceSpec extends ObjectBehavior
 
     // get
 
-    public function it_should_get_true_value_from_cache() {
+    public function it_should_get_true_value_from_cache()
+    {
         $userGuid = Guid::build();
         
         $this->cacheMock->get("has_site_membership:$userGuid")
@@ -37,7 +38,8 @@ class HasActiveSiteMembershipCacheServiceSpec extends ObjectBehavior
         $this->get($userGuid)->shouldReturn(true);
     }
 
-    public function it_should_get_false_value_from_cache() {
+    public function it_should_get_false_value_from_cache()
+    {
         $userGuid = Guid::build();
         
         $this->cacheMock->get("has_site_membership:$userGuid")
@@ -47,7 +49,8 @@ class HasActiveSiteMembershipCacheServiceSpec extends ObjectBehavior
         $this->get($userGuid)->shouldReturn(false);
     }
 
-    public function it_should_get_no_value_from_cache() {
+    public function it_should_get_no_value_from_cache()
+    {
         $userGuid = Guid::build();
         
         $this->cacheMock->get("has_site_membership:$userGuid")
@@ -59,7 +62,8 @@ class HasActiveSiteMembershipCacheServiceSpec extends ObjectBehavior
 
     // set
 
-    public function it_should_set_true_value_in_cache() {
+    public function it_should_set_true_value_in_cache()
+    {
         $userGuid = Guid::build();
         
         $this->cacheMock->set(
@@ -71,7 +75,8 @@ class HasActiveSiteMembershipCacheServiceSpec extends ObjectBehavior
         $this->set($userGuid, true, 3600);
     }
 
-    public function it_should_set_false_value_in_cache() {
+    public function it_should_set_false_value_in_cache()
+    {
         $userGuid = Guid::build();
         
         $this->cacheMock->set(
@@ -85,7 +90,8 @@ class HasActiveSiteMembershipCacheServiceSpec extends ObjectBehavior
 
     // delete
 
-    public function it_should_delete_value_from_cache() {
+    public function it_should_delete_value_from_cache()
+    {
         $userGuid = Guid::build();
         
         $this->cacheMock->delete("has_site_membership:$userGuid")
