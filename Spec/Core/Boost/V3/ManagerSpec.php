@@ -30,9 +30,11 @@ use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\FeedSyncEntity;
+use Minds\Core\Guid;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\Payments\InAppPurchases\Manager as InAppPurchasesManager;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\ACL;
 use Minds\Core\Settings\Manager as UserSettingsManager;
 use Minds\Core\Settings\Models\BoostPartnerSuitability;
@@ -1133,19 +1135,26 @@ class ManagerSpec extends ObjectBehavior
      * @throws ServerErrorException
      * @throws ApiErrorException
      */
-    public function it_should_cancel_boost(
+    public function it_should_cancel_and_refund_pending_boosts(
         User $user,
         Boost $boost
     ): void {
+        $boostOwnerGuid = Guid::build();
+        $userGuid = $boostOwnerGuid;
+
         $user->getGuid()
-            ->shouldBeCalledOnce()
-            ->willReturn('123');
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
 
         $this->setUser($user);
 
         $boost->getStatus()
-            ->shouldBeCalledOnce()
+            ->shouldBeCalled()
             ->willReturn(BoostStatus::PENDING);
+
+        $boost->getOwnerGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn($boostOwnerGuid);
 
         $this->repository->getBoostByGuid(Argument::type('string'))
             ->shouldBeCalledOnce()
@@ -1165,7 +1174,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $this->repository->cancelBoost(Argument::type('string'), '123')
+        $this->repository->cancelBoost(Argument::type('string'), $userGuid)
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -1177,13 +1186,97 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeEqualTo(true);
     }
 
+    public function it_should_cancel_and_not_refund_non_pending_boosts(
+        User $user,
+        Boost $boost
+    ): void {
+        $boostOwnerGuid = Guid::build();
+        $userGuid = $boostOwnerGuid;
+
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
+
+        $this->setUser($user);
+
+        $boost->getStatus()
+            ->shouldBeCalled()
+            ->willReturn(BoostStatus::APPROVED);
+
+        $boost->getOwnerGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn($boostOwnerGuid);
+
+        $this->repository->getBoostByGuid(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($boost);
+
+        $this->repository->cancelBoost(Argument::type('string'), $userGuid)
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->paymentProcessor->refundBoostPayment(Argument::type(Boost::class))
+            ->shouldNotBeCalled();
+
+        $this->cancelBoost('123')
+            ->shouldBeEqualTo(true);
+    }
+
+    public function it_should_not_cancel_a_boost_when_not_the_boost_owner(
+        User $user,
+        Boost $boost
+    ): void {
+        $boostOwnerGuid = Guid::build();
+        $userGuid = Guid::build();
+
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
+
+        $user->isAdmin()
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->setUser($user);
+
+        $boost->getOwnerGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn($boostOwnerGuid);
+
+        $this->repository->getBoostByGuid(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($boost);
+
+        $this->repository->cancelBoost(Argument::type('string'), $userGuid)
+            ->shouldNotBeCalled();
+
+        $this->paymentProcessor->refundBoostPayment(Argument::type(Boost::class))
+            ->shouldNotBeCalled();
+
+        $this->shouldThrow(ForbiddenException::class)->duringCancelBoost('123');
+    }
+
     /**
      * @param Boost $boost
      * @return void
      */
     public function it_should_try_cancel_boost_and_throw_incorrect_status_exception(
-        Boost $boost
+        Boost $boost,
+        User $user
     ): void {
+        $boostOwnerGuid = Guid::build();
+        $userGuid = $boostOwnerGuid;
+
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
+
+        $this->setUser($user);
+
+        $boost->getOwnerGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn($boostOwnerGuid);
+
         $boost->getStatus()
             ->shouldBeCalledOnce()
             ->willReturn(BoostStatus::REFUND_IN_PROGRESS);
@@ -1200,10 +1293,24 @@ class ManagerSpec extends ObjectBehavior
      * @return void
      */
     public function it_should_try_cancel_boost_and_throw_payment_refund_failed_exception(
-        Boost $boost
+        Boost $boost,
+        User $user
     ): void {
-        $boost->getStatus()
+        $boostOwnerGuid = Guid::build();
+        $userGuid = $boostOwnerGuid;
+
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
+
+        $this->setUser($user);
+
+        $boost->getOwnerGuid()
             ->shouldBeCalledOnce()
+            ->willReturn($boostOwnerGuid);
+
+        $boost->getStatus()
+            ->shouldBeCalled()
             ->willReturn(BoostStatus::PENDING);
 
         $this->repository->getBoostByGuid(Argument::type('string'))
@@ -1233,14 +1340,21 @@ class ManagerSpec extends ObjectBehavior
         User $user,
         Boost $boost
     ): void {
+        $boostOwnerGuid = Guid::build();
+        $userGuid = $boostOwnerGuid;
+
         $user->getGuid()
-            ->shouldBeCalledOnce()
-            ->willReturn('123');
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
 
         $this->setUser($user);
 
-        $boost->getStatus()
+        $boost->getOwnerGuid()
             ->shouldBeCalledOnce()
+            ->willReturn($boostOwnerGuid);
+
+        $boost->getStatus()
+            ->shouldBeCalled()
             ->willReturn(BoostStatus::PENDING);
 
         $this->repository->getBoostByGuid(Argument::type('string'))
