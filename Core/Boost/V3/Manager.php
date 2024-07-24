@@ -796,7 +796,8 @@ class Manager
             (new View())
                 ->setEntityUrn($boost->getEntity()->getUrn())
                 ->setOwnerGuid((string) $boost->getEntity()->getOwnerGuid())
-                ->setClientMeta($clientMeta)
+                ->setClientMeta($clientMeta),
+            $boost->getEntity()
         );
     }
 
