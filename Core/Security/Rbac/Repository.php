@@ -149,6 +149,7 @@ class Repository extends AbstractRepository
      */
     public function getUsersByRole(
         ?int $roleId = null,
+        ?string $username = null,
         int $limit = 12,
         int $offset = 0,
     ): iterable {
@@ -165,10 +166,20 @@ class Repository extends AbstractRepository
             ->innerJoin('minds_entities', 'minds_entities_user.guid', Operator::EQ, 'minds_entities.guid')
             ->leftJoin('minds_role_user_assignments', 'minds_entities_user.guid', Operator::EQ, 'minds_role_user_assignments.user_guid')
             ->where('minds_entities.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('minds_entities_user.source', Operator::EQ, 'local')
             ->groupBy('minds_entities_user.guid')
             ->orderBy("minds_entities_user.guid ASC")
             ->limit($limit)
             ->offset($offset);
+
+        if ($username) {
+            $query->where(function (SelectQuery $query) {
+                $query->where('minds_entities_user.username', Operator::LIKE, new RawExp(':username'));
+                $query->orWhere('minds_entities_user.name', Operator::LIKE, new RawExp(':name'));
+            });
+            $values['username'] = "%$username%";
+            $values['name'] = "%$username%";
+        }
 
         if ($roleId !== null) {
             switch (RolesEnum::tryFrom($roleId)) {

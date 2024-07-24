@@ -143,6 +143,7 @@ class PermissionsControllerSpec extends ObjectBehavior
 
         $this->rolesServiceMock->getUsersByRole(
             null,
+            null,
             12,
             0,
             false
