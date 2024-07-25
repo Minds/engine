@@ -46,6 +46,7 @@ use Minds\Core\Payments\InAppPurchases\Manager as InAppPurchasesManager;
 use Minds\Core\Payments\InAppPurchases\Models\InAppPurchase;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\V2\Exceptions\InvalidPaymentMethodException;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\ACL;
 use Minds\Core\Settings\Manager as UserSettingsManager;
 use Minds\Core\Settings\Models\BoostPartnerSuitability;
@@ -470,22 +471,28 @@ class Manager
      */
     public function cancelBoost(string $boostGuid): bool
     {
-        // Only process if status is Pending
         $boost = $this->repository->getBoostByGuid($boostGuid);
 
-        if ($boost->getStatus() !== BoostStatus::PENDING) {
+        if ($this->user->getGuid() !== $boost->getOwnerGuid() && !$this->user->isAdmin()) {
+            throw new ForbiddenException('You are not authorized to cancel this boost.');
+        }
+
+        if (!in_array($boost->getStatus(), [BoostStatus::PENDING, BoostStatus::APPROVED], true)) {
             throw new IncorrectBoostStatusException();
         }
 
-        // Mark request as Refund_in_progress
-        $this->repository->updateStatus($boostGuid, BoostStatus::REFUND_IN_PROGRESS);
+        // Only process a refund if the status is Pending
+        if ($boost->getStatus() === BoostStatus::PENDING) {
+            // Mark request as Refund_in_progress
+            $this->repository->updateStatus($boostGuid, BoostStatus::REFUND_IN_PROGRESS);
 
-        if (!$this->paymentProcessor->refundBoostPayment($boost)) {
-            throw new BoostPaymentRefundFailedException();
+            if (!$this->paymentProcessor->refundBoostPayment($boost)) {
+                throw new BoostPaymentRefundFailedException();
+            }
+
+            // Mark request as Refund_processed
+            $this->repository->updateStatus($boostGuid, BoostStatus::REFUND_PROCESSED);
         }
-
-        // Mark request as Refund_processed
-        $this->repository->updateStatus($boostGuid, BoostStatus::REFUND_PROCESSED);
 
         if (!$this->repository->cancelBoost($boostGuid, $this->user->getGuid())) {
             throw new ServerErrorException();
@@ -796,7 +803,8 @@ class Manager
             (new View())
                 ->setEntityUrn($boost->getEntity()->getUrn())
                 ->setOwnerGuid((string) $boost->getEntity()->getOwnerGuid())
-                ->setClientMeta($clientMeta)
+                ->setClientMeta($clientMeta),
+            $boost->getEntity()
         );
     }
 

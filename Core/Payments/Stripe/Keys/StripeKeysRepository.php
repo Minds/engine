@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Payments\Stripe\Keys;
 
+use Minds\Core\Data\cache\InMemoryCache;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use PDO;
 use Selective\Database\Operator;
@@ -9,6 +10,12 @@ use Selective\Database\RawExp;
 class StripeKeysRepository extends AbstractRepository
 {
     const TABLE_NAME = 'minds_stripe_keys';
+    const CACHE_KEY = 'stripe-keys';
+
+    public function __construct(private InMemoryCache $cache, ...$args)
+    {
+        parent::__construct(...$args);
+    }
 
     /**
      * Saves the keys to the database
@@ -30,10 +37,19 @@ class StripeKeysRepository extends AbstractRepository
 
         $stmt = $query->prepare();
 
-        return $stmt->execute([
+        $success = $stmt->execute([
             'pub_key' => $pubKey,
             'sec_key_cipher_text' => $secKeyCipherText,
         ]);
+
+        if ($success) {
+            $this->cache->set(self::CACHE_KEY, [
+                'pub_key' => $pubKey,
+                'sec_key_cipher_text' => $secKeyCipherText,
+            ]);
+        }
+
+        return $success;
     }
 
     /**
@@ -42,6 +58,10 @@ class StripeKeysRepository extends AbstractRepository
      */
     public function getKeys(): ?array
     {
+        if ($cached = $this->cache->get(self::CACHE_KEY)) {
+            return array_values($cached);
+        }
+
         $query = $this->mysqlClientReaderHandler->select()
             ->from(self::TABLE_NAME)
             ->columns([

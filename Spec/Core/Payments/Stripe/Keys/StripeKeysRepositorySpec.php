@@ -3,6 +3,7 @@
 namespace Spec\Minds\Core\Payments\Stripe\Keys;
 
 use Minds\Core\Config\Config;
+use Minds\Core\Data\cache\InMemoryCache;
 use Minds\Core\Data\MySQL\MySQLConnectionEnum;
 use Minds\Core\Di\Di;
 use Minds\Core\Payments\Stripe\Keys\StripeKeysRepository;
@@ -23,9 +24,10 @@ class StripeKeysRepositorySpec extends ObjectBehavior
         Config $configMock,
         MySQLClient $mysqlClientMock,
         PDO $mysqlMasterMock,
-        PDO $mysqlReplicaMock
+        PDO $mysqlReplicaMock,
+        InMemoryCache $cacheMock,
     ) {
-        $this->beConstructedWith($mysqlClientMock, $configMock, Di::_()->get('Logger'));
+        $this->beConstructedWith($cacheMock, $mysqlClientMock, $configMock, Di::_()->get('Logger'));
 
         $this->mysqlClientMock = $mysqlClientMock;
 

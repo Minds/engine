@@ -51,7 +51,8 @@ class ControllersProvider extends Provider
         $this->di->bind(
             SiteMembershipSubscriptionsController::class,
             fn (Di $di): SiteMembershipSubscriptionsController => new SiteMembershipSubscriptionsController(
-                siteMembershipSubscriptionsService: $di->get(SiteMembershipSubscriptionsService::class)
+                siteMembershipSubscriptionsService: $di->get(SiteMembershipSubscriptionsService::class),
+                eventsDispatcher: $di->get('EventsDispatcher'),
             )
         );
 

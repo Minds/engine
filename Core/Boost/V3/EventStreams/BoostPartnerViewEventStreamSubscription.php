@@ -89,6 +89,12 @@ class BoostPartnerViewEventStreamSubscription implements BatchSubscriptionInterf
                 (array) $messageData
             );
 
+            // Bad data, skip
+            if ($messageData->cm_served_by_guid === 'undefined') {
+                $this->getTopic()->markMessageAsProcessed($message);
+                continue;
+            }
+
             $isMessageProcessed = $this->manager->recordBoostPartnerView(
                 userGuid: $messageData->cm_served_by_guid,
                 boostGuid: $boostGuid,

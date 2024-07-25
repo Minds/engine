@@ -151,6 +151,43 @@ class RepositorySpec extends ObjectBehavior
         ]));
     }
 
+    public function it_should_return_a_list_of_users_filtered_by_username(PDOStatement $stmtMock)
+    {
+        $username = "test";
+
+        $this->mysqlReplicaMock->quote(Argument::any())->willReturn("");
+        $this->mysqlReplicaMock->prepare(Argument::that(function ($args) use ($username) {
+            return "SELECT `minds_entities_user`.`guid` AS `user_guid`,GROUP_CONCAT(role_id) AS `role_ids` FROM `minds_entities_user` INNER JOIN `minds_entities` ON `minds_entities_user`.`guid` = `minds_entities`.`guid` LEFT JOIN `minds_role_user_assignments` ON `minds_entities_user`.`guid` = `minds_role_user_assignments`.`user_guid` WHERE `minds_entities`.`tenant_id` = :tenant_id AND `minds_entities_user`.`source` =  AND (  `minds_entities_user`.`username` LIKE :username OR `minds_entities_user`.`name` LIKE :name ) AND `role_id` = :role_id GROUP BY `minds_entities_user`.`guid` ORDER BY `minds_entities_user`.`guid` ASC LIMIT 12;";
+        }))->willReturn($stmtMock);
+
+        $stmtMock->execute(Argument::that(function ($args) use ($username) {
+            return $args['username'] === "%$username%" &&
+                $args['name'] === "%$username%" &&
+                $args['role_id'] === 1;
+        }))->willReturn(true);
+
+        $stmtMock->fetchAll(PDO::FETCH_ASSOC)->willReturn([
+            [
+                'user_guid' => 1,
+                'role_ids' => "4",
+            ],
+            [
+                'user_guid' => 2,
+                'role_ids' => "1,2",
+            ]
+        ]);
+
+        $this->multiTenantBootServiceMock->getTenant()
+            ->willReturn(new Tenant(id: 1, rootUserGuid: 1));
+
+        $roles = $this->getUsersByRole(1, $username);
+
+        $roles->shouldYieldLike(new \ArrayIterator([
+            '1' => [4,0],
+            '2' => [1,2]
+        ]));
+    }
+
     public function it_should_assign_user_to_a_role(PDOStatement $stmtMock)
     {
         $this->mysqlMasterMock->quote(Argument::any())->willReturn("");
