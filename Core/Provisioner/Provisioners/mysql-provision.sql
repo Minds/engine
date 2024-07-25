@@ -1108,3 +1108,14 @@ ALTER TABLE minds_tenants ADD COLUMN deleted_timestamp timestamp DEFAULT null;
 ALTER TABLE `minds_tenant_configs`
     ADD digest_email_enabled boolean DEFAULT TRUE
     AFTER walled_garden_enabled;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD bloomerang_api_key text DEFAULT NULL
+    AFTER digest_email_enabled;
+OPTIMIZE TABLE minds_tenant_configs;
+
+CREATE TABLE IF NOT EXISTS minds_bloomerang_group_id_to_site_membership_guids (
+    tenant_id int NOT NULL,
+    bloomerang_group_id int NOT NULL,
+    site_membership_guid bigint NOT NULL
+);
