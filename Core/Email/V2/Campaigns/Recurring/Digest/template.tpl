@@ -71,7 +71,10 @@
                                         </tr>
                                         <tr>
                                             <td <?php echo $emailStyles->getStyles('m-clear', 'm-digestActivity__text', 'm-textColor--primary'); ?> >
-                                                <a href="<?php echo $vars['site_url']; ?>newsfeed/<?php echo $activity['guid']; ?>?<?php echo $vars['tracking']; ?>&utm_content=body">
+                                                <a
+                                                    href="<?php echo $vars['site_url']; ?>newsfeed/<?php echo $activity['guid']; ?>?<?php echo $vars['tracking']; ?>&utm_content=body"
+                                                    <?= $emailStyles->getStyles('m-noTextDecoration'); ?>
+                                                >
                                                     <?php 
                                                         if (!$activity['title'] && $activity['message']) {
                                                             $length = 140;
@@ -82,7 +85,7 @@
                                                         }
                                                     ?>
                                                     <?php if ($activity['title']) { ?> 
-                                                        <p <?php echo $emailStyles->getStyles('m-fonts', 'm-clear'); ?>><?php echo $activity['title']; ?></p>
+                                                        <p <?php echo $emailStyles->getStyles('m-fonts', 'm-clear', 'm-preWrap'); ?>><?php echo $activity['title']; ?></p>
                                                     <?php } ?>
                                                 </a>
                                             </td>
