@@ -133,4 +133,10 @@
         </table>
 
 <?php } ?>
+
+<?php if ($vars['unreadMessagesPartial']) { ?>
+    <div <?= $emailStyles->getStyles('m-spacer--medium'); ?>></div>
+    <?= $vars['unreadMessagesPartial']; ?>
+<?php } ?>
+
 <div <?php echo  $emailStyles->getStyles('m-spacer--small'); ?>></div>

@@ -70,6 +70,17 @@ class EmailStyles
             'm-unreadNotifications__previews' => 'width: 100%; border-collapse: collapse;',
             'm-unreadNotifications__preview' => 'width: 100%; border: 1px solid #d4d4d4; padding: 20px; font-size: 15px;',
         
+            // PARTIAL : Unread chat messages
+            'm-unreadChatMessages__col' => 'padding: 16px 12px;',
+            'm-unreadChatMessages__col--first' => 'padding-left: 24px;',
+            'm-unreadChatMessages__col--last' => 'padding-right: 32px;',
+            'm-unreadChatMessages__bordered' => 'border-radius: 4px; border: 1px solid #d4d4d4;',
+            'm-unreadChatMessages__listItem' => 'padding: 10px 0;',
+            'm-unreadChatMessages__avatarCol' => 'width: 40px;',
+            'm-unreadChatMessages__fullWidth' => 'width: 100%;',
+            'm-unreadChatMessages__avatar' => 'width: 40px; height: 40px; border-radius: 50%;',
+            'm-unreadChatMessages__roomName' => 'font-family: Inter; font-size: 14px; font-style: normal; font-weight: 500; line-height: 20px;',
+
             // PARTIAL: Tenant Welcome email
             'm-tenantWelcome__subtitle' => 'color: #000; font-family: Inter, sans-serif; font-size: 28px; font-weight: 800;',
             'm-tenantWelcome__catchUpSubtitle' => 'margin: 60px 20px 30px;',

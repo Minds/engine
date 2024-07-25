@@ -4,16 +4,14 @@ namespace Spec\Minds\Core\Email\V2\Campaigns\Recurring\Digest;
 
 use Minds\Core\Email\V2\Campaigns\Recurring\Digest\Digest;
 use Minds\Core\Email\V2\Common\Template;
-use Minds\Core\Email\V2\Common\Message;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\Manager;
 use Minds\Core\Feeds;
-use Minds\Core\Feeds\FeedSyncEntity;
-use Minds\Core\Discovery\Trend;
 use Minds\Core\Notification;
 use Minds\Entities\User;
 use Minds\Entities\Activity;
 use Minds\Common\Repository\Response;
+use Minds\Core\Email\V2\Partials\UnreadMessages\UnreadMessagesPartial;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
@@ -27,17 +25,21 @@ class DigestSpec extends ObjectBehavior
     /** @var Notification\Manager */
     protected Collaborator $notificationManagerMock;
 
+    protected Collaborator $unreadMessagesPartialMock;
+
     public function let(
         Template $template,
         Mailer $mailer,
         Manager $manager,
         Feeds\Elastic\V2\Manager $feedsManagerMock,
         Notification\Manager $notificationManagerMock,
+        UnreadMessagesPartial $unreadMessagesPartialMock,
     ) {
-        $this->beConstructedWith($template, $mailer, $manager, $feedsManagerMock, $notificationManagerMock);
+        $this->beConstructedWith($template, $mailer, $manager, $feedsManagerMock, $notificationManagerMock, null, null, $unreadMessagesPartialMock);
         $this->managerMock = $manager;
         $this->feedsManagerMock = $feedsManagerMock;
         $this->notificationManagerMock = $notificationManagerMock;
+        $this->unreadMessagesPartialMock = $unreadMessagesPartialMock;
     }
 
 
@@ -46,8 +48,9 @@ class DigestSpec extends ObjectBehavior
         $this->shouldHaveType(Digest::class);
     }
 
-    public function it_should_build_digest_email_with_trends_and_notifications(User $user)
-    {
+    public function it_should_build_digest_email_with_trends_notifications_and_unread_messages(
+        User $user
+    ) {
         $this->setUser($user);
 
         $user->getGuid()->willReturn('123');
@@ -73,6 +76,16 @@ class DigestSpec extends ObjectBehavior
         
         $this->notificationManagerMock->getCount()
             ->willReturn(5);
+
+        //
+
+        $this->unreadMessagesPartialMock->withArgs($user, Argument::any())
+            ->shouldBeCalled()
+            ->willReturn($this->unreadMessagesPartialMock);
+
+        $this->unreadMessagesPartialMock->build()
+            ->shouldBeCalled()
+            ->willReturn('<div>Unread messages partial</div>');
 
         $this->build();
     }

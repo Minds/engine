@@ -322,6 +322,314 @@ class RoomRepositorySpec extends ObjectBehavior
             ->shouldBeArray();
     }
 
+    public function it_should_get_rooms_by_member_active_since_timestamp(
+        SelectQuery $selectQueryMock,
+        PDOStatement $pdoStatementMock,
+        User $userMock
+    ): void {
+        $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
+        $activeSinceTimestamp = strtotime('-1 day');
+        $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
+
+        $userMock->getGuid()
+            ->shouldBeCalledTimes(2)
+            ->willReturn(456);
+
+        $this->mysqlHandlerMock->bindValuesToPreparedStatement($pdoStatementMock, [
+            'tenant_id' => 1,
+            'member_guid' => 456,
+            'status' => [ChatRoomMemberStatusEnum::ACTIVE->name],
+            'last_activity_timestamp' => date('c', $activeSinceTimestamp),
+        ])
+            ->shouldBeCalledOnce();
+
+        $pdoStatementMock->execute()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $pdoStatementMock->rowCount()
+            ->shouldBeCalledTimes(2)
+            ->willReturn(1);
+
+        $pdoStatementMock->fetchAll(PDO::FETCH_ASSOC)
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                [
+                    'room_guid' => 123,
+                    'room_type' => ChatRoomTypeEnum::ONE_TO_ONE->name,
+                    'created_by_user_guid' => 456,
+                    'created_timestamp' => '2021-01-01 00:00:00',
+                    'group_guid' => null,
+                    'last_msg_plain_text' => 'Hello',
+                    'last_msg_created_timestamp' => '2021-01-01 00:00:00',
+                    'unread_messages_count' => 0,
+                    'member_guids' => "123,456",
+                    'room_name' => 'roomName',
+                    'role_id' => ChatRoomRoleEnum::MEMBER->name,
+                    'status' => ChatRoomMemberStatusEnum::ACTIVE->name,
+                ]
+            ]);
+
+        $selectQueryMock->columns(
+            Argument::that(
+                fn (array $cols): bool =>
+                    $cols[0] === 'r.*' &&
+                    (
+                        $cols[1] instanceof RawExp &&
+                        $cols[1]->getValue() === "last_msg.plain_text as last_msg_plain_text"
+                    ) &&
+                    (
+                        $cols[2] instanceof RawExp &&
+                        $cols[2]->getValue() === "last_msg.created_timestamp as last_msg_created_timestamp"
+                    ) &&
+                    (
+                        $cols[3] instanceof RawExp &&
+                        $cols[3]->getValue() === "COALESCE(last_msg.created_timestamp, r.created_timestamp) as last_activity_timestamp"
+                    ) &&
+                    (
+                        $cols[4] instanceof RawExp &&
+                        trim($cols[4]->getValue()) === "CASE
+                        WHEN
+                            COALESCE(rct.message_guid, 0) < last_msg.guid
+                        THEN 1
+                        ELSE 0
+                    END
+                    AS unread_messages_count"
+                    )
+            )
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->from(new RawExp(RoomRepository::TABLE_NAME . " as r"))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->joinRaw(
+            Argument::any(),
+            'r.room_guid = m.room_guid AND r.tenant_id = m.tenant_id',
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->leftJoinRaw(
+            Argument::type('callable'),
+            "last_msg.room_guid = r.room_guid AND last_msg.tenant_id = r.tenant_id"
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->leftJoinRaw(
+            new RawExp(RoomRepository::RECEIPTS_TABLE_NAME . " as rct"),
+            'r.room_guid = rct.room_guid AND r.tenant_id = rct.tenant_id AND rct.member_guid = m.member_guid',
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->leftJoinRaw(
+            Argument::type('callable'),
+            "r.room_guid = m_guids.room_guid AND r.tenant_id = m_guids.tenant_id"
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('r.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->whereWithNamedParameters('m.status', Operator::IN, 'status', 1)
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->orderBy('last_activity_timestamp DESC')
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->limit(13)
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->prepare()
+            ->shouldBeCalledOnce()
+            ->willReturn($pdoStatementMock);
+
+        $selectQueryMock->whereRaw('COALESCE(last_msg.created_timestamp, r.created_timestamp) > :last_activity_timestamp')
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $this->mysqlClientReaderHandlerMock->select()
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $this->getRoomsByMember(
+            $userMock,
+            null,
+            12,
+            null,
+            null,
+            null,
+            $activeSinceTimestamp,
+            null
+        )
+            ->shouldBeArray();
+    }
+
+
+    public function it_should_get_rooms_that_are_unread_only(
+        SelectQuery $selectQueryMock,
+        PDOStatement $pdoStatementMock,
+        User $userMock
+    ): void {
+        $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
+        $activeSinceTimestamp = strtotime('-1 day');
+        $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
+
+        $userMock->getGuid()
+            ->shouldBeCalledTimes(2)
+            ->willReturn(456);
+
+        $this->mysqlHandlerMock->bindValuesToPreparedStatement($pdoStatementMock, [
+            'tenant_id' => 1,
+            'member_guid' => 456,
+            'status' => [ChatRoomMemberStatusEnum::ACTIVE->name],
+            'last_activity_timestamp' => date('c', $activeSinceTimestamp),
+        ])
+            ->shouldBeCalledOnce();
+
+        $pdoStatementMock->execute()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $pdoStatementMock->rowCount()
+            ->shouldBeCalledTimes(2)
+            ->willReturn(1);
+
+        $pdoStatementMock->fetchAll(PDO::FETCH_ASSOC)
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                [
+                    'room_guid' => 123,
+                    'room_type' => ChatRoomTypeEnum::ONE_TO_ONE->name,
+                    'created_by_user_guid' => 456,
+                    'created_timestamp' => '2021-01-01 00:00:00',
+                    'group_guid' => null,
+                    'last_msg_plain_text' => 'Hello',
+                    'last_msg_created_timestamp' => '2021-01-01 00:00:00',
+                    'unread_messages_count' => 0,
+                    'member_guids' => "123,456",
+                    'room_name' => 'roomName',
+                    'role_id' => ChatRoomRoleEnum::MEMBER->name,
+                    'status' => ChatRoomMemberStatusEnum::ACTIVE->name,
+                ]
+            ]);
+
+        $selectQueryMock->columns(
+            Argument::that(
+                fn (array $cols): bool =>
+                    $cols[0] === 'r.*' &&
+                    (
+                        $cols[1] instanceof RawExp &&
+                        $cols[1]->getValue() === "last_msg.plain_text as last_msg_plain_text"
+                    ) &&
+                    (
+                        $cols[2] instanceof RawExp &&
+                        $cols[2]->getValue() === "last_msg.created_timestamp as last_msg_created_timestamp"
+                    ) &&
+                    (
+                        $cols[3] instanceof RawExp &&
+                        $cols[3]->getValue() === "COALESCE(last_msg.created_timestamp, r.created_timestamp) as last_activity_timestamp"
+                    ) &&
+                    (
+                        $cols[4] instanceof RawExp &&
+                        trim($cols[4]->getValue()) === "CASE
+                        WHEN
+                            COALESCE(rct.message_guid, 0) < last_msg.guid
+                        THEN 1
+                        ELSE 0
+                    END
+                    AS unread_messages_count"
+                    )
+            )
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->from(new RawExp(RoomRepository::TABLE_NAME . " as r"))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->joinRaw(
+            Argument::any(),
+            'r.room_guid = m.room_guid AND r.tenant_id = m.tenant_id',
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->leftJoinRaw(
+            Argument::type('callable'),
+            "last_msg.room_guid = r.room_guid AND last_msg.tenant_id = r.tenant_id"
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->leftJoinRaw(
+            new RawExp(RoomRepository::RECEIPTS_TABLE_NAME . " as rct"),
+            'r.room_guid = rct.room_guid AND r.tenant_id = rct.tenant_id AND rct.member_guid = m.member_guid',
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->leftJoinRaw(
+            Argument::type('callable'),
+            "r.room_guid = m_guids.room_guid AND r.tenant_id = m_guids.tenant_id"
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('r.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->whereWithNamedParameters('m.status', Operator::IN, 'status', 1)
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->orderBy('last_activity_timestamp DESC')
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->limit(13)
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->prepare()
+            ->shouldBeCalledOnce()
+            ->willReturn($pdoStatementMock);
+
+        $selectQueryMock->whereRaw('COALESCE(last_msg.created_timestamp, r.created_timestamp) > :last_activity_timestamp')
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+        $selectQueryMock->having('unread_messages_count', Operator::GT, 0)
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $this->mysqlClientReaderHandlerMock->select()
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $this->getRoomsByMember(
+            $userMock,
+            null,
+            12,
+            null,
+            null,
+            null,
+            $activeSinceTimestamp,
+            true
+        )
+            ->shouldBeArray();
+    }
+
     public function it_should_get_total_room_members(
         PDOStatement $pdoStatementMock,
         SelectQuery $membersQueryMock,
