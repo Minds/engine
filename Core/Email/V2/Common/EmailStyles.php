@@ -22,6 +22,8 @@ class EmailStyles
         // TEXT ///////////////////////////
             'm-fonts' => 'font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;',
             'm-copy' => 'font-size:16px;line-height:22px;text-align:left;font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;color: #4f4f50;',
+            'm-border--light' => 'border: 1px solid #d4d4d4;',
+            'm-border--dark' => 'border: 1px solid #53565a;',
             'm-link' => 'text-decoration: underline; color: #1b85d6 !important;',
             'm-noTextDecoration' => 'text-decoration: none;',
             'm-preWrap' => 'white-space: pre-wrap;',
@@ -55,12 +57,12 @@ class EmailStyles
         
             // PARTIAL : Digest
             'm-digest__avatar' => 'text-decoration: none;',
-            'm-digest__avatarImg' => 'border-radius: 30px; border: 1px solid #53565a; display: inline-block; vertical-align: middle; line-height: 20px',
+            'm-digest__avatarImg' => 'border-radius: 30px; display: inline-block; vertical-align: middle; line-height: 20px',
             'm-digest__name' => 'padding-left: 4px; text-decoration: none; font-size: 14px; line-height: 20px; font-weight: 700;',
             'm-digest__username' => 'text-decoration: none; font-size: 14px;',
-            'm-digest__yourActivity' => 'width: 100%; border: 1px solid #53565a; padding: 20px;',
+            'm-digest__yourActivity' => 'width: 100%; padding: 20px;',
             'm-digestYourActivity__col' => 'padding: 10px;',
-            'm-digest__activity' => 'border: 1px solid #53565a; width: 100%;',
+            'm-digest__activity' => 'width: 100%;',
             'm-digestActivity__body' => 'padding: 16px;',
             'm-digestActivity__text' => 'font-size: 14px; padding-top: 4px;',
 
@@ -76,7 +78,7 @@ class EmailStyles
             'm-unreadChatMessages__col' => 'padding: 16px 12px;',
             'm-unreadChatMessages__col--first' => 'padding-left: 24px;',
             'm-unreadChatMessages__col--last' => 'padding-right: 32px;',
-            'm-unreadChatMessages__bordered' => 'border-radius: 4px; border: 1px solid #53565a;',
+            'm-unreadChatMessages__borderRounded' => 'border-radius: 4px;',
             'm-unreadChatMessages__listItem' => 'padding: 10px 0;',
             'm-unreadChatMessages__avatarCol' => 'width: 40px;',
             'm-unreadChatMessages__fullWidth' => 'width: 100%;',

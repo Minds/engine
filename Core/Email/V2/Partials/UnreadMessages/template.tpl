@@ -21,7 +21,11 @@
                             cellspacing="0"
                             <?php echo $emailStyles->getStyles('m-unreadChatMessages__fullWidth'); ?>
                         >
-                            <tr <?= $emailStyles->getStyles('m-unreadChatMessages__bordered'); ?>>
+                            <tr <?= $emailStyles->getStyles(
+                                    'm-unreadChatMessages__borderRounded',
+                                    isset($vars['color_scheme']) && $vars['color_scheme'] === 'DARK' ? 'm-border--dark' : 'm-border--light'
+                                );
+                            ?>>
                                 <!-- Avatar -->
                                 <td <?= $emailStyles->getStyles('m-unreadChatMessages__col', 'm-unreadChatMessages__col--first', 'm-unreadChatMessages__avatarCol'); ?>>
                                     <?php foreach ($unreadChatRoom['avatar_urls'] as $avatarUrl) { ?>
