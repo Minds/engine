@@ -5,6 +5,7 @@ namespace Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Interfaces\ModuleInterface;
+use Minds\Integrations;
 
 /**
  * Core Minds Engine.
@@ -94,7 +95,9 @@ class Minds extends base
         Custom\Navigation\Module::class,
         Chat\Module::class,
         SEO\Robots\Module::class,
-        DeepLink\Module::class
+        DeepLink\Module::class,
+        // Integrations
+        Integrations\Bloomerang\Module::class,
     ];
 
     /**
