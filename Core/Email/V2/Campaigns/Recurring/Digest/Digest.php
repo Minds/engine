@@ -163,7 +163,7 @@ class Digest extends EmailCampaign
 
         $unreadMessagesPartial = $this->unreadMessagesPartial->withArgs(
             user: $this->user,
-            createdAfterTimestamp: isset($campaigns[0]) ? $campaigns[0]->getTimeSent() : strtotime('-24 hours')
+            createdAfterTimestamp: $refUnixTimestamp
         )->build();
 
         if ($unreadMessagesPartial) {

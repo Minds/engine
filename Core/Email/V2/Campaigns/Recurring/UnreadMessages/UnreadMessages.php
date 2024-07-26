@@ -93,7 +93,7 @@ class UnreadMessages extends EmailCampaign
         $this->template->setBody('./template.tpl');
         $this->template->set('headerText', $subject);
         $this->template->set('hideGreeting', true);
-        $this->template->set('preheader', $subject);
+        $this->template->set('preheader', 'You have unread messages.');
         $this->template->set('user', $this->user);
         $this->template->set('username', $this->user->username);
         $this->template->set('email', $this->user->getEmail());

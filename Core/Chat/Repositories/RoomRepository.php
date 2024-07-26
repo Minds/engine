@@ -253,6 +253,7 @@ class RoomRepository extends AbstractRepository
 
         $optionalValues = [];
 
+        // This will not work with pagination. Currently only used for UnreadMessages email.
         if ($activeSinceTimestamp) {
             $stmt->whereRaw('COALESCE(last_msg.created_timestamp, r.created_timestamp) > :last_activity_timestamp');
             $optionalValues = [

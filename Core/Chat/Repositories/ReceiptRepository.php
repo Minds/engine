@@ -101,7 +101,7 @@ class ReceiptRepository extends AbstractRepository
 
         $query = $this->mysqlClientReaderHandler->select()
             ->columns([
-                'user_guid' => new RawExp('MAX(m.member_guid)'),
+                'user_guid' => new RawExp('m.member_guid'),
                 'unread_count' => new RawExp('COUNT(*)'),
             ])
             ->from(new RawExp(MessageRepository::TABLE_NAME . " as msg"))
