@@ -364,11 +364,21 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         $includeMinds = $this->getOpt('includeMinds') !== 'false' ?? true;
 
         if ($includeMinds) {
-            $this->unreadMessagesDispatcher->dispatchForTenant(-1, $createdAfterTimestamp);
+            try {
+                $this->unreadMessagesDispatcher->dispatchForTenant(-1, $createdAfterTimestamp);
+            } catch(\Exception $e) {
+                $this->out("Error sending for tenant_id: -1");
+                $this->out($e->getMessage());
+            }
         }
 
         foreach ($this->multiTenantDataService->getTenants(limit: 9999999) as $tenant) {
-            $this->unreadMessagesDispatcher->dispatchForTenant($tenant->id, $createdAfterTimestamp);
+            try {
+                $this->unreadMessagesDispatcher->dispatchForTenant($tenant->id, $createdAfterTimestamp);
+            } catch(\Exception $e) {
+                $this->out("Error sending for tenant_id: $tenant->id");
+                $this->out($e->getMessage());
+            }
         }
     }
 
