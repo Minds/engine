@@ -361,14 +361,14 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
     public function bulkSendUnreadMessageEmailAcrossTenants(): void
     {
         $createdAfterTimestamp = $this->getOpt('createdAfterTimestamp') ?? strtotime('-6 hours');
-        $includeMinds = $this->getOpt('includeMinds') ?? true;
+        $includeMinds = $this->getOpt('includeMinds') !== 'false' ?? true;
 
         if ($includeMinds) {
             $this->unreadMessagesDispatcher->dispatchForTenant(-1, $createdAfterTimestamp);
         }
 
         foreach ($this->multiTenantDataService->getTenants(limit: 9999999) as $tenant) {
-            $this->unreadMessagesDispatcher->dispatchForTenant($tenant->id, $createdAfterTimestamp);
+            // $this->unreadMessagesDispatcher->dispatchForTenant($tenant->id, $createdAfterTimestamp);
         }
     }
 
@@ -390,7 +390,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             return;
         }
 
-        $this->unreadMessagesDispatcher->dispatchForTenant(-1, $createdAfterTimestamp);
+        $this->unreadMessagesDispatcher->dispatchForTenant($tenantId, $createdAfterTimestamp);
     }
 
     public function testDigest()
