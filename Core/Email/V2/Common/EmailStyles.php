@@ -82,7 +82,7 @@ class EmailStyles
             'm-unreadChatMessages__listItem' => 'padding: 10px 0;',
             'm-unreadChatMessages__avatarCol' => 'width: 40px;',
             'm-unreadChatMessages__fullWidth' => 'width: 100%;',
-            'm-unreadChatMessages__avatar' => 'width: 40px; height: 40px; border-radius: 50%;',
+            'm-unreadChatMessages__avatar' => 'width: 40px; height: 40px; border-radius: 50%; object-fit: cover;',
             'm-unreadChatMessages__roomName' => 'font-family: Inter; font-size: 14px; font-style: normal; font-weight: 500; line-height: 20px;',
 
             // PARTIAL: Tenant Welcome email
