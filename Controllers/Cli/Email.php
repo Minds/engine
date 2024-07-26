@@ -368,7 +368,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         }
 
         foreach ($this->multiTenantDataService->getTenants(limit: 9999999) as $tenant) {
-            // $this->unreadMessagesDispatcher->dispatchForTenant($tenant->id, $createdAfterTimestamp);
+            $this->unreadMessagesDispatcher->dispatchForTenant($tenant->id, $createdAfterTimestamp);
         }
     }
 
