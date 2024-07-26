@@ -134,7 +134,7 @@ class Repository
                             ->setCampaign($campaign)
                             ->setTopic($topic)
                             ->setUserGuid($userGuid)
-                            ->setValue(1);
+                            ->setValue("1");
                     }
                 }
             }
