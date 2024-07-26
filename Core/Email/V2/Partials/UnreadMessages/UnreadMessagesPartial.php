@@ -11,7 +11,6 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Partials\ActionButtonV2\ActionButtonV2;
-use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
 use Minds\Entities\User;
 use Minds\Helpers\Text;
@@ -60,7 +59,15 @@ class UnreadMessagesPartial extends Template
         $this->loadFromFile = false;
         $this->setTemplate('./template.tpl');
 
-        try {
+        try {                        
+            if ((bool) $this->config->get('tenant_id')) {
+                $themeOverride = $this->config->get('theme_override');
+
+                if (is_array($themeOverride) && $themeOverride['color_scheme']) {
+                    $this->set('color_scheme', $themeOverride['color_scheme']);
+                }
+            }
+
             $unreadChatRoomListItems = $this->chatRoomService->getUnreadChatRooms(
                 user: $this->user,
                 limit: 12,
