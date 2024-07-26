@@ -14,7 +14,7 @@
         <?php foreach ($vars['unreadChatRooms'] as $unreadChatRoom) { ?>
             <tr>
                 <td <?= $emailStyles->getStyles('m-unreadChatMessages__listItem'); ?>>
-                    <a href="<?= $unreadChatRoom['room_url']; ?>" target="_blank" style="text-decoration: none;">
+                    <a href="<?= $unreadChatRoom['room_url']; ?>" target="_blank" <?= $emailStyles->getStyles('m-textColor--primary', 'm-noTextDecoration'); ?>>
                         <table
                             border="0"
                             cellpadding="0"
