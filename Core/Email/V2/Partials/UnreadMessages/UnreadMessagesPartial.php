@@ -11,6 +11,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Partials\ActionButtonV2\ActionButtonV2;
+use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
 use Minds\Entities\User;
 use Minds\Helpers\Text;
@@ -119,6 +120,10 @@ class UnreadMessagesPartial extends Template
             $chatRoomListItem->memberGuids,
             fn ($memberGuid) => $this->user->getGuid() !== $memberGuid
         ));
+
+        if (!count($otherMemberGuids)) {
+            return [$cdnUrl . 'icon/' . $this->user->getGuid() . '/large/' . time()];
+        }
 
         // Currently, we are not supporting multi-user chat room avatars.
         return [$cdnUrl . 'icon/' . $otherMemberGuids[0] . '/large/' . time()];
