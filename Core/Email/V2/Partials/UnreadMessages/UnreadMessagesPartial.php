@@ -59,7 +59,7 @@ class UnreadMessagesPartial extends Template
         $this->loadFromFile = false;
         $this->setTemplate('./template.tpl');
 
-        try {                        
+        try {
             if ((bool) $this->config->get('tenant_id')) {
                 $themeOverride = $this->config->get('theme_override');
 
