@@ -33,7 +33,7 @@
                                     <?php } ?>
                                 </td>
                                 <!-- Group name -->
-                                <td <?= $emailStyles->getStyles('m-unreadChatMessages__col', 'm-unreadChatMessages__fullWidth', 'm-unreadChatMessages__roomName'); ?>><?= $unreadChatRoom['name']; ?></td>
+                                <td <?= $emailStyles->getStyles('m-unreadChatMessages__col', 'm-unreadChatMessages__fullWidth', 'm-unreadChatMessages__roomName', 'm-fonts'); ?>><?= $unreadChatRoom['name']; ?></td>
                                 <!-- Unread indicator -->
                                 <td <?= $emailStyles->getStyles('m-unreadChatMessages__col', 'm-unreadChatMessages__col--last'); ?>>
                                     <div style="height: 8px; width: 8px; border-radius: 10px; background-color: <?= $vars['unreadIconColor']; ?>;"></div>

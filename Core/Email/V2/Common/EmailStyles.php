@@ -83,7 +83,7 @@ class EmailStyles
             'm-unreadChatMessages__avatarCol' => 'width: 40px;',
             'm-unreadChatMessages__fullWidth' => 'width: 100%;',
             'm-unreadChatMessages__avatar' => 'width: 40px; height: 40px; border-radius: 50%; object-fit: cover;',
-            'm-unreadChatMessages__roomName' => 'font-family: Inter; font-size: 14px; font-style: normal; font-weight: 500; line-height: 20px;',
+            'm-unreadChatMessages__roomName' => 'font-size: 14px; font-style: normal; font-weight: 500; line-height: 20px;',
 
             // PARTIAL: Tenant Welcome email
             'm-tenantWelcome__subtitle' => 'color: #000; font-family: Inter, sans-serif; font-size: 28px; font-weight: 800;',
