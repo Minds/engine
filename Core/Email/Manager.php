@@ -99,6 +99,7 @@ class Manager
 
         //We can skip the read here
         if (count($campaigns) == 1 && count($topics) >= 1) {
+            /** @var EmailSubscription[] */
             $subscriptions = [];
             foreach ($topics as $topic) {
                 $subscriptions[] = (new EmailSubscription)
@@ -115,7 +116,8 @@ class Manager
         }
 
         foreach ($subscriptions as $subscription) {
-            $this->repository->delete($subscription);
+            $subscription->setValue(0);
+            $this->repository->add($subscription);
         }
 
         return true;

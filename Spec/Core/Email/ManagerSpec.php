@@ -73,7 +73,7 @@ class ManagerSpec extends ObjectBehavior
         $user->guid = '123';
         $user->username = 'user1';
 
-        $this->repository->delete(Argument::type('Minds\Core\Email\EmailSubscription'))
+        $this->repository->add(Argument::type('Minds\Core\Email\EmailSubscription'))
             ->shouldBeCalled()
             ->willReturn(true);
 
@@ -116,10 +116,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($subscriptions);
 
-        $this->repository->delete($subscriptions[0])
+        $this->repository->add($subscriptions[0])
             ->shouldBeCalled();
 
-        $this->repository->delete($subscriptions[1])
+        $this->repository->add($subscriptions[1])
             ->shouldBeCalled();
 
         $this->unsubscribe($user)

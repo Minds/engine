@@ -57,6 +57,7 @@ class Repository extends AbstractRepository
             customHomePageDescription: $row['custom_home_page_description'] ?? null,
             walledGardenEnabled: (bool) $row['walled_garden_enabled'] ?? false,
             digestEmailEnabled: (bool) $row['digest_email_enabled'] !== 0,
+            bloomerangApiKey: $row['bloomerang_api_key'] ?? null,
             lastCacheTimestamp: isset($row['last_cache_timestamp']) ? strtotime($row['last_cache_timestamp']) : null,
             updatedTimestamp: isset($row['updated_timestamp']) ? strtotime($row['updated_timestamp']) : null
         );

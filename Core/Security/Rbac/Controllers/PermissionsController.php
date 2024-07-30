@@ -86,6 +86,7 @@ class PermissionsController
     #[Logged]
     public function getUsersByRole(
         ?int $roleId = null,
+        ?string $username = null,
         ?int $first = null,
         ?string $after = null,
         #[InjectUser] ?User $loggedInUser = null,
@@ -100,6 +101,7 @@ class PermissionsController
 
         $edges = iterator_to_array($this->rolesService->getUsersByRole(
             roleId: $roleId,
+            username: $username,
             limit: $first ?: 12,
             loadAfter: $loadAfter,
             hasMore: $hasMore,
