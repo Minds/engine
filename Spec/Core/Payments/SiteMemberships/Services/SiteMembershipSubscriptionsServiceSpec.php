@@ -131,17 +131,49 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
             ->shouldReturn("https://stripe.com/checkout");
     }
 
+    public function it_should_get_membership_checkout_link_for_an_external_membership(
+        User $userMock
+    ): void {
+        $purchaseUrl = "https://example.minds.com/memberships";
+        $this->siteMembershipSubscriptionsRepositoryMock->getSiteMembershipSubscriptionByMembershipGuid(
+            membershipGuid: 1,
+            user: $userMock
+        )->willReturn(null);
+
+        $this->siteMembershipReaderServiceMock->getSiteMembership(1)
+            ->shouldBeCalled()
+            ->willReturn($this->generateSiteMembershipMock(
+                1,
+                "prod_123",
+                SiteMembershipPricingModelEnum::RECURRING,
+                [],
+                true,
+                $purchaseUrl
+            ));
+
+        $this->getCheckoutLink(
+            1,
+            $userMock,
+            "/memberships"
+        )
+            ->shouldReturn($purchaseUrl);
+    }
+
     private function generateSiteMembershipMock(
         int                            $siteMembershipGuid,
         string                         $stripeProductId,
         SiteMembershipPricingModelEnum $membershipPricingModel,
         array                          $groups = [],
+        bool                           $isExternal = false,
+        string                         $purchaseUrl = null
     ): SiteMembership {
         $siteMembershipMock = $this->siteMembershipMockFactory->newInstanceWithoutConstructor();
         $this->siteMembershipMockFactory->getProperty('membershipGuid')->setValue($siteMembershipMock, $siteMembershipGuid);
         $this->siteMembershipMockFactory->getProperty('stripeProductId')->setValue($siteMembershipMock, $stripeProductId);
         $this->siteMembershipMockFactory->getProperty('membershipPricingModel')->setValue($siteMembershipMock, $membershipPricingModel);
         $this->siteMembershipMockFactory->getProperty('groups')->setValue($siteMembershipMock, $groups);
+        $this->siteMembershipMockFactory->getProperty('isExternal')->setValue($siteMembershipMock, $isExternal);
+        $this->siteMembershipMockFactory->getProperty('purchaseUrl')->setValue($siteMembershipMock, $purchaseUrl);
 
         return $siteMembershipMock;
     }
