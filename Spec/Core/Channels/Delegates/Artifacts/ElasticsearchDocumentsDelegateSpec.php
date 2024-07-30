@@ -3,12 +3,12 @@
 namespace Spec\Minds\Core\Channels\Delegates\Artifacts;
 
 use Elasticsearch\Client as ElasticsearchNativeClient;
+use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Minds\Core\Channels\Delegates\Artifacts\ElasticsearchDocumentsDelegate;
 use Minds\Core\Channels\Snapshots\Repository;
-use Minds\Core\Channels\Snapshots\Snapshot;
 use Minds\Core\Config;
 use Minds\Core\Data\ElasticSearch\Client as ElasticsearchClient;
-use Minds\Core\Data\ElasticSearch\Prepared\Search as PreparedSearch;
+use Minds\Core\Log\Logger;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -26,13 +26,17 @@ class ElasticsearchDocumentsDelegateSpec extends ObjectBehavior
     /** @var ElasticsearchNativeClient */
     protected $esNativeClient;
 
+    /** @var Logger */
+    protected $logger;
+
     public function let(
         Repository $repository,
         Config $config,
         ElasticsearchClient $elasticsearch,
-        ElasticsearchNativeClient $esNativeClient
+        ElasticsearchNativeClient $esNativeClient,
+        Logger $logger
     ) {
-        $this->beConstructedWith($repository, $config, $elasticsearch);
+        $this->beConstructedWith($repository, $config, $elasticsearch, $logger);
 
         $this->repository = $repository;
         $this->config = $config;
@@ -42,6 +46,7 @@ class ElasticsearchDocumentsDelegateSpec extends ObjectBehavior
             ->willReturn($esNativeClient);
 
         $this->esNativeClient = $esNativeClient;
+        $this->logger = $logger;
     }
 
 
@@ -111,6 +116,33 @@ class ElasticsearchDocumentsDelegateSpec extends ObjectBehavior
         ])
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->esNativeClient->deleteByQuery(Argument::that(function ($query) {
+            return ($query['body']['query']['bool']['must'][0]['match']['owner_guid'] ?? null) === '1000';
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this
+            ->delete(1000)
+            ->shouldReturn(true);
+    }
+
+    public function it_should_delete_and_log_missing_exception()
+    {
+        $this->config->get('elasticsearch')
+            ->shouldBeCalled()
+            ->willReturn(['indexes' => [ 'search_prefix' => 'phpspec' ]]);
+
+        $this->esNativeClient->delete([
+            'index' => 'phpspec-user',
+            'id' => 1000,
+        ])
+            ->shouldBeCalled()
+            ->willThrow(new Missing404Exception('not-found'));
+
+        $this->logger->info('not-found')
+            ->shouldBeCalled();
 
         $this->esNativeClient->deleteByQuery(Argument::that(function ($query) {
             return ($query['body']['query']['bool']['must'][0]['match']['owner_guid'] ?? null) === '1000';
