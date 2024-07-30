@@ -1109,6 +1109,16 @@ ALTER TABLE `minds_tenant_configs`
     ADD digest_email_enabled boolean DEFAULT TRUE
     AFTER walled_garden_enabled;
 
+CREATE TABLE IF NOT EXISTS minds_tenant_permission_intents (
+    tenant_id int NOT NULL,
+    permission_id varchar(64) NOT NULL,
+    intent_type tinyint NOT NULL,
+    membership_guid bigint DEFAULT NULL,
+    created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP,
+    update_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (tenant_id, permission_id)
+) ENGINE=InnoDB;
+
 ALTER TABLE `minds_tenant_configs`
     ADD bloomerang_api_key text DEFAULT NULL
     AFTER digest_email_enabled;
