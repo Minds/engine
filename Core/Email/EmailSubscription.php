@@ -10,6 +10,7 @@ use Minds\Traits\MagicAttributes;
  * @method string getUserGuid()
  * @method string getCampaign()
  * @method string getTopic()
+ * @method self setValue(mixed $value)
  * @method bool getValue()
  */
 class EmailSubscription
