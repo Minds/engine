@@ -57,6 +57,7 @@ class Repository extends AbstractRepository
             customHomePageDescription: $row['custom_home_page_description'] ?? null,
             walledGardenEnabled: (bool) $row['walled_garden_enabled'] ?? false,
             digestEmailEnabled: (bool) $row['digest_email_enabled'] !== 0,
+            welcomeEmailEnabled: $row['welcome_email_enabled'] !== 0,
             bloomerangApiKey: $row['bloomerang_api_key'] ?? null,
             lastCacheTimestamp: isset($row['last_cache_timestamp']) ? strtotime($row['last_cache_timestamp']) : null,
             updatedTimestamp: isset($row['updated_timestamp']) ? strtotime($row['updated_timestamp']) : null
@@ -78,6 +79,7 @@ class Repository extends AbstractRepository
      * @param ?string $customHomePageDescription - custom home page description.
      * @param ?bool $walledGardenEnabled - whether wallet garden mode is enabled.
      * @param ?bool $digestEmailEnabled - whether digest email is enabled.
+     * @param ?bool $welcomeEmailEnabled - whether welcome email is enabled.
      * @param ?int $lastCacheTimestamp - timestamp of last caching.
      * @return bool - true on success.
      */
@@ -94,6 +96,7 @@ class Repository extends AbstractRepository
         ?string $customHomePageDescription = null,
         ?bool $walledGardenEnabled = null,
         ?bool $digestEmailEnabled = null,
+        ?bool $welcomeEmailEnabled = null,
         ?int $lastCacheTimestamp = null
     ): bool {
         $boundValues = ['tenant_id' => $tenantId];
@@ -158,6 +161,11 @@ class Repository extends AbstractRepository
         if ($digestEmailEnabled !== null) {
             $rawValues['digest_email_enabled'] = new RawExp(':digest_email_enabled');
             $boundValues['digest_email_enabled'] = $digestEmailEnabled;
+        }
+
+        if ($welcomeEmailEnabled !== null) {
+            $rawValues['welcome_email_enabled'] = new RawExp(':welcome_email_enabled');
+            $boundValues['welcome_email_enabled'] = $welcomeEmailEnabled;
         }
 
         $query = $this->mysqlClientWriterHandler

@@ -66,6 +66,7 @@ class RepositorySpec extends ObjectBehavior
         $customHomePageDescription = 'Hello world';
         $walledGardenEnabled = true;
         $digestEmailEnabled = true;
+        $welcomeEmailEnabled = true;
         $updatedTimestamp = date('c', time());
 
         $this->mysqlMasterMock->prepare(Argument::any())
@@ -94,6 +95,7 @@ class RepositorySpec extends ObjectBehavior
                 'custom_home_page_description' => $customHomePageDescription,
                 'walled_garden_enabled' => $walledGardenEnabled,
                 'digest_email_enabled' => $digestEmailEnabled,
+                'welcome_email_enabled' => $welcomeEmailEnabled,
                 'updated_timestamp' => $updatedTimestamp,
             ]);
 
@@ -110,6 +112,7 @@ class RepositorySpec extends ObjectBehavior
             customHomePageDescription: $customHomePageDescription,
             walledGardenEnabled: $walledGardenEnabled,
             digestEmailEnabled: $digestEmailEnabled,
+            welcomeEmailEnabled: $welcomeEmailEnabled,
             updatedTimestamp: strtotime($updatedTimestamp)
         ));
     }
@@ -151,6 +154,7 @@ class RepositorySpec extends ObjectBehavior
         $customHomePageDescription = 'Hello world';
         $walledGardenEnabled = true;
         $digestEmailEnabled = true;
+        $welcomeEmailEnabled = true;
 
         $this->mysqlMasterMock->prepare(Argument::any())
             ->willReturn($statement);
@@ -167,6 +171,7 @@ class RepositorySpec extends ObjectBehavior
             'custom_home_page_description' => $customHomePageDescription,
             'walled_garden_enabled' => $walledGardenEnabled,
             'digest_email_enabled' => $digestEmailEnabled,
+            'welcome_email_enabled' => $welcomeEmailEnabled,
         ])->shouldBeCalled();
 
         $statement->execute()
@@ -184,7 +189,8 @@ class RepositorySpec extends ObjectBehavior
             customHomePageEnabled: $customHomePageEnabled,
             customHomePageDescription: $customHomePageDescription,
             walledGardenEnabled: $walledGardenEnabled,
-            digestEmailEnabled: $digestEmailEnabled
+            digestEmailEnabled: $digestEmailEnabled,
+            welcomeEmailEnabled: $welcomeEmailEnabled
         )->shouldBe(true);
     }
 }
