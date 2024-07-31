@@ -69,6 +69,11 @@ class SiteMembershipSubscriptionsService
         }
 
         $siteMembership = $this->siteMembershipReaderService->getSiteMembership($siteMembershipGuid);
+        
+        if ($siteMembership->isExternal && $siteMembership->purchaseUrl) {
+            return $siteMembership->purchaseUrl;
+        }
+
         $checkoutSession = $this->stripeCheckoutManager->createSession(
             user: $user,
             mode: $siteMembership->membershipPricingModel === SiteMembershipPricingModelEnum::RECURRING ? CheckoutModeEnum::SUBSCRIPTION : CheckoutModeEnum::PAYMENT,
