@@ -145,7 +145,7 @@ class TenantUserWelcomeEmailer extends EmailCampaign
      */
     public function send(): void
     {
-        if ($this->canSend() && $this->isEnabled()) {
+        if ($this->isEnabled() && $this->canSend()) {
             $message = $this->build();
             if ($message) {
                 $this->saveCampaignLog();
@@ -160,7 +160,7 @@ class TenantUserWelcomeEmailer extends EmailCampaign
      */
     public function queue(): void
     {
-        if ($this->canSend() && $this->isEnabled()) {
+        if ($this->isEnabled() && $this->canSend()) {
             $message = $this->build();
             if ($message) {
                 $this->saveCampaignLog();

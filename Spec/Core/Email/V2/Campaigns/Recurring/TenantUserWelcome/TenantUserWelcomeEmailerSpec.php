@@ -477,23 +477,7 @@ class TenantUserWelcomeEmailerSpec extends ObjectBehavior
             ]
           ]);
 
-        $this->managerMock->isSubscribed(Argument::any())
-          ->shouldBeCalled()
-          ->willReturn(true);
-
         $user->username = $username;
-
-        $user->get('enabled')
-          ->shouldBeCalled()
-          ->willReturn(true);
-      
-        $user->get('banned')
-          ->shouldBeCalled()
-          ->willReturn(false);
-
-        $user->get('guid')
-          ->shouldBeCalled()
-          ->willReturn($userGuid);
 
         $this->setUser($user);
 
@@ -670,23 +654,7 @@ class TenantUserWelcomeEmailerSpec extends ObjectBehavior
             ]
           ]);
 
-        $this->managerMock->isSubscribed(Argument::any())
-          ->shouldBeCalled()
-          ->willReturn(true);
-
         $user->username = $username;
-
-        $user->get('enabled')
-          ->shouldBeCalled()
-          ->willReturn(true);
-    
-        $user->get('banned')
-          ->shouldBeCalled()
-          ->willReturn(false);
-
-        $user->get('guid')
-          ->shouldBeCalled()
-          ->willReturn($userGuid);
 
         $this->setUser($user);
 
