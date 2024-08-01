@@ -1134,3 +1134,11 @@ CREATE TABLE IF NOT EXISTS minds_bloomerang_group_id_to_site_membership_guids (
 ALTER TABLE `minds_tenant_configs`
     ADD welcome_email_enabled boolean DEFAULT TRUE
     AFTER digest_email_enabled;
+
+ALTER TABLE minds_tenant_mobile_configs
+    ADD COLUMN app_tracking_message_enabled boolean DEFAULT false
+    AFTER update_timestamp;
+
+ALTER TABLE minds_tenant_mobile_configs
+    ADD COLUMN app_tracking_message text DEFAULT NULL
+    AFTER app_tracking_message_enabled;

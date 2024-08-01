@@ -57,6 +57,8 @@ class MobileConfigReaderService
             appScheme: $mobileConfig->appScheme,
             appIosBundle: $mobileConfig->appIosBundle,
             appAndroidPackage: $mobileConfig->appAndroidPackage,
+            appTrackingMessageEnabled: $mobileConfig->appTrackingMessageEnabled,
+            appTrackingMessage: $mobileConfig->appTrackingMessage
         );
 
         $this->multiTenantBootService->resetRootConfigs();
