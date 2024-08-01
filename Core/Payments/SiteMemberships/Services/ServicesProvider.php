@@ -54,12 +54,20 @@ class ServicesProvider extends Provider
             fn (Di $di): SiteMembershipSubscriptionsService => new SiteMembershipSubscriptionsService(
                 siteMembershipSubscriptionsRepository: $di->get(SiteMembershipSubscriptionsRepository::class),
                 siteMembershipReaderService: $di->get(SiteMembershipReaderService::class),
+                hasActiveSiteMembershipCacheService: $di->get(HasActiveSiteMembershipCacheService::class),
                 stripeCheckoutManager: $di->get(StripeCheckoutManager::class),
                 stripeProductService: $di->get(StripeProductService::class),
                 stripeCheckoutSessionService: $di->get(StripeCheckoutSessionService::class),
                 config: $di->get(Config::class),
                 groupMembershipService: $di->get(GroupMembershipService::class),
                 entitiesBuilder: $di->get(EntitiesBuilder::class),
+            )
+        );
+
+        $this->di->bind(
+            HasActiveSiteMembershipCacheService::class,
+            fn (Di $di): HasActiveSiteMembershipCacheService => new HasActiveSiteMembershipCacheService(
+                cache: $di->get('Cache\PsrWrapper')
             )
         );
 
