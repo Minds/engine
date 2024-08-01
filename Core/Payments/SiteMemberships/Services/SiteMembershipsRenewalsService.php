@@ -67,7 +67,7 @@ class SiteMembershipsRenewalsService
     private function handleSuccessfulInvoicePayment(Invoice $invoice): bool
     {
         try {
-            $this->siteMembershipSubscriptionsService->getSiteMembershipSubscriptionByStripeSubscriptionId(
+            $siteMembershipSubscription = $this->siteMembershipSubscriptionsService->getSiteMembershipSubscriptionByStripeSubscriptionId(
                 stripeSubscriptionId: $invoice->subscription
             );
         } catch (NoSiteMembershipSubscriptionFoundException $e) {
@@ -84,7 +84,8 @@ class SiteMembershipsRenewalsService
         return $this->siteMembershipSubscriptionsService->renewSiteMembershipSubscription(
             stripeSubscriptionId: $stripeSubscription->id,
             startTimestamp: $stripeSubscription->current_period_start,
-            endTimestamp: $stripeSubscription->current_period_end
+            endTimestamp: $stripeSubscription->current_period_end,
+            userGuid: $siteMembershipSubscription->userGuid
         );
     }
 
@@ -123,7 +124,8 @@ class SiteMembershipsRenewalsService
                 $this->siteMembershipSubscriptionsService->renewSiteMembershipSubscription(
                     stripeSubscriptionId: $stripeSubscription->id,
                     startTimestamp: $stripeSubscription->current_period_start,
-                    endTimestamp: $stripeSubscription->current_period_end
+                    endTimestamp: $stripeSubscription->current_period_end,
+                    userGuid: $siteMembershipSubscription->userGuid
                 );
 
                 $this->logger->info('Renewed site membership subscription for: ' . $siteMembershipSubscription->stripeSubscriptionId);
