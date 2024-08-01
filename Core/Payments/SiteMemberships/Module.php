@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Payments\SiteMemberships;
 
 use Minds\Core\Di\ImmutableException;
+use Minds\Core\Payments\SiteMemberships\Events\Events;
 use Minds\Interfaces\ModuleInterface;
 
 class Module implements ModuleInterface
@@ -22,5 +23,6 @@ class Module implements ModuleInterface
         (new GraphQLMappings())->register();
         (new Provider())->register();
         (new Routes())->register();
+        (new Events())->register();
     }
 }
