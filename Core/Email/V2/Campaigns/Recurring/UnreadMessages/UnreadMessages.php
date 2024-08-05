@@ -1,29 +1,25 @@
 <?php
+declare(strict_types=1);
 
-namespace Minds\Core\Email\V2\Campaigns\Recurring\Digest;
+namespace Minds\Core\Email\V2\Campaigns\Recurring\UnreadMessages;
 
-use DateTime;
 use Minds\Core\Email\Campaigns\EmailCampaign;
 use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Common\Message;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\Manager;
 use Minds\Traits\MagicAttributes;
-use Minds\Core\Feeds\Elastic\V2\Manager as ElasticFeedManager;
 use Minds\Core\Di\Di;
-use Minds\Core\Feeds;
-use Minds\Core\Notification;
-use Minds\Common\Repository\Response;
 use Minds\Core\Config\Config;
-use Minds\Core\Discovery\NoTagsException;
 use Minds\Core\Email\V2\Common\TenantTemplateVariableInjector;
 use Minds\Core\Email\V2\Partials\ActionButtonV2\ActionButtonV2;
-use Minds\Core\Email\V2\Partials\UnreadMessages\UnreadMessages;
 use Minds\Core\Email\V2\Partials\UnreadMessages\UnreadMessagesPartial;
-use Minds\Core\Feeds\Elastic\V2\QueryOpts;
-use Minds\Core\Search\SortingAlgorithms;
+use Minds\Entities\User;
 
-class Digest extends EmailCampaign
+/**
+ * Unread messages email campaign.
+ */
+class UnreadMessages extends EmailCampaign
 {
     use MagicAttributes;
 
@@ -36,17 +32,13 @@ class Digest extends EmailCampaign
     /** @var Manager */
     protected $manager;
 
-    protected ElasticFeedManager $elasticFeedManager;
-
-    /** @var Notification\Manager */
-    protected $notificationManager;
+    /** @var int */
+    protected $createdAfterTimestamp = 0;
 
     public function __construct(
         Template $template = null,
         Mailer $mailer = null,
         Manager $manager = null,
-        ElasticFeedManager $elasticFeedManager = null,
-        Notification\Manager $notificationManager = null,
         protected ?Config $config = null,
         protected ?TenantTemplateVariableInjector $tenantTemplateVariableInjector= null,
         protected ?UnreadMessagesPartial $unreadMessagesPartial = null,
@@ -54,8 +46,6 @@ class Digest extends EmailCampaign
         $this->template = $template ?: new Template();
         $this->mailer = $mailer ?: new Mailer();
         $this->manager = $manager ?: Di::_()->get('Email\Manager');
-        $this->elasticFeedManager = $elasticFeedManager ?? Di::_()->get(ElasticFeedManager::class);
-        $this->notificationManager = $notificationManager ?? Di::_()->get('Notification\Manager');
         $this->config ??= Di::_()->get(Config::class);
         $this->tenantTemplateVariableInjector ??= Di::_()->get(TenantTemplateVariableInjector::class);
         $this->unreadMessagesPartial ??= Di::_()->get(UnreadMessagesPartial::class);
@@ -63,6 +53,24 @@ class Digest extends EmailCampaign
         $this->topic = 'posts_missed_since_login';
     }
 
+    /**
+     * Clone a new instance of the class with the given arguments.
+     * @param User $user - user entity
+     * @param integer $createdAfterTimestamp - created after timestamp
+     * @return self - new instance of the class with the given arguments.
+     */
+    public function withArgs(User $user, int $createdAfterTimestamp): self
+    {
+        $instance = clone $this;
+        $instance->user = $user;
+        $instance->createdAfterTimestamp = $createdAfterTimestamp;
+        return $instance;
+    }
+
+    /**
+     * Build email
+     * @return Message|null - built email message or null.
+     */
     public function build(): ?Message
     {
         $tracking = [
@@ -79,14 +87,13 @@ class Digest extends EmailCampaign
             $siteName = 'Minds';
         }
     
-        $subject = "What's happening on $siteName";
+        $subject = "Here's what you missed on $siteName";
 
         $this->template->setTemplate('default.v2.tpl');
         $this->template->setBody('./template.tpl');
         $this->template->set('headerText', $subject);
         $this->template->set('hideGreeting', true);
-        $this->template->set('signoff', 'Thank you,');
-        $this->template->set('preheader', 'Some highlights from today');
+        $this->template->set('preheader', 'You have unread messages.');
         $this->template->set('user', $this->user);
         $this->template->set('username', $this->user->username);
         $this->template->set('email', $this->user->getEmail());
@@ -106,69 +113,16 @@ class Digest extends EmailCampaign
     
         $this->template->set('actionButton', $actionButton->build());
 
-        // Get the campaign logs for this user
-        /** @var Response */
-        $campaigns = $this->manager
-            ->getCampaignLogs($this->user)
-            ->filter(function ($campaignLog) {
-                return $campaignLog->getEmailCampaignId() === $this->getEmailCampaignId();
-            })
-            ->sort(function ($a, $b) {
-                return $a->getTimeSent() <=> $b->getTimeSent();
-            });
-
-        // Get the timestamp of the last sent campaign
-        $refUnixTimestamp = max(isset($campaigns[0]) ? $campaigns[0]->getTimeSent() : 0, strtotime('14 days ago'));
-
-
-        // Get trends (highlights) from discovery
-        try {
-            $activities = iterator_to_array($this->elasticFeedManager->getTop(
-                new QueryOpts(
-                    user: $this->user,
-                    onlySubscribedAndGroups: true,
-                    olderThan: (new DateTime)->setTimestamp($refUnixTimestamp),
-                )
-            ));
-        } catch (\Exception $e) {
-            return null;
-        } finally {
-            $this->template->set('activities', $activities ?? []);
-        }
-
-        //
-
-        if (!count($activities)) {
-            return null; // Require activies to be set in order for this email to send
-        }
-
-        //
-
-        $unreadNotificationsCount = $this->notificationManager
-            ->setUser($this->user)
-            ->getCount();
-
-        $this->template->set('unreadNotificationsCount', $unreadNotificationsCount);
-
-        //
-
-        $hasDigestActivity = $unreadNotificationsCount > 0;
-        $this->template->set('hasDigestActivity', $hasDigestActivity);
-
-        if (!$hasDigestActivity && !count($activities)) {
-            return null;
-        }
-
-        //
-
         $unreadMessagesPartial = $this->unreadMessagesPartial->withArgs(
             user: $this->user,
-            createdAfterTimestamp: $refUnixTimestamp
+            createdAfterTimestamp: (int) $this->createdAfterTimestamp ?? strtotime('-24 hours')
         )->build();
 
-        if ($unreadMessagesPartial) {
-            $this->template->set('unreadMessagesPartial', $unreadMessagesPartial);
+        if (!$unreadMessagesPartial) {
+            return null;
         }
+
+        $this->template->set('unreadMessagesPartial', $unreadMessagesPartial);
 
         $message = new Message();
         $message->setTo($this->user)
@@ -182,6 +136,11 @@ class Digest extends EmailCampaign
         return $message;
     }
 
+    /**
+     * Send email.
+     * @param int $time
+     * @return void
+     */
     public function send($time = null): void
     {
         $time = $time ?: time();

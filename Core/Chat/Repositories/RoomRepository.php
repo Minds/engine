@@ -136,6 +136,8 @@ class RoomRepository extends AbstractRepository
      * @param int|null $lastMessageCreatedAtTimestamp
      * @param int|null $roomCreatedAtTimestamp
      * @param int|null $roomGuid
+     * @param int|null $activeSinceTimestamp - only include rooms that have been active since this timestamp.
+     * @param bool|null $unreadOnly - only include rooms with unread messages.
      * @return array{chatRooms: ChatRoomListItem[], hasMore: bool}
      * @throws ServerErrorException
      */
@@ -145,7 +147,9 @@ class RoomRepository extends AbstractRepository
         int          $limit = 12,
         ?int         $lastMessageCreatedAtTimestamp = null,
         ?int         $roomCreatedAtTimestamp = null,
-        ?int         $roomGuid = null
+        ?int         $roomGuid = null,
+        ?int         $activeSinceTimestamp = null,
+        ?bool        $unreadOnly = false
     ): array {
         $targetMemberStatuses = $targetMemberStatuses ?? [ChatRoomMemberStatusEnum::ACTIVE->name];
 
@@ -248,7 +252,14 @@ class RoomRepository extends AbstractRepository
         }
 
         $optionalValues = [];
-        if ($lastMessageCreatedAtTimestamp) {
+
+        // This will not work with pagination. Currently only used for UnreadMessages email.
+        if ($activeSinceTimestamp) {
+            $stmt->whereRaw('COALESCE(last_msg.created_timestamp, r.created_timestamp) > :last_activity_timestamp');
+            $optionalValues = [
+                'last_activity_timestamp' => date('c', $activeSinceTimestamp),
+            ];
+        } elseif ($lastMessageCreatedAtTimestamp) {
             $stmt->whereRaw('COALESCE(last_msg.created_timestamp, r.created_timestamp) < :last_activity_timestamp');
             $optionalValues = [
                 'last_activity_timestamp' => date('c', $lastMessageCreatedAtTimestamp),
@@ -259,6 +270,10 @@ class RoomRepository extends AbstractRepository
             $optionalValues = [
                 'created_timestamp' => date('c', $roomCreatedAtTimestamp),
             ];
+        }
+
+        if ($unreadOnly) {
+            $stmt->having('unread_messages_count', Operator::GT, 0);
         }
 
         $stmt = $stmt
@@ -1170,7 +1185,7 @@ class RoomRepository extends AbstractRepository
      * Build a query that returns both the one-to-one, multi-user and group owned
      * chat room memberships.
      */
-    private function buildRoomMembershipQuery(): SelectQuery
+    public function buildRoomMembershipQuery(): SelectQuery
     {
         $membersQuery = $this->mysqlClientReaderHandler->select()
             ->columns([

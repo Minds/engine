@@ -2,7 +2,10 @@
 
 namespace Spec\Minds\Core\Chat\Repositories;
 
+use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Repositories\MessageRepository;
 use Minds\Core\Chat\Repositories\ReceiptRepository;
+use Minds\Core\Chat\Repositories\RoomRepository;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL;
 use Minds\Core\Data\MySQL\MySQLConnectionEnum;
@@ -14,23 +17,33 @@ use PDOStatement;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
+use Selective\Database\RawExp;
+use Selective\Database\SelectQuery;
 
 class ReceiptRepositorySpec extends ObjectBehavior
 {
+    protected Collaborator $roomRepositoryMock;
     protected Collaborator $mysqlClientMock;
     protected Collaborator $mysqlMasterMock;
     protected Collaborator $mysqlReplicaMock;
     protected Collaborator $configMock;
 
     public function let(
+        RoomRepository $roomRepositoryMock,
         MySQL\Client $mysqlClientMock,
         Logger $loggerMock,
         PDO $mysqlMasterMock,
         PDO $mysqlReplicaMock,
         Config $configMock,
     ) {
-        $this->beConstructedWith($mysqlClientMock, $configMock, $loggerMock);
+        $this->beConstructedWith(
+            $roomRepositoryMock,
+            $mysqlClientMock,
+            $configMock,
+            $loggerMock
+        );
 
+        $this->roomRepositoryMock = $roomRepositoryMock;
         $this->mysqlClientMock = $mysqlClientMock;
 
         $this->mysqlClientMock->getConnection(MySQLConnectionEnum::MASTER)
@@ -152,5 +165,57 @@ class ReceiptRepositorySpec extends ObjectBehavior
 
         $this->getAllUnreadMessagesCount($userGuid)
             ->shouldBe(12);
+    }
+
+    public function it_should_get_all_users_with_unread_messages(
+        PDOStatement $stmtMock,
+        SelectQuery $roomMembershipQuery
+    ): void {
+        $tenantId = 123;
+        $createdAfterTimestamp = strtotime('-1 day');
+        $response = [
+            [
+                'user_guid' => 1,
+                'unread_count' => 2
+            ],
+            [
+                'user_guid' => 3,
+                'unread_count' => 4
+            ]
+        ];
+
+        $this->configMock->get('tenant_id')
+            ->willReturn($tenantId);
+
+        $this->mysqlReplicaMock->prepare(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn($stmtMock);
+
+        $this->mysqlReplicaMock->quote(Argument::any())->willReturn("");
+
+        $roomMembershipQuery->build(false)
+            ->shouldBeCalled()
+            ->willReturn('QUERY');
+
+        $this->roomRepositoryMock->buildRoomMembershipQuery()
+            ->shouldBeCalled()
+            ->willReturn($roomMembershipQuery);
+
+        $stmtMock->execute([
+            'tenant_id' => $tenantId,
+            'last_message_created_after_timestamp' => date('c', $createdAfterTimestamp),
+        ])
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $stmtMock->fetchAll(PDO::FETCH_ASSOC)
+            ->shouldBeCalled()
+            ->willReturn($response);
+
+        $this->getAllUsersWithUnreadMessages(
+            [ ChatRoomMemberStatusEnum::ACTIVE, ChatRoomMemberStatusEnum::INVITE_PENDING ],
+            $createdAfterTimestamp,
+        )
+            ->shouldBe($response);
     }
 }

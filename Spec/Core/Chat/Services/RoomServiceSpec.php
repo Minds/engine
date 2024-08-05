@@ -2086,6 +2086,57 @@ class RoomServiceSpec extends ObjectBehavior
         );
     }
 
+    // getUnreadChatRooms
+
+    public function it_should_get_unread_chat_rooms(
+        User $userMock
+    ): void {
+        $activeSinceTimestamp = time();
+        $targetMemberStatuses = [
+            ChatRoomMemberStatusEnum::ACTIVE,
+            ChatRoomMemberStatusEnum::INVITE_PENDING
+        ];
+
+        $chatRoomListItemMocks = [
+            $this->generateChatRoomListItem(
+                chatRoom: $this->generateChatRoomMock(),
+                lastMessagePlainText: null,
+                lastMessageCreatedTimestamp: null
+            ),
+            $this->generateChatRoomListItem(
+                chatRoom: $this->generateChatRoomMock(),
+                lastMessagePlainText: null,
+                lastMessageCreatedTimestamp: null
+            )
+        ];
+
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            array_map(fn ($status) => $status->name, $targetMemberStatuses),
+            12,
+            null,
+            null,
+            null,
+            $activeSinceTimestamp,
+            true
+        )
+            ->shouldBeCalled()
+            ->willReturn([
+                'chatRooms' => $chatRoomListItemMocks,
+                'hasMore' => false
+            ]);
+
+        $results = $this->getUnreadChatRooms(
+            $userMock,
+            $targetMemberStatuses,
+            12,
+            $activeSinceTimestamp
+        );
+        $results->shouldBeArray();
+        $results[0]->shouldBeLike($chatRoomListItemMocks[0]);
+        $results[1]->shouldBeLike($chatRoomListItemMocks[1]);
+    }
+
     private function generateChatRoomMock(
         ChatRoomTypeEnum $roomType = ChatRoomTypeEnum::ONE_TO_ONE,
         int $guid = null
