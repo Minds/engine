@@ -322,6 +322,42 @@ class RoomService
     }
 
     /**
+     * Gets a list of chat rooms with unread messages.
+     * @param User $user - The user.
+     * @param array $targetMemberStatuses - The target member statuses.
+     * @param int $limit - The limit.
+     * @param int|null $activeSinceTimestamp - Threshold for rooms to return.
+     * @return array
+     */
+    public function getUnreadChatRooms(
+        User $user,
+        array $targetMemberStatuses = [ChatRoomMemberStatusEnum::ACTIVE, ChatRoomMemberStatusEnum::INVITE_PENDING],
+        int $limit = 12,
+        int $activeSinceTimestamp = null
+    ): array {
+        ['chatRooms' => $chatRooms ] = $this->roomRepository->getRoomsByMember(
+            user: $user,
+            targetMemberStatuses: array_map(fn ($status) => $status->name, $targetMemberStatuses),
+            limit: $limit,
+            activeSinceTimestamp: $activeSinceTimestamp,
+            unreadOnly: true
+        );
+
+        if (!$chatRooms || !count($chatRooms)) {
+            return [];
+        }
+
+        array_map(function ($chatRoomListItem) use ($user) {
+            $chatRoomListItem->chatRoom->setName(
+                $this->getRoomName($chatRoomListItem->chatRoom, $user, $chatRoomListItem->memberGuids)
+            );
+            return $chatRoomListItem;
+        }, $chatRooms);
+        
+        return $chatRooms;
+    }
+
+    /**
      * @param int $roomGuid
      * @param User $loggedInUser
      * @param int|null $first
