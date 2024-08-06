@@ -1129,3 +1129,28 @@ CREATE TABLE IF NOT EXISTS minds_bloomerang_group_id_to_site_membership_guids (
     bloomerang_group_id int NOT NULL,
     site_membership_guid bigint NOT NULL
 );
+
+ALTER TABLE minds_entities_activity
+ADD CONSTRAINT fk_minds_entities_activity
+FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
+ON DELETE CASCADE;
+
+ALTER TABLE minds_entities_object_image
+ADD CONSTRAINT fk_minds_entities_object_image
+FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
+ON DELETE CASCADE;
+
+ALTER TABLE minds_entities_object_video
+ADD CONSTRAINT fk_minds_entities_object_video
+FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
+ON DELETE CASCADE;
+
+ALTER TABLE minds_entities_group
+ADD CONSTRAINT fk_minds_entities_group
+FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
+ON DELETE CASCADE;
+
+ALTER TABLE minds_entities_user
+ADD CONSTRAINT fk_minds_entities_user
+FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
+ON DELETE CASCADE;
