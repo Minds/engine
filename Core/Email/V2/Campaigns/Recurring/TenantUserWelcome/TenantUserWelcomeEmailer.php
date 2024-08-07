@@ -145,7 +145,7 @@ class TenantUserWelcomeEmailer extends EmailCampaign
      */
     public function send(): void
     {
-        if ($this->canSend() && (bool) $this->config->get('tenant_id')) {
+        if ($this->isEnabled() && $this->canSend()) {
             $message = $this->build();
             if ($message) {
                 $this->saveCampaignLog();
@@ -160,7 +160,7 @@ class TenantUserWelcomeEmailer extends EmailCampaign
      */
     public function queue(): void
     {
-        if ($this->canSend() && (bool) $this->config->get('tenant_id')) {
+        if ($this->isEnabled() && $this->canSend()) {
             $message = $this->build();
             if ($message) {
                 $this->saveCampaignLog();
@@ -239,5 +239,14 @@ class TenantUserWelcomeEmailer extends EmailCampaign
         return mb_strlen($text) > $limit ?
             mb_substr($text, 0, ($limit - 3)) . '...' :
             $text ?? '';
+    }
+
+    /**
+     * Whether the tenant has welcome emails enabled.
+     * @return bool - true if enabled.
+     */
+    private function isEnabled(): bool
+    {
+        return $this->config->get('tenant')?->config?->welcomeEmailEnabled;
     }
 }

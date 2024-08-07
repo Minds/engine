@@ -30,6 +30,7 @@ class MultiTenantConfig
         #[Field] public readonly ?string $customHomePageDescription = null,
         #[Field] public readonly ?bool $walledGardenEnabled = false,
         #[Field] public readonly ?bool $digestEmailEnabled = true,
+        #[Field] public readonly ?bool $welcomeEmailEnabled = true,
         public readonly ?string $bloomerangApiKey = null,
         #[Field] public readonly ?int $updatedTimestamp = null,
         #[Field] public readonly ?int $lastCacheTimestamp = null

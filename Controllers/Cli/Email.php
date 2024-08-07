@@ -606,7 +606,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             file_put_contents($output, $message->buildHtml());
         } else {
             $campaign->queue();
-            $this->out('Sent email - printing HTML:');
+            $this->out('Tried to send email - printing HTML:');
             $this->out($message->buildHtml());
         }
     }
