@@ -26,7 +26,8 @@ class MultiTenantConfigInput
         #[Field] public readonly ?bool $customHomePageEnabled = null,
         #[Field] public readonly ?string $customHomePageDescription = null,
         #[Field] public readonly ?bool $walledGardenEnabled = null,
-        #[Field] public readonly ?bool $digestEmailEnabled = null
+        #[Field] public readonly ?bool $digestEmailEnabled = null,
+        #[Field] public readonly ?bool $welcomeEmailEnabled = null,
     ) {
     }
 }

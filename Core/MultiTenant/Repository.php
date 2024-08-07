@@ -7,6 +7,7 @@ use Minds\Core\MultiTenant\Configs\Enums\MultiTenantColorScheme;
 use Minds\Core\MultiTenant\Configs\Models\MultiTenantConfig;
 use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
 use Minds\Core\MultiTenant\Models\Tenant;
+use Minds\Core\Queue\Runners\WelcomeEmail;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
@@ -86,6 +87,7 @@ class Repository extends AbstractRepository
                 'custom_home_page_description',
                 'walled_garden_enabled',
                 'digest_email_enabled',
+                'welcome_email_enabled',
                 'last_cache_timestamp',
                 'updated_timestamp',
                 'nsfw_enabled',
@@ -112,6 +114,7 @@ class Repository extends AbstractRepository
         $customHomePageDescription = $row['custom_home_page_description'] ?? null;
         $walledGardenEnabled = $row['walled_garden_enabled'] ?? false;
         $digestEmailEnabled = $row['digest_email_enabled'] ?? true;
+        $welcomeEmailEnabled = $row['welcome_email_enabled'] ?? true;
         $updatedTimestamp = $row['updated_timestamp'] ?? null;
         $lastCacheTimestamp = $row['last_cache_timestamp'] ?? null;
         $nsfwEnabled = $row['nsfw_enabled'] ?? true;
@@ -138,6 +141,7 @@ class Repository extends AbstractRepository
                 customHomePageDescription: $customHomePageDescription,
                 walledGardenEnabled: $suspendedTimestamp ? true : $walledGardenEnabled, // suspended state will always be walled garden
                 digestEmailEnabled: $digestEmailEnabled,
+                welcomeEmailEnabled: $welcomeEmailEnabled,
                 updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null,
                 lastCacheTimestamp: $lastCacheTimestamp ? strtotime($lastCacheTimestamp) : null,
                 bloomerangApiKey: $bloomerangApiKey,
