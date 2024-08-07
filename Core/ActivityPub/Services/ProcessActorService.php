@@ -159,7 +159,8 @@ class ProcessActorService
 
                 $user->icontime = time();
             }
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+        }
 
         // Save the user
         $ia = $this->acl->setIgnore(true); // Ignore ACL as we need to be able to act on another users behalf
