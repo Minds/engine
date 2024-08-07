@@ -120,8 +120,14 @@ class ProcessActorService
 
                 $ia = $this->acl->setIgnore(true); // Ignore ACL as we need to be able to act on another users behalf
 
+                if (isset($this->actor->url)) {
+                    $canonicalUrl = $this->actor->url;
+                } else {
+                    $canonicalUrl = JsonLdHelper::getValueOrId($this->actor);
+                }
+
                 // Create the user
-                $user = $this->registerService->register($username, $password, $username, $email, validatePassword: false, isActivityPub: true);
+                $user = $this->registerService->register($username, $password, $username, $email, validatePassword: false, isActivityPub: true, canonicalUrl: $canonicalUrl);
 
                 $this->acl->setIgnore($ia); // Reset ACL state
 
@@ -144,23 +150,16 @@ class ProcessActorService
             $user->setBriefDescription($this->actor->summary);
         }
 
-        // Set the source as being activitypub
-        $user->setSource(FederatedEntitySourcesEnum::ACTIVITY_PUB);
+        try {
+            // Try to pull in an avatar, only if it differs
+            if (isset($this->actor->icon) && $this->manager->getActorIconUrl($this->actor) !== $this->actor->icon->url) {
+                $this->avatarService
+                    ->withUser($user)
+                    ->createFromUrl($this->actor->icon->url);
 
-        if (isset($this->actor->url)) {
-            $user->setCanonicalUrl($this->actor->url);
-        } else {
-            $user->setCanonicalUrl(JsonLdHelper::getValueOrId($this->actor));
-        }
-
-        // Try to pull in an avatar, only if it differs
-        if (isset($this->actor->icon) && $this->manager->getActorIconUrl($this->actor) !== $this->actor->icon->url) {
-            $this->avatarService
-                ->withUser($user)
-                ->createFromUrl($this->actor->icon->url);
-
-            $user->icontime = time();
-        }
+                $user->icontime = time();
+            }
+        } catch (\Exception $e) {}
 
         // Save the user
         $ia = $this->acl->setIgnore(true); // Ignore ACL as we need to be able to act on another users behalf

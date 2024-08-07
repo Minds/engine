@@ -12,6 +12,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
 use Minds\Core\Entities\Services\EntitiesRepositoryService;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 
 /// Map a username to a cached GUID
 global $USERNAME_TO_GUID_MAP_CACHE;
@@ -213,6 +214,7 @@ function register_user(
     $invitecode = '',
     $validatePassword = true,
     $isActivityPub = false,
+    $canonicalUrl = null,
 ) {
 
     // no need to trim password.
@@ -257,6 +259,11 @@ function register_user(
     $user->language = 'en';
 
     $user->enabled = 'yes';
+
+    if ($isActivityPub) {
+        $user->setSource(FederatedEntitySourcesEnum::ACTIVITY_PUB);
+        $user->setCanonicalUrl($canonicalUrl);
+    }
 
     $save = new Save();
     $save->setEntity($user)->save();

@@ -15,8 +15,17 @@ class RegisterService
         string $name,
         string $email,
         bool $validatePassword = true,
-        bool $isActivityPub = false
+        bool $isActivityPub = false,
+        string $canonicalUrl = null,
     ): ?User {
-        return register_user($username, $password, $username, $email, validatePassword: false, isActivityPub: true);
+        return register_user(
+            username: $username,
+            password: $password,
+            name: $name,
+            email: $email,
+            validatePassword: $validatePassword,
+            isActivityPub: $isActivityPub,
+            canonicalUrl: $canonicalUrl,
+        );
     }
 }

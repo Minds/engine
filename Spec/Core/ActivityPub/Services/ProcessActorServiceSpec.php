@@ -84,6 +84,7 @@ class ProcessActorServiceSpec extends ObjectBehavior
             Argument::type('string'),
             false,
             true,
+            'https://www.minds.com/api/activitypub/user/123'
         )
         ->shouldBeCalled()
         ->willReturn(new User());
@@ -131,6 +132,7 @@ class ProcessActorServiceSpec extends ObjectBehavior
             Argument::type('string'),
             false,
             true,
+            'https://www.minds.com/api/activitypub/user/123',
         )
         ->shouldBeCalled()
         ->willReturn(new User());
