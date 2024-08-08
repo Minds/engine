@@ -51,6 +51,8 @@ class MobileConfigReaderServiceSpec extends ObjectBehavior
 
     public function it_should_get_app_ready_mobile_config(): void
     {
+        $appTrackingMessage = 'test';
+
         $tenantMock = new Tenant(
             id: 1,
             config: new MultiTenantConfig(
@@ -61,6 +63,8 @@ class MobileConfigReaderServiceSpec extends ObjectBehavior
         );
         $mobileConfigMock = new MobileConfig(
             updateTimestamp: time(),
+            appTrackingMessageEnabled: true,
+            appTrackingMessage: $appTrackingMessage,
         );
         $md5 = md5(strval($tenantMock->id));
         $siteUrl = 'https://example.minds.com/';
@@ -97,6 +101,7 @@ class MobileConfigReaderServiceSpec extends ObjectBehavior
         $response->welcomeLogoType->shouldBe(strtolower($mobileConfigMock->welcomeScreenLogoType->name));
         $response->theme->shouldBe(strtolower($tenantMock->config->colorScheme->value));
         $response->apiUrl->shouldBe($siteUrl);
+        $response->appTrackingMessage->shouldBe(MobileConfig::DEFAULT_APP_TRACKING_MESSAGE);
 
         $imageTypes = array_map(fn (MobileConfigImageTypeEnum $imageType): string => $imageType->value, MobileConfigImageTypeEnum::cases());
 

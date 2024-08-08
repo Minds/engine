@@ -41,13 +41,17 @@ class MobileConfigManagementService
      * @param MobileSplashScreenTypeEnum|null $mobileSplashScreenType
      * @param MobileWelcomeScreenLogoTypeEnum|null $mobileWelcomeScreenLogoType
      * @param MobilePreviewStatusEnum|null $mobilePreviewStatus
+     * @param bool|null $appTrackingMessageEnabled
+     * @param string|null $appTrackingMessage
      * @return MobileConfig
      * @throws GuzzleException
      */
     public function storeMobileConfig(
         ?MobileSplashScreenTypeEnum      $mobileSplashScreenType,
         ?MobileWelcomeScreenLogoTypeEnum $mobileWelcomeScreenLogoType,
-        ?MobilePreviewStatusEnum         $mobilePreviewStatus
+        ?MobilePreviewStatusEnum         $mobilePreviewStatus,
+        ?bool                            $appTrackingMessageEnabled,
+        ?string                          $appTrackingMessage
     ): MobileConfig {
         try {
             $mobileConfig = $this->mobileConfigRepository->getMobileConfig();
@@ -63,6 +67,12 @@ class MobileConfigManagementService
             splashScreenType: $mobileSplashScreenType,
             welcomeScreenLogoType: $mobileWelcomeScreenLogoType,
             previewStatus: $mobilePreviewStatus,
+            appTrackingMessageEnabled: $appTrackingMessageEnabled !== null ?
+                $appTrackingMessageEnabled :
+                $mobileConfig?->appTrackingMessageEnabled,
+            appTrackingMessage: $appTrackingMessage !== null ?
+                $appTrackingMessage :
+                $mobileConfig?->appTrackingMessage
         );
 
         if ($mobilePreviewStatus === MobilePreviewStatusEnum::PENDING) {
@@ -75,6 +85,8 @@ class MobileConfigManagementService
             welcomeScreenLogoType: $mobileWelcomeScreenLogoType ?? ($mobileConfig?->welcomeScreenLogoType ?? MobileWelcomeScreenLogoTypeEnum::SQUARE),
             previewStatus: $mobilePreviewStatus ?? ($mobileConfig?->previewStatus ?? MobilePreviewStatusEnum::NO_PREVIEW),
             previewLastUpdatedTimestamp: $mobilePreviewStatus ? time() : $mobileConfig?->previewLastUpdatedTimestamp,
+            appTrackingMessageEnabled: $appTrackingMessageEnabled ?? ($mobileConfig?->appTrackingMessageEnabled ?? false),
+            appTrackingMessage: $appTrackingMessage ?? ($mobileConfig?->appTrackingMessage ?? null)
         );
     }
 }

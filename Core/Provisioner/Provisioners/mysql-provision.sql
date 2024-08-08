@@ -1135,6 +1135,14 @@ ALTER TABLE `minds_tenant_configs`
     ADD welcome_email_enabled boolean DEFAULT TRUE
     AFTER digest_email_enabled;
 
+ALTER TABLE minds_tenant_mobile_configs
+    ADD COLUMN app_tracking_message_enabled boolean DEFAULT false
+    AFTER update_timestamp;
+
+ALTER TABLE minds_tenant_mobile_configs
+    ADD COLUMN app_tracking_message text DEFAULT NULL
+    AFTER app_tracking_message_enabled;
+
 ALTER TABLE minds_entities_activity
 ADD CONSTRAINT fk_minds_entities_activity
 FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
