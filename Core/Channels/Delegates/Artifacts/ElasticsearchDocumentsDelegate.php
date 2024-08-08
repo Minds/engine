@@ -7,6 +7,7 @@
 
 namespace Minds\Core\Channels\Delegates\Artifacts;
 
+use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Minds\Core\Channels\Snapshots\Repository;
 use Minds\Core\Config;
 use Minds\Core\Data\ElasticSearch\Client as ElasticsearchClient;
@@ -23,6 +24,9 @@ class ElasticsearchDocumentsDelegate implements ArtifactsDelegateInterface
     /** @var ElasticsearchClient */
     protected $elasticsearch;
 
+    /** @var Logger */
+    protected $logger;
+
     /**
      * ElasticsearchDocumentsDelegate constructor.
      * @param Repository $repository
@@ -32,11 +36,13 @@ class ElasticsearchDocumentsDelegate implements ArtifactsDelegateInterface
     public function __construct(
         $repository = null,
         $config = null,
-        $elasticsearch = null
+        $elasticsearch = null,
+        $logger = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->config = $config ?: Di::_()->get('Config');
         $this->elasticsearch = $elasticsearch ?: Di::_()->get('Database\ElasticSearch');
+        $this->logger = $logger ?: Di::_()->get('Logger');
     }
 
     /**
@@ -129,7 +135,11 @@ class ElasticsearchDocumentsDelegate implements ArtifactsDelegateInterface
             'id' => $userGuid
         ];
 
-        $this->elasticsearch->getClient()->delete($params);
+        try {
+            $this->elasticsearch->getClient()->delete($params);
+        } catch(Missing404Exception $e) {
+            $this->logger->info($e->getMessage());
+        }
 
         $body = [
             'query' => [

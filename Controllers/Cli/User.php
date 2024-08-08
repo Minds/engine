@@ -11,6 +11,8 @@ use Minds\Helpers;
 use Minds\Core\Channels\Ban;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
+use Minds\Exceptions\CliException;
 use PDO;
 use Selective\Database\Connection;
 use Selective\Database\Operator;
@@ -211,5 +213,26 @@ class User extends Cli\Controller implements Interfaces\CliControllerInterface
             }
         }
 
+    }
+
+    public function delete(): void
+    {
+        $userGuid = $this->getOpt('guid');
+        $tenantId = $this->getOpt('tenantId');
+
+        if (!$userGuid) {
+            throw new CliException('Missing guid');
+        }
+
+        if ($tenantId) {
+            Di::_()->get(MultiTenantBootService::class)->bootFromTenantId($tenantId);
+        }
+
+        Di::_()->get('Queue')
+            ->setQueue('ChannelDeferredOps')
+            ->send([
+                'type' => 'delete',
+                'user_guid' => $userGuid
+            ]);
     }
 }

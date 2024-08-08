@@ -10,6 +10,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Queue\Interfaces\QueueClient;
 use Minds\Entities\User;
 use Minds\Core\Channels\Delegates\Artifacts;
+use Minds\Core\Config\Config;
 use Psr\SimpleCache\CacheInterface;
 
 class Manager
@@ -24,6 +25,14 @@ class Manager
         Artifacts\SubscriptionsDelegate::class,
         Artifacts\ElasticsearchDocumentsDelegate::class,
         Artifacts\CommentsDelegate::class,
+    ];
+
+    /** @var string[] */
+    const TENANT_DELETION_DELEGATES = [
+        Artifacts\MySQL\EntityDelegate::class,
+        Artifacts\MySQL\FriendsDelegate::class,
+        Artifacts\CommentsDelegate::class,
+        Artifacts\ElasticsearchDocumentsDelegate::class,
     ];
 
     /** @var User $user */
@@ -44,25 +53,31 @@ class Manager
     /** @var CacheInterface */
     protected $cache;
 
+    /** @var Config */
+    protected $config;
+
     /**
      * Manager constructor.
      * @param Delegates\Artifacts\Factory $artifactsDelegatesFactory
      * @param Delegates\Logout $logoutDelegate
      * @param QueueClient $queueClient
      * @param CacheInterface $cache
+     * @param Config $config
      */
     public function __construct(
         $artifactsDelegatesFactory = null,
         $metricsDelegate = null,
         $logoutDelegate = null,
         $queueClient = null,
-        $cache = null
+        $cache = null,
+        $config = null
     ) {
         $this->artifactsDelegatesFactory = $artifactsDelegatesFactory ?: new Delegates\Artifacts\Factory();
         $this->metricsDelegate = $metricsDelegate ?: new MetricsDelegate();
         $this->logoutDelegate = $logoutDelegate ?: new Delegates\Logout();
         $this->queueClient = $queueClient ?: Di::_()->get('Queue');
         $this->cache = $cache ?? Di::_()->get('Cache\PsrWrapper');
+        $this->config = $config ?? Di::_()->get(Config::class);
     }
 
     /**
@@ -137,7 +152,11 @@ class Manager
 
         $userGuid = $this->user->guid;
 
-        foreach (static::DELETION_DELEGATES as $delegateClassName) {
+        $delegateClassNames = (bool) $this->config->get('tenant_id') ?
+            static::TENANT_DELETION_DELEGATES :
+            static::DELETION_DELEGATES;
+
+        foreach ($delegateClassNames as $delegateClassName) {
             try {
                 $delegate = $this->artifactsDelegatesFactory->build($delegateClassName);
                 $done = $delegate->delete($userGuid);

@@ -1142,3 +1142,28 @@ ALTER TABLE minds_tenant_mobile_configs
 ALTER TABLE minds_tenant_mobile_configs
     ADD COLUMN app_tracking_message text DEFAULT NULL
     AFTER app_tracking_message_enabled;
+
+ALTER TABLE minds_entities_activity
+ADD CONSTRAINT fk_minds_entities_activity
+FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
+ON DELETE CASCADE;
+
+ALTER TABLE minds_entities_object_image
+ADD CONSTRAINT fk_minds_entities_object_image
+FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
+ON DELETE CASCADE;
+
+ALTER TABLE minds_entities_object_video
+ADD CONSTRAINT fk_minds_entities_object_video
+FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
+ON DELETE CASCADE;
+
+ALTER TABLE minds_entities_group
+ADD CONSTRAINT fk_minds_entities_group
+FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
+ON DELETE CASCADE;
+
+ALTER TABLE minds_entities_user
+ADD CONSTRAINT fk_minds_entities_user
+FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
+ON DELETE CASCADE;

@@ -39,6 +39,7 @@ class RepositoriesProvider extends Provider
         $this->di->bind(
             ReceiptRepository::class,
             fn (Di $di): ReceiptRepository => new ReceiptRepository(
+                roomRepository: $di->get(RoomRepository::class),
                 mysqlHandler: $di->get('Database\MySQL\Client'),
                 config: $di->get(Config::class),
                 logger: $di->get('Logger')
