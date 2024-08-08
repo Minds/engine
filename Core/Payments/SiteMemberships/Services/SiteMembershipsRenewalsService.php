@@ -51,6 +51,7 @@ class SiteMembershipsRenewalsService
                 )
             };
         } catch (Exception $e) {
+            \Sentry\captureException($e);
             throw new ServerErrorException(
                 message: "Failed to build webhook event",
                 previous: $e
