@@ -23,6 +23,8 @@ class MobileConfigRepository extends AbstractRepository
      * @param MobileWelcomeScreenLogoTypeEnum|null $welcomeScreenLogoType
      * @param MobilePreviewStatusEnum|null $previewStatus
      * @param string|null $appVersion
+     * @param bool|null $appTrackingMessageEnabled
+     * @param string|null $appTrackingMessage
      * @return void
      */
     public function storeMobileConfig(
@@ -30,7 +32,9 @@ class MobileConfigRepository extends AbstractRepository
         ?MobileSplashScreenTypeEnum      $splashScreenType = null,
         ?MobileWelcomeScreenLogoTypeEnum $welcomeScreenLogoType = null,
         ?MobilePreviewStatusEnum         $previewStatus = null,
-        ?string                          $appVersion = null
+        ?string                          $appVersion = null,
+        ?bool                            $appTrackingMessageEnabled = null,
+        ?string                          $appTrackingMessage = null
     ): void {
         $this->mysqlClientWriterHandler->insert()
             ->into(self::TABLE_NAME)
@@ -40,14 +44,18 @@ class MobileConfigRepository extends AbstractRepository
                 'welcome_screen_logo_type' => $welcomeScreenLogoType?->value ?? MobileWelcomeScreenLogoTypeEnum::SQUARE->value,
                 'preview_status' => $previewStatus?->value ?? MobilePreviewStatusEnum::NO_PREVIEW->value,
                 'preview_last_updated_timestamp' => $previewStatus ? date('c', time()) : null,
-                'app_version' => $appVersion
+                'app_version' => $appVersion,
+                'app_tracking_message_enabled' => $appTrackingMessageEnabled !== null ? (int) $appTrackingMessageEnabled : null,
+                'app_tracking_message' => $appTrackingMessage
             ])
             ->onDuplicateKeyUpdate([
                 'splash_screen_type' => $splashScreenType ? $splashScreenType->value : new RawExp('splash_screen_type'),
                 'welcome_screen_logo_type' => $welcomeScreenLogoType ? $welcomeScreenLogoType->value : new RawExp('welcome_screen_logo_type'),
                 'preview_status' => $previewStatus ? $previewStatus->value : new RawExp('preview_status'),
                 'preview_last_updated_timestamp' => $previewStatus ? date('c', time()) : null,
-                'app_version' => $appVersion
+                'app_version' => $appVersion,
+                'app_tracking_message_enabled' => $appTrackingMessageEnabled !== null ? (int) $appTrackingMessageEnabled : null,
+                'app_tracking_message' => $appTrackingMessage
             ])
             ->execute();
     }
@@ -83,7 +91,9 @@ class MobileConfigRepository extends AbstractRepository
             appIosBundle: $entry['app_ios_bundle'],
             appAndroidPackage: $entry['app_android_package'],
             androidKeystoreFingerprint: $entry['android_keystore_fingerprint'],
-            appleDevelopmentTeamId: $entry['apple_development_team_id']
+            appleDevelopmentTeamId: $entry['apple_development_team_id'],
+            appTrackingMessageEnabled: (bool) $entry['app_tracking_message_enabled'],
+            appTrackingMessage: $entry['app_tracking_message'] ?? MobileConfig::DEFAULT_APP_TRACKING_MESSAGE,
         );
     }
 }

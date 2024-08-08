@@ -29,6 +29,8 @@ class AppReadyMobileConfig
         #[Field(name: "APP_SCHEME")] public readonly ?string             $appScheme = null,
         #[Field(name: 'APP_IOS_BUNDLE')] public readonly ?string         $appIosBundle = null,
         #[Field(name: 'APP_ANDROID_PACKAGE')] public readonly ?string    $appAndroidPackage = null,
+        #[Field(name: 'APP_TRACKING_MESSAGE_ENABLED')] public ?bool      $appTrackingMessageEnabled = null,
+        #[Field(name: 'APP_TRACKING_MESSAGE')] public ?string            $appTrackingMessage = null
     ) {
     }
 

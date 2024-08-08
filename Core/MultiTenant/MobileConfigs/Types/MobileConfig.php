@@ -15,6 +15,9 @@ use TheCodingMachine\GraphQLite\Types\ID;
 #[Type]
 class MobileConfig
 {
+    /** Default app tracking message. */
+    const DEFAULT_APP_TRACKING_MESSAGE = 'Allow this app to collect app-related data that can be used for tracking you or your device.';
+
     public function __construct(
         #[Field] public int                             $updateTimestamp,
         #[Field] public MobileSplashScreenTypeEnum      $splashScreenType = MobileSplashScreenTypeEnum::CONTAIN,
@@ -29,6 +32,8 @@ class MobileConfig
         public ?string                                  $appAndroidPackage = null,
         public ?string                                  $androidKeystoreFingerprint = null,
         public ?string                                  $appleDevelopmentTeamId = null,
+        #[Field] public ?bool                           $appTrackingMessageEnabled = null,
+        #[Field] public ?string                         $appTrackingMessage = self::DEFAULT_APP_TRACKING_MESSAGE
     ) {
     }
 
