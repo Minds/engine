@@ -7,6 +7,8 @@ use Minds\Core\Di\Di;
 use Minds\Cli;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Feeds\Elastic\V2\QueryOpts;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
+use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 use Minds\Core\Reports\Enums\ReportReasonEnum;
 use Minds\Core\Security\Spam;
 use Minds\Interfaces;
@@ -100,4 +102,42 @@ class Search extends Cli\Controller implements Interfaces\CliControllerInterface
             }
         }
     }
+
+    public function reindex_group_posts()
+    {
+        foreach (Di::_()->get(MultiTenantDataService::class)->getTenants(limit: 9999999) as $tenant) {
+            Di::_()->get(MultiTenantBootService::class)->bootFromTenantId($tenant->id);
+            try {
+                /** @var Core\Feeds\Elastic\V2\Manager */
+                $manager = Di::_()->get(Core\Feeds\Elastic\V2\Manager::class);
+
+
+                $opts = new QueryOpts(
+                    limit: 9999,
+                    query: "",
+                );
+
+                $i = 0;
+                foreach ($manager->getLatest($opts) as $activity) {
+                    ++$i;
+                    try {
+                        $this->out('Synced ' . $activity->getGuid());
+
+                        \Minds\Core\Events\Dispatcher::trigger('entities-ops', 'update', [
+                            'entityUrn' => $activity->getUrn(),
+                        ]);
+                    } catch (\Exception $e) {
+
+                        
+                    } finally {
+                    }
+                }
+
+            } catch(\Exception $e) {
+                $this->out("Error reindexing for tenant_id: $tenant->id");
+                $this->out($e->getMessage());
+            }
+        }
+    }
+
 }

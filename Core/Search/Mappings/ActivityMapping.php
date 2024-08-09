@@ -8,7 +8,9 @@
 
 namespace Minds\Core\Search\Mappings;
 
+use Minds\Common\Access;
 use Minds\Entities\Activity;
+use Minds\Entities\Group;
 
 class ActivityMapping extends EntityMapping implements MappingInterface
 {
@@ -38,6 +40,12 @@ class ActivityMapping extends EntityMapping implements MappingInterface
             return $map;
         }
 
+        
+        // AccessId hack. Public groups should be public.
+        $group = $this->entity->getContainerEntity();
+        if ($group instanceof Group && $this->entity->getAccessId() === $group->getGuid()) {
+            $map['access_id'] = $group->isPublic() ? (string) Access::PUBLIC : $this->entity->getAccessId();
+        }
 
         //
         $map['is_portrait'] = $this->entity->isPortrait();
