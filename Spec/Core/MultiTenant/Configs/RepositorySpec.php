@@ -67,6 +67,8 @@ class RepositorySpec extends ObjectBehavior
         $walledGardenEnabled = true;
         $digestEmailEnabled = true;
         $welcomeEmailEnabled = true;
+        $loggedInLandingPageIdWeb = 'newsfeed';
+        $loggedInLandingPageIdMobile = 'explore';
         $updatedTimestamp = date('c', time());
 
         $this->mysqlMasterMock->prepare(Argument::any())
@@ -96,6 +98,8 @@ class RepositorySpec extends ObjectBehavior
                 'walled_garden_enabled' => $walledGardenEnabled,
                 'digest_email_enabled' => $digestEmailEnabled,
                 'welcome_email_enabled' => $welcomeEmailEnabled,
+                'logged_in_landing_page_id_web' => $loggedInLandingPageIdWeb,
+                'logged_in_landing_page_id_mobile' => $loggedInLandingPageIdMobile,
                 'updated_timestamp' => $updatedTimestamp,
             ]);
 
@@ -113,6 +117,8 @@ class RepositorySpec extends ObjectBehavior
             walledGardenEnabled: $walledGardenEnabled,
             digestEmailEnabled: $digestEmailEnabled,
             welcomeEmailEnabled: $welcomeEmailEnabled,
+            loggedInLandingPageIdWeb: $loggedInLandingPageIdWeb,
+            loggedInLandingPageIdMobile: $loggedInLandingPageIdMobile,
             updatedTimestamp: strtotime($updatedTimestamp)
         ));
     }
@@ -155,6 +161,8 @@ class RepositorySpec extends ObjectBehavior
         $walledGardenEnabled = true;
         $digestEmailEnabled = true;
         $welcomeEmailEnabled = true;
+        $loggedInLandingPageIdWeb = 'newsfeed';
+        $loggedInLandingPageIdMobile = 'explore';
 
         $this->mysqlMasterMock->prepare(Argument::any())
             ->willReturn($statement);
@@ -172,6 +180,8 @@ class RepositorySpec extends ObjectBehavior
             'walled_garden_enabled' => $walledGardenEnabled,
             'digest_email_enabled' => $digestEmailEnabled,
             'welcome_email_enabled' => $welcomeEmailEnabled,
+            'logged_in_landing_page_id_web' => $loggedInLandingPageIdWeb,
+            'logged_in_landing_page_id_mobile' => $loggedInLandingPageIdMobile,
         ])->shouldBeCalled();
 
         $statement->execute()
@@ -190,7 +200,9 @@ class RepositorySpec extends ObjectBehavior
             customHomePageDescription: $customHomePageDescription,
             walledGardenEnabled: $walledGardenEnabled,
             digestEmailEnabled: $digestEmailEnabled,
-            welcomeEmailEnabled: $welcomeEmailEnabled
+            welcomeEmailEnabled: $welcomeEmailEnabled,
+            loggedInLandingPageIdWeb: $loggedInLandingPageIdWeb,
+            loggedInLandingPageIdMobile: $loggedInLandingPageIdMobile,
         )->shouldBe(true);
     }
 }

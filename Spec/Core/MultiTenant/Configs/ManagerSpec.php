@@ -125,6 +125,8 @@ class ManagerSpec extends ObjectBehavior
         $walledGardenEnabled = true;
         $digestEmailEnabled = true;
         $welcomeEmailEnabled = true;
+        $loggedInLandingPageIdWeb = 'newsfeed';
+        $loggedInLandingPageIdMobile = 'explore';
 
         $this->config->get('tenant_id')
             ->shouldBeCalled()
@@ -144,6 +146,8 @@ class ManagerSpec extends ObjectBehavior
             $walledGardenEnabled,
             $digestEmailEnabled,
             $welcomeEmailEnabled,
+            $loggedInLandingPageIdWeb,
+            $loggedInLandingPageIdMobile,
             $lastCacheTimestamp
         )
             ->shouldBeCalled()
@@ -169,6 +173,8 @@ class ManagerSpec extends ObjectBehavior
             $walledGardenEnabled,
             $digestEmailEnabled,
             $welcomeEmailEnabled,
+            $loggedInLandingPageIdWeb,
+            $loggedInLandingPageIdMobile,
             $lastCacheTimestamp
         )->shouldBe($result);
     }
@@ -188,6 +194,9 @@ class ManagerSpec extends ObjectBehavior
         $customHomePageDescription = 'Hello world';
         $walledGardenEnabled = true;
         $digestEmailEnabled = true;
+        $welcomeEmailEnabled = true;
+        $loggedInLandingPageIdWeb = 'newsfeed';
+        $loggedInLandingPageIdMobile = 'explore';
         $welcomeEmailEnabled = true;
         $lastCacheTimestamp = time();
 
@@ -209,6 +218,8 @@ class ManagerSpec extends ObjectBehavior
             walledGardenEnabled: $walledGardenEnabled,
             digestEmailEnabled: $digestEmailEnabled,
             welcomeEmailEnabled: $welcomeEmailEnabled,
+            loggedInLandingPageIdWeb: $loggedInLandingPageIdWeb,
+            loggedInLandingPageIdMobile: $loggedInLandingPageIdMobile,
             lastCacheTimestamp: $lastCacheTimestamp
         )
             ->shouldBeCalled()
@@ -233,6 +244,8 @@ class ManagerSpec extends ObjectBehavior
             $walledGardenEnabled,
             $digestEmailEnabled,
             $welcomeEmailEnabled,
+            $loggedInLandingPageIdWeb,
+            $loggedInLandingPageIdMobile,
             $lastCacheTimestamp
         )->shouldBe($result);
     }
