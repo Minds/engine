@@ -60,6 +60,9 @@ class Manager
      * @param ?bool $customHomePageDescription - custom home page description.
      * @param ?bool $walledGardenEnabled - whether walled garden mode is enabled.
      * @param ?bool $digestEmailEnabled - whether digest emails are enabled.
+     * @param ?bool $welcomeEmailEnabled - whether welcome emails are enabled.
+     * @param ?string $loggedInLandingPageIdWeb - logged in landing page ID for web.
+     * @param ?string $loggedInLandingPageIdMobile - logged in landing page ID for mobile.
      * @param ?int $lastCacheTimestamp - last cache timestamp.
      * @return bool - true on success.
      */
@@ -75,6 +78,9 @@ class Manager
         ?string $customHomePageDescription = null,
         ?bool $walledGardenEnabled = null,
         ?bool $digestEmailEnabled = null,
+        ?bool $welcomeEmailEnabled = null,
+        ?string $loggedInLandingPageIdWeb = null,
+        ?string $loggedInLandingPageIdMobile = null,
         ?int $lastCacheTimestamp = null
     ): bool {
         $tenantId = $this->config->get('tenant_id');
@@ -92,6 +98,9 @@ class Manager
             customHomePageDescription: $customHomePageDescription,
             walledGardenEnabled: $walledGardenEnabled,
             digestEmailEnabled: $digestEmailEnabled,
+            welcomeEmailEnabled: $welcomeEmailEnabled,
+            loggedInLandingPageIdWeb: $loggedInLandingPageIdWeb,
+            loggedInLandingPageIdMobile: $loggedInLandingPageIdMobile,
             lastCacheTimestamp: $lastCacheTimestamp
         );
 

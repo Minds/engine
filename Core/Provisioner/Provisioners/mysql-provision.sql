@@ -1129,3 +1129,15 @@ CREATE TABLE IF NOT EXISTS minds_bloomerang_group_id_to_site_membership_guids (
     bloomerang_group_id int NOT NULL,
     site_membership_guid bigint NOT NULL
 );
+
+ALTER TABLE `minds_tenant_configs`
+    ADD welcome_email_enabled boolean DEFAULT TRUE
+    AFTER digest_email_enabled;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD logged_in_landing_page_id_web varchar(64)
+    AFTER welcome_email_enabled;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD logged_in_landing_page_id_mobile varchar(64)
+    AFTER logged_in_landing_page_id_web;
