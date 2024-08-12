@@ -32,7 +32,12 @@
                         border="0"
                         cellpadding="0"
                         cellspacing="0"
-                        <?php echo $emailStyles->getStyles('m-maxWidth', 'm-digest__activity'); ?>>
+                        <?php echo $emailStyles->getStyles(
+                            'm-maxWidth',
+                            'm-digest__activity',
+                            isset($vars['color_scheme']) && $vars['color_scheme'] === 'DARK' ? 'm-border--dark' : 'm-border--light'
+                        );
+                    ?>>
                             <?php if ($activity['thumbnail_src']) { ?>
                             <tr>
                                 <td <?php echo $emailStyles->getStyles('m-clear'); ?> >
@@ -58,8 +63,11 @@
                                                         src="<?php echo $vars['site_url']; ?>icon/<?php echo $activity['ownerObj']['guid'];?>/medium/<?php echo $activity['ownerObj']['icontime'];?>"
                                                         width="16"
                                                         height="16"
-                                                        <?php echo $emailStyles->getStyles('m-digest__avatarImg'); ?>
-                                                        />
+                                                        <?php echo $emailStyles->getStyles(
+                                                            'm-digest__avatarImg',
+                                                            isset($vars['color_scheme']) && $vars['color_scheme'] === 'DARK' ? 'm-border--dark' : 'm-border--light'
+                                                        ); ?>
+                                                    />
                                                 </a>
                                                 <a href="<?php echo $vars['site_url']; ?><?php echo $activity['ownerObj']['username']; ?>?<?php echo $vars['tracking']; ?>&utm_content=display_name"
                                                     <?php echo $emailStyles->getStyles('m-digest__name', 'm-textColor--primary', 'm-fonts'); ?>
@@ -71,7 +79,10 @@
                                         </tr>
                                         <tr>
                                             <td <?php echo $emailStyles->getStyles('m-clear', 'm-digestActivity__text', 'm-textColor--primary'); ?> >
-                                                <a href="<?php echo $vars['site_url']; ?>newsfeed/<?php echo $activity['guid']; ?>?<?php echo $vars['tracking']; ?>&utm_content=body">
+                                                <a
+                                                    href="<?php echo $vars['site_url']; ?>newsfeed/<?php echo $activity['guid']; ?>?<?php echo $vars['tracking']; ?>&utm_content=body"
+                                                    <?= $emailStyles->getStyles('m-noTextDecoration'); ?>
+                                                >
                                                     <?php 
                                                         if (!$activity['title'] && $activity['message']) {
                                                             $length = 140;
@@ -82,7 +93,7 @@
                                                         }
                                                     ?>
                                                     <?php if ($activity['title']) { ?> 
-                                                        <p <?php echo $emailStyles->getStyles('m-fonts', 'm-clear'); ?>><?php echo $activity['title']; ?></p>
+                                                        <p <?php echo $emailStyles->getStyles('m-fonts', 'm-clear', 'm-preWrap'); ?>><?php echo $activity['title']; ?></p>
                                                     <?php } ?>
                                                 </a>
                                             </td>
@@ -118,7 +129,11 @@
             border="0"
             cellpadding="0"
             cellspacing="0"
-            <?php echo $emailStyles->getStyles('m-digest__yourActivity', 'm-maxWidth--copy'); ?>>
+            <?php echo $emailStyles->getStyles(
+                'm-digest__yourActivity',
+                'm-maxWidth--copy',
+                isset($vars['color_scheme']) && $vars['color_scheme'] === 'DARK' ? 'm-border--dark' : 'm-border--light'
+            ); ?>>
 
             <tr>
                 <td <?php echo $emailStyles->getStyles('m-digestYourActivity__col'); ?> >
@@ -133,4 +148,10 @@
         </table>
 
 <?php } ?>
+
+<?php if ($vars['unreadMessagesPartial']) { ?>
+    <div <?= $emailStyles->getStyles('m-spacer--medium'); ?>></div>
+    <?= $vars['unreadMessagesPartial']; ?>
+<?php } ?>
+
 <div <?php echo  $emailStyles->getStyles('m-spacer--small'); ?>></div>

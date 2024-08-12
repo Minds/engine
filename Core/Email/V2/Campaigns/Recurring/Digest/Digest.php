@@ -18,6 +18,8 @@ use Minds\Core\Config\Config;
 use Minds\Core\Discovery\NoTagsException;
 use Minds\Core\Email\V2\Common\TenantTemplateVariableInjector;
 use Minds\Core\Email\V2\Partials\ActionButtonV2\ActionButtonV2;
+use Minds\Core\Email\V2\Partials\UnreadMessages\UnreadMessages;
+use Minds\Core\Email\V2\Partials\UnreadMessages\UnreadMessagesPartial;
 use Minds\Core\Feeds\Elastic\V2\QueryOpts;
 use Minds\Core\Search\SortingAlgorithms;
 
@@ -47,6 +49,7 @@ class Digest extends EmailCampaign
         Notification\Manager $notificationManager = null,
         protected ?Config $config = null,
         protected ?TenantTemplateVariableInjector $tenantTemplateVariableInjector= null,
+        protected ?UnreadMessagesPartial $unreadMessagesPartial = null,
     ) {
         $this->template = $template ?: new Template();
         $this->mailer = $mailer ?: new Mailer();
@@ -55,7 +58,7 @@ class Digest extends EmailCampaign
         $this->notificationManager = $notificationManager ?? Di::_()->get('Notification\Manager');
         $this->config ??= Di::_()->get(Config::class);
         $this->tenantTemplateVariableInjector ??= Di::_()->get(TenantTemplateVariableInjector::class);
-
+        $this->unreadMessagesPartial ??= Di::_()->get(UnreadMessagesPartial::class);
         $this->campaign = 'with';
         $this->topic = 'posts_missed_since_login';
     }
@@ -157,6 +160,15 @@ class Digest extends EmailCampaign
         }
 
         //
+
+        $unreadMessagesPartial = $this->unreadMessagesPartial->withArgs(
+            user: $this->user,
+            createdAfterTimestamp: $refUnixTimestamp
+        )->build();
+
+        if ($unreadMessagesPartial) {
+            $this->template->set('unreadMessagesPartial', $unreadMessagesPartial);
+        }
 
         $message = new Message();
         $message->setTo($this->user)

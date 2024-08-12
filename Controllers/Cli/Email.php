@@ -7,6 +7,7 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\Invites\Services\InviteSenderService;
 use Minds\Core\Email\V2\Campaigns;
+use Minds\Core\Email\V2\Campaigns\Recurring\Digest\Digest;
 use Minds\Core\Email\V2\Campaigns\Recurring\Supermind\Supermind as SupermindEmail;
 use Minds\Core\Email\V2\Campaigns\Recurring\SupermindBulkIncentive\SupermindBulkIncentive;
 use Minds\Core\Email\V2\Campaigns\Recurring\WireReceived\WireReceived;
@@ -19,8 +20,11 @@ use Minds\Entities\User;
 use Minds\Interfaces;
 use Minds\Core\Email\V2\Campaigns\Recurring\ForgotPassword\ForgotPasswordEmailer;
 use Minds\Core\Email\V2\Campaigns\Recurring\TenantUserWelcome\TenantUserWelcomeEmailer;
+use Minds\Core\Email\V2\Campaigns\Recurring\UnreadMessages\UnreadMessages;
+use Minds\Core\Email\V2\Campaigns\Recurring\UnreadMessages\UnreadMessagesDispatcher;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
+use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 use Minds\Core\MultiTenant\Services\TenantEmailService;
 use Minds\Core\Security\ACL;
 use Minds\Core\Security\Password;
@@ -30,12 +34,18 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
     private EntitiesBuilder $entitiesBuilder;
     private MultiTenantBootService $multiTenantBootService;
     private TenantEmailService $tenantEmailService;
+    private UnreadMessages $unreadMessages;
+    private UnreadMessagesDispatcher $unreadMessagesDispatcher;
+    private MultiTenantDataService $multiTenantDataService;
 
     public function __construct()
     {
         $this->entitiesBuilder = Di::_()->get(EntitiesBuilder::class);
         $this->multiTenantBootService = Di::_()->get(MultiTenantBootService::class);
         $this->tenantEmailService = Di::_()->get(TenantEmailService::class);
+        $this->unreadMessages = Di::_()->get(UnreadMessages::class);
+        $this->unreadMessagesDispatcher = Di::_()->get(UnreadMessagesDispatcher::class);
+        $this->multiTenantDataService = Di::_()->get(MultiTenantDataService::class);
     }
 
     public function help($command = null)
@@ -289,10 +299,27 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         }
     }
 
-    public function testDigest()
+    /**
+     * Test unread message email. Can be sent to a given user OR output as HTML.
+     * @param string $userGuid - user guid to send email for.
+     * @param string $tenantId - tenant id of the users network (optional - null if main Minds network).
+     * @param string $output - output file path (optional).
+     * @param string $createdAfterTimestamp - how recent must messages be to be included? (optional - defaults to 24 hours ago).
+     * @example
+     * - php cli.php Email testUnreadMessages --tenantId=123 --createdAfterTimestamp=1721814873 --userGuid=1285556899399340038 --output=./test.html
+     * @return void
+     */
+    public function testUnreadMessages(): void
     {
         $userGuid = $this->getOpt('userGuid');
         $tenantId = $this->getOpt('tenantId');
+        $output = $this->getOpt('output');
+        $createdAfterTimestamp = $this->getOpt('createdAfterTimestamp') ?? strtotime('-24 hours');
+
+        if (!$userGuid) {
+            $this->out('User guid required');
+            return;
+        }
 
         if ($tenantId) {
             $this->multiTenantBootService->bootFromTenantId($tenantId);
@@ -301,8 +328,107 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         /** @var User */
         $user = $this->entitiesBuilder->single($userGuid);
 
-        $digest = new DigestSender();
-        $digest->send($user);
+        if (!$user || !($user instanceof User)) {
+            $this->out('User not found');
+            return;
+        }
+
+        $email = $this->unreadMessages->setUser($user)
+            ->setCreatedAfterTimestamp($createdAfterTimestamp);
+        
+        if (!$email) {
+            $this->out('Unable to generate email.');
+            return;
+        }
+
+        if ($output) {
+            file_put_contents($output, $email->build()->buildHtml());
+            $this->out("Generated email for " . $user->getGuid());
+        } else {
+            $email->send($user);
+            $this->out("Sent email to " . $user->getGuid());
+        }
+    }
+
+    /**
+     * Bulk send unread message emails to all users who should recieve one, across all tenants.
+     * @param string $createdAfterTimestamp - how recent must messages be to be included? (optional - defaults to 6 hours ago).
+     * @param bool $includeMinds - should the main Minds network be included? (optional - defaults to true).
+     * @example
+     * - php cli.php Email bulkSendUnreadMessageEmailAcrossTenants --createdAfterTimestamp=1721814873
+     * @return void
+     */
+    public function bulkSendUnreadMessageEmailAcrossTenants(): void
+    {
+        $createdAfterTimestamp = $this->getOpt('createdAfterTimestamp') ?? strtotime('-6 hours');
+        $includeMinds = $this->getOpt('includeMinds') !== 'false' ?? true;
+
+        if ($includeMinds) {
+            try {
+                $this->unreadMessagesDispatcher->dispatchForTenant(-1, $createdAfterTimestamp);
+            } catch(\Exception $e) {
+                $this->out("Error sending for tenant_id: -1");
+                $this->out($e->getMessage());
+            }
+        }
+
+        foreach ($this->multiTenantDataService->getTenants(limit: 9999999) as $tenant) {
+            try {
+                $this->unreadMessagesDispatcher->dispatchForTenant($tenant->id, $createdAfterTimestamp);
+            } catch(\Exception $e) {
+                $this->out("Error sending for tenant_id: $tenant->id");
+                $this->out($e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Bulk send unread message emails to all users who should recieve one, of a specific tenant.
+     * @param string $createdAfterTimestamp - how recent must messages be to be included? (optional - defaults to 6 hours ago).
+     * @param int $tenantId - tenant id of the given network.
+     * @example
+     * - php cli.php Email bulkSendUnreadMessageEmailToTenant --tenantId=-1 --createdAfterTimestamp=1721814873
+     * @return void
+     */
+    public function bulkSendUnreadMessageEmailToTenant(): void
+    {
+        $createdAfterTimestamp = $this->getOpt('createdAfterTimestamp') ?? strtotime('-6 hours');
+        $tenantId = $this->getOpt('tenantId');
+
+        if (!$tenantId) {
+            $this->out('Tenant id required');
+            return;
+        }
+
+        $this->unreadMessagesDispatcher->dispatchForTenant($tenantId, $createdAfterTimestamp);
+    }
+
+    public function testDigest()
+    {
+        $userGuid = $this->getOpt('userGuid');
+        $tenantId = $this->getOpt('tenantId');
+        $output = $this->getOpt('output');
+
+        if ($tenantId) {
+            $this->multiTenantBootService->bootFromTenantId($tenantId);
+        }
+
+        /** @var User */
+        $user = $this->entitiesBuilder->single($userGuid);
+
+        if ($output) {
+            $message = (new Digest())->setUser($user)->build();
+
+            if (!$message) {
+                $this->out('Unable to generate email.');
+                return;
+            }
+
+            file_put_contents($output, $message->buildHtml());
+        } else {
+            $digest = new DigestSender();
+            $digest->send($user);
+        }
 
         $this->out('Sent');
     }
@@ -480,7 +606,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             file_put_contents($output, $message->buildHtml());
         } else {
             $campaign->queue();
-            $this->out('Sent email - printing HTML:');
+            $this->out('Tried to send email - printing HTML:');
             $this->out($message->buildHtml());
         }
     }

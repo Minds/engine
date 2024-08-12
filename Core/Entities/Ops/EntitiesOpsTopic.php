@@ -10,6 +10,7 @@ use Minds\Core\EventStreams\Topics\AbstractTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\EventStreams\UndeliveredEventException;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
+use PDOException;
 use Pulsar\Consumer;
 use Pulsar\ConsumerConfiguration;
 use Pulsar\MessageBuilder;
@@ -124,7 +125,11 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
                     $consumer->acknowledge($message);
                 }
             } catch (\Exception $e) {
+                $consumer->negativeAcknowledge($message);
                 $this->logger->error("Topic(Consume): Uncaught error: " . $e->getMessage());
+                if ($e instanceof PDOException && $e->getCode() === 2006) {
+                    throw $e;
+                }
             } finally {
                 // Reset Multi Tenant support
                 if ($tenantId ?? null) {

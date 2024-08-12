@@ -28,6 +28,8 @@ class MobileConfigManagementController
      * @param MobileSplashScreenTypeEnum|null $mobileSplashScreenType
      * @param MobileWelcomeScreenLogoTypeEnum|null $mobileWelcomeScreenLogoType
      * @param MobilePreviewStatusEnum|null $mobilePreviewStatus
+     * @param bool $appTrackingMessageEnabled
+     * @param string $appTrackingMessage
      * @return MobileConfig
      * @throws GraphQLException
      * @throws GuzzleException
@@ -40,12 +42,16 @@ class MobileConfigManagementController
         ?MobileSplashScreenTypeEnum      $mobileSplashScreenType = null,
         ?MobileWelcomeScreenLogoTypeEnum $mobileWelcomeScreenLogoType = null,
         ?MobilePreviewStatusEnum         $mobilePreviewStatus = null,
+        ?bool                            $appTrackingMessageEnabled,
+        ?string                          $appTrackingMessage
     ): MobileConfig {
         try {
             return $this->mobileConfigManagementService->storeMobileConfig(
                 mobileSplashScreenType: $mobileSplashScreenType,
                 mobileWelcomeScreenLogoType: $mobileWelcomeScreenLogoType,
                 mobilePreviewStatus: $mobilePreviewStatus,
+                appTrackingMessageEnabled: $appTrackingMessageEnabled,
+                appTrackingMessage: $appTrackingMessage
             );
         } catch (Exception $e) {
             throw new GraphQLException($e->getMessage());

@@ -440,7 +440,6 @@ class NotificationTypes
             return $defaultTypesGroupings;
         } else {
             $forbiddenTenantTypeKeys = [
-                self::GROUPING_TYPE_BOOSTS,
                 self::GROUPING_TYPE_TOKENS,
                 self::GROUPING_TYPE_CHATS,
                 self::GROUPING_TYPE_WIRES,

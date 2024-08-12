@@ -11,6 +11,7 @@ use Minds\Core\EventStreams\UndeliveredEventException;
 use Minds\Entities\Entity;
 use Minds\Entities\User;
 use Minds\Helpers\MagicAttributes;
+use PDOException;
 use Pulsar\Consumer;
 use Pulsar\ConsumerConfiguration;
 use Pulsar\MessageBuilder;
@@ -162,6 +163,9 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
             } catch (\Exception $e) {
                 $consumer->negativeAcknowledge($message);
                 $this->logger->error("Topic(Consume): Uncaught error: " . $e->getMessage());
+                if ($e instanceof PDOException && $e->getCode() === 2006) {
+                    throw $e;
+                }
             } finally {
                 // Reset Multi Tenant support
                 if ($tenantId ?? null) {

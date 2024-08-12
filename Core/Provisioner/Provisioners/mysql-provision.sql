@@ -1122,6 +1122,7 @@ CREATE TABLE IF NOT EXISTS minds_tenant_permission_intents (
 ALTER TABLE `minds_tenant_configs`
     ADD bloomerang_api_key text DEFAULT NULL
     AFTER digest_email_enabled;
+
 OPTIMIZE TABLE minds_tenant_configs;
 
 CREATE TABLE IF NOT EXISTS minds_bloomerang_group_id_to_site_membership_guids (
@@ -1141,3 +1142,36 @@ ALTER TABLE `minds_tenant_configs`
 ALTER TABLE `minds_tenant_configs`
     ADD logged_in_landing_page_id_mobile varchar(64)
     AFTER logged_in_landing_page_id_web;
+
+ALTER TABLE minds_tenant_mobile_configs
+    ADD COLUMN app_tracking_message_enabled boolean DEFAULT false
+    AFTER update_timestamp;
+
+ALTER TABLE minds_tenant_mobile_configs
+    ADD COLUMN app_tracking_message text DEFAULT NULL
+    AFTER app_tracking_message_enabled;
+
+ALTER TABLE minds_entities_activity
+ADD CONSTRAINT fk_minds_entities_activity
+FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
+ON DELETE CASCADE;
+
+ALTER TABLE minds_entities_object_image
+ADD CONSTRAINT fk_minds_entities_object_image
+FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
+ON DELETE CASCADE;
+
+ALTER TABLE minds_entities_object_video
+ADD CONSTRAINT fk_minds_entities_object_video
+FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
+ON DELETE CASCADE;
+
+ALTER TABLE minds_entities_group
+ADD CONSTRAINT fk_minds_entities_group
+FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
+ON DELETE CASCADE;
+
+ALTER TABLE minds_entities_user
+ADD CONSTRAINT fk_minds_entities_user
+FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
+ON DELETE CASCADE;

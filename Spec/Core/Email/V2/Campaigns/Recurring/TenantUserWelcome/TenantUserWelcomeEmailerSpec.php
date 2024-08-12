@@ -318,4 +318,358 @@ class TenantUserWelcomeEmailerSpec extends ObjectBehavior
   
         $this->build();
     }
+
+    // send
+
+    public function it_should_send_when_welcome_email_is_enabled(
+        User $user,
+        FeaturedEntityConnection $featuredEntityConnection
+    ): void {
+        $siteName = 'Testnet';
+        $siteUrl = 'https://example.minds.com/';
+        $username = 'testuser';
+      
+        $email = 'noreply@minds.com';
+        $tenantId = 123;
+        $userGuid = Guid::build();
+        $siteMemberships = [];
+        $featuredGroups = [];
+
+        $this->configMock->get('tenant')
+          ->shouldBeCalled()
+          ->willReturn((object) [
+            'config' => (object) [
+              'welcomeEmailEnabled' => true
+            ]
+          ]);
+
+        $this->managerMock->isSubscribed(Argument::any())
+          ->shouldBeCalled()
+          ->willReturn(true);
+
+        $featuredEntityConnection->getEdges()
+          ->shouldBeCalled()
+          ->willReturn($featuredGroups);
+
+        $user->username = $username;
+
+        $user->get('username')
+          ->shouldBeCalled($username);
+
+        $user->get('name')
+          ->shouldBeCalled($username);
+
+        $user->get('enabled')
+          ->shouldBeCalled()
+          ->willReturn(true);
+        
+        $user->get('banned')
+          ->shouldBeCalled()
+          ->willReturn(false);
+
+        $user->get('guid')
+          ->shouldBeCalled()
+          ->willReturn($userGuid);
+
+        $user->getEmail()
+          ->shouldBeCalled()
+          ->willReturn($email);
+
+        $user->getGUID()
+          ->shouldBeCalled()
+          ->willReturn($userGuid);
+
+        $this->setUser($user);
+
+        $this->configMock->get('site_name')
+            ->shouldBeCalled()
+            ->willReturn($siteName);
+
+        $this->templateMock->setTemplate('default.v2.tpl')
+          ->shouldBeCalled();
+
+        $this->templateMock->setBody('./template.tpl')
+          ->shouldBeCalled();
+
+        $this->templateMock->set('headerText', "Welcome!")
+          ->shouldBeCalled();
+
+        $this->templateMock->set('bodyText', "Thanks for joining $siteName. Here's what you can do next to get the most out of the community.")
+          ->shouldBeCalled();
+
+        $this->templateMock->set('preheader', "Thanks for joining $siteName")
+          ->shouldBeCalled();
+
+        $this->templateMock->set('user', $user)
+          ->shouldBeCalled();
+
+        $this->templateMock->set('username', Argument::any())
+          ->shouldBeCalled();
+
+        $this->templateMock->set('email', $email)
+          ->shouldBeCalled();
+
+        $this->templateMock->set('guid', $userGuid)
+          ->shouldBeCalled();
+
+        $this->templateMock->set('campaign', 'with')
+          ->shouldBeCalled();
+
+        $this->templateMock->set('topic', 'welcome')
+          ->shouldBeCalled();
+
+        $this->templateMock->set('tracking', Argument::type('string'))
+          ->shouldBeCalled();
+
+        $this->configMock->get('tenant_id')
+          ->shouldBeCalled()
+          ->willReturn($tenantId);
+
+        $this->tenantTemplateVariableInjectorMock->inject($this->templateMock)
+          ->shouldBeCalled()
+          ->willReturn($this->templateMock);
+
+        $this->templateMock->set('actionButton', Argument::any())
+          ->shouldBeCalled();
+      
+        $this->siteMembershipReaderServiceMock->getSiteMemberships()
+          ->shouldBeCalled()
+          ->willReturn($siteMemberships);
+
+        $this->templateMock->set('site_membership_containers', $siteMemberships)
+          ->shouldBeCalled();
+
+        $this->featuredEntityServiceMock->getFeaturedEntities(
+            type: FeaturedEntityTypeEnum::GROUP,
+            loadAfter: 0,
+            limit: 3
+        )
+          ->shouldBeCalled()
+          ->willReturn($featuredEntityConnection);
+
+        $this->templateMock->set('featured_group_containers', $featuredGroups)
+          ->shouldBeCalled();
+
+        $this->configMock->get('site_url')
+          ->shouldBeCalled()
+          ->willReturn($siteUrl);
+
+        $this->mailerMock->send(Argument::any())
+          ->shouldBeCalled();
+  
+        $this->managerMock->saveCampaignLog(Argument::any())
+          ->shouldBeCalled();
+
+        $this->send();
+    }
+
+    public function it_should_NOT_send_when_welcome_email_is_disabled(
+        User $user
+    ): void {
+        $username = 'testuser';
+        $userGuid = Guid::build();
+
+        $this->configMock->get('tenant')
+          ->shouldBeCalled()
+          ->willReturn((object) [
+            'config' => (object) [
+              'welcomeEmailEnabled' => false
+            ]
+          ]);
+
+        $user->username = $username;
+
+        $this->setUser($user);
+
+        $this->templateMock->setTemplate('default.v2.tpl')
+          ->shouldNotBeCalled();
+
+        $this->templateMock->setBody('./template.tpl')
+          ->shouldNotBeCalled();
+
+        $this->mailerMock->send(Argument::any())
+          ->shouldNotBeCalled();
+
+        $this->managerMock->saveCampaignLog(Argument::any())
+          ->shouldNotBeCalled();
+
+        $this->send();
+    }
+
+    // queue
+
+    public function it_should_queue_when_welcome_email_is_enabled(
+        User $user,
+        FeaturedEntityConnection $featuredEntityConnection
+    ): void {
+        $siteName = 'Testnet';
+        $siteUrl = 'https://example.minds.com/';
+        $username = 'testuser';
+    
+        $email = 'noreply@minds.com';
+        $tenantId = 123;
+        $userGuid = Guid::build();
+        $siteMemberships = [];
+        $featuredGroups = [];
+
+        $this->configMock->get('tenant')
+          ->shouldBeCalled()
+          ->willReturn((object) [
+            'config' => (object) [
+              'welcomeEmailEnabled' => true
+            ]
+          ]);
+
+        $this->managerMock->isSubscribed(Argument::any())
+          ->shouldBeCalled()
+          ->willReturn(true);
+
+        $featuredEntityConnection->getEdges()
+          ->shouldBeCalled()
+          ->willReturn($featuredGroups);
+
+        $user->username = $username;
+
+        $user->get('username')
+          ->shouldBeCalled($username);
+
+        $user->get('name')
+          ->shouldBeCalled($username);
+
+        $user->get('enabled')
+          ->shouldBeCalled()
+          ->willReturn(true);
+      
+        $user->get('banned')
+          ->shouldBeCalled()
+          ->willReturn(false);
+
+        $user->get('guid')
+          ->shouldBeCalled()
+          ->willReturn($userGuid);
+
+        $user->getEmail()
+          ->shouldBeCalled()
+          ->willReturn($email);
+
+        $user->getGUID()
+          ->shouldBeCalled()
+          ->willReturn($userGuid);
+
+        $this->setUser($user);
+
+        $this->configMock->get('site_name')
+            ->shouldBeCalled()
+            ->willReturn($siteName);
+
+        $this->templateMock->setTemplate('default.v2.tpl')
+          ->shouldBeCalled();
+
+        $this->templateMock->setBody('./template.tpl')
+          ->shouldBeCalled();
+
+        $this->templateMock->set('headerText', "Welcome!")
+          ->shouldBeCalled();
+
+        $this->templateMock->set('bodyText', "Thanks for joining $siteName. Here's what you can do next to get the most out of the community.")
+          ->shouldBeCalled();
+
+        $this->templateMock->set('preheader', "Thanks for joining $siteName")
+          ->shouldBeCalled();
+
+        $this->templateMock->set('user', $user)
+          ->shouldBeCalled();
+
+        $this->templateMock->set('username', Argument::any())
+          ->shouldBeCalled();
+
+        $this->templateMock->set('email', $email)
+          ->shouldBeCalled();
+
+        $this->templateMock->set('guid', $userGuid)
+          ->shouldBeCalled();
+
+        $this->templateMock->set('campaign', 'with')
+          ->shouldBeCalled();
+
+        $this->templateMock->set('topic', 'welcome')
+          ->shouldBeCalled();
+
+        $this->templateMock->set('tracking', Argument::type('string'))
+          ->shouldBeCalled();
+
+        $this->configMock->get('tenant_id')
+          ->shouldBeCalled()
+          ->willReturn($tenantId);
+
+        $this->tenantTemplateVariableInjectorMock->inject($this->templateMock)
+          ->shouldBeCalled()
+          ->willReturn($this->templateMock);
+
+        $this->templateMock->set('actionButton', Argument::any())
+          ->shouldBeCalled();
+    
+        $this->siteMembershipReaderServiceMock->getSiteMemberships()
+          ->shouldBeCalled()
+          ->willReturn($siteMemberships);
+
+        $this->templateMock->set('site_membership_containers', $siteMemberships)
+          ->shouldBeCalled();
+
+        $this->featuredEntityServiceMock->getFeaturedEntities(
+            type: FeaturedEntityTypeEnum::GROUP,
+            loadAfter: 0,
+            limit: 3
+        )
+          ->shouldBeCalled()
+          ->willReturn($featuredEntityConnection);
+
+        $this->templateMock->set('featured_group_containers', $featuredGroups)
+          ->shouldBeCalled();
+
+        $this->configMock->get('site_url')
+          ->shouldBeCalled()
+          ->willReturn($siteUrl);
+
+        $this->managerMock->saveCampaignLog(Argument::any())
+          ->shouldBeCalled();
+
+        $this->mailerMock->queue(Argument::any())
+          ->shouldBeCalled();
+
+        $this->queue();
+    }
+
+    public function it_should_NOT_queue_when_welcome_email_is_disabled(
+        User $user
+    ): void {
+        $username = 'testuser';
+        $userGuid = Guid::build();
+
+        $this->configMock->get('tenant')
+          ->shouldBeCalled()
+          ->willReturn((object) [
+            'config' => (object) [
+              'welcomeEmailEnabled' => false
+            ]
+          ]);
+
+        $user->username = $username;
+
+        $this->setUser($user);
+
+        $this->templateMock->setTemplate('default.v2.tpl')
+          ->shouldNotBeCalled();
+
+        $this->templateMock->setBody('./template.tpl')
+          ->shouldNotBeCalled();
+
+        $this->mailerMock->queue(Argument::any())
+          ->shouldNotBeCalled();
+
+        $this->managerMock->saveCampaignLog(Argument::any())
+          ->shouldNotBeCalled();
+
+        $this->queue();
+    }
 }

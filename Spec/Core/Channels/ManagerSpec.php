@@ -6,11 +6,13 @@ use Minds\Core\Channels\Delegates\Artifacts\ArtifactsDelegateInterface;
 use Minds\Core\Channels\Manager;
 use Minds\Core\Channels\Delegates;
 use Minds\Core\Channels\Delegates\Artifacts;
+use Minds\Core\Config\Config;
 use Minds\Core\Queue\Interfaces\QueueClient;
 use Minds\Entities\User;
 
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Psr\SimpleCache\CacheInterface;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -29,23 +31,35 @@ class ManagerSpec extends ObjectBehavior
     /** @var  QueueClient */
     protected $queueClient;
 
+    /** @var CacheInteface */
+    protected $cache;
+
+    /** @var Config */
+    protected $config;
+
     public function let(
         Delegates\Artifacts\Factory $artifactsDelegatesFactory,
         Delegates\MetricsDelegate $metricsDelegate,
         Delegates\Logout $logoutDelegate,
-        QueueClient $queueClient
+        QueueClient $queueClient,
+        CacheInterface $cache,
+        Config $config
     ) {
         $this->beConstructedWith(
             $artifactsDelegatesFactory,
             $metricsDelegate,
             $logoutDelegate,
-            $queueClient
+            $queueClient,
+            $cache,
+            $config
         );
 
         $this->artifactsDelegatesFactory = $artifactsDelegatesFactory;
         $this->metricsDelegate = $metricsDelegate;
         $this->logoutDelegate = $logoutDelegate;
         $this->queueClient = $queueClient;
+        $this->cache = $cache;
+        $this->config = $config;
     }
 
     public function it_is_initializable()
@@ -133,6 +147,48 @@ class ManagerSpec extends ObjectBehavior
             Artifacts\SubscriptionsDelegate::class,
             Artifacts\ElasticsearchDocumentsDelegate::class,
             Artifacts\CommentsDelegate::class,
+        ];
+
+        foreach ($deletionDelegates as $deletionDelegate) {
+            $this->artifactsDelegatesFactory->build($deletionDelegate)
+                ->shouldBeCalled()
+                ->willReturn($artifactsDelegateMock);
+        }
+
+        $artifactsDelegateMock->delete(1000)
+            ->shouldBeCalledTimes(count($deletionDelegates))
+            ->willReturn(true);
+
+        $this->metricsDelegate->onDelete($user)
+            ->shouldBeCalled();
+
+        $this->logoutDelegate->logout($user)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this
+            ->setUser($user)
+            ->deleteCleanup()
+            ->shouldReturn(true);
+    }
+
+    public function it_should_cleanup_a_deleted_channel_for_a_tenant(
+        User $user,
+        ArtifactsDelegateInterface $artifactsDelegateMock
+    ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(1);
+
+        $user->get('guid')
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $deletionDelegates = [
+            Artifacts\MySQL\EntityDelegate::class,
+            Artifacts\MySQL\FriendsDelegate::class,
+            Artifacts\CommentsDelegate::class,
+            Artifacts\ElasticsearchDocumentsDelegate::class,
         ];
 
         foreach ($deletionDelegates as $deletionDelegate) {
