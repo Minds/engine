@@ -540,7 +540,7 @@ $CONFIG->set('plus', [
 
 $CONFIG->set('default_email_subscriptions', [
     [
-        'campaign' => 'when',
+    'campaign' => 'when',
         'topic' => 'unread_notifications',
         'value' => true,
     ],

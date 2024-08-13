@@ -80,6 +80,14 @@ class SearchController
         // Remove # hashtag symbol
         $query = str_replace('#', '', $query);
 
+        $accessId = Access::PUBLIC;
+
+        // If this is a tenant, and there is no query, do not focus on an
+        // access id, include 
+        if ($isTenant && !$query) {
+
+        }
+
         $latestQueryOpts = new QueryOpts(
             user: $loggedInUser,
             limit: $limit,

@@ -60,3 +60,5 @@ class PaywalledEntitiesPsrController
     }
 
 }
+
+{   "api_key":"phc_JuOprqL65BEaDFwe3GK9Kylly2SKanfliFVmtC73LqA",   "event":"hubspot_deal_created",   "distinct_id":"mark@minds.com",   "properties":{     "hbspt_dealstage":"173515923",     "hbspt_score": 6,     "$set": {       "hbspt_dealstage":"173515923",       "hbspt_score": 6     },     "$set_once": {       "initial_hbspt_dealstage":"173515923"     }   } }
