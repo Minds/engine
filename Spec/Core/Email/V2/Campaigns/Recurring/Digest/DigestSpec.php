@@ -18,6 +18,8 @@ use Prophecy\Argument;
 
 class DigestSpec extends ObjectBehavior
 {
+    protected Collaborator $templateMock;
+
     protected Collaborator $managerMock;
 
     protected Collaborator $feedsManagerMock;
@@ -28,14 +30,15 @@ class DigestSpec extends ObjectBehavior
     protected Collaborator $unreadMessagesPartialMock;
 
     public function let(
-        Template $template,
+        Template $templateMock,
         Mailer $mailer,
         Manager $manager,
         Feeds\Elastic\V2\Manager $feedsManagerMock,
         Notification\Manager $notificationManagerMock,
         UnreadMessagesPartial $unreadMessagesPartialMock,
     ) {
-        $this->beConstructedWith($template, $mailer, $manager, $feedsManagerMock, $notificationManagerMock, null, null, $unreadMessagesPartialMock);
+        $this->beConstructedWith($templateMock, $mailer, $manager, $feedsManagerMock, $notificationManagerMock, null, null, $unreadMessagesPartialMock);
+        $this->templateMock = $templateMock;
         $this->managerMock = $manager;
         $this->feedsManagerMock = $feedsManagerMock;
         $this->notificationManagerMock = $notificationManagerMock;
@@ -57,6 +60,22 @@ class DigestSpec extends ObjectBehavior
         $user->getEmail()->willReturn('mark@minds.com');
         $user->get('username')->willReturn('mark');
         $user->get('name')->willReturn('mark');
+
+        //
+
+        $this->templateMock->clear()
+            ->shouldBeCalled()
+            ->willReturn([]);
+
+        $this->templateMock->setTemplate('default.v2.tpl')
+            ->shouldBeCalled()
+            ->willReturn($this->templateMock);
+
+        $this->templateMock->setBody('./template.tpl')
+            ->shouldBeCalled();
+
+        $this->templateMock->set(Argument::any(), Argument::any())
+            ->shouldBeCalled();
 
         //
 
