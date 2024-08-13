@@ -143,10 +143,10 @@ class Defaults
                 ->setProduct('platform')
                 ->setUserGuid((string) Core\Session::getLoggedInUserGuid())
                 ->setAction('delete')
-                ->setEntityGuid($entity->guid)
+                ->setEntityGuid((string) $entity->guid)
                 ->setEntityType($entity->type)
                 ->setEntitySubtype($entity->subtype)
-                ->setEntityOwnerGuid($entity->owner_guid)
+                ->setEntityOwnerGuid((string) $entity->owner_guid)
                 ->push();
 
             $e->setResponse(true);
