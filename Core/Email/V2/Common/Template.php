@@ -224,6 +224,21 @@ class Template
     }
 
     /**
+     * Clear template data.
+     * @param boolean $fullClear - Do not re-init variables that are normally set in constructor. 
+     * @return array - the current data array.
+     */
+    public function clear(bool $fullClear = false): array {
+        $this->data = $fullClear ? [] : [
+            'site_url' => $this->config->get('site_url') ?: 'https://www.minds.com/',
+            'cdn_assets_url' => $this->config->get('cdn_assets_url') ?: 'https://cdn-assets.minds.com/front/dist/',
+            'cdn_url' => $this->config->get('cdn_url') ?: 'https://cdn.minds.com/',
+            'translator' => $this->translator
+        ];
+        return $this->data;
+    }
+
+    /**
      * Prevent sending translator to queue
      * @return void
      */
