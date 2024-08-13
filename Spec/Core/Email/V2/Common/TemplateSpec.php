@@ -47,7 +47,8 @@ class TemplateSpec extends ObjectBehavior
         $this->shouldHaveType(Template::class);
     }
 
-    public function it_should_reinit_constructor_values_when_clearing_data(): void {
+    public function it_should_reinit_constructor_values_when_clearing_data(): void
+    {
         $siteUrl = 'https://tenant.minds.io/';
         $cdnAssetsUrl = 'https://cdn-assets.tenant.minds.io/front/dist/';
         $cdnUrl = 'https://cdn.tenant.minds.io/';
@@ -86,7 +87,8 @@ class TemplateSpec extends ObjectBehavior
             ->shouldHaveBeenCalledTimes(2);
     }
 
-    public function it_should_NOT_reinit_constructor_values_when_clearing_data_when_full_clear_is_passed(): void {
+    public function it_should_NOT_reinit_constructor_values_when_clearing_data_when_full_clear_is_passed(): void
+    {
         $this->data = [
             'foo' => 1,
             'bar' => 2
