@@ -137,7 +137,6 @@ class Repository
             ->innerJoin(['s' => 'boost_summaries'], 's.guid', Operator::EQ, 'boosts.guid')
             ->where('status', Operator::EQ, BoostStatus::COMPLETED)
             ->where('completed_timestamp', Operator::GTE, new RawExp(':from_timestamp'))
-            ->where('boosts.tenant_id', Operator::EQ, -1)
             ->groupBy('boosts.tenant_id', 'boosts.guid');
 
         $values['from_timestamp'] = date('c', $fromTimestamp);

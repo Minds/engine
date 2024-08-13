@@ -2,7 +2,6 @@
 namespace Minds\Integrations\Bloomerang;
 
 use DateTimeImmutable;
-use Error;
 use GuzzleHttp\Client;
 use Minds\Core\Config\Config;
 use Minds\Core\MultiTenant\Models\Tenant;
@@ -63,7 +62,7 @@ class BloomerangConstituentService
                     )
                 );
             }
-        } catch (\Exception|Error $e) {
+        } catch (\Exception $e) {
             // Continue
         }
     }
