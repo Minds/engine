@@ -23,11 +23,13 @@ use Minds\Core\Email\V2\Campaigns\Recurring\TenantUserWelcome\TenantUserWelcomeE
 use Minds\Core\Email\V2\Campaigns\Recurring\UnreadMessages\UnreadMessages;
 use Minds\Core\Email\V2\Campaigns\Recurring\UnreadMessages\UnreadMessagesDispatcher;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\MultiTenant\Services\AutoTrialService;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 use Minds\Core\MultiTenant\Services\TenantEmailService;
 use Minds\Core\Security\ACL;
 use Minds\Core\Security\Password;
+use Minds\Exceptions\CliException;
 
 class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -436,6 +438,23 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
     public function tenantsSendDigests()
     {
         $this->tenantEmailService->sendToAllUsersAcrossTenants(new DigestSender());
+    }
+
+    /**
+     * Test start networks tenant trial email.
+     * @example
+     * - php cli.php Email testTenantTrial --email="noreply@minds.com"
+     * @return void
+     */
+    public function testTenantTrial(): void {
+        $email = $this->getOpt('email') ?? null;
+
+        if (!$email) {
+            throw new CliException('Email required');
+        }
+
+        Di::_()->get(AutoTrialService::class)
+            ->startTrialWithEmail($email);
     }
 
     public function testPlusTrial()
