@@ -88,6 +88,7 @@ class Repository extends AbstractRepository
                 'walled_garden_enabled',
                 'digest_email_enabled',
                 'welcome_email_enabled',
+                'is_non_profit',
                 'last_cache_timestamp',
                 'updated_timestamp',
                 'nsfw_enabled',
@@ -115,6 +116,7 @@ class Repository extends AbstractRepository
         $walledGardenEnabled = $row['walled_garden_enabled'] ?? false;
         $digestEmailEnabled = $row['digest_email_enabled'] ?? true;
         $welcomeEmailEnabled = $row['welcome_email_enabled'] ?? true;
+        $isNonProfit = $row['is_non_profit'] ?? false;
         $updatedTimestamp = $row['updated_timestamp'] ?? null;
         $lastCacheTimestamp = $row['last_cache_timestamp'] ?? null;
         $nsfwEnabled = $row['nsfw_enabled'] ?? true;
@@ -142,6 +144,7 @@ class Repository extends AbstractRepository
                 walledGardenEnabled: $suspendedTimestamp ? true : $walledGardenEnabled, // suspended state will always be walled garden
                 digestEmailEnabled: $digestEmailEnabled,
                 welcomeEmailEnabled: $welcomeEmailEnabled,
+                isNonProfit: $isNonProfit,
                 updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null,
                 lastCacheTimestamp: $lastCacheTimestamp ? strtotime($lastCacheTimestamp) : null,
                 bloomerangApiKey: $bloomerangApiKey,

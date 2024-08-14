@@ -61,6 +61,7 @@ class Manager
      * @param ?bool $walledGardenEnabled - whether walled garden mode is enabled.
      * @param ?bool $digestEmailEnabled - whether digest emails are enabled.
      * @param ?bool $welcomeEmailEnabled - whether welcome emails are enabled.
+     * @param ?bool $isNonProfit - whether the tenant is a non-profit.
      * @param ?int $lastCacheTimestamp - last cache timestamp.
      * @return bool - true on success.
      */
@@ -77,6 +78,7 @@ class Manager
         ?bool $walledGardenEnabled = null,
         ?bool $digestEmailEnabled = null,
         ?bool $welcomeEmailEnabled = null,
+        ?bool $isNonProfit = null,
         ?int $lastCacheTimestamp = null
     ): bool {
         $tenantId = $this->config->get('tenant_id');
@@ -95,6 +97,7 @@ class Manager
             walledGardenEnabled: $walledGardenEnabled,
             digestEmailEnabled: $digestEmailEnabled,
             welcomeEmailEnabled: $welcomeEmailEnabled,
+            isNonProfit: $isNonProfit,
             lastCacheTimestamp: $lastCacheTimestamp
         );
 
