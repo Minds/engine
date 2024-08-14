@@ -214,7 +214,13 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                 $file->close();
 
                 $loc = $image->getFilenameOnFilestore();
+                $logger = Di::_()->get('Logger');
+                $logger->error("media endpoint: Image uploaded: $loc");
+                $logger->error("creating thumbnails");
+
                 $image->createThumbnails("/tmp/{$image->guid}-master.jpg");
+
+                $logger->error("thumbnails created: Image uploaded: $loc");
                 $this->save->setEntity($image)->save();
                 unlink("/tmp/{$image->guid}-master.jpg");
         }
@@ -292,11 +298,19 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
             'container_guid' => $container_guid,
             'full_hd' => $user->isPro(),
         ]);
+        $logger = Di::_()->get('Logger');
 
         $assets = Core\Media\AssetsFactory::build($entity);
+        $location = method_exists($entity, 'getFilenameOnFilestore') ? $entity->getFilenameOnFilestore() : '';
 
         $assets->validate($media);
-        $entity->setAssets($assets->upload($media));
+        $logger->error("validated");
+
+        $uploadedAssets = $assets->upload($media);
+        $logger->error("uploaded");
+
+        $entity->setAssets($uploadedAssets);
+        $logger->error("assets set");
 
         // Save initial entity
 
@@ -308,8 +322,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
             throw new \Exception('Error saving media entity');
         }
 
-        $location = method_exists($entity, 'getFilenameOnFilestore') ? $entity->getFilenameOnFilestore() : '';
-
+        $logger->error("media endpoint: Image uploaded: $location");
         // Done
         return [
             'guid' => $entity->guid,

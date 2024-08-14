@@ -168,8 +168,20 @@ class Image extends File implements MutatableEntityInterface, CommentableEntityI
         $sizes = ['xlarge', 'large', 'medium', 'small'];
 
         $master = $filepath ?: $this->getFilenameOnFilestore();
-        $image = new Imagick($master);
+        $logger = Di::_()->get('Logger');
 
+        $logger->error('master: '.$master);
+        $logger->error('filepath: '.$filepath);
+        if ($this->filestore) {
+            $logger->error($this->filestore::class);
+        }
+
+        try {
+            $image = new Imagick($master);
+        } catch(\Exception $e) {
+            $logger->error($e);
+            throw $e;
+        }
         if ($this->gif) {
             return $this->createGifThumbnails($image);
         }
