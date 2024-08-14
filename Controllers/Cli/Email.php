@@ -446,7 +446,8 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
      * - php cli.php Email testTenantTrial --email="noreply@minds.com"
      * @return void
      */
-    public function testTenantTrial(): void {
+    public function testTenantTrial(): void
+    {
         $email = $this->getOpt('email') ?? null;
 
         if (!$email) {
