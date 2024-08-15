@@ -102,7 +102,8 @@ class TenantTrialEmailer extends EmailCampaign
         }
 
         $subject = "Your trial is ready";
-        $link = "https://" . md5($this->tenantId) . '.networks.minds.com/login';
+
+        $link = "https://" . md5($this->tenantId) . '.networks.minds.com/network/admin/general';
 
         $trackingQuery = http_build_query($tracking);
 
