@@ -82,7 +82,7 @@ class ProductServiceSpec extends ObjectBehavior
         $productType = ProductTypeEnum::NETWORK;
         $productSubType = null;
 
-        $this->cacheMock->get("products_{$productType->value}_{$productSubType?->value}")
+        $this->cacheMock->get("da39a3ee5e6b4b0d3255bfef95601890afd80709::products_{$productType->value}_{$productSubType?->value}")
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
@@ -98,7 +98,7 @@ class ProductServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($searchResultMock);
 
-        $this->cacheMock->set("products_{$productType->value}_{$productSubType?->value}", serialize($searchResultMock), 60 * 5)
+        $this->cacheMock->set("da39a3ee5e6b4b0d3255bfef95601890afd80709::products_{$productType->value}_{$productSubType?->value}", serialize($searchResultMock), 60 * 5)
             ->shouldBeCalledOnce();
 
         $this->getProductsByType($productType, $productSubType);
@@ -125,7 +125,7 @@ class ProductServiceSpec extends ObjectBehavior
         $productType = ProductTypeEnum::NETWORK;
         $productSubType = ProductSubTypeEnum::ADDON;
 
-        $this->cacheMock->get("products_{$productType->value}_{$productSubType?->value}")
+        $this->cacheMock->get("da39a3ee5e6b4b0d3255bfef95601890afd80709::products_{$productType->value}_{$productSubType?->value}")
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
@@ -141,7 +141,7 @@ class ProductServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($searchResultMock);
 
-        $this->cacheMock->set("products_{$productType->value}_{$productSubType?->value}", serialize($searchResultMock), 60 * 5)
+        $this->cacheMock->set("da39a3ee5e6b4b0d3255bfef95601890afd80709::products_{$productType->value}_{$productSubType?->value}", serialize($searchResultMock), 60 * 5)
             ->shouldBeCalledOnce();
 
         $this->getProductsByType($productType, $productSubType);
@@ -158,7 +158,7 @@ class ProductServiceSpec extends ObjectBehavior
             $this->generateStripeProductMock()
         ]);
 
-        $this->cacheMock->get("products_{$productType->value}_{$productSubType?->value}")
+        $this->cacheMock->get("da39a3ee5e6b4b0d3255bfef95601890afd80709::products_{$productType->value}_{$productSubType?->value}")
             ->shouldBeCalledOnce()
             ->willReturn(serialize($searchResultMock));
 
@@ -178,7 +178,7 @@ class ProductServiceSpec extends ObjectBehavior
 
     public function it_should_get_product_by_key(): void
     {
-        $this->cacheMock->get('product_product_key')
+        $this->cacheMock->get('da39a3ee5e6b4b0d3255bfef95601890afd80709::product_product_key')
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
@@ -192,7 +192,7 @@ class ProductServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($searchResultMock);
 
-        $this->cacheMock->set('product_product_key', serialize($searchResultMock->first()), 60 * 5)
+        $this->cacheMock->set('da39a3ee5e6b4b0d3255bfef95601890afd80709::product_product_key', serialize($searchResultMock->first()), 60 * 5)
             ->shouldBeCalledOnce();
 
         $this->getProductByKey('product_key')
@@ -201,7 +201,7 @@ class ProductServiceSpec extends ObjectBehavior
 
     public function it_should_get_product_by_key_WITH_cache(): void
     {
-        $this->cacheMock->get('product_product_key')
+        $this->cacheMock->get('da39a3ee5e6b4b0d3255bfef95601890afd80709::product_product_key')
             ->shouldBeCalledOnce()
             ->willReturn(serialize($this->generateStripeProductMock()));
 
@@ -211,7 +211,7 @@ class ProductServiceSpec extends ObjectBehavior
 
     public function it_should_try_to_get_product_by_key_and_THROW_not_found_exception(): void
     {
-        $this->cacheMock->get('product_product_key')
+        $this->cacheMock->get('da39a3ee5e6b4b0d3255bfef95601890afd80709::product_product_key')
             ->shouldBeCalledOnce()
             ->willReturn(false);
 

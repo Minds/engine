@@ -40,7 +40,8 @@ class ProductService
         ProductTypeEnum     $productType,
         ?ProductSubTypeEnum $productSubType = null
     ): SearchResult {
-        if ($products = $this->cache->get("products_{$productType->value}_{$productSubType?->value}")) {
+        $cacheKey = $this->buildCacheKey("products_{$productType->value}_{$productSubType?->value}");
+        if ($products = $this->cache->get($cacheKey)) {
             return unserialize($products);
         }
         $query = "metadata['type']:'$productType->value'";
@@ -59,7 +60,7 @@ class ProductService
             throw new NotFoundException("No products were found.");
         }
 
-        $this->cache->set("products_{$productType->value}_{$productSubType?->value}", serialize($products), self::CACHE_TTL);
+        $this->cache->set($cacheKey, serialize($products), self::CACHE_TTL);
 
         return $products;
     }
@@ -88,7 +89,8 @@ class ProductService
      */
     public function getProductByKey(string $productKey): Product
     {
-        if ($product = $this->cache->get("product_$productKey")) {
+        $cacheKey = $this->buildCacheKey("product_$productKey");
+        if ($product = $this->cache->get($cacheKey)) {
             return unserialize($product);
         }
 
@@ -107,7 +109,7 @@ class ProductService
 
         $product = $results->first();
 
-        $this->cache->set("product_$productKey", serialize($product), self::CACHE_TTL);
+        $this->cache->set($cacheKey, serialize($product), self::CACHE_TTL);
 
         return $product;
     }
@@ -259,5 +261,10 @@ class ProductService
             ->delete($productId);
 
         return true;
+    }
+
+    private function buildCacheKey(string $key): string
+    {
+        return $this->stripeClient->getApiKeyHash() . '::' . $key;
     }
 }

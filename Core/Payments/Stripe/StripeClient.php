@@ -65,6 +65,14 @@ class StripeClient
     }
 
     /**
+     * Returns a hash of the api key, mainly to be used to help caching
+     */
+    public function getApiKeyHash(): string
+    {
+        return sha1($this->config['api_key'] ?? '');
+    }
+
+    /**
      * Provide our configs to the StripeClient
      */
     private function buildStripeClient(): Stripe\StripeClient
