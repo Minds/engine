@@ -69,7 +69,12 @@ class StripeClient
      */
     public function getApiKeyHash(): string
     {
-        return sha1($this->config['api_key'] ?? '');
+        if (isset($this->user)) {
+            $apiKey = $this->stripeApiKeyConfig->get($this->user);
+        } else {
+            $apiKey = $this->stripeApiKeyConfig->get();
+        }
+        return sha1($apiKey);
     }
 
     /**

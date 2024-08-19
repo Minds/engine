@@ -10,6 +10,7 @@ use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductPricingModelEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductSubTypeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductTypeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService;
+use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
 use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Exceptions\NotFoundException;
 use PhpSpec\ObjectBehavior;
@@ -28,6 +29,7 @@ class ProductServiceSpec extends ObjectBehavior
     private Collaborator $stripeProductServiceMock;
     private Collaborator $cacheMock;
     private Collaborator $configMock;
+    private Collaborator $stripeApiKeyConfigMock;
 
     private ReflectionClass $stripeClientMockFactory;
     private ReflectionClass $stripeProductMockFactory;
@@ -37,11 +39,13 @@ class ProductServiceSpec extends ObjectBehavior
     public function let(
         StripeProductService $stripeProductService,
         CacheInterface       $cache,
-        Config               $config
+        Config               $config,
+        StripeApiKeyConfig   $stripeApiKeyConfigMock,
     ): void {
         $this->stripeProductServiceMock = $stripeProductService;
         $this->cacheMock = $cache;
         $this->configMock = $config;
+        $this->stripeApiKeyConfigMock = $stripeApiKeyConfigMock;
 
         $this->stripeClientMockFactory = new ReflectionClass(StripeClient::class);
         $this->stripeProductMockFactory = new ReflectionClass(StripeProduct::class);
@@ -69,6 +73,11 @@ class ProductServiceSpec extends ObjectBehavior
                     return $this->products;
                 }
             });
+
+        $this->stripeApiKeyConfigMock->get()->willReturn('da39a3ee5e6b4b0d3255bfef95601890afd80709');
+
+        $this->stripeClientMockFactory->getProperty('stripeApiKeyConfig')
+            ->setValue($stripeClientMock, $this->stripeApiKeyConfigMock->getWrappedObject());
         return $stripeClientMock;
     }
 
@@ -82,7 +91,7 @@ class ProductServiceSpec extends ObjectBehavior
         $productType = ProductTypeEnum::NETWORK;
         $productSubType = null;
 
-        $this->cacheMock->get("da39a3ee5e6b4b0d3255bfef95601890afd80709::products_{$productType->value}_{$productSubType?->value}")
+        $this->cacheMock->get("10a34637ad661d98ba3344717656fcc76209c2f8::products_{$productType->value}_{$productSubType?->value}")
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
@@ -98,7 +107,7 @@ class ProductServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($searchResultMock);
 
-        $this->cacheMock->set("da39a3ee5e6b4b0d3255bfef95601890afd80709::products_{$productType->value}_{$productSubType?->value}", serialize($searchResultMock), 60 * 5)
+        $this->cacheMock->set("10a34637ad661d98ba3344717656fcc76209c2f8::products_{$productType->value}_{$productSubType?->value}", serialize($searchResultMock), 60 * 5)
             ->shouldBeCalledOnce();
 
         $this->getProductsByType($productType, $productSubType);
@@ -125,7 +134,7 @@ class ProductServiceSpec extends ObjectBehavior
         $productType = ProductTypeEnum::NETWORK;
         $productSubType = ProductSubTypeEnum::ADDON;
 
-        $this->cacheMock->get("da39a3ee5e6b4b0d3255bfef95601890afd80709::products_{$productType->value}_{$productSubType?->value}")
+        $this->cacheMock->get("10a34637ad661d98ba3344717656fcc76209c2f8::products_{$productType->value}_{$productSubType?->value}")
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
@@ -141,7 +150,7 @@ class ProductServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($searchResultMock);
 
-        $this->cacheMock->set("da39a3ee5e6b4b0d3255bfef95601890afd80709::products_{$productType->value}_{$productSubType?->value}", serialize($searchResultMock), 60 * 5)
+        $this->cacheMock->set("10a34637ad661d98ba3344717656fcc76209c2f8::products_{$productType->value}_{$productSubType?->value}", serialize($searchResultMock), 60 * 5)
             ->shouldBeCalledOnce();
 
         $this->getProductsByType($productType, $productSubType);
@@ -158,7 +167,7 @@ class ProductServiceSpec extends ObjectBehavior
             $this->generateStripeProductMock()
         ]);
 
-        $this->cacheMock->get("da39a3ee5e6b4b0d3255bfef95601890afd80709::products_{$productType->value}_{$productSubType?->value}")
+        $this->cacheMock->get("10a34637ad661d98ba3344717656fcc76209c2f8::products_{$productType->value}_{$productSubType?->value}")
             ->shouldBeCalledOnce()
             ->willReturn(serialize($searchResultMock));
 
@@ -178,7 +187,7 @@ class ProductServiceSpec extends ObjectBehavior
 
     public function it_should_get_product_by_key(): void
     {
-        $this->cacheMock->get('da39a3ee5e6b4b0d3255bfef95601890afd80709::product_product_key')
+        $this->cacheMock->get('10a34637ad661d98ba3344717656fcc76209c2f8::product_product_key')
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
@@ -192,7 +201,7 @@ class ProductServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($searchResultMock);
 
-        $this->cacheMock->set('da39a3ee5e6b4b0d3255bfef95601890afd80709::product_product_key', serialize($searchResultMock->first()), 60 * 5)
+        $this->cacheMock->set('10a34637ad661d98ba3344717656fcc76209c2f8::product_product_key', serialize($searchResultMock->first()), 60 * 5)
             ->shouldBeCalledOnce();
 
         $this->getProductByKey('product_key')
@@ -201,7 +210,7 @@ class ProductServiceSpec extends ObjectBehavior
 
     public function it_should_get_product_by_key_WITH_cache(): void
     {
-        $this->cacheMock->get('da39a3ee5e6b4b0d3255bfef95601890afd80709::product_product_key')
+        $this->cacheMock->get('10a34637ad661d98ba3344717656fcc76209c2f8::product_product_key')
             ->shouldBeCalledOnce()
             ->willReturn(serialize($this->generateStripeProductMock()));
 
@@ -211,7 +220,7 @@ class ProductServiceSpec extends ObjectBehavior
 
     public function it_should_try_to_get_product_by_key_and_THROW_not_found_exception(): void
     {
-        $this->cacheMock->get('da39a3ee5e6b4b0d3255bfef95601890afd80709::product_product_key')
+        $this->cacheMock->get('10a34637ad661d98ba3344717656fcc76209c2f8::product_product_key')
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
