@@ -14,6 +14,7 @@ class Module implements ModuleInterface
         CustomPages\Module::class,
         MobileConfigs\Module::class,
         Lists\Module::class,
+        Billing\Module::class,
     ];
 
     /**

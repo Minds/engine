@@ -27,6 +27,7 @@ class TenantTrialEmailer extends EmailCampaign
     protected string $code;
 
     private int $tenantId;
+    private bool $isTrial = true;
     private string $username;
     private string $password;
 
@@ -54,6 +55,12 @@ class TenantTrialEmailer extends EmailCampaign
     public function setTenantId(int $tenantId): self
     {
         $this->tenantId = $tenantId;
+        return $this;
+    }
+
+    public function setIsTrial(bool $isTrial): self
+    {
+        $this->isTrial = $isTrial;
         return $this;
     }
 
@@ -101,8 +108,7 @@ class TenantTrialEmailer extends EmailCampaign
             $siteName = 'Minds';
         }
 
-        $subject = "Your trial is ready";
-
+        $subject = $this->isTrial ? "Your trial is ready" : 'Your network is ready';
         $link = "https://" . md5($this->tenantId) . '.networks.minds.com/network/admin/general';
 
         $trackingQuery = http_build_query($tracking);
