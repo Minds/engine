@@ -94,7 +94,7 @@ class CommentsDelegate implements ArtifactsDelegateInterface
                 }
 
                 $this->commentManager->restore($comment);
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 error_log((string) $e);
             }
         }
