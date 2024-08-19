@@ -45,11 +45,24 @@ class Controller
     }
 
     /**
-     * To be called on a tenant site, generates a login link
+     * Performs the login, from a post body
      */
-    public function login(ServerRequest $request): RedirectResponse
+    public function postLogin(ServerRequest $request): RedirectResponse
     {
         $jwtToken = $request->getParsedBody()['jwt_token'];
+
+        $this->autoLoginService->performLogin($jwtToken);
+
+        return new RedirectResponse('/network/admin');
+    }
+
+    
+    /**
+     * Performs the login, from GET request query param
+     */
+    public function getLogin(ServerRequest $request): RedirectResponse
+    {
+        $jwtToken = $request->getQueryParams()['token'];
 
         $this->autoLoginService->performLogin($jwtToken);
 

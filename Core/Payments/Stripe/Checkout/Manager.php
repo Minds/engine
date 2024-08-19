@@ -39,7 +39,7 @@ class Manager
      * @throws ApiErrorException
      */
     public function createSession(
-        User                    $user,
+        ?User                   $user = null,
         string|CheckoutModeEnum $mode = 'setup',
         ?string                 $successUrl = null,
         ?string                 $cancelUrl = null,
@@ -48,7 +48,7 @@ class Manager
         ?string                 $submitMessage = null,
         array                   $metadata = null,
     ): Session {
-        $customerId = $this->customersManager->getByUser($user)->id;
+        $customerId = $user ? $this->customersManager->getByUser($user)->id : null;
 
         if (is_string($mode)) {
             $mode = CheckoutModeEnum::tryFrom($mode);
@@ -63,8 +63,11 @@ class Manager
             'cancel_url' => $this->getSiteUrl() . ($cancelUrl ?? 'api/v3/payments/stripe/checkout/cancel'),
             'mode' => $mode->value,
             'payment_method_types' => $paymentMethodTypes ?? ['card'], // we can possibly add more in the future,
-            'customer' => $customerId,
         ];
+
+        if ($customerId) {
+            $checkoutOptions['customer'] = $customerId;
+        }
 
         if ($mode === CheckoutModeEnum::SUBSCRIPTION || $mode === CheckoutModeEnum::PAYMENT) {
             $checkoutOptions['line_items'] = $lineItems;
