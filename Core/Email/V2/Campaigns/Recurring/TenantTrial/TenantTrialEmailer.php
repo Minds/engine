@@ -120,7 +120,7 @@ class TenantTrialEmailer extends EmailCampaign
         $this->template->set('guid', $this->user->getGuid());
         $this->template->set('email', $this->user->getEmail());
         $this->template->set('tracking', $trackingQuery);
-        $this->template->set('preheader', "Your trial is ready");
+        $this->template->set('preheader', $subject);
         $this->template->set('username', $this->username);
         $this->template->set('password', $this->password);
 
