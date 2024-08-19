@@ -32,7 +32,7 @@ class TenantEmailService
         foreach ($this->multiTenantUsersService->getUsers(tenantId: $tenant->id) as $user) {
             try {
                 $emailSender->send($user);
-                $this->logger->info($user->getGuid() . '... sent');
+                $this->logger->info('Ran for tenant: ' . $tenant?->id. ', user: ' . $user?->getGuid());
             } catch(\Exception $e) {
                 $this->logger->error($e);
             }
