@@ -1,6 +1,6 @@
 <?php
 
-namespace Minds\Core\MultiTenant\AutoLogin;
+namespace Minds\Core\MultiTenant\Billing;
 
 use Minds\Core\Di\Ref;
 use Minds\Core\Router\ModuleRoutes;
@@ -14,22 +14,16 @@ class Routes extends ModuleRoutes
     public function register(): void
     {
         $this->route
-            ->withPrefix('api/v3/multi-tenant/auto-login')
+            ->withPrefix('api/v3/multi-tenant/billing')
             ->do(function (Route $route) {
                 // logged-out routes.
                 $route->get(
-                    'login-url',
-                    Ref::_(Controller::class, 'getLoginUrl')
+                    'external-checkout',
+                    Ref::_(BillingPsrController::class, 'externalCheckout')
                 );
-
-                $route->post(
-                    'login',
-                    Ref::_(Controller::class, 'postLogin')
-                );
-
                 $route->get(
-                    'login',
-                    Ref::_(Controller::class, 'getLogin')
+                    'external-callback',
+                    Ref::_(BillingPsrController::class, 'externalCallback')
                 );
             });
     }
