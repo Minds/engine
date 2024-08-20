@@ -102,9 +102,9 @@ class PostNotificationDispatchHelperSpec extends ObjectBehavior
         User $recipient,
         Membership $membership
     ) {
-      $containerGuid = 1234567890123456;
-      $userGuid = 2234567890123456;
-      $entityGuid = 3234567890123456;
+        $containerGuid = 1234567890123456;
+        $userGuid = 2234567890123456;
+        $entityGuid = 3234567890123456;
         $frequency = PostSubscriptionFrequencyEnum::ALWAYS;
 
         $postSubscription = new PostSubscription(
