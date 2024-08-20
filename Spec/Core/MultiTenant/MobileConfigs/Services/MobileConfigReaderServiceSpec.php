@@ -58,7 +58,8 @@ class MobileConfigReaderServiceSpec extends ObjectBehavior
             config: new MultiTenantConfig(
                 siteName: 'test',
                 colorScheme: MultiTenantColorScheme::DARK,
-                primaryColor: 'test'
+                primaryColor: 'test',
+                isNonProfit: true
             )
         );
         $mobileConfigMock = new MobileConfig(
@@ -102,6 +103,7 @@ class MobileConfigReaderServiceSpec extends ObjectBehavior
         $response->theme->shouldBe(strtolower($tenantMock->config->colorScheme->value));
         $response->apiUrl->shouldBe($siteUrl);
         $response->appTrackingMessage->shouldBe(MobileConfig::DEFAULT_APP_TRACKING_MESSAGE);
+        $response->isNonProfit->shouldBe(true);
 
         $imageTypes = array_map(fn (MobileConfigImageTypeEnum $imageType): string => $imageType->value, MobileConfigImageTypeEnum::cases());
 

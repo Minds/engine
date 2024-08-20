@@ -1167,3 +1167,7 @@ ALTER TABLE minds_entities_user
 ADD CONSTRAINT fk_minds_entities_user
 FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
 ON DELETE CASCADE;
+
+ALTER TABLE minds_tenant_configs
+    ADD COLUMN is_non_profit boolean DEFAULT FALSE
+    AFTER welcome_email_enabled;

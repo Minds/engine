@@ -58,6 +58,7 @@ class Repository extends AbstractRepository
             walledGardenEnabled: (bool) $row['walled_garden_enabled'] ?? false,
             digestEmailEnabled: (bool) $row['digest_email_enabled'] !== 0,
             welcomeEmailEnabled: $row['welcome_email_enabled'] !== 0,
+            isNonProfit: (bool) $row['is_non_profit'] ?? false,
             bloomerangApiKey: $row['bloomerang_api_key'] ?? null,
             lastCacheTimestamp: isset($row['last_cache_timestamp']) ? strtotime($row['last_cache_timestamp']) : null,
             updatedTimestamp: isset($row['updated_timestamp']) ? strtotime($row['updated_timestamp']) : null
@@ -80,6 +81,7 @@ class Repository extends AbstractRepository
      * @param ?bool $walledGardenEnabled - whether wallet garden mode is enabled.
      * @param ?bool $digestEmailEnabled - whether digest email is enabled.
      * @param ?bool $welcomeEmailEnabled - whether welcome email is enabled.
+     * @param ?bool $isNonProfit - whether the tenant is a non-profit.
      * @param ?int $lastCacheTimestamp - timestamp of last caching.
      * @return bool - true on success.
      */
@@ -97,6 +99,7 @@ class Repository extends AbstractRepository
         ?bool $walledGardenEnabled = null,
         ?bool $digestEmailEnabled = null,
         ?bool $welcomeEmailEnabled = null,
+        ?bool $isNonProfit = null,
         ?int $lastCacheTimestamp = null
     ): bool {
         $boundValues = ['tenant_id' => $tenantId];
@@ -166,6 +169,11 @@ class Repository extends AbstractRepository
         if ($welcomeEmailEnabled !== null) {
             $rawValues['welcome_email_enabled'] = new RawExp(':welcome_email_enabled');
             $boundValues['welcome_email_enabled'] = $welcomeEmailEnabled;
+        }
+
+        if ($isNonProfit !== null) {
+            $rawValues['is_non_profit'] = new RawExp(':is_non_profit');
+            $boundValues['is_non_profit'] = $isNonProfit;
         }
 
         $query = $this->mysqlClientWriterHandler

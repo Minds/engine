@@ -67,6 +67,7 @@ class RepositorySpec extends ObjectBehavior
         $walledGardenEnabled = true;
         $digestEmailEnabled = true;
         $welcomeEmailEnabled = true;
+        $isNonProfit = true;
         $updatedTimestamp = date('c', time());
 
         $this->mysqlMasterMock->prepare(Argument::any())
@@ -96,6 +97,7 @@ class RepositorySpec extends ObjectBehavior
                 'walled_garden_enabled' => $walledGardenEnabled,
                 'digest_email_enabled' => $digestEmailEnabled,
                 'welcome_email_enabled' => $welcomeEmailEnabled,
+                'is_non_profit' => $isNonProfit,
                 'updated_timestamp' => $updatedTimestamp,
             ]);
 
@@ -113,6 +115,7 @@ class RepositorySpec extends ObjectBehavior
             walledGardenEnabled: $walledGardenEnabled,
             digestEmailEnabled: $digestEmailEnabled,
             welcomeEmailEnabled: $welcomeEmailEnabled,
+            isNonProfit: $isNonProfit,
             updatedTimestamp: strtotime($updatedTimestamp)
         ));
     }
@@ -155,6 +158,7 @@ class RepositorySpec extends ObjectBehavior
         $walledGardenEnabled = true;
         $digestEmailEnabled = true;
         $welcomeEmailEnabled = true;
+        $isNonProfit = true;
 
         $this->mysqlMasterMock->prepare(Argument::any())
             ->willReturn($statement);
@@ -172,6 +176,7 @@ class RepositorySpec extends ObjectBehavior
             'walled_garden_enabled' => $walledGardenEnabled,
             'digest_email_enabled' => $digestEmailEnabled,
             'welcome_email_enabled' => $welcomeEmailEnabled,
+            'is_non_profit' => $isNonProfit,
         ])->shouldBeCalled();
 
         $statement->execute()
@@ -190,7 +195,8 @@ class RepositorySpec extends ObjectBehavior
             customHomePageDescription: $customHomePageDescription,
             walledGardenEnabled: $walledGardenEnabled,
             digestEmailEnabled: $digestEmailEnabled,
-            welcomeEmailEnabled: $welcomeEmailEnabled
+            welcomeEmailEnabled: $welcomeEmailEnabled,
+            isNonProfit: $isNonProfit
         )->shouldBe(true);
     }
 }
