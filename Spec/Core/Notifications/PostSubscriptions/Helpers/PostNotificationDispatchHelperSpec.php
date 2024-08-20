@@ -47,8 +47,8 @@ class PostNotificationDispatchHelperSpec extends ObjectBehavior
     public function it_should_determine_if_a_post_notification_can_be_dispatched_because_the_entity_has_no_container(
         Entity $forActivity
     ) {
-        $userGuid = Guid::build();
-        $entityGuid = Guid::build();
+        $userGuid = 2234567890123456;
+        $entityGuid = 3234567890123456;
         $frequency = PostSubscriptionFrequencyEnum::ALWAYS;
 
         $postSubscription = new PostSubscription(
@@ -71,9 +71,9 @@ class PostNotificationDispatchHelperSpec extends ObjectBehavior
         Entity $forActivity,
         Activity $container
     ) {
-        $containerGuid = Guid::build();
-        $userGuid = Guid::build();
-        $entityGuid = Guid::build();
+        $containerGuid = 1234567890123456;
+        $userGuid = 2234567890123456;
+        $entityGuid = 3234567890123456;
         $frequency = PostSubscriptionFrequencyEnum::ALWAYS;
 
         $postSubscription = new PostSubscription(
@@ -102,9 +102,9 @@ class PostNotificationDispatchHelperSpec extends ObjectBehavior
         User $recipient,
         Membership $membership
     ) {
-        $containerGuid = Guid::build();
-        $userGuid = Guid::build();
-        $entityGuid = Guid::build();
+      $containerGuid = 1234567890123456;
+      $userGuid = 2234567890123456;
+      $entityGuid = 3234567890123456;
         $frequency = PostSubscriptionFrequencyEnum::ALWAYS;
 
         $postSubscription = new PostSubscription(
@@ -145,9 +145,9 @@ class PostNotificationDispatchHelperSpec extends ObjectBehavior
         User $recipient,
         Membership $membership
     ) {
-        $containerGuid = Guid::build();
-        $userGuid = Guid::build();
-        $entityGuid = Guid::build();
+        $containerGuid = 1234567890123456;
+        $userGuid = 2234567890123456;
+        $entityGuid = 3234567890123456;
         $frequency = PostSubscriptionFrequencyEnum::ALWAYS;
 
         $postSubscription = new PostSubscription(
@@ -184,8 +184,8 @@ class PostNotificationDispatchHelperSpec extends ObjectBehavior
 
     public function it_should_not_allow_a_post_that_is_older_than_24_hours_old(Entity $forActivity)
     {
-        $userGuid = Guid::build();
-        $entityGuid = Guid::build();
+        $userGuid = 2234567890123456;
+        $entityGuid = 3234567890123456;
         $frequency = PostSubscriptionFrequencyEnum::ALWAYS;
 
         $postSubscription = new PostSubscription(

@@ -334,7 +334,7 @@ class MessageServiceSpec extends ObjectBehavior
     public function it_should_submit_a_read_receipt_when_sending_a_message(
         User $userMock
     ) {
-        $roomGuid = (int) Guid::build();
+        $roomGuid = 1234567890123456;
         $chatRoom = $this->generateChatRoomMock(guid: $roomGuid);
         $listItemMock = $this->generateChatRoomListItemMock(
             $chatRoom

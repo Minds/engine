@@ -1139,7 +1139,7 @@ class ManagerSpec extends ObjectBehavior
         User $user,
         Boost $boost
     ): void {
-        $boostOwnerGuid = Guid::build();
+        $boostOwnerGuid = 1234567890123456;
         $userGuid = $boostOwnerGuid;
 
         $user->getGuid()
@@ -1190,7 +1190,7 @@ class ManagerSpec extends ObjectBehavior
         User $user,
         Boost $boost
     ): void {
-        $boostOwnerGuid = Guid::build();
+        $boostOwnerGuid = 1234567890123456;
         $userGuid = $boostOwnerGuid;
 
         $user->getGuid()
@@ -1226,8 +1226,8 @@ class ManagerSpec extends ObjectBehavior
         User $user,
         Boost $boost
     ): void {
-        $boostOwnerGuid = Guid::build();
-        $userGuid = Guid::build();
+        $boostOwnerGuid = 1234567890123456;
+        $userGuid = 2234567890123456;
 
         $user->getGuid()
             ->shouldBeCalled()
@@ -1264,7 +1264,7 @@ class ManagerSpec extends ObjectBehavior
         Boost $boost,
         User $user
     ): void {
-        $boostOwnerGuid = Guid::build();
+        $boostOwnerGuid = 1234567890123456;
         $userGuid = $boostOwnerGuid;
 
         $user->getGuid()
@@ -1296,7 +1296,7 @@ class ManagerSpec extends ObjectBehavior
         Boost $boost,
         User $user
     ): void {
-        $boostOwnerGuid = Guid::build();
+        $boostOwnerGuid = 1234567890123456;
         $userGuid = $boostOwnerGuid;
 
         $user->getGuid()
@@ -1340,7 +1340,7 @@ class ManagerSpec extends ObjectBehavior
         User $user,
         Boost $boost
     ): void {
-        $boostOwnerGuid = Guid::build();
+        $boostOwnerGuid = 1234567890123456;
         $userGuid = $boostOwnerGuid;
 
         $user->getGuid()

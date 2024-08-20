@@ -415,10 +415,10 @@ class RoomServiceSpec extends ObjectBehavior
 
     public function it_should_create_a_group_chat_room(User $userMock, Membership $groupMembershipMock)
     {
-        $userGuid = (int) Guid::build();
+        $userGuid = 1234567890123456;
         $userMock->getGuid()->willReturn($userGuid);
     
-        $groupGuid = (int) Guid::build();
+        $groupGuid = 2234567890123456;
         $group = new Group();
         $group->setName('Group name');
 
@@ -450,7 +450,7 @@ class RoomServiceSpec extends ObjectBehavior
 
     public function it_should_not_create_a_group_chat_room_if_not_owner(User $userMock, Membership $groupMembershipMock)
     {
-        $groupGuid = (int) Guid::build();
+        $groupGuid = 1234567890123456;
         $group = new Group();
 
         $this->roomRepositoryMock->getGroupRooms($groupGuid)
@@ -471,7 +471,7 @@ class RoomServiceSpec extends ObjectBehavior
 
     public function it_should_not_create_a_group_chat_room_if_already_exists(User $userMock, Membership $groupMembershipMock)
     {
-        $groupGuid = (int) Guid::build();
+        $groupGuid = 1234567890123456;
         $group = new Group();
 
         $this->roomRepositoryMock->getGroupRooms($groupGuid)
@@ -1072,7 +1072,7 @@ class RoomServiceSpec extends ObjectBehavior
     public function it_should_delete_chat_room(
         User $userMock
     ): void {
-        $roomGuid = Guid::build();
+        $roomGuid = 1234567890123456;
         $userMock->getGuid()
             ->shouldBeCalled()
             ->willReturn('456');
@@ -1161,7 +1161,7 @@ class RoomServiceSpec extends ObjectBehavior
     public function it_should_throw_exception_when_user_IS_NOT_room_owner_and_try_delete_chat_room(
         User $userMock
     ): void {
-        $roomGuid = Guid::build();
+        $roomGuid = 1234567890123456;
 
         $userMock->getGuid()
             ->shouldBeCalled()
@@ -1364,7 +1364,7 @@ class RoomServiceSpec extends ObjectBehavior
         User $userMock,
         User $memberMock
     ): void {
-        $guid = Guid::build();
+        $guid = 1234567890123456;
         $chatRoomListItemMock = $this->generateChatRoomListItem(
             chatRoom: $this->generateChatRoomMock(guid: $guid),
             lastMessagePlainText: null,
@@ -1564,7 +1564,7 @@ class RoomServiceSpec extends ObjectBehavior
 
     public function it_should_get_rooms_by_group(): void
     {
-        $groupGuid = Guid::build();
+        $groupGuid = 1234567890123456;
 
         $chatRooms = [
             array_fill(
@@ -1586,7 +1586,7 @@ class RoomServiceSpec extends ObjectBehavior
 
     public function it_should_get_rooms_by_group_returning_empty_array_when_none_are_found(): void
     {
-        $groupGuid = Guid::build();
+        $groupGuid = 1234567890123456;
 
         $chatRooms = [];
 
@@ -1602,8 +1602,8 @@ class RoomServiceSpec extends ObjectBehavior
 
     public function it_should_update_room_name(User $userMock): void
     {
-        $roomGuid = Guid::build();
-        $userGuid = Guid::build();
+        $roomGuid = 1234567890123456;
+        $userGuid = 2234567890123456;
         $roomName = 'Room name';
 
         $userMock->getGuid()
@@ -1679,8 +1679,8 @@ class RoomServiceSpec extends ObjectBehavior
 
     public function it_should_not_update_room_name_when_not_the_owner(User $userMock): void
     {
-        $roomGuid = Guid::build();
-        $userGuid = Guid::build();
+        $roomGuid = 1234567890123456;
+        $userGuid = 2234567890123456;
         $roomName = 'Room name';
 
         $userMock->getGuid()
@@ -1754,8 +1754,8 @@ class RoomServiceSpec extends ObjectBehavior
 
     public function it_should_not_update_room_name_when_room_name_too_long(User $userMock): void
     {
-        $roomGuid = Guid::build();
-        $userGuid = Guid::build();
+        $roomGuid = 1234567890123456;
+        $userGuid = 2234567890123456;
         $roomName = str_repeat('a', 129);
 
         $userMock->getGuid()
@@ -1834,9 +1834,9 @@ class RoomServiceSpec extends ObjectBehavior
         User $memberMock1,
         User $memberMock2
     ): void {
-        $roomGuid = (int) Guid::build();
-        $memberGuids = [Guid::build(), Guid::build()];
-        $userGuid = (int) Guid::build();
+        $roomGuid = 1234567890123456;
+        $memberGuids = [2234567890123456, 3234567890123456];
+        $userGuid = 4234567890123456;
         $roomType = ChatRoomTypeEnum::MULTI_USER;
         $isUserRoomMember = true;
 
@@ -2004,9 +2004,9 @@ class RoomServiceSpec extends ObjectBehavior
     public function it_should_not_add_room_members_when_a_room_is_not_multi_user(
         User $userMock
     ): void {
-        $roomGuid = (int) Guid::build();
-        $memberGuids = [Guid::build(), Guid::build()];
-        $userGuid = (int) Guid::build();
+        $roomGuid = 1234567890123456;
+        $memberGuids = [2234567890123456, 3234567890123456];
+        $userGuid = 4234567890123456;
         $roomType = ChatRoomTypeEnum::ONE_TO_ONE;
         $isUserRoomMember = true;
 
