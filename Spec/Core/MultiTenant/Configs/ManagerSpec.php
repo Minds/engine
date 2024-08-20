@@ -125,6 +125,7 @@ class ManagerSpec extends ObjectBehavior
         $walledGardenEnabled = true;
         $digestEmailEnabled = true;
         $welcomeEmailEnabled = true;
+        $isNonProfit = true;
 
         $this->config->get('tenant_id')
             ->shouldBeCalled()
@@ -144,6 +145,7 @@ class ManagerSpec extends ObjectBehavior
             $walledGardenEnabled,
             $digestEmailEnabled,
             $welcomeEmailEnabled,
+            $isNonProfit,
             $lastCacheTimestamp
         )
             ->shouldBeCalled()
@@ -169,6 +171,7 @@ class ManagerSpec extends ObjectBehavior
             $walledGardenEnabled,
             $digestEmailEnabled,
             $welcomeEmailEnabled,
+            $isNonProfit,
             $lastCacheTimestamp
         )->shouldBe($result);
     }
@@ -189,6 +192,7 @@ class ManagerSpec extends ObjectBehavior
         $walledGardenEnabled = true;
         $digestEmailEnabled = true;
         $welcomeEmailEnabled = true;
+        $isNonProfit = true;
         $lastCacheTimestamp = time();
 
         $this->config->get('tenant_id')
@@ -209,6 +213,7 @@ class ManagerSpec extends ObjectBehavior
             walledGardenEnabled: $walledGardenEnabled,
             digestEmailEnabled: $digestEmailEnabled,
             welcomeEmailEnabled: $welcomeEmailEnabled,
+            isNonProfit: $isNonProfit,
             lastCacheTimestamp: $lastCacheTimestamp
         )
             ->shouldBeCalled()
@@ -233,6 +238,7 @@ class ManagerSpec extends ObjectBehavior
             $walledGardenEnabled,
             $digestEmailEnabled,
             $welcomeEmailEnabled,
+            $isNonProfit,
             $lastCacheTimestamp
         )->shouldBe($result);
     }

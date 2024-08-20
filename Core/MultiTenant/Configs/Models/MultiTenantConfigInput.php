@@ -28,6 +28,7 @@ class MultiTenantConfigInput
         #[Field] public readonly ?bool $walledGardenEnabled = null,
         #[Field] public readonly ?bool $digestEmailEnabled = null,
         #[Field] public readonly ?bool $welcomeEmailEnabled = null,
+        #[Field] public readonly ?bool $isNonProfit = false
     ) {
     }
 }
