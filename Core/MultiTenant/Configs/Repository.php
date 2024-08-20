@@ -60,6 +60,7 @@ class Repository extends AbstractRepository
             welcomeEmailEnabled: $row['welcome_email_enabled'] !== 0,
             loggedInLandingPageIdWeb: $row['logged_in_landing_page_id_web'] ?? null,
             loggedInLandingPageIdMobile: $row['logged_in_landing_page_id_mobile'] ?? null,
+            isNonProfit: (bool) $row['is_non_profit'] ?? false,
             bloomerangApiKey: $row['bloomerang_api_key'] ?? null,
             lastCacheTimestamp: isset($row['last_cache_timestamp']) ? strtotime($row['last_cache_timestamp']) : null,
             updatedTimestamp: isset($row['updated_timestamp']) ? strtotime($row['updated_timestamp']) : null
@@ -84,6 +85,7 @@ class Repository extends AbstractRepository
      * @param ?bool $welcomeEmailEnabled - whether welcome email is enabled.
      * @param ?string $loggedInLandingPageIdWeb - logged in landing page ID for web.
      * @param ?string $loggedInLandingPageIdMobile - logged in landing page ID for mobile.
+     * @param ?bool $isNonProfit - whether the tenant is a non-profit.
      * @param ?int $lastCacheTimestamp - timestamp of last caching.
      * @return bool - true on success.
      */
@@ -103,6 +105,7 @@ class Repository extends AbstractRepository
         ?bool $welcomeEmailEnabled = null,
         ?string $loggedInLandingPageIdWeb = null,
         ?string $loggedInLandingPageIdMobile = null,
+        ?bool $isNonProfit = null,
         ?int $lastCacheTimestamp = null
     ): bool {
         $boundValues = ['tenant_id' => $tenantId];
@@ -182,6 +185,11 @@ class Repository extends AbstractRepository
         if ($loggedInLandingPageIdMobile !== null) {
             $rawValues['logged_in_landing_page_id_mobile'] = new RawExp(':logged_in_landing_page_id_mobile');
             $boundValues['logged_in_landing_page_id_mobile'] = $loggedInLandingPageIdMobile;
+        }
+
+        if ($isNonProfit !== null) {
+            $rawValues['is_non_profit'] = new RawExp(':is_non_profit');
+            $boundValues['is_non_profit'] = $isNonProfit;
         }
 
         $query = $this->mysqlClientWriterHandler

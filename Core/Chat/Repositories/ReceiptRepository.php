@@ -3,6 +3,7 @@
 namespace Minds\Core\Chat\Repositories;
 
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Enums\ChatRoomNotificationStatusEnum;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Di\Di;
 use Minds\Exceptions\ServerErrorException;
@@ -91,11 +92,13 @@ class ReceiptRepository extends AbstractRepository
      * Gets a list of the guids of users who have unread messages, along with their unread message count.
      * @param array $memberStatuses - The statuses of the members to include in the query.
      * @param int|null $createdAfterTimestamp - Only include messages created after this timestamp.
+     * @param array $excludeRoomsWithNotificationStatus - Exclude rooms with the given status.
      * @return array - An array of associative arrays with the keys 'user_guid', 'unread_count'.
      */
     public function getAllUsersWithUnreadMessages(
         array $memberStatuses = [ ChatRoomMemberStatusEnum::ACTIVE, ChatRoomMemberStatusEnum::INVITE_PENDING ],
-        int $createdAfterTimestamp = null
+        int $createdAfterTimestamp = null,
+        array $excludeRoomsWithNotificationStatus = [ ChatRoomNotificationStatusEnum::MUTED ]
     ): array {
         $values = [ 'tenant_id' => $this->getTenantId() ];
 
@@ -134,6 +137,17 @@ class ReceiptRepository extends AbstractRepository
         if ($createdAfterTimestamp) {
             $query->where('msg.created_timestamp', Operator::GT, new RawExp(':last_message_created_after_timestamp'));
             $values['last_message_created_after_timestamp'] = date('c', $createdAfterTimestamp ?: 0);
+        }
+
+        if ($excludeRoomsWithNotificationStatus && count($excludeRoomsWithNotificationStatus)) {
+            $query->leftJoinRaw(
+                new RawExp(RoomRepository::ROOM_MEMBER_SETTINGS_TABLE_NAME . ' as mset'),
+                'm.room_guid = mset.room_guid AND m.member_guid = mset.member_guid AND m.tenant_id = mset.tenant_id',
+            )->where(
+                'mset.notifications_status',
+                Operator::NOT_IN,
+                array_map(fn ($status) => $status->name, $excludeRoomsWithNotificationStatus)
+            );
         }
 
         $stmt = $query->prepare();

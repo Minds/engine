@@ -268,6 +268,8 @@ class Event
                 'entity_type',
                 'entity_subtype',
                 'entity_owner_guid',
+                'entity_container_guid',
+                'entity_access_id',
                 'comment_guid',
         ], true), ARRAY_FILTER_USE_KEY);
     

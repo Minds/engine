@@ -34,7 +34,7 @@ class MetricsDelegate
             // Submit to events engine
             $event = new Event();
             $event->setType('action')
-                ->setAction('remind')
+                ->setAction($activity->isQuotedPost() ? 'quote' : 'remind')
                 ->setProduct('platform')
                 ->setUserGuid((string) $activity->getOwnerGuid())
                 ->setUserPhoneNumberHash(Core\Session::getLoggedInUser()?->getPhoneNumberHash())
@@ -42,7 +42,8 @@ class MetricsDelegate
                 ->setEntityContainerGuid((string) $remind->getContainerGuid())
                 ->setEntityType($remind->getType())
                 ->setEntitySubtype((string) $remind->getSubtype())
-                ->setEntityOwnerGuid((string) $remind->getOwnerGuid());
+                ->setEntityOwnerGuid((string) $remind->getOwnerGuid())
+                ->setEntityAccessId($remind->getAccessId());
 
             if (!$activity->getSupermind()) {
                 $event->setClientMeta($activity->getClientMeta());
@@ -106,6 +107,9 @@ class MetricsDelegate
             ->setEntityGuid($activity->getGuid())
             ->setEntityType($activity->getType())
             ->setEntitySubtype($activity->getSubtype())
+            ->setEntityContainerGuid($activity->getContainerGuid())
+            ->setEntityOwnerGuid($activity->getOwnerGuid())
+            ->setEntityAccessId($activity->getAccessId())
             ->push();
     }
 }

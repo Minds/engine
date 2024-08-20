@@ -24,7 +24,10 @@ class ProductPriceService
     public function getPriceDetailsByLookupKey(
         string $lookUpKey
     ): ?Price {
-        if ($price = $this->cache->get("product_price_$lookUpKey")) {
+
+        $cacheKey = $this->buildCacheKey("product_price_$lookUpKey");
+
+        if ($price = $this->cache->get($cacheKey)) {
             return unserialize($price);
         }
 
@@ -43,7 +46,7 @@ class ProductPriceService
 
             $price = $results->first();
 
-            $this->cache->set("product_price_$lookUpKey", serialize($price), self::CACHE_TTL);
+            $this->cache->set($cacheKey, serialize($price), self::CACHE_TTL);
 
             return $price;
         } catch (Exception $e) {
@@ -59,7 +62,9 @@ class ProductPriceService
      */
     public function getPriceDetailsById(string $priceId): ?Price
     {
-        if ($price = $this->cache->get("product_price_$priceId")) {
+        $cacheKey = "product_price_$priceId";
+
+        if ($price = $this->cache->get($cacheKey)) {
             return unserialize($price);
         }
 
@@ -68,7 +73,7 @@ class ProductPriceService
                 ->prices
                 ->retrieve($priceId);
 
-            $this->cache->set("product_price_$priceId", serialize($price), self::CACHE_TTL);
+            $this->cache->set($cacheKey, serialize($price), self::CACHE_TTL);
 
             return $price;
         } catch (Exception $e) {
@@ -84,7 +89,9 @@ class ProductPriceService
      */
     public function getPricesByProduct(string $productId): SearchResult
     {
-        if ($prices = $this->cache->get("product_prices_$productId")) {
+        $cacheKey = "product_prices_$productId";
+
+        if ($prices = $this->cache->get($cacheKey)) {
             return unserialize($prices);
         }
         try {
@@ -100,11 +107,16 @@ class ProductPriceService
                 throw new NotFoundException('No prices found for product');
             }
 
-            $this->cache->set("product_prices_$productId", serialize($prices), self::CACHE_TTL);
+            $this->cache->set($cacheKey, serialize($prices), self::CACHE_TTL);
 
             return $prices;
         } catch (Exception $e) {
             throw new ServerErrorException($e->getMessage(), $e->getCode(), $e);
         }
+    }
+
+    private function buildCacheKey(string $key): string
+    {
+        return $this->stripeClient->getApiKeyHash() . '::' . $key;
     }
 }

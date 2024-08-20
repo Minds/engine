@@ -138,6 +138,7 @@ class RoomRepository extends AbstractRepository
      * @param int|null $roomGuid
      * @param int|null $activeSinceTimestamp - only include rooms that have been active since this timestamp.
      * @param bool|null $unreadOnly - only include rooms with unread messages.
+     * @param array|null $excludeNotificationStatus - exclude rooms with the given notification status.
      * @return array{chatRooms: ChatRoomListItem[], hasMore: bool}
      * @throws ServerErrorException
      */
@@ -149,7 +150,8 @@ class RoomRepository extends AbstractRepository
         ?int         $roomCreatedAtTimestamp = null,
         ?int         $roomGuid = null,
         ?int         $activeSinceTimestamp = null,
-        ?bool        $unreadOnly = false
+        ?bool        $unreadOnly = false,
+        ?array       $excludeNotificationStatus = null
     ): array {
         $targetMemberStatuses = $targetMemberStatuses ?? [ChatRoomMemberStatusEnum::ACTIVE->name];
 
@@ -270,6 +272,17 @@ class RoomRepository extends AbstractRepository
             $optionalValues = [
                 'created_timestamp' => date('c', $roomCreatedAtTimestamp),
             ];
+        }
+
+        if ($excludeNotificationStatus && count($excludeNotificationStatus)) {
+            $stmt->leftJoinRaw(
+                new RawExp(RoomRepository::ROOM_MEMBER_SETTINGS_TABLE_NAME . ' as mset'),
+                'r.room_guid = mset.room_guid AND m.member_guid = mset.member_guid AND r.tenant_id = mset.tenant_id',
+            )->where(
+                'mset.notifications_status',
+                Operator::NOT_IN,
+                array_map(fn ($status) => $status->name, $excludeNotificationStatus)
+            );
         }
 
         if ($unreadOnly) {

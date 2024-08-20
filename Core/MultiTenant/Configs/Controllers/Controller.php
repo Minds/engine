@@ -64,7 +64,8 @@ class Controller
             digestEmailEnabled: $multiTenantConfigInput->digestEmailEnabled,
             welcomeEmailEnabled: $multiTenantConfigInput->welcomeEmailEnabled,
             loggedInLandingPageIdWeb: $multiTenantConfigInput->loggedInLandingPageIdWeb,
-            loggedInLandingPageIdMobile: $multiTenantConfigInput->loggedInLandingPageIdMobile
+            loggedInLandingPageIdMobile: $multiTenantConfigInput->loggedInLandingPageIdMobile,
+            isNonProfit: $multiTenantConfigInput->isNonProfit,
         );
     }
 }

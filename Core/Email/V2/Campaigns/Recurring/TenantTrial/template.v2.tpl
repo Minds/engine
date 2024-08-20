@@ -1,12 +1,12 @@
 <!--HEADER TEXT-->
 <h1 <?= $emailStylesV2->getStyles(['m-mainContent__h1']) ?>>
-Your trial is ready
+<?= $vars['preheader']; ?>
 </h1>
 
 <!--BODY TEXT-->
 
 <p <?= $emailStylesV2->getStyles(['m-mainContent__paragraph']) ?> >
-Your Minds Networks trial is ready to go! Click the button below to go to your network and use the username & password below to log in.
+Your Minds Network is ready to go! Click the button below to go to your network and use the username & password below to log in.
 </p>
 
 <p <?= $emailStylesV2->getStyles(['m-mainContent__paragraph']) ?> >

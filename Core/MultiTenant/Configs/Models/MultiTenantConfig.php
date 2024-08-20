@@ -33,6 +33,7 @@ class MultiTenantConfig
         #[Field] public readonly ?bool $welcomeEmailEnabled = true,
         #[Field] public readonly ?string $loggedInLandingPageIdWeb = null,
         #[Field] public readonly ?string $loggedInLandingPageIdMobile = null,
+        #[Field] public readonly ?bool $isNonProfit = false,
         public readonly ?string $bloomerangApiKey = null,
         #[Field] public readonly ?int $updatedTimestamp = null,
         #[Field] public readonly ?int $lastCacheTimestamp = null

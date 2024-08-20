@@ -127,6 +127,7 @@ class ManagerSpec extends ObjectBehavior
         $welcomeEmailEnabled = true;
         $loggedInLandingPageIdWeb = 'newsfeed';
         $loggedInLandingPageIdMobile = 'explore';
+        $isNonProfit = true;
 
         $this->config->get('tenant_id')
             ->shouldBeCalled()
@@ -148,6 +149,7 @@ class ManagerSpec extends ObjectBehavior
             $welcomeEmailEnabled,
             $loggedInLandingPageIdWeb,
             $loggedInLandingPageIdMobile,
+            $isNonProfit,
             $lastCacheTimestamp
         )
             ->shouldBeCalled()
@@ -175,6 +177,7 @@ class ManagerSpec extends ObjectBehavior
             $welcomeEmailEnabled,
             $loggedInLandingPageIdWeb,
             $loggedInLandingPageIdMobile,
+            $isNonProfit,
             $lastCacheTimestamp
         )->shouldBe($result);
     }
@@ -198,6 +201,7 @@ class ManagerSpec extends ObjectBehavior
         $loggedInLandingPageIdWeb = 'newsfeed';
         $loggedInLandingPageIdMobile = 'explore';
         $welcomeEmailEnabled = true;
+        $isNonProfit = true;
         $lastCacheTimestamp = time();
 
         $this->config->get('tenant_id')
@@ -220,6 +224,7 @@ class ManagerSpec extends ObjectBehavior
             welcomeEmailEnabled: $welcomeEmailEnabled,
             loggedInLandingPageIdWeb: $loggedInLandingPageIdWeb,
             loggedInLandingPageIdMobile: $loggedInLandingPageIdMobile,
+            isNonProfit: $isNonProfit,
             lastCacheTimestamp: $lastCacheTimestamp
         )
             ->shouldBeCalled()
@@ -246,6 +251,7 @@ class ManagerSpec extends ObjectBehavior
             $welcomeEmailEnabled,
             $loggedInLandingPageIdWeb,
             $loggedInLandingPageIdMobile,
+            $isNonProfit,
             $lastCacheTimestamp
         )->shouldBe($result);
     }
