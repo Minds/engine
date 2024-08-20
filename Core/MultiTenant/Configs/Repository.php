@@ -58,6 +58,8 @@ class Repository extends AbstractRepository
             walledGardenEnabled: (bool) $row['walled_garden_enabled'] ?? false,
             digestEmailEnabled: (bool) $row['digest_email_enabled'] !== 0,
             welcomeEmailEnabled: $row['welcome_email_enabled'] !== 0,
+            loggedInLandingPageIdWeb: $row['logged_in_landing_page_id_web'] ?? null,
+            loggedInLandingPageIdMobile: $row['logged_in_landing_page_id_mobile'] ?? null,
             isNonProfit: (bool) $row['is_non_profit'] ?? false,
             bloomerangApiKey: $row['bloomerang_api_key'] ?? null,
             lastCacheTimestamp: isset($row['last_cache_timestamp']) ? strtotime($row['last_cache_timestamp']) : null,
@@ -81,6 +83,8 @@ class Repository extends AbstractRepository
      * @param ?bool $walledGardenEnabled - whether wallet garden mode is enabled.
      * @param ?bool $digestEmailEnabled - whether digest email is enabled.
      * @param ?bool $welcomeEmailEnabled - whether welcome email is enabled.
+     * @param ?string $loggedInLandingPageIdWeb - logged in landing page ID for web.
+     * @param ?string $loggedInLandingPageIdMobile - logged in landing page ID for mobile.
      * @param ?bool $isNonProfit - whether the tenant is a non-profit.
      * @param ?int $lastCacheTimestamp - timestamp of last caching.
      * @return bool - true on success.
@@ -99,6 +103,8 @@ class Repository extends AbstractRepository
         ?bool $walledGardenEnabled = null,
         ?bool $digestEmailEnabled = null,
         ?bool $welcomeEmailEnabled = null,
+        ?string $loggedInLandingPageIdWeb = null,
+        ?string $loggedInLandingPageIdMobile = null,
         ?bool $isNonProfit = null,
         ?int $lastCacheTimestamp = null
     ): bool {
@@ -169,6 +175,16 @@ class Repository extends AbstractRepository
         if ($welcomeEmailEnabled !== null) {
             $rawValues['welcome_email_enabled'] = new RawExp(':welcome_email_enabled');
             $boundValues['welcome_email_enabled'] = $welcomeEmailEnabled;
+        }
+
+        if ($loggedInLandingPageIdWeb !== null) {
+            $rawValues['logged_in_landing_page_id_web'] = new RawExp(':logged_in_landing_page_id_web');
+            $boundValues['logged_in_landing_page_id_web'] = $loggedInLandingPageIdWeb;
+        }
+
+        if ($loggedInLandingPageIdMobile !== null) {
+            $rawValues['logged_in_landing_page_id_mobile'] = new RawExp(':logged_in_landing_page_id_mobile');
+            $boundValues['logged_in_landing_page_id_mobile'] = $loggedInLandingPageIdMobile;
         }
 
         if ($isNonProfit !== null) {
