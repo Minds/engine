@@ -325,6 +325,7 @@ class RoomService
      * Gets a list of chat rooms with unread messages.
      * @param User $user - The user.
      * @param array $targetMemberStatuses - The target member statuses.
+     * @param array|null $excludeNotificationStatus - Room notification statuses to exclude.
      * @param int $limit - The limit.
      * @param int|null $activeSinceTimestamp - Threshold for rooms to return.
      * @return array
@@ -332,6 +333,7 @@ class RoomService
     public function getUnreadChatRooms(
         User $user,
         array $targetMemberStatuses = [ChatRoomMemberStatusEnum::ACTIVE, ChatRoomMemberStatusEnum::INVITE_PENDING],
+        ?array $excludeNotificationStatus = [ ChatRoomNotificationStatusEnum::MUTED ],
         int $limit = 12,
         int $activeSinceTimestamp = null
     ): array {
@@ -340,7 +342,8 @@ class RoomService
             targetMemberStatuses: array_map(fn ($status) => $status->name, $targetMemberStatuses),
             limit: $limit,
             activeSinceTimestamp: $activeSinceTimestamp,
-            unreadOnly: true
+            unreadOnly: true,
+            excludeNotificationStatus: $excludeNotificationStatus
         );
 
         if (!$chatRooms || !count($chatRooms)) {

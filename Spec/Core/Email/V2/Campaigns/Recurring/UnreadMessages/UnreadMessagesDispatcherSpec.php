@@ -3,6 +3,7 @@
 namespace Spec\Minds\Core\Email\V2\Campaigns\Recurring\UnreadMessages;
 
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Enums\ChatRoomNotificationStatusEnum;
 use Minds\Core\Chat\Repositories\ReceiptRepository;
 use Minds\Core\Email\V2\Campaigns\Recurring\UnreadMessages\UnreadMessages;
 use Minds\Entities\User;
@@ -69,7 +70,8 @@ class UnreadMessagesDispatcherSpec extends ObjectBehavior
 
         $this->receiptRepositoryMock->getAllUsersWithUnreadMessages(
             memberStatuses: [ ChatRoomMemberStatusEnum::ACTIVE, ChatRoomMemberStatusEnum::INVITE_PENDING ],
-            createdAfterTimestamp: $createdAfterTimestamp
+            createdAfterTimestamp: $createdAfterTimestamp,
+            excludeRoomsWithNotificationStatus: [ ChatRoomNotificationStatusEnum::MUTED ]
         )
             ->shouldBeCalled()
             ->willReturn([

@@ -5,6 +5,7 @@ namespace Minds\Core\Email\V2\Partials\UnreadMessages;
 
 use Minds\Core\Chat\Entities\ChatRoomListItem;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Enums\ChatRoomNotificationStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Services\RoomService;
 use Minds\Core\Config\Config;
@@ -70,6 +71,7 @@ class UnreadMessagesPartial extends Template
 
             $unreadChatRoomListItems = $this->chatRoomService->getUnreadChatRooms(
                 user: $this->user,
+                excludeNotificationStatus: [ChatRoomNotificationStatusEnum::MUTED],
                 limit: 12,
                 activeSinceTimestamp: $this->createdAfterTimestamp ?? strtotime('-24 hour')
             );
