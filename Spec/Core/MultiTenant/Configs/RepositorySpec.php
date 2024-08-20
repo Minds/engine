@@ -67,6 +67,8 @@ class RepositorySpec extends ObjectBehavior
         $walledGardenEnabled = true;
         $digestEmailEnabled = true;
         $welcomeEmailEnabled = true;
+        $loggedInLandingPageIdWeb = 'newsfeed';
+        $loggedInLandingPageIdMobile = 'explore';
         $isNonProfit = true;
         $updatedTimestamp = date('c', time());
 
@@ -97,6 +99,8 @@ class RepositorySpec extends ObjectBehavior
                 'walled_garden_enabled' => $walledGardenEnabled,
                 'digest_email_enabled' => $digestEmailEnabled,
                 'welcome_email_enabled' => $welcomeEmailEnabled,
+                'logged_in_landing_page_id_web' => $loggedInLandingPageIdWeb,
+                'logged_in_landing_page_id_mobile' => $loggedInLandingPageIdMobile,
                 'is_non_profit' => $isNonProfit,
                 'updated_timestamp' => $updatedTimestamp,
             ]);
@@ -115,6 +119,8 @@ class RepositorySpec extends ObjectBehavior
             walledGardenEnabled: $walledGardenEnabled,
             digestEmailEnabled: $digestEmailEnabled,
             welcomeEmailEnabled: $welcomeEmailEnabled,
+            loggedInLandingPageIdWeb: $loggedInLandingPageIdWeb,
+            loggedInLandingPageIdMobile: $loggedInLandingPageIdMobile,
             isNonProfit: $isNonProfit,
             updatedTimestamp: strtotime($updatedTimestamp)
         ));
@@ -158,6 +164,8 @@ class RepositorySpec extends ObjectBehavior
         $walledGardenEnabled = true;
         $digestEmailEnabled = true;
         $welcomeEmailEnabled = true;
+        $loggedInLandingPageIdWeb = 'newsfeed';
+        $loggedInLandingPageIdMobile = 'explore';
         $isNonProfit = true;
 
         $this->mysqlMasterMock->prepare(Argument::any())
@@ -176,6 +184,8 @@ class RepositorySpec extends ObjectBehavior
             'walled_garden_enabled' => $walledGardenEnabled,
             'digest_email_enabled' => $digestEmailEnabled,
             'welcome_email_enabled' => $welcomeEmailEnabled,
+            'logged_in_landing_page_id_web' => $loggedInLandingPageIdWeb,
+            'logged_in_landing_page_id_mobile' => $loggedInLandingPageIdMobile,
             'is_non_profit' => $isNonProfit,
         ])->shouldBeCalled();
 
@@ -196,6 +206,8 @@ class RepositorySpec extends ObjectBehavior
             walledGardenEnabled: $walledGardenEnabled,
             digestEmailEnabled: $digestEmailEnabled,
             welcomeEmailEnabled: $welcomeEmailEnabled,
+            loggedInLandingPageIdWeb: $loggedInLandingPageIdWeb,
+            loggedInLandingPageIdMobile: $loggedInLandingPageIdMobile,
             isNonProfit: $isNonProfit
         )->shouldBe(true);
     }

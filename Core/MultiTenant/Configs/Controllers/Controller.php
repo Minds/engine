@@ -63,6 +63,8 @@ class Controller
             walledGardenEnabled: $multiTenantConfigInput->walledGardenEnabled,
             digestEmailEnabled: $multiTenantConfigInput->digestEmailEnabled,
             welcomeEmailEnabled: $multiTenantConfigInput->welcomeEmailEnabled,
+            loggedInLandingPageIdWeb: $multiTenantConfigInput->loggedInLandingPageIdWeb,
+            loggedInLandingPageIdMobile: $multiTenantConfigInput->loggedInLandingPageIdMobile,
             isNonProfit: $multiTenantConfigInput->isNonProfit,
         );
     }
