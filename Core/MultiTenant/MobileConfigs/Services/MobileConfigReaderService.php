@@ -58,7 +58,8 @@ class MobileConfigReaderService
             appIosBundle: $mobileConfig->appIosBundle,
             appAndroidPackage: $mobileConfig->appAndroidPackage,
             appTrackingMessageEnabled: $mobileConfig->appTrackingMessageEnabled,
-            appTrackingMessage: $mobileConfig->appTrackingMessage
+            appTrackingMessage: $mobileConfig->appTrackingMessage,
+            isNonProfit: $tenant?->config?->isNonProfit ?? false,
         );
 
         $this->multiTenantBootService->resetRootConfigs();

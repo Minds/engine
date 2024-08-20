@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Email\V2\Campaigns\Recurring\UnreadMessages;
 
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Enums\ChatRoomNotificationStatusEnum;
 use Minds\Core\Chat\Repositories\ReceiptRepository;
 use Minds\Core\Email\V2\Campaigns\Recurring\UnreadMessages\UnreadMessages;
 use Minds\Core\EntitiesBuilder;
@@ -41,6 +42,7 @@ class UnreadMessagesDispatcher
         
         $unreadCountData = $this->receiptRepository->getAllUsersWithUnreadMessages(
             memberStatuses: [ ChatRoomMemberStatusEnum::ACTIVE, ChatRoomMemberStatusEnum::INVITE_PENDING ],
+            excludeRoomsWithNotificationStatus: [ ChatRoomNotificationStatusEnum::MUTED ],
             createdAfterTimestamp: $createdAfterTimestamp
         );
 

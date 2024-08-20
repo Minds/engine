@@ -1135,6 +1135,14 @@ ALTER TABLE `minds_tenant_configs`
     ADD welcome_email_enabled boolean DEFAULT TRUE
     AFTER digest_email_enabled;
 
+ALTER TABLE `minds_tenant_configs`
+    ADD logged_in_landing_page_id_web varchar(64)
+    AFTER welcome_email_enabled;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD logged_in_landing_page_id_mobile varchar(64)
+    AFTER logged_in_landing_page_id_web;
+
 ALTER TABLE minds_tenant_mobile_configs
     ADD COLUMN app_tracking_message_enabled boolean DEFAULT false
     AFTER update_timestamp;
@@ -1167,3 +1175,7 @@ ALTER TABLE minds_entities_user
 ADD CONSTRAINT fk_minds_entities_user
 FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
 ON DELETE CASCADE;
+
+ALTER TABLE minds_tenant_configs
+    ADD COLUMN is_non_profit boolean DEFAULT FALSE
+    AFTER welcome_email_enabled;
