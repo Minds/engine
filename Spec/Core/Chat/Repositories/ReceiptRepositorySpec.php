@@ -3,6 +3,7 @@
 namespace Spec\Minds\Core\Chat\Repositories;
 
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Enums\ChatRoomNotificationStatusEnum;
 use Minds\Core\Chat\Repositories\MessageRepository;
 use Minds\Core\Chat\Repositories\ReceiptRepository;
 use Minds\Core\Chat\Repositories\RoomRepository;

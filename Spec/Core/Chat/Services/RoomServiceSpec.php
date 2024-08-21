@@ -2118,7 +2118,8 @@ class RoomServiceSpec extends ObjectBehavior
             null,
             null,
             $activeSinceTimestamp,
-            true
+            true,
+            null
         )
             ->shouldBeCalled()
             ->willReturn([
@@ -2129,6 +2130,59 @@ class RoomServiceSpec extends ObjectBehavior
         $results = $this->getUnreadChatRooms(
             $userMock,
             $targetMemberStatuses,
+            null,
+            12,
+            $activeSinceTimestamp
+        );
+        $results->shouldBeArray();
+        $results[0]->shouldBeLike($chatRoomListItemMocks[0]);
+        $results[1]->shouldBeLike($chatRoomListItemMocks[1]);
+    }
+
+    public function it_should_get_chat_rooms_while_excluding_specific_notification_status(
+        User $userMock
+    ): void {
+        $activeSinceTimestamp = time();
+        $targetMemberStatuses = [
+            ChatRoomMemberStatusEnum::ACTIVE,
+            ChatRoomMemberStatusEnum::INVITE_PENDING
+        ];
+        $excludeNotificationStatus = [ChatRoomNotificationStatusEnum::MUTED];
+
+        $chatRoomListItemMocks = [
+            $this->generateChatRoomListItem(
+                chatRoom: $this->generateChatRoomMock(),
+                lastMessagePlainText: null,
+                lastMessageCreatedTimestamp: null
+            ),
+            $this->generateChatRoomListItem(
+                chatRoom: $this->generateChatRoomMock(),
+                lastMessagePlainText: null,
+                lastMessageCreatedTimestamp: null
+            )
+        ];
+
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            array_map(fn ($status) => $status->name, $targetMemberStatuses),
+            12,
+            null,
+            null,
+            null,
+            $activeSinceTimestamp,
+            true,
+            $excludeNotificationStatus
+        )
+            ->shouldBeCalled()
+            ->willReturn([
+                'chatRooms' => $chatRoomListItemMocks,
+                'hasMore' => false
+            ]);
+
+        $results = $this->getUnreadChatRooms(
+            $userMock,
+            $targetMemberStatuses,
+            $excludeNotificationStatus,
             12,
             $activeSinceTimestamp
         );
