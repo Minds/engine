@@ -413,13 +413,13 @@ class Controller
         if (isset($payload['time_created'])) {
             $now = time();
             try {
+                // validates and sets timestamp on passed entity.
                 $this->entityTimeCreated->validate(
-                    entity: $activity,
+                    entity: $mutatedActivity->getMutatedEntity(),
                     time_created: $payload['time_created'] ?? $now,
                     time_sent: $now,
                     action: $this->entityTimeCreated::UPDATE_ACTION
                 );
-                $mutatedActivity->setTimeCreated($payload['time_created']);
             } catch (AlreadyPublishedException $e) {
                 // soft fail.
                 $this->logger->warning($e->getMessage());
