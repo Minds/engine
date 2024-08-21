@@ -8,6 +8,7 @@ namespace Minds\Core\Email;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\Email\Controllers\EmailAddressController;
 use Minds\Core\Email\Services\EmailAutoSubscribeService;
 
 class Provider extends DiProvider
@@ -19,6 +20,10 @@ class Provider extends DiProvider
         }, ['useFactory' => true]);
         $this->di->bind('Email\SpamFilter', function ($di) {
             return new SpamFilter();
+        }, ['useFactory' => true]);
+
+        $this->di->bind(EmailAddressController::class, function ($di) {
+            return new EmailAddressController();
         }, ['useFactory' => true]);
 
         $this->di->bind('Email\Manager', function ($di) {
