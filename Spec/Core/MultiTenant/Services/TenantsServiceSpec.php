@@ -92,10 +92,10 @@ class TenantsServiceSpec extends ObjectBehavior
         $this->repositoryMock->createTenant($tenant)->willReturn($tenant);
         $this->tenantConfigRepositoryMock->upsert(
             Argument::type('integer'),
-            Argument::type('string'),
-            Argument::type(MultiTenantColorScheme::class),
-            Argument::type('string'),
-        )->shouldNotBeCalled();
+            null,
+            null,
+            null,
+        )->shouldBeCalledOnce();
 
         $this->createNetwork($tenant)->shouldBe($tenant);
     }
@@ -135,10 +135,10 @@ class TenantsServiceSpec extends ObjectBehavior
         $this->repositoryMock->createTenant($tenant, true)->willReturn($tenant);
         $this->tenantConfigRepositoryMock->upsert(
             Argument::type('integer'),
-            Argument::type('string'),
-            Argument::type(MultiTenantColorScheme::class),
-            Argument::type('string'),
-        )->shouldNotBeCalled();
+            null,
+            null,
+            null,
+        )->shouldBeCalled();
 
         $this->postHogServiceMock->capture(
             'tenant_trial_start',
