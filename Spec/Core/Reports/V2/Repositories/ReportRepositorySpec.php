@@ -214,9 +214,9 @@ class ReportRepositorySpec extends ObjectBehavior
         PDOStatement $pdoStatementMock,
     ) {
         $tenantId = 123;
-        $entityGuid = (int) Guid::build();
-        $entityUrn = 'urn:activity:'.Guid::build();
-        $reportedByGuid = (int) Guid::build();
+        $entityGuid = 1234567890123456;
+        $entityUrn = 'urn:activity:2234567890123456';
+        $reportedByGuid = 3234567890123456;
         $reason = ReportReasonEnum::IMPERSONATION;
         $subReason = null;
 

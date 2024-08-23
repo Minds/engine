@@ -47,7 +47,7 @@ class ForgotPasswordEmailerSpec extends ObjectBehavior
     public function it_should_build_an_email_for_a_non_tenant(
         User $user
     ): void {
-        $userGuid = Guid::build();
+        $userGuid = 1234567890123456;
         $code = '123456';
         $userUsername = 'username';
         $userName = 'User name';
@@ -153,14 +153,14 @@ class ForgotPasswordEmailerSpec extends ObjectBehavior
     public function it_should_build_an_email_for_a_tenant(
         User $user
     ): void {
-        $userGuid = Guid::build();
+        $userGuid = 1234567890123456;
         $code = '123456';
         $userUsername = 'username';
         $userName = 'User name';
         $userEmail = 'no-reply@minds.com';
         $siteName = 'Test site';
         $siteUrl = 'https://test.minds.com/';
-        $tenantId = (int) Guid::build();
+        $tenantId = 123;
         $locale = 'EN';
 
         $user->getEmail()
