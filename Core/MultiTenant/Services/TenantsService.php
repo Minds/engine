@@ -141,29 +141,30 @@ class TenantsService
     }
 
     /**
-     * @param Tenant $tenant
-     * @param TenantPlanEnum $plan
-     * @return Tenant
-     * @throws InvalidArgumentException
+     * When a tenant subscription changes, call this function to update the subscription
+     * and plan info
      */
-    public function upgradeNetworkTrial(
+    public function upgradeTenant(
         Tenant         $tenant,
         TenantPlanEnum $plan,
+        string         $stripeSubscription,
         User           $user,
     ): Tenant {
-        $tenant = $this->repository->upgradeTrialTenant($tenant, $plan);
+        $tenant = $this->repository->upgradeTenant($tenant, $plan, $stripeSubscription);
+        $tenant->plan = $plan;
+        $tenant->stripeSubscription = $stripeSubscription;
 
         $this->multiTenantCacheHandler->resetTenantCache(tenant: $tenant, domainService: $this->domainService);
 
         $this->postHogService->capture(
-            event: 'tenant_trial_upgrade',
+            event: 'tenant_upgrade',
             user: $user,
             properties: [
                 'tenant_id' => $tenant->id,
                 'tenant_plan' => $plan->name,
             ],
             setOnce: [
-                'tenant_trial_converted' => date('c', time()),
+                'tenant_upgrade_converted' => date('c', time()),
             ]
         );
 

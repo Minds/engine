@@ -87,7 +87,7 @@ class CustomerPortalService
                             'enabled' => true,
                         ],
                         'invoice_history' => [
-                            'enabled' => false,
+                            'enabled' => true,
                         ],
                         'payment_method_update' => [
                             'enabled' => true,

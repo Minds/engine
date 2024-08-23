@@ -19,10 +19,11 @@ class Tenant
         #[Field(outputType: 'String')] public readonly ?int $ownerGuid = null,
         #[Field(outputType: 'String')] public readonly ?int $rootUserGuid = null,
         #[Field] public readonly ?MultiTenantConfig         $config = null,
-        #[Field] public readonly TenantPlanEnum             $plan = TenantPlanEnum::TEAM,
+        #[Field] public TenantPlanEnum                      $plan = TenantPlanEnum::TEAM,
         #[Field] public readonly ?int                       $trialStartTimestamp = null,
         #[Field] public ?int                                $suspendedTimestamp = null,
         public ?int                                         $deletedTimestamp = null,
+        public ?string                                      $stripeSubscription = null,
     ) {
     }
 }

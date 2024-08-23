@@ -1,12 +1,16 @@
 <?php
 namespace Minds\Core\MultiTenant\Billing;
 
+use DateTimeImmutable;
+use Minds\Core\Config\Config;
 use Minds\Core\Email\V2\Campaigns\Recurring\TenantTrial\TenantTrialEmailer;
 use Minds\Core\Guid;
 use Minds\Core\MultiTenant\AutoLogin\AutoLoginService;
+use Minds\Core\MultiTenant\Billing\Types\TenantBillingType;
 use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
 use Minds\Core\MultiTenant\Enums\TenantUserRoleEnum;
 use Minds\Core\MultiTenant\Models\Tenant;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\Payments\Stripe\Checkout\Manager as StripeCheckoutManager;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductPriceService as StripeProductPriceService;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
@@ -16,6 +20,7 @@ use Minds\Core\MultiTenant\Services\TenantUsersService;
 use Minds\Core\MultiTenant\Types\TenantUser;
 use Minds\Core\Payments\Checkout\Enums\CheckoutTimePeriodEnum;
 use Minds\Core\Payments\Stripe\Checkout\Enums\CheckoutModeEnum;
+use Minds\Core\Payments\Stripe\CustomerPortal\Services\CustomerPortalService;
 use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Entities\User;
@@ -33,6 +38,9 @@ class BillingService
         private readonly TenantTrialEmailer           $emailService,
         private readonly SubscriptionsService         $stripeSubscriptionsService,
         private readonly AutoLoginService             $autoLoginService,
+        private readonly CustomerPortalService        $customerPortalService,
+        private readonly Config                       $config,
+        private readonly MultiTenantBootService       $multiTenantBootService,
     ) {
     
     }
@@ -41,13 +49,13 @@ class BillingService
      * who is not on Minds.
      */
     public function createExternalCheckoutLink(
-        string $planId,
+        TenantPlanEnum $plan,
         CheckoutTimePeriodEnum $timePeriod,
     ): string {
         // Build out the products and their add ons based on the input
-        $product = $this->stripeProductService->getProductByKey($planId);
+        $product = $this->stripeProductService->getProductByKey('networks:' . strtolower($plan->name));
         $productPrices = $this->stripeProductPriceService->getPricesByProduct($product->id);
-        $productPrice = array_filter(iterator_to_array($productPrices->getIterator()), fn (Price $price) => $price->lookup_key === $planId . ":" . strtolower($timePeriod->name));
+        $productPrice = array_filter(iterator_to_array($productPrices->getIterator()), fn (Price $price) => $price->lookup_key === 'networks:' . strtolower($plan->name) . ":" . strtolower($timePeriod->name));
 
         $lineItems = [
             [
@@ -67,12 +75,74 @@ class BillingService
             ],
             submitMessage: $timePeriod === CheckoutTimePeriodEnum::YEARLY ? "You are agreeing to a 12 month subscription that will be billed monthly." : null,
             metadata: [
-                'tenant_plan' => strtoupper(str_replace('networks:', '', $planId)),
-                'isTrialUpgrade' => 'false',
+                'tenant_plan' => strtoupper($plan->name),
             ],
         );
 
         $checkoutLink = $checkoutSession->url;
+        return $checkoutLink;
+    }
+
+    /**
+     * Returns a stripe checkout link for a tenant admin who is trying to upgrade their network
+     */
+    public function createUpgradeCheckoutLink(
+        TenantPlanEnum $plan,
+        CheckoutTimePeriodEnum $timePeriod,
+        User $loggedInUser,
+    ): string {
+        /** @var Tenant */
+        $tenant = $this->config->get('tenant');
+        $siteUrl = $this->config->get('site_url');
+
+        if (!$tenant) {
+            throw new ForbiddenException("Can only be run on an active tenant");
+        }
+
+        $this->runWithRootConfigs(function () use (&$checkoutLink, $timePeriod, $plan, $tenant, $siteUrl, $loggedInUser) {
+
+            // Does a subscription exist? If so, we can't do anything yet (todo), so redirect to the networks site contact form
+            if ($tenant->stripeSubscription) {
+                $checkoutLink = 'https://networks.minds.com/contact-upgrade?' . http_build_query([
+                    'tenant_id' => $tenant->id,
+                    'plan' => $plan->name,
+                    'period' => $timePeriod->value,
+                    'email' => $loggedInUser->getEmail(),
+                ]);
+                return; // This is the return of the callback, not the class function
+            }
+
+            // Build out the products and their add ons based on the input
+            $product = $this->stripeProductService->getProductByKey('networks:' . strtolower($plan->name));
+            $productPrices = $this->stripeProductPriceService->getPricesByProduct($product->id);
+            $productPrice = array_filter(iterator_to_array($productPrices->getIterator()), fn (Price $price) => $price->lookup_key === 'networks:' . strtolower($plan->name) . ":" . strtolower($timePeriod->name));
+
+            $lineItems = [
+                [
+                    'price' => array_pop($productPrice)->id,
+                    'quantity' => 1,
+                ]
+            ];
+
+            $checkoutSession = $this->stripeCheckoutManager->createSession(
+                mode: CheckoutModeEnum::SUBSCRIPTION,
+                successUrl: "{$siteUrl}api/v3/multi-tenant/billing/upgrade-callback?session_id={CHECKOUT_SESSION_ID}",
+                cancelUrl: "https://networks.minds.com/pricing",
+                lineItems: $lineItems,
+                paymentMethodTypes: [
+                    'card',
+                    'us_bank_account',
+                ],
+                submitMessage: $timePeriod === CheckoutTimePeriodEnum::YEARLY ? "You are agreeing to a 12 month subscription that will be billed monthly." : null,
+                metadata: [
+                    'tenant_id' => $tenant->id,
+                    'tenant_plan' => strtoupper($plan->name),
+                ],
+            );
+
+            $checkoutLink = $checkoutSession->url;
+        });
+
         return $checkoutLink;
     }
 
@@ -122,6 +192,75 @@ class BillingService
     }
 
     /**
+     * Execute when an upgrade checkout session has finished.
+     */
+    public function onSuccessfulUpgradeCheckout(string $checkoutSessionId, User $loggedInUser): string
+    {
+        /** Tenant */
+        $tenant = $this->config->get('tenant');
+
+        $this->runWithRootConfigs(function () use ($checkoutSessionId, $tenant, $loggedInUser) {
+            // Get the checkout session
+            $checkoutSession = $this->stripeCheckoutSessionService->retrieveCheckoutSession($checkoutSessionId);
+
+            // Get the subscription
+            $subscription = $this->stripeSubscriptionsService->retrieveSubscription($checkoutSession->subscription);
+
+            $plan = TenantPlanEnum::fromString($checkoutSession->metadata['tenant_plan']);
+
+            $this->tenantsService->upgradeTenant($tenant, $plan, $subscription->id, $loggedInUser);
+        });
+
+        return $this->config->get('site_url') . 'network/admin/billing';
+    }
+
+    /**
+     * Returns the tenant billing key info for the existing site (active tenant)
+     */
+    public function getTenantBillingOverview(): TenantBillingType
+    {
+        /** @var Tenant */
+        $tenant = $this->config->get('tenant');
+
+        if (!$tenant) {
+            throw new ForbiddenException("Tenant not available");
+        }
+
+        // If the customer doesn't have a stripe subscription, there is no billing
+        // setup yet.
+        if (!$tenant->stripeSubscription) {
+            return new TenantBillingType(
+                plan: $tenant->plan,
+                period: CheckoutTimePeriodEnum::MONTHLY,
+                isActive: false,
+            );
+        }
+
+        $this->runWithRootConfigs(function () use (&$subscription, &$manageUrl, $tenant) {
+            $subscription = $this->stripeSubscriptionsService->retrieveSubscription($tenant->stripeSubscription);
+
+            $manageUrl = $this->customerPortalService->createCustomerPortalSession(
+                stripeCustomerId: $subscription->customer,
+                redirectUrl: $this->config->get('site_url') . 'network/admin/billing'
+            );
+        });
+
+        $amountCents = array_sum(array_map(function ($item) {
+            return $item->plan->amount;
+        }, $subscription->items->data));
+
+        return new TenantBillingType(
+            plan: $tenant->plan,
+            period: $subscription->plan->interval === 'month' ? CheckoutTimePeriodEnum::MONTHLY : CheckoutTimePeriodEnum::YEARLY,
+            isActive: true,
+            manageBillingUrl: $manageUrl,
+            nextBillingAmountCents: $amountCents,
+            nextBillingDate: (new DateTimeImmutable)->setTimestamp($subscription->current_period_end),
+            previousBillingDate: (new DateTimeImmutable)->setTimestamp($subscription->current_period_start)
+        );
+    }
+
+    /**
      * Aephemeral 'fake' account that is never mADE
      */
     protected function createtEphemeralUser(string $email): User
@@ -133,6 +272,10 @@ class BillingService
         return $user;
     }
 
+    /**
+     * Creates the tenant, the root user, and sends an email to the user
+     * about their new site
+     */
     protected function createTenant(TenantPlanEnum $plan, User $user): Tenant
     {
         $tenant = $this->tenantsService->createNetwork(
@@ -168,5 +311,23 @@ class BillingService
  
         return $tenant;
 
+    }
+
+    /**
+     * A helper function to ensure that code is run on the root configs and not on
+     * the tenant configs.
+     */
+    private function runWithRootConfigs(callable $function): void
+    {
+        /** @var Tenant */
+        $tenant = $this->config->get('tenant');
+
+        // Rescope to root, as we need to use the Minds creds, not tenant
+        $this->multiTenantBootService->resetRootConfigs();
+
+        call_user_func($function);
+
+        // Revert back to tenant configs
+        $this->multiTenantBootService->bootFromTenantId($tenant->id);
     }
 }

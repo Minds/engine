@@ -59,8 +59,8 @@ class Manager
         }
 
         $checkoutOptions = [
-            'success_url' => $this->getSiteUrl() . ($successUrl ?? 'api/v3/payments/stripe/checkout/success'),
-            'cancel_url' => $this->getSiteUrl() . ($cancelUrl ?? 'api/v3/payments/stripe/checkout/cancel'),
+            'success_url' => strpos($successUrl, 'http', 0) === 0 ? $successUrl : $this->getSiteUrl() . ($successUrl ?? 'api/v3/payments/stripe/checkout/success'),
+            'cancel_url' => strpos($cancelUrl, 'http', 0) === 0 ? $cancelUrl : $this->getSiteUrl() . ($cancelUrl ?? 'api/v3/payments/stripe/checkout/cancel'),
             'mode' => $mode->value,
             'payment_method_types' => $paymentMethodTypes ?? ['card'], // we can possibly add more in the future,
         ];
