@@ -77,6 +77,10 @@ class ActorFactory
             throw new UserErrorException("Could not connect to $uri");
         }
 
+        if (!is_array($json)) {
+            throw new NotFoundException();
+        }
+
         return $this->fromJson($json);
     }
 
