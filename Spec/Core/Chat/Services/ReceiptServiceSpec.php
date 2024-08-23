@@ -29,9 +29,9 @@ class ReceiptServiceSpec extends ObjectBehavior
 
     public function it_should_update_last_timestamp_for_a_room(User $userMock)
     {
-        $roomGuid = Guid::build();
-        $userGuid = Guid::build();
-        $messageGuid = Guid::build();
+        $roomGuid = 1234567890123456;
+        $userGuid = 2234567890123456;
+        $messageGuid = 3234567890123456;
 
         $messageMock = new ChatMessage(
             roomGuid: $roomGuid,
@@ -54,9 +54,9 @@ class ReceiptServiceSpec extends ObjectBehavior
 
     public function it_should_return_false_if_update_last_timestamp_for_a_room_fails(User $userMock)
     {
-        $roomGuid = Guid::build();
-        $userGuid = Guid::build();
-        $messageGuid = Guid::build();
+        $roomGuid = 1234567890123456;
+        $userGuid = 2234567890123456;
+        $messageGuid = 3234567890123456;
 
         $messageMock = new ChatMessage(
             roomGuid: $roomGuid,
@@ -79,7 +79,7 @@ class ReceiptServiceSpec extends ObjectBehavior
 
     public function it_should_return_a_count_of_all_unread_messages()
     {
-        $userGuid = (int) Guid::build();
+        $userGuid = 1234567890123456;
 
         $user = new User();
         $user->set('guid', $userGuid);

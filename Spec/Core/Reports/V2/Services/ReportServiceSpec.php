@@ -220,14 +220,14 @@ class ReportServiceSpec extends ObjectBehavior
         ReportStatusEnum $status,
         ReportReasonEnum $reason
     ): Report {
-        $entityGuid = Guid::build();
+        $entityGuid = 1234567890123456;
         return new Report(
             tenantId: $tenantId,
-            reportGuid: Guid::build(),
+            reportGuid: 2234567890123456,
             entityGuid: $entityGuid,
             entityUrn: "urn:activity:$entityGuid",
-            reportedByGuid: Guid::build(),
-            moderatedByGuid: Guid::build(),
+            reportedByGuid: 3234567890123456,
+            moderatedByGuid: 4234567890123456,
             createdTimestamp: time(),
             status: $status,
             action: null,

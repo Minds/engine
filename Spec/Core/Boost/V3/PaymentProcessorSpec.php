@@ -72,9 +72,9 @@ class PaymentProcessorSpec extends ObjectBehavior
     ): void {
         $paymentDetails = new PaymentDetails();
         $paymentMethod = 'tk_card';
-        $boostOwnerGuid = Guid::build();
-        $boostGuid = Guid::build();
-        $boostEntityGuid = Guid::build();
+        $boostOwnerGuid = 1234567890123456;
+        $boostGuid = 2234567890123456;
+        $boostEntityGuid = 3234567890123456;
         $boostTargetLocation = BoostTargetLocation::NEWSFEED;
         $userUsername = 'testuser';
         $boostPaymentAmount = 123;

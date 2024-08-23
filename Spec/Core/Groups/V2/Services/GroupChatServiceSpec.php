@@ -61,8 +61,8 @@ class GroupChatServiceSpec extends ObjectBehavior
         User $loggedInUser,
         ChatRoomEdge $chatRoomEdge
     ): void {
-        $groupGuid = Guid::build();
-        $groupOwnerGuid = Guid::build();
+        $groupGuid = 1234567890123456;
+        $groupOwnerGuid = 2234567890123456;
         $loggedInUserGuid = $groupOwnerGuid; // group owner.
         $isConversationAlreadyDisabled = true;
 
@@ -114,9 +114,9 @@ class GroupChatServiceSpec extends ObjectBehavior
         User $loggedInUser,
         ChatRoomEdge $chatRoomEdge
     ): void {
-        $groupGuid = Guid::build();
-        $groupOwnerGuid = Guid::build();
-        $loggedInUserGuid = Guid::build(); // not group owner.
+        $groupGuid = 1234567890123456;
+        $groupOwnerGuid = 2234567890123456;
+        $loggedInUserGuid = 3234567890123456; // not group owner.
 
         $this->entitiesBuilderMock->single($groupGuid)
             ->shouldBeCalled()
@@ -157,8 +157,8 @@ class GroupChatServiceSpec extends ObjectBehavior
         User $loggedInUser,
         ChatRoomEdge $chatRoomEdge
     ): void {
-        $groupGuid = Guid::build();
-        $groupOwnerGuid = Guid::build();
+        $groupGuid = 1234567890123456;
+        $groupOwnerGuid = 2234567890123456;
         $loggedInUserGuid = $groupOwnerGuid; // group owner.
         $isConversationAlreadyDisabled = false;
 
@@ -200,7 +200,7 @@ class GroupChatServiceSpec extends ObjectBehavior
     public function it_should_throw_an_error_when_creating_a_group_chat_room_when_the_group_does_not_exist(
         User $loggedInUser
     ): void {
-        $groupGuid = Guid::build();
+        $groupGuid = 1234567890123456;
 
         $this->entitiesBuilderMock->single($groupGuid)
             ->shouldBeCalled()
@@ -214,7 +214,7 @@ class GroupChatServiceSpec extends ObjectBehavior
         Activity $activity,
         User $loggedInUser
     ): void {
-        $groupGuid = Guid::build();
+        $groupGuid = 1234567890123456;
 
         $this->entitiesBuilderMock->single($groupGuid)
             ->shouldBeCalled()
@@ -230,10 +230,10 @@ class GroupChatServiceSpec extends ObjectBehavior
         Group $group,
         User $loggedInUser,
     ): void {
-        $chatRoom1 = $this->generateChatRoomMock(roomType: ChatRoomTypeEnum::GROUP_OWNED);
-        $chatRoom2 = $this->generateChatRoomMock(roomType: ChatRoomTypeEnum::GROUP_OWNED);
+        $chatRoom1 = $this->generateChatRoomMock(guid: 1234567890123456, roomType: ChatRoomTypeEnum::GROUP_OWNED);
+        $chatRoom2 = $this->generateChatRoomMock(guid: 2234567890123456, roomType: ChatRoomTypeEnum::GROUP_OWNED);
 
-        $groupGuid = Guid::build();
+        $groupGuid = 1234567890123456;
 
         $this->entitiesBuilderMock->single($groupGuid)
             ->shouldBeCalled()
@@ -271,7 +271,7 @@ class GroupChatServiceSpec extends ObjectBehavior
     public function it_should_throw_an_error_when_deleting_group_chat_rooms_when_the_group_does_not_exist(
         User $loggedInUser,
     ): void {
-        $groupGuid = Guid::build();
+        $groupGuid = 1234567890123456;
 
         $this->entitiesBuilderMock->single($groupGuid)
             ->shouldBeCalled()
@@ -291,7 +291,7 @@ class GroupChatServiceSpec extends ObjectBehavior
         Group $group,
         User $loggedInUser,
     ): void {
-        $groupGuid = Guid::build();
+        $groupGuid = 1234567890123456;
 
         $this->entitiesBuilderMock->single($groupGuid)
             ->shouldBeCalled()
