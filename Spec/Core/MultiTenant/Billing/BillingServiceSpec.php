@@ -160,7 +160,7 @@ class BillingServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($checkoutSessionMock);
 
-        $subscriptionMock = new Subscription();
+        $subscriptionMock = new Subscription('sub_test');
         $subscriptionMock->metadata = (object) [
         ];
 

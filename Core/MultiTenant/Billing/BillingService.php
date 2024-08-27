@@ -170,7 +170,7 @@ class BillingService
         $user = $this->createtEphemeralUser($email);
 
         // Create the tenant
-        $tenant = $this->createTenant($plan, $user);
+        $tenant = $this->createTenant($plan, $user, $subscription->id);
 
         // Build an auto login url
         $user->guid = -1;
@@ -278,13 +278,14 @@ class BillingService
      * Creates the tenant, the root user, and sends an email to the user
      * about their new site
      */
-    protected function createTenant(TenantPlanEnum $plan, User $user): Tenant
+    protected function createTenant(TenantPlanEnum $plan, User $user, string $stripeSubscription): Tenant
     {
         $tenant = $this->tenantsService->createNetwork(
             new Tenant(
                 id: -1,
                 ownerGuid: -1,
                 plan: $plan,
+                stripeSubscription: $stripeSubscription,
             )
         );
 
