@@ -236,12 +236,14 @@ class BillingService
             );
         }
 
-        $this->runWithRootConfigs(function () use (&$subscription, &$manageUrl, $tenant) {
+        $backUrl = $this->config->get('site_url') . 'network/admin/billing';
+
+        $this->runWithRootConfigs(function () use (&$subscription, &$manageUrl, $tenant, $backUrl) {
             $subscription = $this->stripeSubscriptionsService->retrieveSubscription($tenant->stripeSubscription);
 
             $manageUrl = $this->customerPortalService->createCustomerPortalSession(
                 stripeCustomerId: $subscription->customer,
-                redirectUrl: $this->config->get('site_url') . 'network/admin/billing'
+                redirectUrl: $backUrl,
             );
         });
 
