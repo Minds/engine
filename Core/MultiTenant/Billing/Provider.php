@@ -8,16 +8,14 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Email\V2\Campaigns\Recurring\TenantTrial\TenantTrialEmailer;
 use Minds\Core\MultiTenant\AutoLogin\AutoLoginService;
-use Minds\Core\MultiTenant\Configs\Manager as MultiTenantConfigManager;
-use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
-use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 use Minds\Core\MultiTenant\Services\TenantsService;
 use Minds\Core\MultiTenant\Services\TenantUsersService;
 use Minds\Core\Payments\Stripe\Checkout\Manager as StripeCheckoutManager;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductPriceService as StripeProductPriceService;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
 use Minds\Core\Payments\Stripe\Checkout\Session\Services\SessionService as StripeCheckoutSessionService;
+use Minds\Core\Payments\Stripe\CustomerPortal\Services\CustomerPortalService;
 use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService;
 
 class Provider extends DiProvider
@@ -35,11 +33,20 @@ class Provider extends DiProvider
                 emailService: new TenantTrialEmailer(),
                 stripeSubscriptionsService: $di->get(SubscriptionsService::class),
                 autoLoginService: $di->get(AutoLoginService::class),
+                customerPortalService: $di->get(CustomerPortalService::class),
+                config: $di->get(Config::class),
+                multiTenantBootService: $di->get(MultiTenantBootService::class),
             );
         });
         
-        $this->di->bind(BillingPsrController::class, function (Di $di) {
-            return new BillingPsrController(
+        $this->di->bind(Controllers\BillingPsrController::class, function (Di $di) {
+            return new Controllers\BillingPsrController(
+                service: $di->get(BillingService::class),
+            );
+        });
+
+        $this->di->bind(Controllers\BillingGqlController::class, function (Di $di) {
+            return new Controllers\BillingGqlController(
                 service: $di->get(BillingService::class),
             );
         });

@@ -205,31 +205,14 @@ class CheckoutService
         $checkoutSession = $this->stripeCheckoutSessionService->retrieveCheckoutSession($stripeCheckoutSessionId);
 
         $plan = TenantPlanEnum::fromString($checkoutSession->metadata['tenant_plan']);
-        $isTrialUpgrade = ($checkoutSession->metadata['isTrialUpgrade'] ?? null) === 'true';
 
-        if ($isTrialUpgrade) {
-            try {
-                $tenant = $this->tenantsService->getTrialNetworkByOwner($user);
-
-                $tenant = $this->tenantsService->upgradeNetworkTrial($tenant, $plan, $user);
-            } catch (NotFoundException $e) {
-                $tenant = $this->tenantsService->createNetwork(
-                    tenant: new Tenant(
-                        id: 0,
-                        ownerGuid: (int)$user->getGuid(),
-                        plan: $plan,
-                    )
-                );
-            }
-        } else {
-            $tenant = $this->tenantsService->createNetwork(
-                tenant: new Tenant(
-                    id: 0,
-                    ownerGuid: (int)$user->getGuid(),
-                    plan: $plan,
-                )
-            );
-        }
+        $tenant = $this->tenantsService->createNetwork(
+            tenant: new Tenant(
+                id: 0,
+                ownerGuid: (int)$user->getGuid(),
+                plan: $plan,
+            )
+        );
 
         $this->stripeSubscriptionsService->updateSubscription(
             subscriptionId: $checkoutSession->subscription,

@@ -1,8 +1,8 @@
 <?php
 
-namespace Spec\Minds\Core\MultiTenant\Billing;
+namespace Spec\Minds\Core\MultiTenant\Billing\Controllers;
 
-use Minds\Core\MultiTenant\Billing\BillingPsrController;
+use Minds\Core\MultiTenant\Billing\Controllers\BillingPsrController;
 use Minds\Core\MultiTenant\Billing\BillingService;
 use PhpSpec\ObjectBehavior;
 
