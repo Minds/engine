@@ -36,6 +36,7 @@ RUN apk add --virtual build-deps \
     # PECL Extensions
     && apk add libgomp \
     imagemagick-libs \
+    imagemagick-webp \
     imagemagick \
     && pecl install redis \
     && pecl install apcu \
