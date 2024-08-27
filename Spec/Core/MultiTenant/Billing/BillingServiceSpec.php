@@ -2,11 +2,13 @@
 
 namespace Spec\Minds\Core\MultiTenant\Billing;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Email\V2\Campaigns\Recurring\TenantTrial\TenantTrialEmailer;
 use Minds\Core\MultiTenant\AutoLogin\AutoLoginService;
 use Minds\Core\MultiTenant\Billing\BillingService;
 use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
 use Minds\Core\MultiTenant\Models\Tenant;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\MultiTenant\Services\TenantsService;
 use Minds\Core\MultiTenant\Services\TenantUsersService;
 use Minds\Core\Payments\Checkout\Enums\CheckoutTimePeriodEnum;
@@ -16,6 +18,7 @@ use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductTypeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductPriceService as StripeProductPriceService;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
 use Minds\Core\Payments\Stripe\Checkout\Session\Services\SessionService as StripeCheckoutSessionService;
+use Minds\Core\Payments\Stripe\CustomerPortal\Services\CustomerPortalService;
 use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Entities\User;
@@ -40,6 +43,9 @@ class BillingServiceSpec extends ObjectBehavior
     private Collaborator $emailServiceMock;
     private Collaborator $stripeSubscriptionsServiceMock;
     private Collaborator $autoLoginServiceMock;
+    private Collaborator $customerPortalServiceMock;
+    private Collaborator $configMock;
+    private Collaborator $multiTenantBootServiceMock;
 
     private ReflectionClass $stripeProductPriceFactoryMock;
 
@@ -53,6 +59,9 @@ class BillingServiceSpec extends ObjectBehavior
         TenantTrialEmailer           $emailServiceMock,
         SubscriptionsService         $stripeSubscriptionsServiceMock,
         AutoLoginService             $autoLoginServiceMock,
+        CustomerPortalService        $customerPortalServiceMock,
+        Config                       $configMock,
+        MultiTenantBootService       $multiTenantBootServiceMock,
     ) {
         $this->beConstructedWith(
             $stripeCheckoutManagerMock,
@@ -64,6 +73,9 @@ class BillingServiceSpec extends ObjectBehavior
             $emailServiceMock,
             $stripeSubscriptionsServiceMock,
             $autoLoginServiceMock,
+            $customerPortalServiceMock,
+            $configMock,
+            $multiTenantBootServiceMock,
         );
         $this->stripeCheckoutManagerMock = $stripeCheckoutManagerMock;
         $this->stripeProductPriceServiceMock =   $stripeProductPriceServiceMock;
@@ -74,6 +86,9 @@ class BillingServiceSpec extends ObjectBehavior
         $this->emailServiceMock = $emailServiceMock;
         $this->stripeSubscriptionsServiceMock = $stripeSubscriptionsServiceMock;
         $this->autoLoginServiceMock = $autoLoginServiceMock;
+        $this->customerPortalServiceMock = $customerPortalServiceMock;
+        $this->configMock = $configMock;
+        $this->multiTenantBootServiceMock = $multiTenantBootServiceMock;
     
         $this->stripeProductPriceFactoryMock = new ReflectionClass(Price::class);
     }
@@ -121,13 +136,12 @@ class BillingServiceSpec extends ObjectBehavior
             null,
             [
                 'tenant_plan' => 'COMMUNITY',
-                'isTrialUpgrade' => 'false'
             ]
         )
             ->shouldBeCalledOnce()
             ->willReturn($checkoutSessionMock);
 
-        $this->createExternalCheckoutLink('networks:community', CheckoutTimePeriodEnum::MONTHLY)
+        $this->createExternalCheckoutLink(TenantPlanEnum::COMMUNITY, CheckoutTimePeriodEnum::MONTHLY)
             ->shouldBe('boo');
     }
 
@@ -240,6 +254,119 @@ class BillingServiceSpec extends ObjectBehavior
             ->willReturn($subscriptionMock);
 
         $this->shouldThrow(ForbiddenException::class)->duringOnSuccessfulCheckout('stripe_checkout_id');
+    }
+
+    public function it_should_generate_a_checkout_link_upgrade(
+        SearchResult $stripeProductPricesMock
+    ) {
+        $this->configMock->get('tenant')
+            ->willReturn(new Tenant(
+                id: 1,
+            ));
+            
+        $this->configMock->get('site_url')
+            ->willReturn('https://tenant.phpspec/');
+
+        $this->stripeProductServiceMock->getProductByKey('networks:team')
+            ->shouldBeCalledOnce()
+            ->willReturn(new Product('networks:team'));
+
+        $stripeProductPricesMock->getIterator()->willYield([
+            $this->generateStripeProductPriceMock(
+                id: 'networks:team',
+                unitAmount: 1000,
+                lookupKey: 'networks:team:monthly',
+                type: ProductTypeEnum::NETWORK->value
+            )
+        ]);
+    
+        $this->stripeProductPriceServiceMock->getPricesByProduct('networks:team')
+            ->shouldBeCalledOnce()
+            ->willReturn($stripeProductPricesMock);
+        
+        $checkoutSessionMock = new CheckoutSession();
+        $checkoutSessionMock->url = 'https://stripe.com';
+    
+        $this->stripeCheckoutManagerMock->createSession(
+            null,
+            CheckoutModeEnum::SUBSCRIPTION,
+            Argument::type('string'),
+            Argument::type('string'),
+            [
+                [
+                    'price' => 'networks:team',
+                    'quantity' => 1
+                ]
+            ],
+            Argument::any(),
+            null,
+            [
+                'tenant_id' => 1,
+                'tenant_plan' => 'TEAM',
+            ]
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($checkoutSessionMock);
+
+        $this->createUpgradeCheckoutLink(TenantPlanEnum::TEAM, CheckoutTimePeriodEnum::MONTHLY, new User())
+            ->shouldBe('https://stripe.com');
+    }
+
+    public function it_should_return_network_site_link_if_subscription_exists()
+    {
+        $this->configMock->get('tenant')
+            ->willReturn(new Tenant(
+                id: 1,
+                stripeSubscription: 'sub_test',
+            ));
+
+        $this->configMock->get('site_url')
+            ->willReturn('https://tenant.phpspec/');
+
+        $userMock = new User();
+        $userMock->setEmail('test@minds.com');
+
+        $this->createUpgradeCheckoutLink(TenantPlanEnum::TEAM, CheckoutTimePeriodEnum::MONTHLY, $userMock)
+            ->shouldBe('https://networks.minds.com/contact-upgrade?tenant_id=1&plan=TEAM&period=1&email=test%40minds.com');
+    }
+
+    public function it_should_upgrade_the_tenant_on_success()
+    {
+        $this->configMock->get('tenant')
+            ->willReturn(new Tenant(id: 1));
+
+        $this->configMock->get('site_url')
+            ->willReturn('https://phpspec.minds.com/');
+    
+        $userMock = new User();
+
+        $checkoutSessionMock = new CheckoutSession();
+        $checkoutSessionMock->subscription = 'stripe_subscription_id';
+        $checkoutSessionMock->metadata = [
+            'tenant_plan' => 'TEAM',
+        ];
+        $checkoutSessionMock->customer_details = (object) [
+            'email' => 'phpspec@minds.com'
+        ];
+
+        $this->stripeCheckoutSessionServiceMock->retrieveCheckoutSession('stripe_checkout_id')
+            ->shouldBeCalledOnce()
+            ->willReturn($checkoutSessionMock);
+
+            
+        $subscriptionMock = new Subscription(id: 'stripe_subscription_id');
+        $subscriptionMock->metadata = (object) [
+        ];
+
+        $this->stripeSubscriptionsServiceMock->retrieveSubscription('stripe_subscription_id')
+            ->shouldBeCalledOnce()
+            ->willReturn($subscriptionMock);
+
+
+        $this->tenantsServiceMock->upgradeTenant(Argument::type(Tenant::class), TenantPlanEnum::TEAM, 'stripe_subscription_id', $userMock)
+            ->shouldBeCalledOnce();
+
+        $this->onSuccessfulUpgradeCheckout('stripe_checkout_id', $userMock);
     }
 
     private function generateStripeProductPriceMock(

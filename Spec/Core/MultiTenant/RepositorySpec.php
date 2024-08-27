@@ -59,6 +59,7 @@ class RepositorySpec extends ObjectBehavior
                     'root_user_guid' => null,
                     'color_scheme' => null,
                     'federation_disabled' => null,
+                    'stripe_subscription' => null,
                 ],
                 [
                     'tenant_id' => 2,
@@ -68,6 +69,7 @@ class RepositorySpec extends ObjectBehavior
                     'root_user_guid' => null,
                     'color_scheme' => null,
                     'federation_disabled' => null,
+                    'stripe_subscription' => null,
                 ]
                 ]);
 
@@ -98,6 +100,7 @@ class RepositorySpec extends ObjectBehavior
                     'root_user_guid' => null,
                     'color_scheme' => null,
                     'federation_disabled' => null,
+                    'stripe_subscription' => null,
                 ],
                 [
                     'tenant_id' => 2,
@@ -107,6 +110,7 @@ class RepositorySpec extends ObjectBehavior
                     'root_user_guid' => null,
                     'color_scheme' => null,
                     'federation_disabled' => null,
+                    'stripe_subscription' => null,
                 ]
                 ]);
 

@@ -13,5 +13,6 @@ class Module implements ModuleInterface
     {
         (new Provider())->register();
         (new Routes())->register();
+        (new GraphQLMappings())->register();
     }
 }

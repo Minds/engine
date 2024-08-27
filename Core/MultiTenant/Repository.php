@@ -70,6 +70,7 @@ class Repository extends AbstractRepository
             ->columns([
                 'minds_tenants.tenant_id',
                 'minds_tenants.plan',
+                'minds_tenants.stripe_subscription',
                 'minds_tenants.trial_start_timestamp',
                 'minds_tenants.suspended_timestamp',
                 'minds_tenants.deleted_timestamp',
@@ -103,6 +104,7 @@ class Repository extends AbstractRepository
     {
         $tenantId = $row['tenant_id'];
         $plan = $row['plan'];
+        $stripeSubscription = $row['stripe_subscription'];
         $domain = $row['domain'];
         $tenantOwnerGuid = $row['owner_guid'];
         $rootUserGuid = $row['root_user_guid'];
@@ -159,6 +161,7 @@ class Repository extends AbstractRepository
             trialStartTimestamp: $trialStartTimestamp ? strtotime($trialStartTimestamp) : null,
             suspendedTimestamp: $suspendedTimestamp ? strtotime($suspendedTimestamp) : null,
             deletedTimestamp: $deletedTimestamp ? strtotime($deletedTimestamp) : null,
+            stripeSubscription: $stripeSubscription,
         );
     }
 
@@ -268,18 +271,24 @@ class Repository extends AbstractRepository
         }
     }
 
-    public function upgradeTrialTenant(Tenant $tenant, TenantPlanEnum $plan): Tenant
+    /**
+     * Upgrades a tenant
+     */
+    public function upgradeTenant(Tenant $tenant, TenantPlanEnum $plan, string $stripeSubscription): Tenant
     {
         $statement = $this->mysqlClientWriterHandler->update()
             ->table('minds_tenants')
             ->set([
                 'plan' => $plan->name,
                 'trial_start_timestamp' => null,
+                'stripe_subscription' => new RawExp(':stripe_subscription'),
             ])
             ->where('tenant_id', Operator::EQ, $tenant->id)
             ->prepare();
 
-        $statement->execute();
+        $statement->execute([
+            'stripe_subscription' => $stripeSubscription
+        ]);
 
         return new Tenant(
             id: $tenant->id,

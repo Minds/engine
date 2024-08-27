@@ -1179,3 +1179,7 @@ ON DELETE CASCADE;
 ALTER TABLE minds_tenant_configs
     ADD COLUMN is_non_profit boolean DEFAULT FALSE
     AFTER welcome_email_enabled;
+
+ALTER TABLE minds_tenants
+    ADD COLUMN stripe_subscription varchar(128) DEFAULT NULL
+    AFTER plan;
