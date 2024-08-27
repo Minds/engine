@@ -181,7 +181,7 @@ class CustomerPortalServiceSpec extends ObjectBehavior
                     'enabled' => true,
                 ],
                 'invoice_history' => [
-                    'enabled' => false,
+                    'enabled' => true,
                 ],
                 'payment_method_update' => [
                     'enabled' => true,
@@ -257,7 +257,7 @@ class CustomerPortalServiceSpec extends ObjectBehavior
                     'enabled' => true,
                 ],
                 'invoice_history' => [
-                    'enabled' => false,
+                    'enabled' => true,
                 ],
                 'payment_method_update' => [
                     'enabled' => true,
