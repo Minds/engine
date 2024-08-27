@@ -39,13 +39,21 @@
                         );
                     ?>>
                             <?php if ($activity['thumbnail_src']) { ?>
-                            <tr>
-                                <td <?php echo $emailStyles->getStyles('m-clear'); ?> >
-                                    <a href="<?php echo $vars['site_url']; ?>newsfeed/<?php echo $activity['guid']; ?>?<?php echo $vars['tracking']; ?>&utm_content=thumbnail">
-                                        <img src="<?php echo $activity['thumbnail_src']; ?>" style="width: 100%; max-width: 100%; max-height: 300px; object-fit:cover;" />
-                                    </a>
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td <?php echo $emailStyles->getStyles('m-clear'); ?> >
+                                        <a href="<?php echo $vars['site_url']; ?>newsfeed/<?php echo $activity['guid']; ?>?<?php echo $vars['tracking']; ?>&utm_content=thumbnail">
+                                            <img src="<?php echo $activity['thumbnail_src']; ?>" style="width: 100%; max-width: 100%; max-height: 300px; object-fit:cover;" />
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php } elseif ($activity['custom_type'] === 'batch' && is_array($activity['custom_data']) && count($activity['custom_data'])) { ?>
+                                <tr>
+                                    <td <?php echo $emailStyles->getStyles('m-clear'); ?> >
+                                        <a href="<?= $vars['site_url']; ?>newsfeed/<?= $activity['guid']; ?>?<?= $vars['tracking']; ?>&utm_content=thumbnail">
+                                            <img src="<?= $activity['custom_data'][0]['src']; ?>" style="width: 100%; max-width: 100%; max-height: 300px; object-fit:cover;" />
+                                        </a>
+                                    </td>
+                                </tr>  
                             <?php } ?>
                             <tr>
                                 <td <?php echo $emailStyles->getStyles('m-clear', 'm-digestActivity__body'); ?> >
