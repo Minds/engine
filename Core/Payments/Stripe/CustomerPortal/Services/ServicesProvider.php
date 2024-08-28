@@ -7,6 +7,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider;
 use Minds\Core\Payments\Stripe\CustomerPortal\Repositories\CustomerPortalConfigurationRepository;
+use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
 use Minds\Core\Payments\Stripe\StripeClient;
 
 class ServicesProvider extends Provider
@@ -21,7 +22,8 @@ class ServicesProvider extends Provider
             fn (Di $di): CustomerPortalService => new CustomerPortalService(
                 stripeClient: $di->get(StripeClient::class, ['stripe_version' => '2020-08-27']),
                 customerPortalConfigurationRepository: $di->get(CustomerPortalConfigurationRepository::class),
-                config: $di->get(Config::class)
+                config: $di->get(Config::class),
+                stripeApiKeyConfig: $di->get(StripeApiKeyConfig::class),
             )
         );
     }
