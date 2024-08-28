@@ -104,6 +104,9 @@ class MessageServiceSpec extends ObjectBehavior
         $userMock->getGuid()
             ->willReturn('123');
 
+        $userMock->getUsername()
+            ->willReturn('username');
+
         $this->chatRichEmbedServiceMock->parseFromText($plainText)
             ->shouldBeCalled()
             ->willReturn(null);
@@ -131,6 +134,9 @@ class MessageServiceSpec extends ObjectBehavior
                 type: ChatEventTypeEnum::NEW_MESSAGE,
                 metadata: [
                     'senderGuid' => "123",
+                    'senderName' => 'username',
+                    'roomGuid' => "123",
+                    'roomType' => ChatRoomTypeEnum::ONE_TO_ONE->name,
                 ],
             ))
         )
@@ -179,6 +185,9 @@ class MessageServiceSpec extends ObjectBehavior
 
         $userMock->getGuid()
             ->willReturn('123');
+
+        $userMock->getUsername()
+            ->willReturn('username');
 
         $this->roomRepositoryMock->getRoomsByMember(
             $userMock,
@@ -233,6 +242,9 @@ class MessageServiceSpec extends ObjectBehavior
                 type: ChatEventTypeEnum::NEW_MESSAGE,
                 metadata: [
                     'senderGuid' => "123",
+                    'senderName' => 'username',
+                    'roomGuid' => "123",
+                    'roomType' => ChatRoomTypeEnum::ONE_TO_ONE->name,
                 ],
             ))
         )
@@ -343,6 +355,9 @@ class MessageServiceSpec extends ObjectBehavior
         $userMock->getGuid()
             ->willReturn('123');
 
+        $userMock->getUsername()
+            ->willReturn('username');
+
         $this->roomRepositoryMock->getRoomsByMember(
             $userMock,
             [
@@ -384,6 +399,9 @@ class MessageServiceSpec extends ObjectBehavior
                 type: ChatEventTypeEnum::NEW_MESSAGE,
                 metadata: [
                     'senderGuid' => "123",
+                    'senderName' => 'username',
+                    'roomGuid' => (string) $roomGuid,
+                    'roomType' => ChatRoomTypeEnum::ONE_TO_ONE->name,
                 ],
             ))
         )

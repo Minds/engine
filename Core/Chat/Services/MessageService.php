@@ -117,6 +117,9 @@ class MessageService
                         type: ChatEventTypeEnum::NEW_MESSAGE,
                         metadata: [
                             'senderGuid' => (string) $user->getGuid(),
+                            'senderName' => $user->getUsername(),
+                            'roomGuid' => (string) $roomGuid,
+                            'roomType' => $chatRoomListItem->chatRoom->roomType->name,
                         ],
                     ))
                 );
