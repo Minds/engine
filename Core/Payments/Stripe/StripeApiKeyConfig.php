@@ -67,6 +67,6 @@ class StripeApiKeyConfig
         return $user &&
             $user->getEmail() &&
             preg_match($testEmailRegex, $user->getEmail()) &&
-            $user->isEmailConfirmed(); // Note this is not isTrusted as we want to require it is fully confirmed.
+            ($user->isEmailConfirmed() || $user->isAdmin()); // Note this is not isTrusted as we want to require it is fully confirmed.
     }
 }
