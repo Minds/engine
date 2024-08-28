@@ -206,10 +206,13 @@ class Repository extends AbstractRepository
                 'owner_guid' => $tenant->ownerGuid,
                 'plan' => $tenant->plan->name,
                 'trial_start_timestamp' => $isTrial ? date('c', time()) : null,
+                'stripe_subscription' => new RawExp(':stripe_subscription'),
             ])
             ->prepare();
 
-        $statement->execute();
+        $statement->execute([
+            'stripe_subscription' => $tenant->stripeSubscription,
+        ]);
 
         return new Tenant(
             id: $this->mysqlClientWriter->lastInsertId(),
