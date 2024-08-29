@@ -51,16 +51,17 @@ class TenantsService
 
     /**
      * @param Tenant $tenant
+     * @param bool $isTrial - Whether this is a trial tenant, defaults to false.
      * @return Tenant
      * @throws GraphQLException
      */
-    public function createNetwork(Tenant $tenant): Tenant
+    public function createNetwork(Tenant $tenant, bool $isTrial = false): Tenant
     {
         if ($this->mindsConfig->get('tenant_id')) {
             throw new GraphQLException('You are already a tenant and as such cannot create a new tenant.');
         }
 
-        $tenant = $this->repository->createTenant($tenant);
+        $tenant = $this->repository->createTenant($tenant, $isTrial);
 
         if ($tenant->config) {
             $this->tenantConfigRepository->upsert(

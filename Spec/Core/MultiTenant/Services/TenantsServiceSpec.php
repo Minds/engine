@@ -89,7 +89,7 @@ class TenantsServiceSpec extends ObjectBehavior
     {
         $tenant = $this->generateTenantMock(1, null);
         $this->mindsConfigMock->get('tenant_id')->willReturn(null);
-        $this->repositoryMock->createTenant($tenant)->willReturn($tenant);
+        $this->repositoryMock->createTenant($tenant, false)->willReturn($tenant);
         $this->tenantConfigRepositoryMock->upsert(
             Argument::type('integer'),
             Argument::type('string'),
@@ -111,7 +111,7 @@ class TenantsServiceSpec extends ObjectBehavior
             )
         );
         $this->mindsConfigMock->get('tenant_id')->willReturn(null);
-        $this->repositoryMock->createTenant($tenant)->willReturn($tenant);
+        $this->repositoryMock->createTenant($tenant, false)->willReturn($tenant);
         $this->tenantConfigRepositoryMock->upsert(
             1,
             $tenant->config->siteName,
