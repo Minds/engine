@@ -2,6 +2,7 @@
 namespace Minds\Core\Email;
 
 use Minds\Core\Di\Ref;
+use Minds\Core\Email\Controllers\EmailAddressController;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 use Minds\Core\Router\Middleware\LoggedInMiddleware;
@@ -26,6 +27,10 @@ class Routes extends ModuleRoutes
                         LoggedInMiddleware::class,
                     ])
                     ->do(function (Route $route) {
+                        $route->get(
+                            'address',
+                            Ref::_(EmailAddressController::class, 'getEmailAddress')
+                        );
                         $route->post(
                             'confirm',
                             Ref::_('Email\Confirmation\Controller', 'confirmEmail')
