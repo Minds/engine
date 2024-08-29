@@ -6,6 +6,7 @@ namespace Minds\Core\Payments\Stripe\CustomerPortal\Services;
 use Minds\Core\Config\Config;
 use Minds\Core\Payments\Stripe\CustomerPortal\Enums\CustomerPortalSubscriptionCancellationModeEnum;
 use Minds\Core\Payments\Stripe\CustomerPortal\Repositories\CustomerPortalConfigurationRepository;
+use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
 use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Exceptions\ServerErrorException;
 use Stripe\BillingPortal\Configuration as CustomerPortalConfiguration;
@@ -17,7 +18,8 @@ class CustomerPortalService
     public function __construct(
         private readonly StripeClient                          $stripeClient,
         private readonly CustomerPortalConfigurationRepository $customerPortalConfigurationRepository,
-        private readonly Config                                $config
+        private readonly Config                                $config,
+        private readonly StripeApiKeyConfig                    $stripeApiKeyConfig,
     ) {
     }
 
@@ -34,7 +36,9 @@ class CustomerPortalService
         ?array $flowData = null
     ): string {
 
-        $customerPortalConfigurationId = $this->customerPortalConfigurationRepository->getCustomerPortalConfigurationId();
+        $isTestMode = $this->stripeApiKeyConfig->shouldUseTestMode() && !$this->config->get('tenant_id');
+
+        $customerPortalConfigurationId = $isTestMode ? $this->config->get('payments')['stripe']['test_customer_portal_id'] : $this->customerPortalConfigurationRepository->getCustomerPortalConfigurationId();
         if (!$customerPortalConfigurationId) {
             $customerPortalConfigurationId = $this->createCustomerPortalDefaultConfiguration();
         }
@@ -104,7 +108,7 @@ class CustomerPortalService
                 ]);
 
             $this->customerPortalConfigurationRepository->storeCustomerPortalConfiguration(
-                customerPortalConfigId: $customerPortalConfiguration->id
+                customerPortalConfigId: $customerPortalConfiguration->id,
             );
 
             return $customerPortalConfiguration->id;

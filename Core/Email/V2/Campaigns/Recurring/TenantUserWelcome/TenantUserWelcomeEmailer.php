@@ -16,6 +16,7 @@ use Minds\Core\MultiTenant\Services\FeaturedEntityService;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipBillingPeriodEnum;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipPricingModelEnum;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipReaderService;
+use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipSubscriptionsService;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
 
 /**
@@ -29,6 +30,7 @@ class TenantUserWelcomeEmailer extends EmailCampaign
         private readonly Config $config,
         private readonly TenantTemplateVariableInjector $tenantTemplateVariableInjector,
         private readonly SiteMembershipReaderService $siteMembershipReaderService,
+        private readonly SiteMembershipSubscriptionsService $siteMembershipSubscriptionsService,
         private readonly FeaturedEntityService $featuredEntityService,
         $manager = null,
     ) {
@@ -61,6 +63,7 @@ class TenantUserWelcomeEmailer extends EmailCampaign
     
         $subject = "Welcome to $siteName";
 
+        $this->template->clear();
         $this->template->setTemplate('default.v2.tpl');
         $this->template->setBody('./template.tpl');
         $this->template->set('headerText', "Welcome!");
@@ -86,24 +89,31 @@ class TenantUserWelcomeEmailer extends EmailCampaign
 
         $this->template->set('actionButton', $actionButton->build());
 
-        // Get memberships
+        // Check whether a user has an active membership.
+        if ($this->siteMembershipSubscriptionsService->hasActiveSiteMembershipSubscription(
+            user: $this->user
+        )) {
+            // Set no memberships if the user already has an active membership.
+            $this->template->set('site_membership_containers', []);
+        } else {
+            // Get memberships.
+            $siteMemberships = $this->siteMembershipReaderService->getSiteMemberships();
+            $siteMembershipContainers = [];
 
-        $siteMemberships = $this->siteMembershipReaderService->getSiteMemberships();
-        $siteMembershipContainers = [];
+            foreach ($siteMemberships as $siteMembership) {
+                $siteMembershipContainers[] = [
+                    'name' => $siteMembership->membershipName,
+                    'description' => $siteMembership->membershipDescription,
+                    'pricingLabel' => $this->getMembershipPriceLabel($siteMembership),
+                    'actionButton' => (clone new ActionButtonV2())
+                        ->setLabel('Join membership')
+                        ->setPath($this->getJoinMembershipUrl($siteMembership))
+                        ->build()
+                ];
+            }
 
-        foreach ($siteMemberships as $siteMembership) {
-            $siteMembershipContainers[] = [
-                'name' => $siteMembership->membershipName,
-                'description' => $siteMembership->membershipDescription,
-                'pricingLabel' => $this->getMembershipPriceLabel($siteMembership),
-                'actionButton' => (clone new ActionButtonV2())
-                    ->setLabel('Join membership')
-                    ->setPath($this->getJoinMembershipUrl($siteMembership))
-                    ->build()
-            ];
+            $this->template->set('site_membership_containers', $siteMembershipContainers);
         }
-
-        $this->template->set('site_membership_containers', $siteMembershipContainers);
 
         // Get groups
 

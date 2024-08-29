@@ -413,6 +413,7 @@ $CONFIG->set('payments', [
         'api_key' => '',
         'test_api_key' => '',
         'test_email' => '',
+        'test_customer_portal_id' => '',
         'transfers' => [
             'source_type' => 'bank_account',
         ],

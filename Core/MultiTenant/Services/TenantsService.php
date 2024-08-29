@@ -63,14 +63,12 @@ class TenantsService
 
         $tenant = $this->repository->createTenant($tenant, $isTrial);
 
-        if ($tenant->config) {
-            $this->tenantConfigRepository->upsert(
-                tenantId: $tenant->id,
-                siteName: $tenant->config->siteName,
-                colorScheme: $tenant->config->colorScheme,
-                primaryColor: $tenant->config->primaryColor,
-            );
-        }
+        $this->tenantConfigRepository->upsert(
+            tenantId: $tenant->id,
+            siteName: $tenant->config?->siteName ?? null,
+            colorScheme: $tenant->config?->colorScheme ?? null,
+            primaryColor: $tenant->config?->primaryColor ?? null,
+        );
 
         return $tenant;
     }
@@ -99,14 +97,12 @@ class TenantsService
                 isTrial: true
             );
 
-            if ($tenant->config) {
-                $this->tenantConfigRepository->upsert(
-                    tenantId: $tenant->id,
-                    siteName: $tenant->config->siteName,
-                    colorScheme: $tenant->config->colorScheme,
-                    primaryColor: $tenant->config->primaryColor,
-                );
-            }
+            $this->tenantConfigRepository->upsert(
+                tenantId: $tenant->id,
+                siteName: $tenant->config?->siteName ?? null,
+                colorScheme: $tenant->config?->colorScheme ?? null,
+                primaryColor: $tenant->config?->primaryColor ?? null,
+            );
 
             $this->postHogService->capture(
                 event: 'tenant_trial_start',

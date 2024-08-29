@@ -145,6 +145,10 @@ class StripeApiKeyConfigSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
+        $user->isAdmin()
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $this->activeSession->getUser()
             ->shouldBeCalled()
             ->willReturn($user);

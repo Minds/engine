@@ -7,6 +7,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Payments\Stripe\CustomerPortal\Enums\CustomerPortalSubscriptionCancellationModeEnum;
 use Minds\Core\Payments\Stripe\CustomerPortal\Repositories\CustomerPortalConfigurationRepository;
 use Minds\Core\Payments\Stripe\CustomerPortal\Services\CustomerPortalService;
+use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
 use Minds\Core\Payments\Stripe\StripeClient;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
@@ -22,6 +23,7 @@ class CustomerPortalServiceSpec extends ObjectBehavior
     private Collaborator $stripeCustomerPortalConfigurationServiceMock;
     private Collaborator $customerPortalConfigurationRepositoryMock;
     private Collaborator $configMock;
+    private Collaborator $stripeApiKeyConfigMock;
 
     private ReflectionClass $stripeClientMockFactory;
     private ReflectionClass $stripeBillingPortalSessionMockFactory;
@@ -31,12 +33,14 @@ class CustomerPortalServiceSpec extends ObjectBehavior
         CustomerPortalSessionService          $customerPortalSessionService,
         CustomerPortalConfigurationService    $customerPortalConfigurationService,
         CustomerPortalConfigurationRepository $customerPortalConfigurationRepository,
-        Config                                $config
+        Config                                $config,
+        StripeApiKeyConfig                    $stripeApiKeyConfig,
     ): void {
         $this->stripeCustomerPortalSessionServiceMock = $customerPortalSessionService;
         $this->stripeCustomerPortalConfigurationServiceMock = $customerPortalConfigurationService;
         $this->customerPortalConfigurationRepositoryMock = $customerPortalConfigurationRepository;
         $this->configMock = $config;
+        $this->stripeApiKeyConfigMock = $stripeApiKeyConfig;
 
         $this->stripeClientMockFactory = new ReflectionClass(StripeClient::class);
         $this->stripeBillingPortalSessionMockFactory = new ReflectionClass(CustomerPortalSession::class);
@@ -45,7 +49,8 @@ class CustomerPortalServiceSpec extends ObjectBehavior
         $this->beConstructedWith(
             $this->prepareStripeClientMock(),
             $this->customerPortalConfigurationRepositoryMock,
-            $this->configMock
+            $this->configMock,
+            $stripeApiKeyConfig,
         );
     }
 
@@ -103,6 +108,10 @@ class CustomerPortalServiceSpec extends ObjectBehavior
                 $this->generateStripeCustomerPortalSessionMock('https://stripe.com/redirect')
             );
 
+        $this->stripeApiKeyConfigMock->shouldUseTestMode()
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
         $this->createCustomerPortalSession(
             'stripeCustomerId',
             'https://example.com/redirectUrl',
@@ -120,6 +129,44 @@ class CustomerPortalServiceSpec extends ObjectBehavior
             ]);
 
         return $customerPortalSessionMock;
+    }
+
+    public function it_should_create_customer_portal_session_with_existing_portal_config_NO_flow_data_when_test_mode(): void
+    {
+        $this->customerPortalConfigurationRepositoryMock->getCustomerPortalConfigurationId()
+            ->shouldNotBeCalled();
+
+        $this->stripeCustomerPortalSessionServiceMock->create([
+            'customer' => 'stripeCustomerId',
+            'configuration' => 'test::::customerPortalConfigurationId',
+            'return_url' => 'https://example.com/redirectUrl',
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn(
+                $this->generateStripeCustomerPortalSessionMock('https://stripe.com/redirect')
+            );
+
+        $this->stripeApiKeyConfigMock->shouldUseTestMode()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->configMock->get('tenant_id')
+            ->shouldBeCalledOnce()
+            ->willReturn(null);
+
+        $this->configMock->get('payments')
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'stripe' => [
+                    'test_customer_portal_id' => 'test::::customerPortalConfigurationId'
+                ]
+            ]);
+
+        $this->createCustomerPortalSession(
+            'stripeCustomerId',
+            'https://example.com/redirectUrl',
+            null
+        )->shouldReturn('https://stripe.com/redirect');
     }
 
     public function it_should_create_customer_portal_session_with_existing_portal_config_WITH_flow_data(): void
@@ -152,6 +199,10 @@ class CustomerPortalServiceSpec extends ObjectBehavior
                 $this->generateStripeCustomerPortalSessionMock('https://stripe.com/redirect')
             );
 
+        $this->stripeApiKeyConfigMock->shouldUseTestMode()
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
         $this->createCustomerPortalSession(
             'stripeCustomerId',
             'https://example.com/redirectUrl',
@@ -168,6 +219,10 @@ class CustomerPortalServiceSpec extends ObjectBehavior
         $this->configMock->get('site_url')
             ->shouldBeCalledOnce()
             ->willReturn('https://example.com/');
+
+        $this->stripeApiKeyConfigMock->shouldUseTestMode()
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
 
         $this->stripeCustomerPortalConfigurationServiceMock->create([
             'business_profile' => [
@@ -244,6 +299,10 @@ class CustomerPortalServiceSpec extends ObjectBehavior
         $this->configMock->get('site_url')
             ->shouldBeCalledOnce()
             ->willReturn('https://example.com/');
+
+        $this->stripeApiKeyConfigMock->shouldUseTestMode()
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
 
         $this->stripeCustomerPortalConfigurationServiceMock->create([
             'business_profile' => [
