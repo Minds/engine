@@ -6,6 +6,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Payments\Stripe\Checkout\Enums\CheckoutModeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Enums\PaymentMethodCollectionEnum;
 use Minds\Core\Payments\Stripe\Checkout\Manager;
+use Minds\Core\Payments\Stripe\Checkout\Models\CustomField;
 use Minds\Core\Payments\Stripe\Customers;
 use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Entities\User;
@@ -81,15 +82,11 @@ class ManagerSpec extends ObjectBehavior
         ];
         $paymentMethodCollection = PaymentMethodCollectionEnum::IF_REQUIRED;
         $customFields = [
-            [
-                'key' => 'customer_name',
-                'label' => [
-                    'type' => 'custom',
-                    'custom' => 'Your Name'
-                ],
-                'type' => 'text',
-                'required' => true
-            ]
+            new CustomField(
+                key: 'first_name',
+                label: 'First name',
+                type: 'text'
+            ),
         ];
 
         $this->customerManagerMock->getByUser($user)->willReturn($stripeCustomerMock);
@@ -120,7 +117,10 @@ class ManagerSpec extends ObjectBehavior
                 $args['phone_number_collection']['enabled'] === $phoneNumberCollection &&
                 $args['subscription_data'] === $subscriptionData &&
                 $args['payment_method_collection'] === $paymentMethodCollection->value &&
-                $args['custom_fields'] === $customFields;
+                $args['custom_fields'] === array_map(
+                    fn (CustomField $customField) => $customField->toArray(),
+                    $customFields
+                );
         }))
             ->willReturn(new Stripe\Checkout\Session);
 

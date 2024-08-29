@@ -15,6 +15,7 @@ use Minds\Core\Payments\Checkout\Enums\CheckoutTimePeriodEnum;
 use Minds\Core\Payments\Stripe\Checkout\Enums\CheckoutModeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Enums\PaymentMethodCollectionEnum;
 use Minds\Core\Payments\Stripe\Checkout\Manager as StripeCheckoutManager;
+use Minds\Core\Payments\Stripe\Checkout\Models\CustomField;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductTypeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductPriceService as StripeProductPriceService;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
@@ -430,22 +431,16 @@ class BillingServiceSpec extends ObjectBehavior
             ],
             paymentMethodCollection: PaymentMethodCollectionEnum::IF_REQUIRED,
             customFields: [
-                [
-                    'key' => 'first_name',
-                    'label' => [
-                        'type' => 'custom',
-                        'custom' => 'First name',
-                    ],
-                    'type' => 'text',
-                ],
-                [
-                    'key' => 'last_name',
-                    'label' => [
-                        'type' => 'custom',
-                        'custom' => 'Last name',
-                    ],
-                    'type' => 'text',
-                ],
+                new CustomField(
+                    key: 'first_name',
+                    label: 'First name',
+                    type: 'text'
+                ),
+                new CustomField(
+                    key: 'last_name',
+                    label: 'Last name',
+                    type: 'text'
+                )
             ]
         )
             ->shouldBeCalled()
