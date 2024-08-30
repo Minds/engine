@@ -24,6 +24,7 @@ use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 use Minds\Core\Payments\Manager as PaymentManager;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipReaderService;
+use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipSubscriptionsService;
 
 class Provider extends DiProvider
 {
@@ -69,6 +70,7 @@ class Provider extends DiProvider
                     $di->get(Config::class),
                     $di->get(TenantTemplateVariableInjector::class),
                     $di->get(SiteMembershipReaderService::class),
+                    $di->get(SiteMembershipSubscriptionsService::class),
                     $di->get(FeaturedEntityService::class),
                     $di->get('Email\Manager')
                 )
