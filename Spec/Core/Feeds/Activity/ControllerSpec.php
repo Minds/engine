@@ -102,10 +102,6 @@ class ControllerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($updatedCreationTimestamp);
 
-        $mutatedActivity->setTimeCreated($updatedCreationTimestamp)
-            ->shouldBeCalled()
-            ->willReturn();
-
         $mutatedActivity->setMature(false)
             ->shouldBeCalled()
             ->willReturn($mutatedActivity);
