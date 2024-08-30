@@ -1,8 +1,6 @@
 <?php
 namespace Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services;
 
-use Minds\Core\EntitiesBuilder;
-use Minds\Core\Log\Logger;
 use Minds\Core\Payments\SiteMemberships\PaywalledEntities\PaywalledEntitiesRepository;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipReaderService;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
@@ -14,9 +12,7 @@ class PaywalledEntityService
     public function __construct(
         private PaywalledEntitiesRepository $paywalledEntitiesRepository,
         private SiteMembershipReaderService $siteMembershipReaderService,
-        private CacheInterface $cache,
-        private EntitiesBuilder $entitiesBuilder,
-        private Logger $logger
+        private CacheInterface $cache
     ) {
         
     }

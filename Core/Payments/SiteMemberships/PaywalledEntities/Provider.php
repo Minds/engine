@@ -46,9 +46,7 @@ class Provider extends DiProvider
             return new PaywalledEntityService(
                 paywalledEntitiesRepository: $di->get(PaywalledEntitiesRepository::class),
                 siteMembershipReaderService: $di->get(SiteMembershipReaderService::class),
-                cache: $di->get(SharedCache::class),
-                entitiesBuilder: $di->get(EntitiesBuilder::class),
-                logger: $di->get('Logger')
+                cache: $di->get(SharedCache::class)
             );
         });
 

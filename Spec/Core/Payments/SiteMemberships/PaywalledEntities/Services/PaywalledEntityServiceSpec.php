@@ -20,22 +20,16 @@ class PaywalledEntityServiceSpec extends ObjectBehavior
     private Collaborator $paywalledEntitiesRepositoryMock;
     private Collaborator $siteMembershipReaderServiceMock;
     private Collaborator $cacheMock;
-    private Collaborator $entitiesBuilderMock;
-    private Collaborator $loggerMock;
 
     public function let(
         PaywalledEntitiesRepository $paywalledEntitiesRepositoryMock,
         SiteMembershipReaderService $siteMembershipReaderServiceMock,
-        CacheInterface $cacheMock,
-        EntitiesBuilder $entitiesBuilderMock,
-        Logger $loggerMock
+        CacheInterface $cacheMock
     ) {
-        $this->beConstructedWith($paywalledEntitiesRepositoryMock, $siteMembershipReaderServiceMock, $cacheMock, $entitiesBuilderMock, $loggerMock);
+        $this->beConstructedWith($paywalledEntitiesRepositoryMock, $siteMembershipReaderServiceMock, $cacheMock);
         $this->paywalledEntitiesRepositoryMock = $paywalledEntitiesRepositoryMock;
         $this->siteMembershipReaderServiceMock = $siteMembershipReaderServiceMock;
         $this->cacheMock = $cacheMock;
-        $this->entitiesBuilderMock = $entitiesBuilderMock;
-        $this->loggerMock = $loggerMock;
     }
 
     public function it_is_initializable()
