@@ -24,7 +24,7 @@ class PaywalledEntityServiceSpec extends ObjectBehavior
     public function let(
         PaywalledEntitiesRepository $paywalledEntitiesRepositoryMock,
         SiteMembershipReaderService $siteMembershipReaderServiceMock,
-        CacheInterface $cacheMock
+        CacheInterface $cacheMock,
     ) {
         $this->beConstructedWith($paywalledEntitiesRepositoryMock, $siteMembershipReaderServiceMock, $cacheMock);
         $this->paywalledEntitiesRepositoryMock = $paywalledEntitiesRepositoryMock;
