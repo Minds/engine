@@ -1,6 +1,8 @@
 <?php
 namespace Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services;
 
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
 use Minds\Core\Payments\SiteMemberships\PaywalledEntities\PaywalledEntitiesRepository;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipReaderService;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
@@ -13,6 +15,8 @@ class PaywalledEntityService
         private PaywalledEntitiesRepository $paywalledEntitiesRepository,
         private SiteMembershipReaderService $siteMembershipReaderService,
         private CacheInterface $cache,
+        private EntitiesBuilder $entitiesBuilder,
+        private Logger $logger
     ) {
         
     }
@@ -46,6 +50,36 @@ class PaywalledEntityService
         $intersect = array_values(array_intersect($siteMembershipsGuids, $entityMembershipGuids));
 
         return $intersect[0];
+    }
+
+
+    /**
+     * Gets the lowest price site membership for a given activity.
+     * @param Activity $activity - The activity to get the lowest price site membership for.
+     * @return SiteMembership|null - The lowest price site membership for the activity, or null if no site membership is found.
+     */
+    public function lowestPriceSiteMembershipForActivity(Activity $activity): ?SiteMembership
+    {
+        $entityMembershipGuids = $this->getMembershipGuidsForActivity($activity);
+
+        if (!$entityMembershipGuids) {
+            return null;
+        }
+
+        $siteMemberships = $this->siteMembershipReaderService->getSiteMemberships();
+
+        // Sort lowest to highest price
+        usort($siteMemberships, function (SiteMembership $a, SiteMembership $b) {
+            return $a->membershipPriceInCents <=> $b->membershipPriceInCents;
+        });
+
+        foreach ($siteMemberships as $siteMembership) {
+            if (in_array($siteMembership->membershipGuid, $entityMembershipGuids, true)) {
+                return $siteMembership;
+            }
+        }
+
+        return null;
     }
 
     /**
