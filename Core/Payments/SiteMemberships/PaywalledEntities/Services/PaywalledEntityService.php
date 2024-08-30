@@ -12,7 +12,7 @@ class PaywalledEntityService
     public function __construct(
         private PaywalledEntitiesRepository $paywalledEntitiesRepository,
         private SiteMembershipReaderService $siteMembershipReaderService,
-        private CacheInterface $cache
+        private CacheInterface $cache,
     ) {
         
     }
