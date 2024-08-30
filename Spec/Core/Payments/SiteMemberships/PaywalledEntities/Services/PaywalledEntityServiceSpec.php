@@ -158,6 +158,110 @@ class PaywalledEntityServiceSpec extends ObjectBehavior
             ->shouldBeNull();
     }
 
+    public function it_should_return_null_when_onlyExternal_is_true_and_only_internal_memberships_are_found(Activity $activityMock)
+    {
+        $activityMock->getGuid()
+            ->willReturn(123);
+
+        $this->paywalledEntitiesRepositoryMock->getMembershipsFromEntity(123)
+            ->willReturn([1, 2]);
+
+        $this->siteMembershipReaderServiceMock->getSiteMemberships()
+            ->willReturn([
+                new SiteMembership(
+                    1,
+                    '',
+                    999,
+                    SiteMembershipBillingPeriodEnum::MONTHLY,
+                    SiteMembershipPricingModelEnum::RECURRING,
+                    null,
+                    null,
+                    'USD',
+                    null,
+                    null,
+                    false,
+                    false // onlyExternal
+                ),
+                new SiteMembership(
+                    2,
+                    '',
+                    1999,
+                    SiteMembershipBillingPeriodEnum::MONTHLY,
+                    SiteMembershipPricingModelEnum::RECURRING,
+                    null,
+                    null,
+                    'USD',
+                    null,
+                    null,
+                    false,
+                    false // onlyExternal
+                ),
+            ]);
+
+        $this->lowestPriceSiteMembershipForActivity($activityMock, true)
+            ->shouldBeNull();
+    }
+
+    public function it_should_return_the_lowest_priced_external_membership_when_onlyExternal_is_true(Activity $activityMock)
+    {
+        $activityMock->getGuid()
+            ->willReturn(123);
+
+        $this->paywalledEntitiesRepositoryMock->getMembershipsFromEntity(123)
+            ->willReturn([1, 2, 3]);
+
+        $lowestPricedExternalMembership = new SiteMembership(
+            2,
+            '',
+            999,
+            SiteMembershipBillingPeriodEnum::MONTHLY,
+            SiteMembershipPricingModelEnum::RECURRING,
+            null,
+            null,
+            'USD',
+            null,
+            null,
+            false,
+            true // onlyExternal
+        );
+
+        $this->siteMembershipReaderServiceMock->getSiteMemberships()
+            ->willReturn([
+                new SiteMembership(
+                    1,
+                    '',
+                    499,
+                    SiteMembershipBillingPeriodEnum::MONTHLY,
+                    SiteMembershipPricingModelEnum::RECURRING,
+                    null,
+                    null,
+                    'USD',
+                    null,
+                    null,
+                    false,
+                    false // onlyExternal
+                ),
+                $lowestPricedExternalMembership,
+                new SiteMembership(
+                    3,
+                    '',
+                    1999,
+                    SiteMembershipBillingPeriodEnum::MONTHLY,
+                    SiteMembershipPricingModelEnum::RECURRING,
+                    null,
+                    null,
+                    'USD',
+                    null,
+                    null,
+                    false,
+                    true // onlyExternal
+                ),
+            ]);
+
+        $this->lowestPriceSiteMembershipForActivity($activityMock, true)
+            ->shouldReturn($lowestPricedExternalMembership);
+    }
+
     //
 
     public function it_should_return_the_cheapest_membership_if_entity_is_mapped_to_multiple(Activity $activityMock)

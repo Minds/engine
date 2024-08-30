@@ -56,9 +56,10 @@ class PaywalledEntityService
     /**
      * Gets the lowest price site membership for a given activity.
      * @param Activity $activity - The activity to get the lowest price site membership for.
+     * @param bool $externalOnly - Whether to only consider external site memberships.
      * @return SiteMembership|null - The lowest price site membership for the activity, or null if no site membership is found.
      */
-    public function lowestPriceSiteMembershipForActivity(Activity $activity): ?SiteMembership
+    public function lowestPriceSiteMembershipForActivity(Activity $activity, bool $externalOnly = false): ?SiteMembership
     {
         $entityMembershipGuids = $this->getMembershipGuidsForActivity($activity);
 
@@ -67,6 +68,10 @@ class PaywalledEntityService
         }
 
         $siteMemberships = $this->siteMembershipReaderService->getSiteMemberships();
+
+        if ($externalOnly) {
+            $siteMemberships = array_filter($siteMemberships, fn (SiteMembership $siteMembership) => $siteMembership->isExternal);
+        }
 
         // Sort lowest to highest price
         usort($siteMemberships, function (SiteMembership $a, SiteMembership $b) {

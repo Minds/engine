@@ -55,12 +55,14 @@ class SiteMembershipReaderController
     /**
      * Gets the lowest price site membership for an activity.
      * @param string $activityGuid - The activity guid to get the lowest price site membership for.
+     * @param bool|null $externalOnly - Whether to only check for external site memberships.
      * @throws NotFoundException - If the activity is not found, or the entity is not an activity.
      * @return SiteMembership|null - The lowest price site membership for the activity, or null if no site membership is found.
      */
     #[Query]
     public function lowestPriceSiteMembershipForActivity(
-        string $activityGuid
+        string $activityGuid,
+        ?bool $externalOnly = false
     ): ?SiteMembership {
         $activity = $this->entitiesBuilder->single($activityGuid);
 
@@ -72,6 +74,6 @@ class SiteMembershipReaderController
             return null;
         }
 
-        return $this->paywalledEntityService->lowestPriceSiteMembershipForActivity($activity);
+        return $this->paywalledEntityService->lowestPriceSiteMembershipForActivity($activity, $externalOnly);
     }
 }
