@@ -5,6 +5,7 @@ namespace Minds\Core\Payments\SiteMemberships\Services;
 
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Groups\V2\GraphQL\Types\GroupNode;
+use Minds\Core\Log\Logger;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipBillingPeriodEnum;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipPricingModelEnum;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipFoundException;
@@ -15,6 +16,7 @@ use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipGroupsReposit
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRepository;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRolesRepository;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
+use Minds\Entities\Group;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
 
@@ -25,6 +27,7 @@ class SiteMembershipReaderService
         private readonly SiteMembershipGroupsRepository $siteMembershipGroupsRepository,
         private readonly SiteMembershipRolesRepository  $siteMembershipRolesRepository,
         private readonly EntitiesBuilder                $entitiesBuilder,
+        private readonly Logger                         $logger
     ) {
     }
 
@@ -110,9 +113,12 @@ class SiteMembershipReaderService
             $groups = [];
             foreach ($groupGuids as $groupGuid) {
                 $group = $this->entitiesBuilder->single($groupGuid);
-                if (!$group) {
-                    throw new NotFoundException("Group $groupGuid not found.");
+
+                if (!$group || !($group instanceof Group)) {
+                    $this->logger->warning("Group not found with guid: $groupGuid, for site membership $siteMembershipGuid");
+                    continue;
                 }
+
                 $groups[] = new GroupNode($group);
             }
         } catch (NoSiteMembershipGroupsFoundException $e) {

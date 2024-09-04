@@ -47,6 +47,7 @@ class ServicesProvider extends Provider
                 siteMembershipGroupsRepository: $di->get(SiteMembershipGroupsRepository::class),
                 siteMembershipRolesRepository: $di->get(SiteMembershipRolesRepository::class),
                 entitiesBuilder: $di->get('EntitiesBuilder'),
+                logger: $di->get('Logger'),
             )
         );
         $this->di->bind(
