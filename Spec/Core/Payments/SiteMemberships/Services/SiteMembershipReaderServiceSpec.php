@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Spec\Minds\Core\Payments\SiteMemberships\Services;
 
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipBillingPeriodEnum;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipsFoundException;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipGroupsRepository;
@@ -25,23 +26,27 @@ class SiteMembershipReaderServiceSpec extends ObjectBehavior
     private Collaborator $siteMembershipGroupsRepositoryMock;
     private Collaborator $siteMembershipRolesRepositoryMock;
     private Collaborator $entitiesBuilderMock;
+    private Collaborator $loggerMock;
 
     public function let(
         SiteMembershipRepository       $siteMembershipRepository,
         SiteMembershipGroupsRepository $siteMembershipGroupsRepository,
         SiteMembershipRolesRepository  $siteMembershipRolesRepository,
         EntitiesBuilder                $entitiesBuilder,
+        Logger                         $logger,
     ): void {
         $this->siteMembershipRepositoryMock = $siteMembershipRepository;
         $this->siteMembershipGroupsRepositoryMock = $siteMembershipGroupsRepository;
         $this->siteMembershipRolesRepositoryMock = $siteMembershipRolesRepository;
         $this->entitiesBuilderMock = $entitiesBuilder;
+        $this->loggerMock = $logger;
 
         $this->beConstructedWith(
             $this->siteMembershipRepositoryMock,
             $this->siteMembershipGroupsRepositoryMock,
             $this->siteMembershipRolesRepositoryMock,
             $this->entitiesBuilderMock,
+            $this->loggerMock,
         );
     }
 
@@ -133,6 +138,90 @@ class SiteMembershipReaderServiceSpec extends ObjectBehavior
         $memberships[2]->isExternal->shouldBe(true);
         $memberships[2]->purchaseUrl->shouldBe('http://foo/bar');
         $memberships[2]->manageUrl->shouldBe('http://bar/foo');
+    }
+
+    /**
+     * @param Group $groupMock
+     * @return void
+     * @throws ReflectionException
+     */
+    public function it_should_get_memberships_and_omit_and_not_found_groups(
+        Group $groupMock
+    ): void {
+        $availableMemberships = [
+            [
+                'membership_tier_guid' => 1,
+                'stripe_product_id' => 'prod_1',
+                'name' => 'Membership 1',
+                'description' => 'Membership 1 description',
+                'billing_period' => SiteMembershipBillingPeriodEnum::MONTHLY->value,
+                'pricing_model' => 'recurring',
+                'currency' => 'usd',
+                'price_in_cents' => 1099,
+                'archived' => false,
+                'is_external' => false,
+                'purchase_url' => null,
+                'manage_url' => null,
+            ],
+            [
+                'membership_tier_guid' => 2,
+                'stripe_product_id' => 'prod_2',
+                'name' => 'Membership 2',
+                'description' => 'Membership 2 description',
+                'billing_period' => SiteMembershipBillingPeriodEnum::MONTHLY->value,
+                'pricing_model' => 'recurring',
+                'currency' => 'usd',
+                'price_in_cents' => 1099,
+                'archived' => false,
+                'is_external' => false,
+                'purchase_url' => null,
+                'manage_url' => null,
+            ],
+            [
+                'membership_tier_guid' => 3,
+                'stripe_product_id' => 'prod_3',
+                'name' => 'Membership 3',
+                'description' => 'Membership 3 description',
+                'billing_period' => SiteMembershipBillingPeriodEnum::MONTHLY->value,
+                'pricing_model' => 'one_time',
+                'currency' => 'usd',
+                'price_in_cents' => 1099,
+                'archived' => false,
+                'is_external' => true,
+                'purchase_url' => 'http://foo/bar',
+                'manage_url' => 'http://bar/foo'
+            ],
+        ];
+
+        $this->siteMembershipRepositoryMock->getSiteMemberships()
+            ->shouldBeCalledOnce()
+            ->willYield($availableMemberships);
+
+        $this->siteMembershipGroupsRepositoryMock->getSiteMembershipGroups(1)
+            ->shouldBeCalledOnce()
+            ->willReturn(['group_1', 'group_2']);
+
+        $this->siteMembershipGroupsRepositoryMock->getSiteMembershipGroups(2)
+            ->shouldBeCalledOnce()
+            ->willReturn([]);
+
+        $this->siteMembershipGroupsRepositoryMock->getSiteMembershipGroups(3)
+            ->shouldBeCalledOnce()
+            ->willReturn([]);
+
+        $this->entitiesBuilderMock->single('group_1')
+            ->shouldBeCalledOnce()
+            ->willReturn($groupMock);
+
+        $this->entitiesBuilderMock->single('group_2')
+            ->shouldBeCalledOnce()
+            ->willReturn(null);
+
+        $this->loggerMock->warning("Group not found with guid: group_2, for site membership 1")
+            ->shouldBeCalledOnce();
+
+        $memberships = $this->getSiteMemberships();
+        $memberships->shouldContainAnInstanceOf(SiteMembership::class);
     }
 
     /**
