@@ -6,6 +6,8 @@ namespace Minds\Core\Payments\SiteMemberships\Controllers;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services\PaywalledEntityService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipBatchService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipManagementService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipReaderService;
@@ -30,7 +32,9 @@ class ControllersProvider extends Provider
         $this->di->bind(
             SiteMembershipReaderController::class,
             fn (Di $di): SiteMembershipReaderController => new SiteMembershipReaderController(
-                siteMembershipReaderService: $di->get(SiteMembershipReaderService::class)
+                siteMembershipReaderService: $di->get(SiteMembershipReaderService::class),
+                paywalledEntityService: $di->get(PaywalledEntityService::class),
+                entitiesBuilder: $di->get(EntitiesBuilder::class)
             )
         );
 
