@@ -71,10 +71,18 @@ class PaywalledEntityService
             );
         }
 
+        if (!count($siteMemberships)) {
+            return null;
+        }
+
         // Sort lowest to highest price
         usort($siteMemberships, function (SiteMembership $a, SiteMembership $b) {
             return $a->membershipPriceInCents <=> $b->membershipPriceInCents;
         });
+
+        if ($entityMembershipGuids[0] === -1) {
+            return $siteMemberships[0];
+        }
 
         foreach ($siteMemberships as $siteMembership) {
             if (in_array($siteMembership->membershipGuid, $entityMembershipGuids, false)) {

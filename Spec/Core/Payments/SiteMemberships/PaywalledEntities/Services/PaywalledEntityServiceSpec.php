@@ -99,6 +99,47 @@ class PaywalledEntityServiceSpec extends ObjectBehavior
             ->shouldBe($siteMembership3);
     }
 
+    public function it_should_return_the_lowest_price_site_membership_for_activity_when_the_activity_is_available_for_all_memberships(Activity $activityMock)
+    {
+        $activityMock->getGuid()
+            ->willReturn('123');
+
+        $this->paywalledEntitiesRepositoryMock->getMembershipsFromEntity(123)
+            ->willReturn([ -1 ]); // Mapped to multiple memberships
+
+        $siteMembership1 = new SiteMembership(
+            1,
+            '',
+            999,
+            SiteMembershipBillingPeriodEnum::MONTHLY,
+            SiteMembershipPricingModelEnum::RECURRING
+        );
+        $siteMembership2 = new SiteMembership(
+            2,
+            '',
+            1999,
+            SiteMembershipBillingPeriodEnum::MONTHLY,
+            SiteMembershipPricingModelEnum::RECURRING
+        );
+        $siteMembership3 = new SiteMembership(
+            3,
+            '',
+            499,
+            SiteMembershipBillingPeriodEnum::MONTHLY,
+            SiteMembershipPricingModelEnum::RECURRING
+        );
+
+        $this->siteMembershipReaderServiceMock->getSiteMemberships()
+            ->willReturn([
+                $siteMembership1,
+                $siteMembership2,
+                $siteMembership3,
+            ]);
+
+        $this->lowestPriceSiteMembershipForActivity($activityMock)
+            ->shouldBe($siteMembership3);
+    }
+
     public function it_should_return_null_when_no_matching_site_membership_found(Activity $activityMock)
     {
         $activityMock->getGuid()
