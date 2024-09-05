@@ -66,7 +66,9 @@ class PaywalledEntityService
         $siteMemberships = $this->siteMembershipReaderService->getSiteMemberships();
 
         if ($externalOnly) {
-            $siteMemberships = array_filter($siteMemberships, fn (SiteMembership $siteMembership) => $siteMembership->isExternal);
+            $siteMemberships = array_values(
+                array_filter($siteMemberships, fn (SiteMembership $siteMembership) => $siteMembership->isExternal)
+            );
         }
 
         // Sort lowest to highest price
@@ -75,7 +77,7 @@ class PaywalledEntityService
         });
 
         foreach ($siteMemberships as $siteMembership) {
-            if (in_array($siteMembership->membershipGuid, $entityMembershipGuids, true)) {
+            if (in_array($siteMembership->membershipGuid, $entityMembershipGuids, false)) {
                 return $siteMembership;
             }
         }
