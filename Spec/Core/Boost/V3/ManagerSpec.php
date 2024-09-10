@@ -1436,11 +1436,11 @@ class ManagerSpec extends ObjectBehavior
 
         $this->acl->read($boost1)
             ->shouldBeCalled()
-            ->willReturn(true);
+            ->willReturn(false);
 
         $this->acl->read($boost2)
             ->shouldBeCalled()
-            ->willReturn(false);
+            ->willReturn(true);
 
         $this->repository->getBoosts(
             Argument::type('integer'),
@@ -1460,7 +1460,7 @@ class ManagerSpec extends ObjectBehavior
             ->willYield([$boost1, $boost2]);
 
         $this->getBoosts()
-            ->shouldBeLike(new Response([$boost1], false));
+            ->shouldBeLike(new Response([$boost2], false));
     }
 
     public function it_should_get_admin_stats()

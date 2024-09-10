@@ -550,7 +550,7 @@ class Manager
             }
         }
 
-        return new Response($boostsArray, $hasNext);
+        return new Response(array_values($boostsArray), $hasNext);
     }
 
     /**
