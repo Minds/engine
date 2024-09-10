@@ -64,11 +64,12 @@ class SiteMembershipRepository extends AbstractRepository
     }
 
     /**
+     * @param bool $excludeExternal - Whether to exclude external site memberships.
      * @return iterable
      * @throws NoSiteMembershipsFoundException
      * @throws ServerErrorException
      */
-    public function getSiteMemberships(): iterable
+    public function getSiteMemberships(bool $excludeExternal = false): iterable
     {
         $stmt = $this->mysqlClientReaderHandler->select()
             ->from('minds_site_membership_tiers')
@@ -86,11 +87,16 @@ class SiteMembershipRepository extends AbstractRepository
                 'purchase_url',
                 'manage_url',
             ])
-            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
-            ->prepare();
+            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1);
+
+        if ($excludeExternal) {
+            $stmt->where('is_external', Operator::EQ, false);
+        }
+
+        $stmt->prepare();
 
         try {
-            $stmt->execute();
+            $stmt = $stmt->execute();
 
             if ($stmt->rowCount() === 0) {
                 throw new NoSiteMembershipsFoundException();

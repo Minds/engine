@@ -9,6 +9,7 @@ use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipReaderService;
 use Minds\Core\Payments\Stripe\Keys\Controllers\StripeKeysController;
 use Minds\Core\Payments\Stripe\Webhooks\Services\SubscriptionsWebhookService;
 use Minds\Core\Security\Vault\VaultTransitService;
@@ -35,6 +36,7 @@ class Provider extends DiProvider
                 repository: $di->get(StripeKeysRepository::class),
                 vaultTransitService: $di->get(VaultTransitService::class),
                 subscriptionsWebhookService: $di->get(SubscriptionsWebhookService::class),
+                siteMembershipReaderService: $di->get(SiteMembershipReaderService::class),
             );
         });
 

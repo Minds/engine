@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Payments\Stripe\Keys;
 
+use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipReaderService;
 use Minds\Core\Payments\Stripe\Webhooks\Services\SubscriptionsWebhookService;
 use Minds\Core\Security\Vault\VaultTransitService;
 use Minds\Exceptions\UserErrorException;
@@ -13,6 +14,7 @@ class StripeKeysService
         private StripeKeysRepository $repository,
         private VaultTransitService $vaultTransitService,
         private readonly SubscriptionsWebhookService $subscriptionsWebhookService,
+        private readonly SiteMembershipReaderService $siteMembershipReaderService,
     ) {
     }
 
@@ -58,6 +60,10 @@ class StripeKeysService
     public function setKeys(string $pubKey, string $secKeyPlainText, bool $validate = true): bool
     {
         if ($validate) {
+            if ($this->siteMembershipReaderService->getSiteMemberships(excludeExternal: true)) {
+                throw new UserErrorException('Please archive all membership tiers related to the current Stripe public key before changing it.');
+            }
+
             // Before we set the keys, we will try and validate the keys
             try {
                 $stripeClient = new StripeClient($secKeyPlainText);

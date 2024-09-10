@@ -32,16 +32,17 @@ class SiteMembershipReaderService
     }
 
     /**
+     * @param bool $excludeExternal - Whether to exclude external site memberships.
      * @return SiteMembership[]
      * @throws NotFoundException
      * @throws ServerErrorException
      */
-    public function getSiteMemberships(): array
+    public function getSiteMemberships(bool $excludeExternal = false): array
     {
         $siteMemberships = [];
 
         try {
-            foreach ($this->siteMembershipRepository->getSiteMemberships() as $siteMembershipDbInfo) {
+            foreach ($this->siteMembershipRepository->getSiteMemberships($excludeExternal) as $siteMembershipDbInfo) {
                 if ($siteMembershipDbInfo['archived']) {
                     continue;
                 }

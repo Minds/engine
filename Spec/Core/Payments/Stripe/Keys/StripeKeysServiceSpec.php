@@ -2,10 +2,15 @@
 
 namespace Spec\Minds\Core\Payments\Stripe\Keys;
 
+use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipBillingPeriodEnum;
+use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipPricingModelEnum;
+use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipReaderService;
+use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
 use Minds\Core\Payments\Stripe\Keys\StripeKeysRepository;
 use Minds\Core\Payments\Stripe\Keys\StripeKeysService;
 use Minds\Core\Payments\Stripe\Webhooks\Services\SubscriptionsWebhookService;
 use Minds\Core\Security\Vault\VaultTransitService;
+use Minds\Exceptions\UserErrorException;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
@@ -15,16 +20,19 @@ class StripeKeysServiceSpec extends ObjectBehavior
     private Collaborator $repositoryMock;
     private Collaborator $vaultTransitServiceMock;
     private Collaborator $subscriptionsWebhookServiceMock;
+    private Collaborator $siteMembershipReaderServiceMock;
 
     public function let(
         StripeKeysRepository $repositoryMock,
         VaultTransitService $vaultTransitServiceMock,
-        SubscriptionsWebhookService $subscriptionsWebhookServiceMock
+        SubscriptionsWebhookService $subscriptionsWebhookServiceMock,
+        SiteMembershipReaderService $siteMembershipReaderServiceMock
     ): void {
-        $this->beConstructedWith($repositoryMock, $vaultTransitServiceMock, $subscriptionsWebhookServiceMock);
+        $this->beConstructedWith($repositoryMock, $vaultTransitServiceMock, $subscriptionsWebhookServiceMock, $siteMembershipReaderServiceMock);
         $this->repositoryMock = $repositoryMock;
         $this->vaultTransitServiceMock = $vaultTransitServiceMock;
         $this->subscriptionsWebhookServiceMock = $subscriptionsWebhookServiceMock;
+        $this->siteMembershipReaderServiceMock = $siteMembershipReaderServiceMock;
     }
 
     public function it_is_initializable()
@@ -62,6 +70,8 @@ class StripeKeysServiceSpec extends ObjectBehavior
         $this->getSecKey()->shouldBe(null);
     }
 
+    // setKeys
+
     public function it_should_set_keys_and_encrypt()
     {
         $this->vaultTransitServiceMock->encrypt('sec-key-plain-text')
@@ -83,6 +93,27 @@ class StripeKeysServiceSpec extends ObjectBehavior
         
         $this->setKeys('pub-key', 'sec-key-plain-text', false)->shouldBe(true);
     }
+
+    public function it_should_throw_when_setting_keys_with_non_external_site_memberships_when_validating(): void
+    {
+        $this->siteMembershipReaderServiceMock->getSiteMemberships(excludeExternal: true)
+            ->shouldBeCalled()
+            ->willReturn([
+                new SiteMembership(
+                    membershipGuid: 123457890123456,
+                    membershipName: 'Membership',
+                    membershipPriceInCents: 1000,
+                    membershipBillingPeriod: SiteMembershipBillingPeriodEnum::MONTHLY,
+                    membershipPricingModel: SiteMembershipPricingModelEnum::RECURRING,
+                    isExternal: false,
+                )
+            ]);
+
+        $this->shouldThrow(new UserErrorException('Please archive all membership tiers related to the current Stripe public key before changing it.'))
+            ->during('setKeys', ['pub-key', 'sec-key-plain-text', true]);
+    }
+
+    // getAllKeys
 
     public function it_should_get_all_keys(): void
     {
