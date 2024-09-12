@@ -315,8 +315,11 @@ class membership implements Interfaces\Api
 
         // Normal join
         try {
+            $exported = [];
+
             if ($this->invitations->setGroup($group)->isInvited($loggedInUser)) {
                 $joined = $this->invitations->setGroup($group)->setActor($loggedInUser)->accept();
+                $exported['invite_accepted'] = true;
             } else {
                 $joined = $this->membershipManager->joinGroup($group, $loggedInUser);
             }
@@ -333,7 +336,8 @@ class membership implements Interfaces\Api
                 ->push();
 
             return Factory::response([
-                'done' => $joined
+                'done' => $joined,
+                ...$exported
             ]);
         } catch (GroupOperationException $e) {
             return Factory::response([
