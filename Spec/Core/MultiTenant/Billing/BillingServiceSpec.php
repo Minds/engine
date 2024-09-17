@@ -8,6 +8,7 @@ use Minds\Core\MultiTenant\AutoLogin\AutoLoginService;
 use Minds\Core\MultiTenant\Billing\BillingService;
 use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
 use Minds\Core\MultiTenant\Models\Tenant;
+use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\MultiTenant\Services\TenantsService;
 use Minds\Core\MultiTenant\Services\TenantUsersService;
@@ -38,6 +39,7 @@ class BillingServiceSpec extends ObjectBehavior
     private Collaborator $stripeProductPriceServiceMock;
     private Collaborator $stripeProductServiceMock;
     private Collaborator $stripeCheckoutSessionServiceMock;
+    private Collaborator $domainServiceMock;
     private Collaborator $tenantsServiceMock;
     private Collaborator $usersServiceMock;
     private Collaborator $emailServiceMock;
@@ -54,6 +56,7 @@ class BillingServiceSpec extends ObjectBehavior
         StripeProductPriceService    $stripeProductPriceServiceMock,
         StripeProductService         $stripeProductServiceMock,
         StripeCheckoutSessionService $stripeCheckoutSessionServiceMock,
+        DomainService                $domainServiceMock,
         TenantsService               $tenantsServiceMock,
         TenantUsersService           $usersServiceMock,
         TenantTrialEmailer           $emailServiceMock,
@@ -68,6 +71,7 @@ class BillingServiceSpec extends ObjectBehavior
             $stripeProductPriceServiceMock,
             $stripeProductServiceMock,
             $stripeCheckoutSessionServiceMock,
+            $domainServiceMock,
             $tenantsServiceMock,
             $usersServiceMock,
             $emailServiceMock,
@@ -81,6 +85,7 @@ class BillingServiceSpec extends ObjectBehavior
         $this->stripeProductPriceServiceMock =   $stripeProductPriceServiceMock;
         $this->stripeProductServiceMock = $stripeProductServiceMock;
         $this->stripeCheckoutSessionServiceMock = $stripeCheckoutSessionServiceMock;
+        $this->domainServiceMock = $domainServiceMock;
         $this->tenantsServiceMock = $tenantsServiceMock;
         $this->usersServiceMock = $usersServiceMock;
         $this->emailServiceMock = $emailServiceMock;
@@ -259,13 +264,14 @@ class BillingServiceSpec extends ObjectBehavior
     public function it_should_generate_a_checkout_link_upgrade(
         SearchResult $stripeProductPricesMock
     ) {
+        $domain = 'example.minds.com';
         $this->configMock->get('tenant')
             ->willReturn(new Tenant(
                 id: 1,
             ));
             
-        $this->configMock->get('site_url')
-            ->willReturn('https://tenant.phpspec/');
+        $this->domainServiceMock->buildNavigatableDomain(Argument::type(Tenant::class))
+            ->willReturn($domain);
 
         $this->stripeProductServiceMock->getProductByKey('networks:team')
             ->shouldBeCalledOnce()
@@ -290,8 +296,8 @@ class BillingServiceSpec extends ObjectBehavior
         $this->stripeCheckoutManagerMock->createSession(
             null,
             CheckoutModeEnum::SUBSCRIPTION,
-            Argument::type('string'),
-            Argument::type('string'),
+            "https://$domain/api/v3/multi-tenant/billing/upgrade-callback?session_id={CHECKOUT_SESSION_ID}",
+            "https://networks.minds.com/pricing",
             [
                 [
                     'price' => 'networks:team',
