@@ -21,7 +21,6 @@ class Entity
         'containerGuid' => 'container_guid',
         'accessId' => 'access_id',
         'title' => 'title',
-        'link_title' => 'title',
         'body' => 'description',
         'excerpt' => 'excerpt',
         'slug' => 'slug',

@@ -682,6 +682,7 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
         $output['deleted'] = (bool)$export['deleted'];
         $output['rating'] = (int)$export['rating'];
         $output['boost_rejection_reason'] = (int)$export['boost_rejection_reason'];
+        $output['link_title'] = $export['title'];
 
         // The curious case of the published flag
         if ($export['published'] !== "" && $export['published'] !== null) {
