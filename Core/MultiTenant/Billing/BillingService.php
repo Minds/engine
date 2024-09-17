@@ -10,6 +10,7 @@ use Minds\Core\MultiTenant\Billing\Types\TenantBillingType;
 use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
 use Minds\Core\MultiTenant\Enums\TenantUserRoleEnum;
 use Minds\Core\MultiTenant\Models\Tenant;
+use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\Payments\Stripe\Checkout\Manager as StripeCheckoutManager;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductPriceService as StripeProductPriceService;
@@ -33,6 +34,7 @@ class BillingService
         private readonly StripeProductPriceService    $stripeProductPriceService,
         private readonly StripeProductService         $stripeProductService,
         private readonly StripeCheckoutSessionService $stripeCheckoutSessionService,
+        private readonly DomainService                $domainService,
         private readonly TenantsService               $tenantsService,
         private readonly TenantUsersService           $usersService,
         private readonly TenantTrialEmailer           $emailService,
@@ -93,14 +95,12 @@ class BillingService
     ): string {
         /** @var Tenant */
         $tenant = $this->config->get('tenant');
-        $siteUrl = $this->config->get('site_url');
 
         if (!$tenant) {
             throw new ForbiddenException("Can only be run on an active tenant");
         }
 
-        $this->runWithRootConfigs(function () use (&$checkoutLink, $timePeriod, $plan, $tenant, $siteUrl, $loggedInUser) {
-
+        $this->runWithRootConfigs(function () use (&$checkoutLink, $timePeriod, $plan, $tenant, $loggedInUser) {
             // Does a subscription exist? If so, we can't do anything yet (todo), so redirect to the networks site contact form
             if ($tenant->stripeSubscription) {
                 $checkoutLink = 'https://networks.minds.com/contact-upgrade?' . http_build_query([
@@ -124,9 +124,11 @@ class BillingService
                 ]
             ];
 
+            $navigatableDomain = $this->domainService->buildNavigatableDomain($tenant);
+
             $checkoutSession = $this->stripeCheckoutManager->createSession(
                 mode: CheckoutModeEnum::SUBSCRIPTION,
-                successUrl: "{$siteUrl}api/v3/multi-tenant/billing/upgrade-callback?session_id={CHECKOUT_SESSION_ID}",
+                successUrl: "https://$navigatableDomain/api/v3/multi-tenant/billing/upgrade-callback?session_id={CHECKOUT_SESSION_ID}",
                 cancelUrl: "https://networks.minds.com/pricing",
                 lineItems: $lineItems,
                 paymentMethodTypes: [
@@ -211,6 +213,10 @@ class BillingService
             $this->tenantsService->upgradeTenant($tenant, $plan, $subscription->id, $loggedInUser);
         });
 
+        /**
+         * TODO: Consider using the navigatable domain here instead if we ever need the URL returned
+         * At the time of writing, the return value is not in use, so there is no need to add an additional function call.
+         */
         return $this->config->get('site_url') . 'network/admin/billing';
     }
 
@@ -236,14 +242,14 @@ class BillingService
             );
         }
 
-        $backUrl = $this->config->get('site_url') . 'network/admin/billing';
-
-        $this->runWithRootConfigs(function () use (&$subscription, &$manageUrl, $tenant, $backUrl) {
+        $this->runWithRootConfigs(function () use (&$subscription, &$manageUrl, $tenant) {
             $subscription = $this->stripeSubscriptionsService->retrieveSubscription($tenant->stripeSubscription);
+
+            $navigatableDomain = $this->domainService->buildNavigatableDomain($tenant);
 
             $manageUrl = $this->customerPortalService->createCustomerPortalSession(
                 stripeCustomerId: $subscription->customer,
-                redirectUrl: $backUrl,
+                redirectUrl: "https://$navigatableDomain/network/admin/billing",
             );
         });
 
