@@ -116,12 +116,11 @@ class Digest extends EmailCampaign
                 return $campaignLog->getEmailCampaignId() === $this->getEmailCampaignId();
             })
             ->sort(function ($a, $b) {
-                return $a->getTimeSent() <=> $b->getTimeSent();
+                return $b->getTimeSent() <=> $a->getTimeSent();
             });
 
         // Get the timestamp of the last sent campaign
         $refUnixTimestamp = max(isset($campaigns[0]) ? $campaigns[0]->getTimeSent() : 0, strtotime('14 days ago'));
-
 
         // Get trends (highlights) from discovery
         try {
