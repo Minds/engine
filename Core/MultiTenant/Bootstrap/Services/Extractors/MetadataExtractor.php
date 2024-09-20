@@ -46,20 +46,11 @@ class MetadataExtractor
         try {
             $data = $this->getMetadata($siteUrl);
 
-            $logoUrl = $data['links']['thumbnail'][0]['href'] ?? null;
-            
-            if (!$logoUrl) {
-                throw new \Exception("Logo URL not found");
-            }
- 
-            $logoData = $this->guzzleClient->get($logoUrl)->getBody()->getContents();
-            
             $this->logger->info("Metadata extracted: " . json_encode($data));
 
             return new ExtractedMetadata(
-                logoUrl: $logoUrl,
+                logoUrl: $data['links']['thumbnail'][0]['href'] ?? null,
                 description: $data['meta']['description'] ?? '',
-                logoData: $logoData ?? null,
                 publisher: $data['publisher'] ?? null
             );
         } catch (\Exception $e) {
