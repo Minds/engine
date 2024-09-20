@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Minds\Core\MultiTenant\Bootstrap\Services\Extractors;
 
 use Minds\Core\Log\Logger;
-use Minds\Core\MultiTenant\Bootstrap\Clients\JinaClient;
 use Minds\Core\MultiTenant\Bootstrap\Clients\ScreenshotOneClient;
 
 /**
@@ -13,7 +12,6 @@ use Minds\Core\MultiTenant\Bootstrap\Clients\ScreenshotOneClient;
 class ScreenshotExtractor
 {
     public function __construct(
-        private JinaClient $jinaClient,
         private ScreenshotOneClient $screenshotOneClient,
         private Logger $logger
     ) {

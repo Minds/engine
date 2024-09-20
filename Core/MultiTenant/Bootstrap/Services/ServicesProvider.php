@@ -55,7 +55,6 @@ class ServicesProvider extends DiProvider
             ScreenshotExtractor::class,
             function (Di $di): ScreenshotExtractor {
                 return new ScreenshotExtractor(
-                    jinaClient: $di->get(JinaClient::class),
                     screenshotOneClient: $di->get(ScreenshotOneClient::class),
                     logger: $di->get('Logger')
                 );
