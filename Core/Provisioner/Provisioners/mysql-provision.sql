@@ -1183,3 +1183,11 @@ ALTER TABLE minds_tenant_configs
 ALTER TABLE minds_tenants
     ADD COLUMN stripe_subscription varchar(128) DEFAULT NULL
     AFTER plan;
+
+CREATE TABLE IF NOT EXISTS minds_tenant_bootstrap_progress (
+    tenant_id int NOT NULL,
+    step_name varchar(64) NOT NULL,
+    success boolean NOT NULL,
+    last_run_timestamp timestamp DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (tenant_id, step_name)
+);
