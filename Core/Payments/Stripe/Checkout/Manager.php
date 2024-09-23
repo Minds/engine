@@ -6,6 +6,8 @@ use InvalidArgumentException;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Payments\Stripe\Checkout\Enums\CheckoutModeEnum;
+use Minds\Core\Payments\Stripe\Checkout\Enums\PaymentMethodCollectionEnum;
+use Minds\Core\Payments\Stripe\Checkout\Models\CustomField;
 use Minds\Core\Payments\Stripe\Customers;
 use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Entities\User;
@@ -35,6 +37,10 @@ class Manager
      * @param array|null $paymentMethodTypes
      * @param string|null $submitMessage
      * @param array|null $metadata
+     * @param bool|null $phoneNumberCollection - Whether to collect the customer's phone number.
+     * @param array|null $subscriptionData - Additional data for subscription data.
+     * @param PaymentMethodCollectionEnum|null $paymentMethodCollection - Payment method collection method.
+     * @param array<CustomField>|null $customFields - Custom fields to collect during checkout.
      * @return Session
      * @throws ApiErrorException
      */
@@ -47,6 +53,10 @@ class Manager
         ?array                  $paymentMethodTypes = null,
         ?string                 $submitMessage = null,
         array                   $metadata = null,
+        bool                    $phoneNumberCollection = null,
+        array                   $subscriptionData = null,
+        PaymentMethodCollectionEnum $paymentMethodCollection = null,
+        array                   $customFields = null
     ): Session {
         $customerId = $user ? $this->customersManager->getByUser($user)->id : null;
 
@@ -79,6 +89,27 @@ class Manager
 
         if ($metadata) {
             $checkoutOptions['metadata'] = $metadata;
+        }
+
+        if ($phoneNumberCollection) {
+            $checkoutOptions['phone_number_collection'] = [
+                "enabled" => true
+            ];
+        }
+
+        if ($customFields) {
+            $checkoutOptions['custom_fields'] = array_map(
+                fn (CustomField $customField) => $customField->toArray(),
+                $customFields
+            );
+        }
+
+        if ($subscriptionData) {
+            $checkoutOptions['subscription_data'] = $subscriptionData;
+        }
+
+        if ($paymentMethodCollection) {
+            $checkoutOptions['payment_method_collection'] = $paymentMethodCollection->value;
         }
 
         return $this->stripeClient->checkout->sessions->create($checkoutOptions);

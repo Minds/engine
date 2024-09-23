@@ -43,6 +43,20 @@ class BillingPsrController
     }
 
     /**
+     * Initiates a trial checkout process for a non-Minds user.
+     * @param ServerRequestInterface $request - The incoming server request.
+     * @return RedirectResponse - A redirect to the Stripe checkout URL.
+     */
+    public function externalTrialCheckout(ServerRequestInterface $request): RedirectResponse
+    {
+        $checkoutUrl = $this->service->createExternalTrialCheckoutLink(
+            plan: TenantPlanEnum::TEAM,
+            timePeriod: CheckoutTimePeriodEnum::MONTHLY
+        );
+        return new RedirectResponse($checkoutUrl);
+    }
+
+    /**
      * Stripe will redirect here after a new network is purchased (non minds users only)
      * The user will be redirected back to the networks.minds.com site in order to capture the session
      * and track conversions better
@@ -52,6 +66,20 @@ class BillingPsrController
         $checkoutSessionId = $request->getQueryParams()['session_id'];
         $loginUrl = $this->service->onSuccessfulCheckout($checkoutSessionId);
 
+        return new RedirectResponse($loginUrl);
+    }
+
+    /**
+    * Stripe will redirect here after a new network trial is started (non minds users only)
+    * The user will be redirected back to the networks.minds.com site in order to capture the session
+    * and track conversions better.
+    * @param ServerRequestInterface $request - The incoming server request.
+    * @return RedirectResponse - A redirect to the auto-login URL.
+    */
+    public function externalTrialCallback(ServerRequestInterface $request): RedirectResponse
+    {
+        $checkoutSessionId = $request->getQueryParams()['session_id'];
+        $loginUrl = $this->service->onSuccessfulTrialCheckout($checkoutSessionId);
         return new RedirectResponse($loginUrl);
     }
 

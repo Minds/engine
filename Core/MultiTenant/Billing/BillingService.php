@@ -20,6 +20,8 @@ use Minds\Core\MultiTenant\Services\TenantUsersService;
 use Minds\Core\MultiTenant\Types\TenantUser;
 use Minds\Core\Payments\Checkout\Enums\CheckoutTimePeriodEnum;
 use Minds\Core\Payments\Stripe\Checkout\Enums\CheckoutModeEnum;
+use Minds\Core\Payments\Stripe\Checkout\Enums\PaymentMethodCollectionEnum;
+use Minds\Core\Payments\Stripe\Checkout\Models\CustomField;
 use Minds\Core\Payments\Stripe\CustomerPortal\Services\CustomerPortalService;
 use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService;
 use Minds\Core\Router\Exceptions\ForbiddenException;
@@ -44,6 +46,7 @@ class BillingService
     ) {
     
     }
+
     /**
      * Returns a url to stripe checkout service, specifically for a customer
      * who is not on Minds.
@@ -77,6 +80,64 @@ class BillingService
             metadata: [
                 'tenant_plan' => strtoupper($plan->name),
             ],
+        );
+
+        $checkoutLink = $checkoutSession->url;
+        return $checkoutLink;
+    }
+
+    /**
+     * Returns a url to stripe checkout service for a trial, specifically for a customer
+     * who is not on Minds.
+     * @param TenantPlanEnum $plan - The plan for the tenant.
+     * @param CheckoutTimePeriodEnum $timePeriod - The billing period for the subscription.
+     * @return string The URL for the Stripe checkout session.
+     */
+    public function createExternalTrialCheckoutLink(
+        TenantPlanEnum $plan,
+        CheckoutTimePeriodEnum $timePeriod,
+    ): string {
+        // Build out the products and their add ons based on the input
+        $product = $this->stripeProductService->getProductByKey('networks:' . strtolower($plan->name));
+        $productPrices = $this->stripeProductPriceService->getPricesByProduct($product->id);
+        $productPrice = array_filter(iterator_to_array($productPrices->getIterator()), fn (Price $price) => $price->lookup_key === 'networks:' . strtolower($plan->name) . ":" . strtolower($timePeriod->name));
+
+        $checkoutSession = $this->stripeCheckoutManager->createSession(
+            mode: CheckoutModeEnum::SUBSCRIPTION,
+            successUrl: "https://www.minds.com/api/v3/multi-tenant/billing/external-trial-callback?session_id={CHECKOUT_SESSION_ID}",
+            cancelUrl: "https://networks.minds.com/pricing",
+            lineItems: [
+                [
+                    'price' => array_pop($productPrice)->id,
+                    'quantity' => 1,
+                ]
+            ],
+            paymentMethodTypes: [
+                'card',
+                'us_bank_account',
+            ],
+            submitMessage: $timePeriod === CheckoutTimePeriodEnum::YEARLY ? "You are agreeing to a 12 month subscription that will be billed monthly." : null,
+            metadata: [
+                'tenant_plan' => strtoupper($plan->name),
+            ],
+            phoneNumberCollection: true,
+            subscriptionData: [
+                'trial_settings' => ['end_behavior' => ['missing_payment_method' => 'pause']],
+                'trial_period_days' => Tenant::TRIAL_LENGTH_IN_DAYS,
+            ],
+            paymentMethodCollection: PaymentMethodCollectionEnum::IF_REQUIRED,
+            customFields: [
+                new CustomField(
+                    key: 'first_name',
+                    label: 'First name',
+                    type: 'text'
+                ),
+                new CustomField(
+                    key: 'last_name',
+                    label: 'Last name',
+                    type: 'text'
+                )
+            ]
         );
 
         $checkoutLink = $checkoutSession->url;
@@ -192,6 +253,72 @@ class BillingService
     }
 
     /**
+     * Execute when a checkout session has finished for a trial, so that we can create the tenant.
+     * @param string $checkoutSessionId - the id of the checkout session.
+     * @throws ForbiddenException - if the tenant has already been setup.
+     * @return string - an auto-login link for the user.
+     */
+    public function onSuccessfulTrialCheckout(string $checkoutSessionId): string
+    {
+        // Get the checkout session
+        $checkoutSession = $this->stripeCheckoutSessionService->retrieveCheckoutSession($checkoutSessionId);
+
+        // Get the subscription
+        $subscription = $this->stripeSubscriptionsService->retrieveSubscription($checkoutSession->subscription);
+
+        if (isset($subscription->metadata['tenant_id'])) {
+            throw new ForbiddenException("The tenant has already been setup");
+        }
+
+        $plan = TenantPlanEnum::fromString($checkoutSession->metadata['tenant_plan']);
+
+        $email = $checkoutSession->customer_details->email;
+
+        // Create a temporary user, so that we can send them an email.
+        $user = $this->createtEphemeralUser($email);
+
+        // Create the tenant.
+        $tenant = $this->createTenant(
+            plan: $plan,
+            user: $user,
+            stripeSubscription: $subscription->id,
+            isTrial: true
+        );
+
+        // Build an auto login url.
+        $user->guid = -1;
+        $loginUrl = $this->autoLoginService->buildLoginUrlWithParamsFromTenant($tenant, $user);
+
+        // Get input data from the form.
+        $phoneNumber = $checkoutSession->customer_details?->phone ?? null;
+
+        $firstNameField = array_values(array_filter($checkoutSession->custom_fields, fn ($field) => $field['key'] === 'first_name'));
+        $firstName = count($firstNameField) ? $firstNameField[0]['text']['value'] : null;
+        
+        $lastNameField = array_values(array_filter($checkoutSession->custom_fields, fn ($field) => $field['key'] === 'last_name'));
+        $lastName = count($lastNameField) ? $lastNameField[0]['text']['value'] : null;
+
+        $redirectUrl = 'https://networks.minds.com/complete-trial-checkout?' . http_build_query([
+            'email' => $email,
+            'firstName' => $firstName,
+            'lastName' => $lastName,
+            'phone' => $phoneNumber,
+            'redirectUrl' => $loginUrl
+        ]);
+
+        // Tell stripe billing about this tenant.
+        $this->stripeSubscriptionsService->updateSubscription(
+            subscriptionId: $checkoutSession->subscription,
+            metadata: [
+                'tenant_id' => $tenant->id,
+                'tenant_plan' => $tenant->plan->name,
+            ]
+        );
+
+        return $redirectUrl;
+    }
+
+    /**
      * Execute when an upgrade checkout session has finished.
      */
     public function onSuccessfulUpgradeCheckout(string $checkoutSessionId, User $loggedInUser): string
@@ -277,16 +404,23 @@ class BillingService
     /**
      * Creates the tenant, the root user, and sends an email to the user
      * about their new site
+     * @param TenantPlanEnum $plan - The plan for the new tenant.
+     * @param User $user - The user associated with the new tenant.
+     * @param string $stripeSubscription - The Stripe subscription ID.
+     * @param bool $isTrial - Whether this is a trial tenant, defaults to false.
+     * @return Tenant - The newly created tenant.
      */
-    protected function createTenant(TenantPlanEnum $plan, User $user, string $stripeSubscription): Tenant
+    protected function createTenant(TenantPlanEnum $plan, User $user, string $stripeSubscription, bool $isTrial = false): Tenant
     {
+        // should be able to specify that its a trial
         $tenant = $this->tenantsService->createNetwork(
             new Tenant(
                 id: -1,
                 ownerGuid: -1,
                 plan: $plan,
                 stripeSubscription: $stripeSubscription,
-            )
+            ),
+            $isTrial
         );
 
         // Generate a temorary password we will share with the customer
