@@ -3,7 +3,10 @@
 namespace Spec\Minds\Core\Payments\Stripe\Checkout;
 
 use Minds\Core\Config\Config;
+use Minds\Core\Payments\Stripe\Checkout\Enums\CheckoutModeEnum;
+use Minds\Core\Payments\Stripe\Checkout\Enums\PaymentMethodCollectionEnum;
 use Minds\Core\Payments\Stripe\Checkout\Manager;
+use Minds\Core\Payments\Stripe\Checkout\Models\CustomField;
 use Minds\Core\Payments\Stripe\Customers;
 use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Entities\User;
@@ -51,5 +54,89 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(new Stripe\Checkout\Session);
 
         $this->createSession($user);
+    }
+
+    public function it_should_create_session_with_all_params(
+        User $user,
+        Stripe\Customer $stripeCustomerMock,
+        Stripe\Service\Checkout\CheckoutServiceFactory $stripeCheckoutMock,
+        Stripe\Service\Checkout\SessionService $stripeCheckoutSessionMock,
+    ) {
+        $mode = CheckoutModeEnum::PAYMENT;
+        $successUrl = 'https://example.minds.com/checkout/success';
+        $cancelUrl = 'https://example.minds.com/checkout/cancel';
+        $lineItems = [
+            [
+                'price' => 'price_123',
+                'quantity' => 1
+            ]
+        ];
+        $paymentMethodTypes = ['card'];
+        $submitMessage = 'Pay now';
+        $metadata = [
+            'order_id' => '12345'
+        ];
+        $phoneNumberCollection = true;
+        $subscriptionData = [
+            'trial_period_days' => 14
+        ];
+        $paymentMethodCollection = PaymentMethodCollectionEnum::IF_REQUIRED;
+        $customFields = [
+            new CustomField(
+                key: 'first_name',
+                label: 'First name',
+                type: 'text'
+            ),
+        ];
+
+        $this->customerManagerMock->getByUser($user)->willReturn($stripeCustomerMock);
+
+        $this->stripeClientMock->checkout = $stripeCheckoutMock;
+        $stripeCheckoutMock->sessions = $stripeCheckoutSessionMock;
+
+        $stripeCheckoutSessionMock->create(Argument::that(function ($args) use (
+            $mode,
+            $successUrl,
+            $cancelUrl,
+            $lineItems,
+            $paymentMethodTypes,
+            $submitMessage,
+            $metadata,
+            $phoneNumberCollection,
+            $subscriptionData,
+            $paymentMethodCollection,
+            $customFields
+        ) {
+            return $args['mode'] === $mode->value &&
+                $args['success_url'] === $successUrl &&
+                $args['cancel_url'] === $cancelUrl &&
+                $args['line_items'] === $lineItems &&
+                $args['payment_method_types'] === $paymentMethodTypes &&
+                $args['custom_text']['submit']['message'] === $submitMessage &&
+                $args['metadata'] === $metadata &&
+                $args['phone_number_collection']['enabled'] === $phoneNumberCollection &&
+                $args['subscription_data'] === $subscriptionData &&
+                $args['payment_method_collection'] === $paymentMethodCollection->value &&
+                $args['custom_fields'] === array_map(
+                    fn (CustomField $customField) => $customField->toArray(),
+                    $customFields
+                );
+        }))
+            ->willReturn(new Stripe\Checkout\Session);
+
+        $this->createSession(
+            $user,
+            $mode,
+            $successUrl,
+            $cancelUrl,
+            $lineItems,
+            $paymentMethodTypes,
+            $submitMessage,
+            $metadata,
+            $phoneNumberCollection,
+            $subscriptionData,
+            $paymentMethodCollection,
+            $customFields
+        );
     }
 }
