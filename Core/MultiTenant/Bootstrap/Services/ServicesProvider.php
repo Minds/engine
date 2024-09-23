@@ -150,7 +150,8 @@ class ServicesProvider extends DiProvider
             MobileSplashLogoExtractor::class,
             function (Di $di): MobileSplashLogoExtractor {
                 return new MobileSplashLogoExtractor(
-                    logoImageProcessor: $di->get(LogoImageProcessor::class)
+                    logoImageProcessor: $di->get(LogoImageProcessor::class),
+                    logger: $di->get('Logger')
                 );
             }
         );
@@ -159,7 +160,8 @@ class ServicesProvider extends DiProvider
             HorizontalLogoExtractor::class,
             function (Di $di): HorizontalLogoExtractor {
                 return new HorizontalLogoExtractor(
-                    logoImageProcessor: $di->get(LogoImageProcessor::class)
+                    logoImageProcessor: $di->get(LogoImageProcessor::class),
+                    logger: $di->get('Logger')
                 );
             }
         );

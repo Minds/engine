@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Bootstrap\Services\Extractors;
 
+use Minds\Core\Log\Logger;
 use Minds\Core\MultiTenant\Bootstrap\Services\Processors\LogoImageProcessor;
 
 /**
@@ -11,7 +12,8 @@ use Minds\Core\MultiTenant\Bootstrap\Services\Processors\LogoImageProcessor;
 class MobileSplashLogoExtractor
 {
     public function __construct(
-        private LogoImageProcessor $logoImageProcessor
+        private LogoImageProcessor $logoImageProcessor,
+        private Logger $logger
     ) {
     }
 
@@ -23,21 +25,26 @@ class MobileSplashLogoExtractor
     public function extract(string $squareLogoBlob): ?string
     {
         $image = new \Imagick();
-        $image->readImageBlob($squareLogoBlob);
-        $image = $this->logoImageProcessor->toPng($image);
 
-        $logoAspectRatio = $image->getImageWidth() / $image->getImageHeight();
-        $horizontal = $logoAspectRatio > 1;
+        try {
+            $image->readImageBlob($squareLogoBlob);
+            $image = $this->logoImageProcessor->toPng($image);
 
-        $image = $horizontal ?
-            $this->logoImageProcessor->addPadding($image, $logoAspectRatio * 1.6) :
-            $this->logoImageProcessor->addPadding($image, 3.66);
+            $logoAspectRatio = $image->getImageWidth() / $image->getImageHeight();
+            $horizontal = $logoAspectRatio > 1;
 
-        $blob = $image->getImageBlob();
+            $image = $horizontal ?
+                $this->logoImageProcessor->addPadding($image, $logoAspectRatio * 1.6) :
+                $this->logoImageProcessor->addPadding($image, 3.66);
 
-        $image?->clear();
-        $image?->destroy();
-
-        return $blob;
+            $blob = $image->getImageBlob();
+            return $blob;
+        } catch (\Exception $e) {
+            $this->logger->error("Error extracting mobile splash logo: " . $e->getMessage());
+            return null;
+        } finally {
+            $image?->clear();
+            $image?->destroy();
+        }
     }
 }

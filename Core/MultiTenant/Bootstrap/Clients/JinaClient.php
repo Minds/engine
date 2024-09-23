@@ -27,7 +27,7 @@ class JinaClient
      * @param JinaReturnFormat|null $returnFormat - The format of the return data.
      * @return array|null - The metadata for the site.
      */
-    public function get(string $siteUrl, JinaReturnFormat $returnFormat = null): array
+    public function get(string $siteUrl, JinaReturnFormat $returnFormat = null): ?array
     {
         $url = $this->getBaseUrl().$siteUrl;
 

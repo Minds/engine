@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Bootstrap\Services\Extractors;
 
-use OpenAI\Client as OpenAIClient;
+use OpenAI\Contracts\ClientContract;
 
 /**
  * Extracts the theme of a website using OpenAI.
@@ -11,16 +11,16 @@ use OpenAI\Client as OpenAIClient;
 class ThemeExtractor
 {
     public function __construct(
-        private OpenAIClient $openAiClient
+        private ClientContract $openAiClient
     ) {
     }
 
     /**
      * Extracts the theme of a website using OpenAI from a given screenshot.
      * @param string $screenshotBlob - The screenshot to generate a theme from.
-     * @return string - The theme of the website.
+     * @return array - The theme of the website.
      */
-    public function extract(string $screenshotBlob): array
+    public function extract(string $screenshotBlob): ?array
     {
         $response = $this->openAiClient->chat()->create([
             'model' => 'gpt-4o-mini',

@@ -14,7 +14,7 @@ use Minds\Traits\MagicAttributes;
  * @method bool getSuccess()
  * @method \DateTime getLastRunTimestamp()
  * @method self setTenantId(int $tenantId)
- * @method self setStep(BootstrapStepEnum $stepName)
+ * @method self setStep(BootstrapStepEnum $step)
  * @method self setSuccess(bool $success)
  * @method self setLastRunTimestamp(\DateTime $lastRunTimestamp)
  */
@@ -26,7 +26,7 @@ class BootstrapStepProgress implements JsonSerializable
     protected ?int $tenantId;
 
     /** @var BootstrapStepEnum|null Name of the step. */
-    protected ?BootstrapStepEnum $stepName;
+    protected ?BootstrapStepEnum $step;
 
     /** @var bool|null Whether the step was successful. */
     protected ?bool $success;
@@ -41,7 +41,7 @@ class BootstrapStepProgress implements JsonSerializable
         \DateTime $lastRunTimestamp
     ) {
         $this->tenantId = $tenantId;
-        $this->stepName = $step;
+        $this->step = $step;
         $this->success = $success;
         $this->lastRunTimestamp = $lastRunTimestamp;
     }
@@ -54,7 +54,7 @@ class BootstrapStepProgress implements JsonSerializable
     {
         return [
             'tenantId' => $this->tenantId,
-            'stepName' => $this->stepName,
+            'step' => $this->step->name,
             'success' => $this->success,
             'lastRunTimestamp' => $this->lastRunTimestamp->getTimestamp(),
         ];

@@ -25,20 +25,23 @@ class ContentGenerationHandler
 
     /**
      * Handles the generation of content.
-     * @param string $markdownContent - The markdown content to generate content from.
+     * @param string|null $markdownContent - The markdown content to generate content from.
      * @param User $rootUser - The root user to create activities for.
      */
-    public function handle(string $markdownContent, User $rootUser)
+    public function handle(string $markdownContent = null, User $rootUser)
     {
         try {
-            $this->logger->info("Extracting content...");
+            if ($markdownContent) {
+                $this->logger->info("Extracting content...");
 
-            $content = $this->contentExtractor->extract($markdownContent);
-            $this->logger->info("Generated content: " . json_encode($content));
+                $content = $this->contentExtractor->extract($markdownContent);
+            
+                $this->logger->info("Generated content: " . json_encode($content));
 
-            if (count($content['articles'])) {
-                $this->activityCreationDelegate->onBulkCreate($content['articles'], $rootUser);
-                $this->logger->info("Content updated");
+                if (count($content['articles'])) {
+                    $this->activityCreationDelegate->onBulkCreate($content['articles'], $rootUser);
+                    $this->logger->info("Content updated");
+                }
             }
 
             $this->progressRepository->updateProgress(BootstrapStepEnum::CONTENT_STEP, true);

@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Bootstrap\Services\Extractors;
 
-use OpenAI\Client as OpenAIClient;
+use OpenAI\Contracts\ClientContract;
 
 /**
  * Extracts content from a markdown file using OpenAI's API.
@@ -13,7 +13,7 @@ class ContentExtractor
     /** @var int - The maximum number of articles to extract. */
     const MAX_ARTICLES = 10;
 
-    public function __construct(private OpenAIClient $openAiClient)
+    public function __construct(private ClientContract $openAiClient)
     {
     }
 

@@ -87,14 +87,17 @@ class LogoImageProcessor
      */
     private function convertSvgToPng(string $svgBlob): \Imagick
     {
+        $image = new \Imagick();
         try {
-            $image = new \Imagick();
             $image->setBackgroundColor(new \ImagickPixel('transparent'));
             $image->readImageBlob($svgBlob);
             $image->setImageFormat("png32");
             return $image;
         } catch (\Exception $e) {
             return null;
+        } finally {
+            $image?->clear();
+            $image?->destroy();
         }
     }
 }

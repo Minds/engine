@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Bootstrap\Services\Extractors;
 
+use Minds\Core\Log\Logger;
 use Minds\Core\MultiTenant\Bootstrap\Services\Processors\LogoImageProcessor;
 
 /**
@@ -11,7 +12,8 @@ use Minds\Core\MultiTenant\Bootstrap\Services\Processors\LogoImageProcessor;
 class HorizontalLogoExtractor
 {
     public function __construct(
-        private LogoImageProcessor $logoImageProcessor
+        private LogoImageProcessor $logoImageProcessor,
+        private Logger $logger
     ) {
     }
 
@@ -23,15 +25,20 @@ class HorizontalLogoExtractor
     public function extract(string $squareLogoBlob): ?string
     {
         $image = new \Imagick();
-        $image->readImageBlob($squareLogoBlob);
-        $image = $this->logoImageProcessor->toPng($image);
-        $image = $this->logoImageProcessor->trim($image);
-        $image = $this->logoImageProcessor->addPadding($image, 3.18);
-        $blob = $image->getImageBlob();
 
-        $image?->clear();
-        $image?->destroy();
-
-        return $blob;
+        try {
+            $image->readImageBlob($squareLogoBlob);
+            $image = $this->logoImageProcessor->toPng($image);
+            $image = $this->logoImageProcessor->trim($image);
+            $image = $this->logoImageProcessor->addPadding($image, 3.18);
+            $blob = $image->getImageBlob();
+            return $blob;
+        } catch (\Exception $e) {
+            $this->logger->error($e);
+            return null;
+        } finally {
+            $image?->clear();
+            $image?->destroy();
+        }
     }
 }
