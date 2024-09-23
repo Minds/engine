@@ -27,6 +27,14 @@ class Routes extends ModuleRoutes
                     'external-callback',
                     Ref::_(BillingPsrController::class, 'externalCallback')
                 );
+                $route->get(
+                    'external-trial-checkout',
+                    Ref::_(BillingPsrController::class, 'externalTrialCheckout')
+                );
+                $route->get(
+                    'external-trial-callback',
+                    Ref::_(BillingPsrController::class, 'externalTrialCallback')
+                );
 
                 $route
                     ->withMiddleware([
