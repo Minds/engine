@@ -36,7 +36,7 @@ class ActivityCreationDelegate
 
         foreach ($articles as $item) {
             try {
-                if ($item['link']) {
+                if ((!isset($item['image']) || empty($item['image'])) && isset($item['link']) && !empty($item['link'])) {
                     try {
                         $item['image'] = $this->extractThumbnailUrl($item['link']);
                     } catch (\Exception $e) {
