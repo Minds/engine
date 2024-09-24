@@ -43,17 +43,24 @@ class BootstrapProgressRepository extends AbstractRepository
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             usort($rows, function ($a, $b) {
-                return strtotime($a['last_run_timestamp']) - strtotime($b['last_run_timestamp']);
+                $aLastRunTimestamp = $a['last_run_timestamp'] ? strtotime($a['last_run_timestamp']) : 0;
+                $bLastRunTimestamp = $b['last_run_timestamp'] ? strtotime($b['last_run_timestamp']) : 0;
+                return $aLastRunTimestamp - $bLastRunTimestamp;
             });
 
-            return array_map(function ($row) {
+            $result = array_map(function ($row) {
                 return new BootstrapStepProgress(
                     tenantId: (int) $row['tenant_id'],
-                    step: BootstrapStepEnum::tryFrom($row['step_name']) ?? null,
+                    stepName: BootstrapStepEnum::tryFrom($row['step_name']) ?? null,
                     success: (bool) $row['success'],
-                    lastRunTimestamp: new \DateTime($row['last_run_timestamp'])
+                    lastRunTimestamp: $row['last_run_timestamp'] ? new \DateTime($row['last_run_timestamp']) : null
                 );
             }, $rows);
+
+            
+            $result = $this->fillMissingProgressSteps($result, $tenantId);
+
+            return $result;
         } catch (PDOException $e) {
             $this->logger->error($e);
             throw new ServerErrorException('Failed to get bootstrap progress', 0, $e);
@@ -101,5 +108,30 @@ class BootstrapProgressRepository extends AbstractRepository
             $this->logger->error($e);
             throw new ServerErrorException('Failed to update bootstrap progress', 0, $e);
         }
+    }
+
+    /**
+     * Fill missing progress steps.
+     * @param array $progress - The progress steps to fill.
+     * @param integer $tenantId - The ID of the tenant to fill progress for.
+     * @return array - The filled progress steps.
+     */
+    private function fillMissingProgressSteps(array $progress, int $tenantId): array
+    {
+        $existingSteps = array_map(fn ($stepProgress) => $stepProgress->getStepName(), $progress);
+        $allSteps = BootstrapStepEnum::cases();
+
+        foreach ($allSteps as $step) {
+            if (!in_array($step, $existingSteps, true)) {
+                $progress[] = new BootstrapStepProgress(
+                    tenantId: $tenantId,
+                    stepName: $step,
+                    success: false,
+                    lastRunTimestamp: null
+                );
+            }
+        }
+
+        return $progress;
     }
 }

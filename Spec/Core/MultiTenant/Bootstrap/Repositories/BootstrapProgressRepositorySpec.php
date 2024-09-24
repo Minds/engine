@@ -65,7 +65,7 @@ class BootstrapProgressRepositorySpec extends ObjectBehavior
         $rows = [
             [
                 'tenant_id' => $tenantId,
-                'step_name' => 'content',
+                'step_name' => 'tenant_config',
                 'success' => 1,
                 'last_run_timestamp' => '2023-01-01 00:00:00'
             ]
@@ -90,10 +90,28 @@ class BootstrapProgressRepositorySpec extends ObjectBehavior
         $this->getProgress($tenantId)->shouldBeLike([
             new BootstrapStepProgress(
                 tenantId: $tenantId,
-                step: BootstrapStepEnum::CONTENT_STEP,
+                stepName: BootstrapStepEnum::TENANT_CONFIG_STEP,
                 success: true,
                 lastRunTimestamp: new \DateTime('2023-01-01 00:00:00')
-            )
+            ),
+            new BootstrapStepProgress(
+                tenantId: $tenantId,
+                stepName: BootstrapStepEnum::LOGO_STEP,
+                success: false,
+                lastRunTimestamp: null
+            ),
+            new BootstrapStepProgress(
+                tenantId: $tenantId,
+                stepName: BootstrapStepEnum::CONTENT_STEP,
+                success: false,
+                lastRunTimestamp: null
+            ),
+            new BootstrapStepProgress(
+                tenantId: $tenantId,
+                stepName: BootstrapStepEnum::FINISHED,
+                success: false,
+                lastRunTimestamp: null
+            ),
         ]);
     }
 

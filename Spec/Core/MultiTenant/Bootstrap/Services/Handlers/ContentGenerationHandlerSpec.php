@@ -65,7 +65,7 @@ class ContentGenerationHandlerSpec extends ObjectBehavior
         $this->activityCreationDelegateMock->onBulkCreate(Argument::any(), $user)
             ->shouldNotBeCalled();
 
-        $this->progressRepositoryMock->updateProgress(BootstrapStepEnum::CONTENT_STEP, true)->shouldBeCalled();
+        $this->progressRepositoryMock->updateProgress(BootstrapStepEnum::CONTENT_STEP, false)->shouldBeCalled();
 
         $this->handle(null, $user);
     }

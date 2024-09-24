@@ -31,7 +31,7 @@ class BootstrapProgressPsrControllerSpec extends ObjectBehavior
         $progressData = ['progress' => [
             new BootstrapStepProgress(
                 tenantId: 1,
-                step: BootstrapStepEnum::CONTENT_STEP,
+                stepName: BootstrapStepEnum::CONTENT_STEP,
                 success: true,
                 lastRunTimestamp: new \DateTime()
             )

@@ -10,13 +10,13 @@ use Minds\Traits\MagicAttributes;
 /**
  * Model for storing the progress of a Bootstrapping step.
  * @method int getTenantId()
- * @method BootstrapStepEnum getStep()
+ * @method BootstrapStepEnum getStepName()
  * @method bool getSuccess()
- * @method \DateTime getLastRunTimestamp()
+ * @method \DateTime|null getLastRunTimestamp()
  * @method self setTenantId(int $tenantId)
- * @method self setStep(BootstrapStepEnum $step)
+ * @method self setStepName(BootstrapStepEnum $step)
  * @method self setSuccess(bool $success)
- * @method self setLastRunTimestamp(\DateTime $lastRunTimestamp)
+ * @method self setLastRunTimestamp(\DateTime|null $lastRunTimestamp)
  */
 class BootstrapStepProgress implements JsonSerializable
 {
@@ -26,7 +26,7 @@ class BootstrapStepProgress implements JsonSerializable
     protected ?int $tenantId;
 
     /** @var BootstrapStepEnum|null Name of the step. */
-    protected ?BootstrapStepEnum $step;
+    protected ?BootstrapStepEnum $stepName;
 
     /** @var bool|null Whether the step was successful. */
     protected ?bool $success;
@@ -36,12 +36,12 @@ class BootstrapStepProgress implements JsonSerializable
 
     public function __construct(
         int $tenantId,
-        BootstrapStepEnum $step,
+        BootstrapStepEnum $stepName,
         bool $success,
-        \DateTime $lastRunTimestamp
+        ?\DateTime $lastRunTimestamp = null
     ) {
         $this->tenantId = $tenantId;
-        $this->step = $step;
+        $this->stepName = $stepName;
         $this->success = $success;
         $this->lastRunTimestamp = $lastRunTimestamp;
     }
@@ -54,9 +54,25 @@ class BootstrapStepProgress implements JsonSerializable
     {
         return [
             'tenantId' => $this->tenantId,
-            'step' => $this->step->name,
+            'stepName' => $this->stepName->name,
+            'stepLoadingLabel' => $this->getStepLoadingLabel(),
             'success' => $this->success,
-            'lastRunTimestamp' => $this->lastRunTimestamp->getTimestamp(),
+            'lastRunTimestamp' => $this->lastRunTimestamp?->getTimestamp(),
         ];
+    }
+
+    /**
+     * Get the loading label of the step.
+     * @return string - the loading label of the step.
+     */
+    public function getStepLoadingLabel(): string
+    {
+        return match ($this->stepName) {
+            BootstrapStepEnum::TENANT_CONFIG_STEP => 'Configuring your network...',
+            BootstrapStepEnum::CONTENT_STEP => 'Getting your content ready...',
+            BootstrapStepEnum::LOGO_STEP => 'Building your logos...',
+            BootstrapStepEnum::FINISHED => 'Your network is ready!',
+            default => 'Loading...',
+        };
     }
 }

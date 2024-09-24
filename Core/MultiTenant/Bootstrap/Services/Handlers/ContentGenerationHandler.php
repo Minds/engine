@@ -9,6 +9,7 @@ use Minds\Core\Log\Logger;
 use Minds\Core\MultiTenant\Bootstrap\Enums\BootstrapStepEnum;
 use Minds\Core\MultiTenant\Bootstrap\Repositories\BootstrapProgressRepository;
 use Minds\Core\MultiTenant\Bootstrap\Services\Extractors\ContentExtractor;
+use Minds\Exceptions\ServerErrorException;
 
 /**
  * Handles the generation of content.
@@ -40,12 +41,14 @@ class ContentGenerationHandler
 
                 if (count($content['articles'])) {
                     $this->activityCreationDelegate->onBulkCreate($content['articles'], $rootUser);
-                    $this->logger->info("Content updated");
+                    $this->progressRepository->updateProgress(BootstrapStepEnum::CONTENT_STEP, true);
+                    $this->logger->info("Updated bootstrap progress for content step to success");
+                } else {
+                    throw new ServerErrorException("No articles generated");
                 }
+            } else {
+                throw new ServerErrorException("No markdown content provided");
             }
-
-            $this->progressRepository->updateProgress(BootstrapStepEnum::CONTENT_STEP, true);
-            $this->logger->info("Updated bootstrap progress for content step to success");
         } catch (\Exception $e) {
             $this->logger->error("Error extracting and setting content: " . $e->getMessage());
             $this->progressRepository->updateProgress(BootstrapStepEnum::CONTENT_STEP, false);
