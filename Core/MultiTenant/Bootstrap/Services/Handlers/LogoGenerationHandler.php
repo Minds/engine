@@ -40,8 +40,13 @@ class LogoGenerationHandler
 
             $squareLogoBlob = $this->getSquareLogoBlob($siteUrl);
             $faviconBlob = $this->getFaviconBlob($siteUrl);
-            $horizontalLogoBlob = $this->getHorizontalLogoBlob($squareLogoBlob);
-            $splashBlob = $this->getSplashBlob($squareLogoBlob);
+            $horizontalLogoBlob = null;
+            $splashBlob = null;
+
+            if ($squareLogoBlob) {
+                $horizontalLogoBlob = $this->getHorizontalLogoBlob($squareLogoBlob);
+                $splashBlob = $this->getSplashBlob($squareLogoBlob);
+            }
 
             $this->updateLogosDelegate->onUpdate(
                 squareLogoBlob: $squareLogoBlob,

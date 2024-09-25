@@ -27,10 +27,6 @@ class TenantBootstrapRequestsTopic extends AbstractTopic implements TopicInterfa
      */
     public function send(EventInterface $event): bool
     {
-        if (php_sapi_name() !== 'cli') {
-            return false;
-        }
-
         if (!$event instanceof TenantBootstrapRequestEvent) {
             return false;
         }

@@ -19,6 +19,7 @@ use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
+use Minds\Helpers\Url;
 
 /**
  * Root service for bootstrapping a tenant.
@@ -53,6 +54,7 @@ class MultiTenantBootstrapService
     ): void {
         $tenant = $this->bootFromTenantId($tenantId);
         $rootUser = $this->entitiesBuilder->single($tenant->rootUserGuid);
+        $siteUrl = Url::prependScheme($siteUrl);
 
         if (!$rootUser || !$rootUser instanceof User) {
             throw new ServerErrorException('Root user not found');

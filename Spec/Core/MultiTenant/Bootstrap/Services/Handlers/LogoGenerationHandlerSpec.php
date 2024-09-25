@@ -81,6 +81,28 @@ class LogoGenerationHandlerSpec extends ObjectBehavior
         $this->handle($siteUrl);
     }
 
+    public function it_should_handle_logo_generation_when_no_square_logo_blob_is_returned()
+    {
+        $siteUrl = 'https://example.minds.com';
+        $faviconBlob = 'favicon-blob';
+
+        $this->websiteIconExtractorMock->extract($siteUrl, 256)->willReturn(null);
+        $this->websiteIconExtractorMock->extract($siteUrl, 32)->willReturn($faviconBlob);
+        $this->horizontalLogoExtractorMock->extract(null)->shouldNotBeCalled();
+        $this->mobileSplashLogoExtractorMock->extract(null)->shouldNotBeCalled();
+
+        $this->updateLogosDelegateMock->onUpdate(
+            null,
+            $faviconBlob,
+            null,
+            null
+        )->shouldBeCalled();
+
+        $this->progressRepositoryMock->updateProgress(BootstrapStepEnum::LOGO_STEP, true)->shouldBeCalled();
+
+        $this->handle($siteUrl);
+    }
+
     public function it_should_handle_errors_during_update_of_logos()
     {
         $siteUrl = 'https://example.minds.com';

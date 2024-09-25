@@ -229,4 +229,104 @@ class AutoLoginServiceSpec extends ObjectBehavior
 
         $this->performLogin('jwt-token-testing');
     }
+
+    // buildLoginUrlWithParamsFromTenant
+
+    public function it_should_build_login_url_with_params_from_tenant_without_redirect_path(User $userMock)
+    {
+        $domain = 'example.minds.com';
+        $jwtToken = 'jwt_token';
+        $tenantId = 123;
+        $encryptionKey = 'key';
+        $tenant = new Tenant(
+            id: $tenantId,
+            ownerGuid: 123,
+            rootUserGuid: 456
+        );
+
+        $this->tenantDataServiceMock->getTenantFromId($tenantId)->willReturn($tenant);
+
+        $this->tenantDomainServiceMock->buildNavigatableDomain($tenant)
+            ->willReturn($domain);
+
+        $userMock->getGuid()
+            ->willReturn(123);
+
+        $this->jwtMock->randomString()->willReturn('random');
+
+        $this->tmpStoreMock->set(Argument::type('string'), Argument::any(), Argument::type('int'))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->configMock->get('oauth')
+            ->willReturn([
+                'encryption_key' => $encryptionKey,
+            ]);
+
+        $this->jwtMock->setKey($encryptionKey)
+            ->willReturn($this->jwtMock);
+        
+        $this->jwtMock->encode(
+            Argument::that(function ($arg) use ($tenant) {
+                return $arg['user_guid'] === (string) $tenant->rootUserGuid
+                    && $arg['tenant_id'] === $tenant->id
+                    && is_string($arg['sso_token']);
+            }),
+            Argument::type('int'),
+            Argument::type('int')
+        )->willReturn($jwtToken);
+
+        $this->buildLoginUrlWithParamsFromTenant($tenant, $userMock)
+            ->shouldBe("https://$domain/api/v3/multi-tenant/auto-login/login?token=$jwtToken");
+    }
+
+    public function it_should_build_login_url_with_params_from_tenant_with_redirect_path(User $userMock)
+    {
+
+        $redirectPath = '/newsfeed';
+        $domain = 'example.minds.com';
+        $jwtToken = 'jwt_token';
+        $tenantId = 123;
+        $encryptionKey = 'key';
+        $tenant = new Tenant(
+            id: $tenantId,
+            ownerGuid: 123,
+            rootUserGuid: 456
+        );
+
+        $this->tenantDataServiceMock->getTenantFromId($tenantId)->willReturn($tenant);
+
+        $this->tenantDomainServiceMock->buildNavigatableDomain($tenant)
+            ->willReturn($domain);
+
+        $userMock->getGuid()
+            ->willReturn(123);
+
+        $this->jwtMock->randomString()->willReturn('random');
+
+        $this->tmpStoreMock->set(Argument::type('string'), Argument::any(), Argument::type('int'))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->configMock->get('oauth')
+            ->willReturn([
+                'encryption_key' => $encryptionKey,
+            ]);
+
+        $this->jwtMock->setKey($encryptionKey)
+            ->willReturn($this->jwtMock);
+
+        $this->jwtMock->encode(
+            Argument::that(function ($arg) use ($tenant) {
+                return $arg['user_guid'] === (string) $tenant->rootUserGuid
+                    && $arg['tenant_id'] === $tenant->id
+                    && is_string($arg['sso_token']);
+            }),
+            Argument::type('int'),
+            Argument::type('int')
+        )->willReturn($jwtToken);
+
+        $this->buildLoginUrlWithParamsFromTenant($tenant, $userMock, $redirectPath)
+            ->shouldBe("https://$domain/api/v3/multi-tenant/auto-login/login?token=$jwtToken&redirect_path=".urlencode($redirectPath));
+    }
 }
