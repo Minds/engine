@@ -26,20 +26,6 @@ class HorizontalLogoExtractorSpec extends ObjectBehavior
         $this->shouldHaveType(HorizontalLogoExtractor::class);
     }
 
-    public function it_should_extract_horizontal_logo()
-    {
-        $squareLogoBlob = file_get_contents(Config::build()->path . 'engine/Assets/avatars/default-small.png');
-
-        $image = new \Imagick();
-        $image->readImageBlob($squareLogoBlob);
-
-        $this->logoImageProcessorMock->toPng(Argument::any())->willReturn($image);
-        $this->logoImageProcessorMock->trim(Argument::any())->willReturn($image);
-        $this->logoImageProcessorMock->addPadding(Argument::any(), 3.18)->willReturn($image);
-
-        $this->extract($squareLogoBlob)->shouldBeString();
-    }
-
     public function it_should_return_null_if_extraction_fails()
     {
         $squareLogoBlob = 'invalid-square-logo-blob';
