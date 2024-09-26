@@ -51,6 +51,7 @@ class PostHogServiceSpec extends ObjectBehavior
         $user->get('time_created')->shouldBeCalled()->willReturn(strtotime('midnight yesterday'));
         $user->isOptOutAnalytics()->willReturn(false);
         $user->getSource()->willReturn(FederatedEntitySourcesEnum::LOCAL);
+        $user->isAdmin()->willReturn(false);
 
 
         $this->postHogClientMock->capture(
@@ -66,6 +67,7 @@ class PostHogServiceSpec extends ObjectBehavior
                         'email' => 'phpspec@minds.com',
                         'plus_expires' => date('c', strtotime('midnight')),
                         'environment' => 'development',
+                        'is_admin' => false,
                     ],
                     '$set_once' => [
                         'joined_timestamp' => date('c', strtotime('midnight yesterday')),

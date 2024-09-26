@@ -25,6 +25,8 @@ use GuzzleHttp\Client;
 use Minds\Core\Log\Logger;
 use Psr\Http\Message\ResponseInterface;
 use GuzzleHttp\Exception\TransferException;
+use Minds\Core\Analytics\PostHog\PostHogService;
+use Minds\Entities\User;
 
 class DomainServiceSpec extends ObjectBehavior
 {
@@ -35,6 +37,7 @@ class DomainServiceSpec extends ObjectBehavior
     private Collaborator $domainsRepositoryMock;
     private Collaborator $httpClientMock;
     private Collaborator $loggerMock;
+    private Collaborator $postHogServiceMock;
 
     private ReflectionClass $tenantMockFactory;
 
@@ -45,11 +48,12 @@ class DomainServiceSpec extends ObjectBehavior
         CloudflareClient        $cloudflareClientMock,
         DomainsRepository       $domainsRepositoryMock,
         Client                  $httpClientMock,
-        Logger                  $loggerMock
+        Logger                  $loggerMock,
+        PostHogService          $postHogServiceMock,
     ) {
         $this->tenantMockFactory = new ReflectionClass(Tenant::class);
 
-        $this->beConstructedWith($configMock, $dataServiceMock, $multiTenantCacheHandler, $cloudflareClientMock, $domainsRepositoryMock, $httpClientMock, $loggerMock);
+        $this->beConstructedWith($configMock, $dataServiceMock, $multiTenantCacheHandler, $cloudflareClientMock, $domainsRepositoryMock, $httpClientMock, $loggerMock, $postHogServiceMock);
         $this->configMock = $configMock;
         $this->dataServiceMock = $dataServiceMock;
         $this->multiTenantCacheHandlerMock = $multiTenantCacheHandler;
@@ -57,6 +61,7 @@ class DomainServiceSpec extends ObjectBehavior
         $this->domainsRepositoryMock = $domainsRepositoryMock;
         $this->httpClientMock = $httpClientMock;
         $this->loggerMock = $loggerMock;
+        $this->postHogServiceMock = $postHogServiceMock;
     }
 
     public function it_is_initializable()
@@ -273,7 +278,13 @@ class DomainServiceSpec extends ObjectBehavior
             domain: 'sub.example.com',
         )->shouldBeCalled();
 
-        $domain = $this->setupCustomHostname('sub.example.com');
+        $this->postHogServiceMock->capture('setup-domain', Argument::type(User::class), [
+            'domain' => 'sub.example.com'
+        ])
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $domain = $this->setupCustomHostname('sub.example.com', new User());
 
         $domain->domain->shouldBe('sub.example.com');
         $domain->cloudflareId->shouldBe('id');
@@ -382,7 +393,13 @@ class DomainServiceSpec extends ObjectBehavior
             domain: 'sub.example.com',
         )->shouldBeCalled();
 
-        $domain = $this->updateCustomHostname('sub.example.com');
+        $this->postHogServiceMock->capture('update-domain', Argument::type(User::class), [
+            'domain' => 'sub.example.com'
+        ])
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $domain = $this->updateCustomHostname('sub.example.com', new User());
 
         $domain->domain->shouldBe('sub.example.com');
         $domain->cloudflareId->shouldBe('id');

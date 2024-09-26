@@ -58,6 +58,7 @@ class PostHogService
         $set['guid'] = $user->getGuid();
         $set['username'] = $user->getUsername();
         $set['email'] = $user->getEmail();
+        $set['is_admin'] = $user->isAdmin();
 
         if ($user->getPlusExpires()) {
             $set['plus_expires'] = date('c', $user->getPlusExpires());
