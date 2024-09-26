@@ -19,7 +19,9 @@ use Minds\Core\MultiTenant\Types\MultiTenantDomainDnsRecord;
 use Psr\SimpleCache\InvalidArgumentException;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 use GuzzleHttp\Client;
+use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Core\Log\Logger;
+use Minds\Entities\User;
 
 class DomainService
 {
@@ -30,7 +32,8 @@ class DomainService
         private readonly CloudflareClient        $cloudflareClient,
         private readonly DomainsRepository       $domainsRepository,
         private readonly Client $httpClient,
-        private readonly Logger $logger
+        private readonly Logger $logger,
+        private readonly PostHogService $postHogService,
     ) {
 
     }
@@ -196,7 +199,7 @@ class DomainService
      * @throws GuzzleException
      * @throws Exception
      */
-    public function setupCustomHostname(string $hostname): MultiTenantDomain
+    public function setupCustomHostname(string $hostname, User $user): MultiTenantDomain
     {
         $tenantId = $this->config->get('tenant_id');
         $customHostname = $this->cloudflareClient->createCustomHostname($hostname);
@@ -206,6 +209,10 @@ class DomainService
             cloudflareId: $customHostname->id,
             domain: $customHostname->hostname,
         );
+
+        $this->postHogService->capture('setup-domain', $user, [
+            'domain' => $hostname
+        ]);
 
         return $this->buildMultiTenantDomainFromCfCustomHostname($tenantId, $customHostname);
     }
@@ -234,7 +241,7 @@ class DomainService
      * Updates a hostname. This will delete and recreate the record on Cloudflare
      * @throws Exception
      */
-    public function updateCustomHostname(string $hostname): MultiTenantDomain
+    public function updateCustomHostname(string $hostname, User $user): MultiTenantDomain
     {
         $tenantId = $this->config->get('tenant_id');
         $currentDomain = $this->getCustomHostname();
@@ -249,6 +256,10 @@ class DomainService
             cloudflareId: $customHostname->id,
             domain: $customHostname->hostname,
         );
+
+        $this->postHogService->capture('update-domain', $user, [
+            'domain' => $hostname
+        ]);
 
         $multiTenantDomain = $this->buildMultiTenantDomainFromCfCustomHostname($tenantId, $customHostname);
 
