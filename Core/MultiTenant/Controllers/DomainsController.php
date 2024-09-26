@@ -8,9 +8,12 @@ use GuzzleHttp\Exception\GuzzleException;
 use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\MultiTenant\Types\CustomHostname;
 use Minds\Core\MultiTenant\Types\MultiTenantDomain;
+use Minds\Entities\User;
+use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Mutation;
 use TheCodingMachine\GraphQLite\Annotations\Query;
+use TheCodingMachine\GraphQLite\Annotations\Security;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class DomainsController
@@ -38,8 +41,11 @@ class DomainsController
      * @throws GuzzleException
      */
     #[Mutation]
+    #[Logged]
+    #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
     public function createMultiTenantDomain(
-        string $hostname
+        string $hostname,
+        #[InjectUser] ?User $loggedInUser = null,
     ): MultiTenantDomain {
 
         if (!filter_var($hostname, FILTER_VALIDATE_DOMAIN)) {
@@ -48,12 +54,12 @@ class DomainsController
 
         try {
             if (!!$this->domainService->getCustomHostname()) {
-                return $this->domainService->updateCustomHostname($hostname);
+                return $this->domainService->updateCustomHostname($hostname, $loggedInUser);
             }
         } catch (\Exception $e) {
          
         }
 
-        return $this->domainService->setupCustomHostname($hostname);
+        return $this->domainService->setupCustomHostname($hostname, $loggedInUser);
     }
 }

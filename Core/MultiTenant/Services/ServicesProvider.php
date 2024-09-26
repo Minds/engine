@@ -51,7 +51,8 @@ class ServicesProvider extends Provider
                 $di->get(CloudflareClient::class),
                 $di->get(DomainsRepository::class),
                 $di->get(Client::class),
-                $di->get('Logger')
+                $di->get('Logger'),
+                $di->get(PostHogService::class),
             );
         });
 
