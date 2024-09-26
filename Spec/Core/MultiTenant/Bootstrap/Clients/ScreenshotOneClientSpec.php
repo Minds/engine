@@ -57,7 +57,7 @@ class ScreenshotOneClientSpec extends ObjectBehavior
 
         $response = new Response(200, [], $responseBody);
 
-        $this->configMock->get('screenshotone')->willReturn(['api_key' => $apiKey, 'base_url' => $baseUrl]);
+        $this->configMock->get('screenshot_one')->willReturn(['api_key' => $apiKey, 'base_url' => $baseUrl]);
         $this->guzzleClientMock->request('GET', $url, ['timeout' => ScreenshotOneClient::TIMEOUT])
             ->willReturn($response);
 
@@ -93,7 +93,7 @@ class ScreenshotOneClientSpec extends ObjectBehavior
 
         $response = new Response(200, [], null);
 
-        $this->configMock->get('screenshotone')->willReturn(['api_key' => $apiKey, 'base_url' => $baseUrl]);
+        $this->configMock->get('screenshot_one')->willReturn(['api_key' => $apiKey, 'base_url' => $baseUrl]);
         $this->guzzleClientMock->request('GET', $url, ['timeout' => ScreenshotOneClient::TIMEOUT])
             ->willReturn($response);
 

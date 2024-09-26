@@ -1015,7 +1015,7 @@ $CONFIG->set('jina', [
     'api_key' => ''
 ]);
 
-$CONFIG->set('screenshotone', [
+$CONFIG->set('screenshot_one', [
     'base_url' => 'https://api.screenshotone.com/',
     'api_key' => ''
 ]);

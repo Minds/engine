@@ -74,7 +74,7 @@ class ScreenshotOneClient
      */
     private function getApiKey(): ?string
     {
-        return $this->config->get('screenshotone')['api_key'] ?? null;
+        return $this->config->get('screenshot_one')['api_key'] ?? null;
     }
 
     /**
@@ -83,6 +83,6 @@ class ScreenshotOneClient
      */
     private function getBaseUrl(): ?string
     {
-        return $this->config->get('screenshotone')['base_url'] ?? 'https://api.screenshotone.com/';
+        return $this->config->get('screenshot_one')['base_url'] ?? 'https://api.screenshotone.com/';
     }
 }
