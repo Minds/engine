@@ -97,6 +97,73 @@ class RepositorySpec extends ObjectBehavior
         $gen->current()->getScore()->shouldReturn(50.0);
     }
 
+    public function it_should_query_a_list_of_activity_guids_and_exclude_given_owner_guids()
+    {
+        $userGuid1 = '123456890';
+        $userGuid2 = '123456891';
+
+        $opts = [
+            'type' => 'activity',
+            'algorithm' => 'top',
+            'period' => '1y',
+            'query' => 'test',
+            'exclude_owner_guids' => [$userGuid1, $userGuid2]
+        ];
+
+
+        $this->client->request(Argument::that(function ($query) use ($userGuid1, $userGuid2) {
+            foreach ($query->build()['body']['query']['function_score']['query']['bool']['must_not'] as $mustNot) {
+                if (isset($mustNot['terms']) && isset($mustNot['terms']['owner_guid'])) {
+                    foreach ($mustNot['terms']['owner_guid'] as $ownerGuid) {
+                        if (in_array($ownerGuid, [$userGuid1, $userGuid2], true)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            }
+        }))
+            ->shouldBeCalled()
+            ->willReturn([
+                'hits' => [
+                    'hits' => [
+                        [
+                            '_source' => [
+                                'guid' => '1',
+                                'owner_guid' => '1000',
+                                'time_created' => 1,
+                                '@timestamp' => 1000,
+                                'type' => 'activity',
+                            ],
+                            '_score' => 100,
+                            '_index' => 'minds-search-activity',
+                            '_type' => '_doc',
+                        ],
+                        [
+                            '_source' => [
+                                'guid' => '2',
+                                'owner_guid' => '1000',
+                                'time_created' => 1,
+                                '@timestamp' => 1000,
+                                'type' => 'activity',
+                            ],
+                            '_score' => 50,
+                            '_index' => 'minds-search-activity',
+                            '_type' => '_doc',
+                        ],
+                    ]
+                ]
+            ]);
+
+        $gen = $this->getList($opts);
+
+        $gen->current()->getGuid()->shouldReturn('1');
+        $gen->current()->getScore()->shouldReturn(100.0);
+        $gen->next();
+        $gen->current()->getGuid()->shouldReturn('2');
+        $gen->current()->getScore()->shouldReturn(50.0);
+    }
+
     public function it_should_query_a_list_of_channel_guids()
     {
         $opts = [
