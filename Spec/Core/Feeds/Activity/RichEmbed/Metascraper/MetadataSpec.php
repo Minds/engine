@@ -15,7 +15,8 @@ class MetadataSpec extends ObjectBehavior
             'author' => 'author',
             'image' => 'image',
             'logo' => 'logo',
-            'iframe' => 'iframe'
+            'iframe' => 'iframe',
+            'publisher' => 'publisher',
         ];
 
         $this->fromMetascraperData($data, 'url');
@@ -28,6 +29,7 @@ class MetadataSpec extends ObjectBehavior
         $this->getImage()->shouldBe('image');
         $this->getLogo()->shouldBe('logo');
         $this->getIframe()->shouldBe('iframe');
+        $this->getPublisher()->shouldBe('publisher');
     }
 
     public function it_should_build_from_metascraper_data_with_canonical_as_url()
@@ -39,7 +41,8 @@ class MetadataSpec extends ObjectBehavior
             'author' => 'author',
             'image' => 'image',
             'logo' => 'logo',
-            'iframe' => 'iframe'
+            'iframe' => 'iframe',
+            'publisher' => 'publisher',
         ];
 
         $this->fromMetascraperData($data);
@@ -52,6 +55,7 @@ class MetadataSpec extends ObjectBehavior
         $this->getImage()->shouldBe('image');
         $this->getLogo()->shouldBe('logo');
         $this->getIframe()->shouldBe('iframe');
+        $this->getPublisher()->shouldBe('publisher');
     }
 
     public function it_should_export()
@@ -66,6 +70,7 @@ class MetadataSpec extends ObjectBehavior
             'iframe' => 'iframe',
             'date' => date('c', strtotime('midnight')),
             'datePublished' => date('c', strtotime('midnight 2 days ago')),
+            'publisher' => 'publisher',
         ];
 
         $this->fromMetascraperData($data, 'url');
@@ -91,7 +96,8 @@ class MetadataSpec extends ObjectBehavior
                 ]
             ],
             'date' => date('c', strtotime('midnight 2 days ago')),
-            'html' => 'iframe'
+            'html' => 'iframe',
+            'publisher' => 'publisher',
         ]);
     }
 
@@ -105,6 +111,7 @@ class MetadataSpec extends ObjectBehavior
             'image' => 'image',
             'logo' => 'logo',
             'iframe' => 'iframe',
+            'publisher' => 'publisher',
             'date' => date('c', strtotime('midnight')),
         ];
 
@@ -131,7 +138,8 @@ class MetadataSpec extends ObjectBehavior
                 ]
             ],
             'date' => date('c', strtotime('midnight')),
-            'html' => 'iframe'
+            'html' => 'iframe',
+            'publisher' => 'publisher',
         ]);
     }
 }
