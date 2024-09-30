@@ -8,6 +8,7 @@ namespace Minds\Core\EventStreams;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\EventStreams\Topics\ChatNotificationsTopic;
+use Minds\Core\EventStreams\Topics\TenantBootstrapRequestsTopic;
 use Minds\Core\EventStreams\Topics\ViewsTopic;
 use Pulsar;
 
@@ -56,6 +57,11 @@ class Provider extends DiProvider
         $this->di->bind(
             ChatNotificationsTopic::class,
             fn (Di $di): ChatNotificationsTopic => new ChatNotificationsTopic()
+        );
+
+        $this->di->bind(
+            TenantBootstrapRequestsTopic::class,
+            fn (Di $di): TenantBootstrapRequestsTopic => new TenantBootstrapRequestsTopic()
         );
     }
 }

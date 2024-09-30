@@ -4,6 +4,7 @@ namespace Spec\Minds\Core\MultiTenant\Billing;
 
 use Minds\Core\Config\Config;
 use Minds\Core\Email\V2\Campaigns\Recurring\TenantTrial\TenantTrialEmailer;
+use Minds\Core\EventStreams\Topics\TenantBootstrapRequestsTopic;
 use Minds\Core\MultiTenant\AutoLogin\AutoLoginService;
 use Minds\Core\MultiTenant\Billing\BillingService;
 use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
@@ -45,6 +46,7 @@ class BillingServiceSpec extends ObjectBehavior
     private Collaborator $tenantsServiceMock;
     private Collaborator $usersServiceMock;
     private Collaborator $emailServiceMock;
+    private Collaborator $tenantBootstrapRequestsTopicMock;
     private Collaborator $stripeSubscriptionsServiceMock;
     private Collaborator $autoLoginServiceMock;
     private Collaborator $customerPortalServiceMock;
@@ -64,6 +66,7 @@ class BillingServiceSpec extends ObjectBehavior
         TenantsService               $tenantsServiceMock,
         TenantUsersService           $usersServiceMock,
         TenantTrialEmailer           $emailServiceMock,
+        TenantBootstrapRequestsTopic $tenantBootstrapRequestsTopicMock,
         SubscriptionsService         $stripeSubscriptionsServiceMock,
         AutoLoginService             $autoLoginServiceMock,
         CustomerPortalService        $customerPortalServiceMock,
@@ -79,6 +82,7 @@ class BillingServiceSpec extends ObjectBehavior
             $tenantsServiceMock,
             $usersServiceMock,
             $emailServiceMock,
+            $tenantBootstrapRequestsTopicMock,
             $stripeSubscriptionsServiceMock,
             $autoLoginServiceMock,
             $customerPortalServiceMock,
@@ -93,6 +97,7 @@ class BillingServiceSpec extends ObjectBehavior
         $this->tenantsServiceMock = $tenantsServiceMock;
         $this->usersServiceMock = $usersServiceMock;
         $this->emailServiceMock = $emailServiceMock;
+        $this->tenantBootstrapRequestsTopicMock = $tenantBootstrapRequestsTopicMock;
         $this->stripeSubscriptionsServiceMock = $stripeSubscriptionsServiceMock;
         $this->autoLoginServiceMock = $autoLoginServiceMock;
         $this->customerPortalServiceMock = $customerPortalServiceMock;
@@ -383,7 +388,7 @@ class BillingServiceSpec extends ObjectBehavior
 
     // createExternalTrialCheckoutLink
 
-    public function it_should_create_external_trial_checkout_link()
+    public function it_should_create_external_trial_checkout_link_without_a_customer_url()
     {
         $plan = TenantPlanEnum::TEAM;
         $timePeriod = CheckoutTimePeriodEnum::MONTHLY;
@@ -429,6 +434,7 @@ class BillingServiceSpec extends ObjectBehavior
             submitMessage: null,
             metadata: [
                 'tenant_plan' => 'TEAM',
+                'customer_url' => null,
             ],
             phoneNumberCollection: true,
             subscriptionData: [
@@ -456,9 +462,83 @@ class BillingServiceSpec extends ObjectBehavior
             ->shouldBe('https://checkout.stripe.com/pay/cs_test_123');
     }
 
+    public function it_should_create_external_trial_checkout_link_with_a_customer_url()
+    {
+        $plan = TenantPlanEnum::TEAM;
+        $timePeriod = CheckoutTimePeriodEnum::MONTHLY;
+        $customerUrl = 'https://example.minds.com/';
+        $productMock = new Product('prod_123');
+
+        $this->stripeProductServiceMock->getProductByKey('networks:team')
+            ->shouldBeCalled()
+            ->willReturn($productMock);
+
+        $priceMock = $this->generateStripeProductPriceMock(
+            'price_123',
+            10000,
+            'networks:team:monthly',
+            'recurring'
+        );
+
+        $pricesMock = new SearchResult();
+        $pricesMock->data = [$priceMock];
+
+        $this->stripeProductPriceServiceMock->getPricesByProduct('prod_123')
+            ->shouldBeCalled()
+            ->willReturn($pricesMock);
+
+        $checkoutSessionMock = new CheckoutSession();
+        $checkoutSessionMock->url = 'https://checkout.stripe.com/pay/cs_test_123';
+
+        $this->stripeCheckoutManagerMock->createSession(
+            user: null,
+            mode: CheckoutModeEnum::SUBSCRIPTION,
+            successUrl: 'https://www.minds.com/api/v3/multi-tenant/billing/external-trial-callback?session_id={CHECKOUT_SESSION_ID}',
+            cancelUrl: 'https://networks.minds.com/pricing',
+            lineItems: [
+                [
+                    'price' => 'price_123',
+                    'quantity' => 1,
+                ]
+            ],
+            paymentMethodTypes: [
+                'card',
+                'us_bank_account',
+            ],
+            submitMessage: null,
+            metadata: [
+                'tenant_plan' => 'TEAM',
+                'customer_url' => $customerUrl,
+            ],
+            phoneNumberCollection: true,
+            subscriptionData: [
+                'trial_settings' => ['end_behavior' => ['missing_payment_method' => 'pause']],
+                'trial_period_days' => Tenant::TRIAL_LENGTH_IN_DAYS,
+            ],
+            paymentMethodCollection: PaymentMethodCollectionEnum::IF_REQUIRED,
+            customFields: [
+                new CustomField(
+                    key: 'first_name',
+                    label: 'First name',
+                    type: 'text'
+                ),
+                new CustomField(
+                    key: 'last_name',
+                    label: 'Last name',
+                    type: 'text'
+                )
+            ]
+        )
+            ->shouldBeCalled()
+            ->willReturn($checkoutSessionMock);
+
+        $this->createExternalTrialCheckoutLink($plan, $timePeriod, $customerUrl)
+            ->shouldBe('https://checkout.stripe.com/pay/cs_test_123');
+    }
+
     // onSuccessfulTrialCheckout
 
-    public function it_should_handle_successful_trial_checkout()
+    public function it_should_handle_successful_trial_checkout_without_customer_url()
     {
         $checkoutSessionId = 'cs_test_123';
         $email = 'test@example.com';
@@ -533,7 +613,116 @@ class BillingServiceSpec extends ObjectBehavior
         
         $loginUrl = 'https://example.com/login';
 
-        $this->autoLoginServiceMock->buildLoginUrlWithParamsFromTenant(Argument::any(), Argument::any())
+        $this->autoLoginServiceMock->buildLoginUrlWithParamsFromTenant(Argument::any(), Argument::any(), null)
+            ->shouldBeCalled()
+            ->willReturn($loginUrl);
+
+        $this->stripeSubscriptionsServiceMock->updateSubscription(
+            $subscriptionId,
+            [
+                'tenant_id' => $tenantId,
+                'tenant_plan' => $plan->name,
+            ]
+        )->shouldBeCalled();
+
+        $expectedRedirectUrl = 'https://networks.minds.com/complete-trial-checkout?' . http_build_query([
+            'email' => $email,
+            'firstName' => $firstName,
+            'lastName' => $lastName,
+            'phone' => $phoneNumber,
+            'redirectUrl' => $loginUrl
+        ]);
+
+        $this->onSuccessfulTrialCheckout($checkoutSessionId)
+            ->shouldBe($expectedRedirectUrl);
+    }
+
+    public function it_should_handle_successful_trial_checkout_with_customer_url()
+    {
+        $checkoutSessionId = 'cs_test_123';
+        $email = 'test@example.com';
+        $firstName = 'John';
+        $lastName = 'Doe';
+        $phoneNumber = '+1234567890';
+        $plan = TenantPlanEnum::TEAM;
+        $subscriptionId = 'sub_123';
+        $tenantId = -1;
+        $tenant = new Tenant(-1, plan: TenantPlanEnum::TEAM);
+        $customerUrl = 'https://example.minds.com';
+
+        $checkoutSessionMock = $this->generateStripeCheckoutSessionMock(
+            subscriptionId: $subscriptionId,
+            plan: $plan,
+            email: $email,
+            phoneNumber: $phoneNumber,
+            firstName: $firstName,
+            lastName: $lastName,
+            customerUrl: $customerUrl
+        );
+
+        $subscriptionMock = $this->generateStripeSubscriptionMock(
+            subscriptionId: $subscriptionId,
+            tenantId: null
+        );
+
+        $this->stripeCheckoutSessionServiceMock->retrieveCheckoutSession($checkoutSessionId)
+            ->shouldBeCalled()
+            ->willReturn($checkoutSessionMock);
+
+        $this->stripeSubscriptionsServiceMock->retrieveSubscription($subscriptionId)
+            ->shouldBeCalled()
+            ->willReturn($subscriptionMock);
+
+        $this->tenantsServiceMock->createNetwork(Argument::any(), true)
+            ->willReturn($tenant);
+
+        $this->usersServiceMock->createNetworkRootUser(
+            Argument::that(function ($params) {
+                return true;
+            }),
+            Argument::that(function ($params) {
+                return true;
+            })
+        );
+
+        //
+
+        $this->emailServiceMock->setUser(Argument::type(User::class))
+            ->shouldBeCalledOnce()
+            ->willReturn($this->emailServiceMock);
+
+        $this->emailServiceMock->setTenantId(-1)
+            ->shouldBeCalledOnce()
+            ->willReturn($this->emailServiceMock);
+
+        $this->emailServiceMock->setIsTrial(false)
+            ->shouldBeCalledOnce()
+            ->willReturn($this->emailServiceMock);
+
+        $this->emailServiceMock->setUsername('networkadmin')
+            ->shouldBeCalledOnce()
+            ->willReturn($this->emailServiceMock);
+
+        $this->emailServiceMock->setPassword(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($this->emailServiceMock);
+
+        $this->emailServiceMock->send()
+            ->shouldBeCalledOnce();
+
+        //
+
+        $this->tenantBootstrapRequestsTopicMock->send(Argument::that(function ($event) use ($tenant, $customerUrl) {
+            return $event->getTenantId() === $tenant->id
+                && $event->getSiteUrl() === $customerUrl;
+        }))
+            ->shouldBeCalled();
+
+        //
+        
+        $loginUrl = 'https://example.com/login';
+
+        $this->autoLoginServiceMock->buildLoginUrlWithParamsFromTenant(Argument::any(), Argument::any(), '/network/admin/bootstrap')
             ->shouldBeCalled()
             ->willReturn($loginUrl);
 
@@ -612,6 +801,7 @@ class BillingServiceSpec extends ObjectBehavior
         string $phoneNumber,
         string $firstName,
         string $lastName,
+        string $customerUrl = null,
     ): CheckoutSession {
         $mock = $this->checkoutSessionFactoryMock->newInstanceWithoutConstructor();
 
@@ -619,6 +809,7 @@ class BillingServiceSpec extends ObjectBehavior
             'subscription' => $subscriptionId,
             'metadata' => [
                 'tenant_plan' => $plan->name,
+                'customer_url' => $customerUrl
             ],
             'customer_details' => (object) [
                 'email' => $email,

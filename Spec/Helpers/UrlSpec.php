@@ -37,4 +37,30 @@ class UrlSpec extends ObjectBehavior
         $fullUrl = 'https://example.minds.com?key=value';
         $this->stripQueryParameter($fullUrl, 'key')->shouldBe('https://example.minds.com');
     }
+
+    // prependScheme
+
+    public function it_should_prepend_https_scheme_to_url_without_scheme()
+    {
+        $url = 'example.com';
+        $this->prependScheme($url)->shouldBe('https://example.com');
+    }
+
+    public function it_should_not_modify_url_with_https_scheme()
+    {
+        $url = 'https://example.com';
+        $this->prependScheme($url)->shouldBe('https://example.com');
+    }
+
+    public function it_should_not_modify_url_with_http_scheme()
+    {
+        $url = 'http://example.com';
+        $this->prependScheme($url)->shouldBe('http://example.com');
+    }
+
+    public function it_should_prepend_https_scheme_to_url_with_www()
+    {
+        $url = 'www.example.com';
+        $this->prependScheme($url)->shouldBe('https://www.example.com');
+    }
 }

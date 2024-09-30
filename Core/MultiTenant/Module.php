@@ -15,6 +15,7 @@ class Module implements ModuleInterface
         MobileConfigs\Module::class,
         Lists\Module::class,
         Billing\Module::class,
+        Bootstrap\Module::class,
     ];
 
     /**

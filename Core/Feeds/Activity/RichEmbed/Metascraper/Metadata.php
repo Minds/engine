@@ -19,6 +19,8 @@ use Minds\Traits\MagicAttributes;
  * @method self setTitle(string $title)
  * @method string|null getAuthor()
  * @method self setAuthor(string $author)
+ * @method string|null getPublisher()
+ * @method self setPublisher(string $publisher)
  * @method string|null getImage()
  * @method self setImage(string $image)
  * @method string|null getLogo()
@@ -47,6 +49,9 @@ class Metadata implements ExportableInterface, JsonSerializable
     /** @var string|null author from metadata. */
     protected ?string $author;
 
+    /** @var string|null publisher from metadata. */
+    protected ?string $publisher;
+
     /** @var string|null image url from metadata. */
     protected ?string $image;
 
@@ -68,6 +73,7 @@ class Metadata implements ExportableInterface, JsonSerializable
     public function fromMetascraperData(array $data, ?string $url = null): self
     {
         $this->setUrl($url ?? $data['url'] ?? '')
+            ->setPublisher($data['publisher'] ?? '')
             ->setCanonicalUrl($data['url'] ?? '')
             ->setDescription($data['description'] ?? '')
             ->setTitle($data['title'] ?? '')
@@ -116,7 +122,8 @@ class Metadata implements ExportableInterface, JsonSerializable
                 ]
             ],
             'date' => $this->date,
-            'html' => $this->iframe
+            'html' => $this->iframe,
+            'publisher' => $this->publisher
         ];
     }
 }

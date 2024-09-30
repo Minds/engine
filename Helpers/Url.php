@@ -81,4 +81,17 @@ class Url
             $queryParamStrippedUrl :
             $queryParamStrippedUrl .'?'. http_build_query($queryParameters);
     }
+
+    /**
+     * Prepend HTTPS scheme to the url if a scheme.
+     * is not already present.
+     * @param string $url - url to prepend scheme to.
+     * @return string - url with scheme prepended.
+     */
+    public static function prependScheme(string $url): string
+    {
+        return str_starts_with($url, 'http') ?
+            $url :
+            "https://$url";
+    }
 }
