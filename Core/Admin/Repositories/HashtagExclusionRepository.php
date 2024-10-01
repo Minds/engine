@@ -85,7 +85,7 @@ class HashtagExclusionRepository extends AbstractRepository
      * @return iterable<HashtagExclusionNode> - The excluded tags.
      * @throws ServerErrorException
      */
-    public function getTags(?int $after = 0, ?int $limit = null, bool &$hasNextPage): iterable
+    public function getTags(?int $after = 0, ?int $limit = null, bool &$hasNextPage = false): iterable
     {
         $hasNextPage = false;
         $params = [];
