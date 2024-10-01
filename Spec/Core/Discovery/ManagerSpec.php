@@ -43,7 +43,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function let(ElasticSearch\Client $es, EntitiesBuilder $entitiesBuilder, HashtagManager $hashtagManager, ElasticFeedsManager $elasticFeedsManager, User $user, ACL $aclMock, TrendingHashtagManager $trendingHashtagManagerMock)
     {
-        $this->beConstructedWith($es, $entitiesBuilder, null, $hashtagManager, $elasticFeedsManager, $user, $aclMock);
+        $this->beConstructedWith($es, $entitiesBuilder, null, $hashtagManager, $elasticFeedsManager, $user, $aclMock, $trendingHashtagManagerMock);
         $this->es = $es;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->hashtagManager = $hashtagManager;
