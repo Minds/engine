@@ -48,6 +48,26 @@ class Manager
     }
 
     /**
+     * Upload an image blob for the passed in type.
+     * @param string $imageBlob - binary image data to upload.
+     * @param MultiTenantConfigImageType $imageType - type of image being uploaded.
+     * @return void
+     */
+    public function uploadBlob(string $imageBlob, MultiTenantConfigImageType $imageType): void
+    {
+        $file = new File();
+        $file->setFilename("config/{$imageType->value}.png");
+        $file->owner_guid = $this->getTenantOwnerGuid();
+        $file->open('write');
+        $file->write($imageBlob);
+        $file->close();
+
+        $this->multiTenantConfigManager->upsertConfigs(
+            lastCacheTimestamp: time()
+        );
+    }
+
+    /**
      * Gets the appropriate image for the passed in type.
      * @param MultiTenantConfigImageType $type - type of image being retrieved.
      * @return ElggFile - file object.

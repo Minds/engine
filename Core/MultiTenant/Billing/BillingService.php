@@ -4,6 +4,8 @@ namespace Minds\Core\MultiTenant\Billing;
 use DateTimeImmutable;
 use Minds\Core\Config\Config;
 use Minds\Core\Email\V2\Campaigns\Recurring\TenantTrial\TenantTrialEmailer;
+use Minds\Core\EventStreams\Events\TenantBootstrapRequestEvent;
+use Minds\Core\EventStreams\Topics\TenantBootstrapRequestsTopic;
 use Minds\Core\Guid;
 use Minds\Core\MultiTenant\AutoLogin\AutoLoginService;
 use Minds\Core\MultiTenant\Billing\Types\TenantBillingType;
@@ -27,6 +29,7 @@ use Minds\Core\Payments\Stripe\CustomerPortal\Services\CustomerPortalService;
 use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Entities\User;
+use Minds\Helpers\Url;
 use Stripe\Price;
 
 class BillingService
@@ -40,6 +43,7 @@ class BillingService
         private readonly TenantsService               $tenantsService,
         private readonly TenantUsersService           $usersService,
         private readonly TenantTrialEmailer           $emailService,
+        private readonly TenantBootstrapRequestsTopic $tenantBootstrapRequestsTopic,
         private readonly SubscriptionsService         $stripeSubscriptionsService,
         private readonly AutoLoginService             $autoLoginService,
         private readonly CustomerPortalService        $customerPortalService,
@@ -93,16 +97,22 @@ class BillingService
      * who is not on Minds.
      * @param TenantPlanEnum $plan - The plan for the tenant.
      * @param CheckoutTimePeriodEnum $timePeriod - The billing period for the subscription.
+     * @param string|null $customerUrl - The URL that we are creating a trial for.
      * @return string The URL for the Stripe checkout session.
      */
     public function createExternalTrialCheckoutLink(
         TenantPlanEnum $plan,
         CheckoutTimePeriodEnum $timePeriod,
+        ?string $customerUrl = null,
     ): string {
         // Build out the products and their add ons based on the input
         $product = $this->stripeProductService->getProductByKey('networks:' . strtolower($plan->name));
         $productPrices = $this->stripeProductPriceService->getPricesByProduct($product->id);
         $productPrice = array_filter(iterator_to_array($productPrices->getIterator()), fn (Price $price) => $price->lookup_key === 'networks:' . strtolower($plan->name) . ":" . strtolower($timePeriod->name));
+
+        if ($customerUrl) {
+            $customerUrl = Url::prependScheme($customerUrl);
+        }
 
         $checkoutSession = $this->stripeCheckoutManager->createSession(
             mode: CheckoutModeEnum::SUBSCRIPTION,
@@ -121,6 +131,7 @@ class BillingService
             submitMessage: $timePeriod === CheckoutTimePeriodEnum::YEARLY ? "You are agreeing to a 12 month subscription that will be billed monthly." : null,
             metadata: [
                 'tenant_plan' => strtoupper($plan->name),
+                'customer_url' => $customerUrl,
             ],
             phoneNumberCollection: true,
             subscriptionData: [
@@ -276,6 +287,8 @@ class BillingService
 
         $email = $checkoutSession->customer_details->email;
 
+        $customerUrl = $checkoutSession->metadata['customer_url'] ?? null;
+
         // Create a temporary user, so that we can send them an email.
         $user = $this->createtEphemeralUser($email);
 
@@ -287,9 +300,21 @@ class BillingService
             isTrial: true
         );
 
+        if ($customerUrl) {
+            $this->tenantBootstrapRequestsTopic->send(
+                (new TenantBootstrapRequestEvent())
+                    ->setTenantId($tenant->id)
+                    ->setSiteUrl($customerUrl)
+            );
+        }
+
         // Build an auto login url.
         $user->guid = -1;
-        $loginUrl = $this->autoLoginService->buildLoginUrlWithParamsFromTenant($tenant, $user);
+        $loginUrl = $this->autoLoginService->buildLoginUrlWithParamsFromTenant(
+            tenant: $tenant,
+            loggedInUser: $user,
+            redirectPath: $customerUrl ? '/network/admin/bootstrap' : null
+        );
 
         // Get input data from the form.
         $phoneNumber = $checkoutSession->customer_details?->phone ?? null;

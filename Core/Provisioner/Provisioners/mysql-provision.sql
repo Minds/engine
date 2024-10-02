@@ -1192,3 +1192,11 @@ CREATE TABLE IF NOT EXISTS minds_admin_hashtag_exclusions (
     updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (tenant_id, tag)
 );
+
+CREATE TABLE IF NOT EXISTS minds_tenant_bootstrap_progress (
+    tenant_id int NOT NULL,
+    step_name varchar(64) NOT NULL,
+    success boolean NOT NULL,
+    last_run_timestamp timestamp DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (tenant_id, step_name)
+);

@@ -1005,3 +1005,17 @@ $CONFIG->set('gitlab', [
         ]
     ]
 ]);
+
+$CONFIG->set('open_ai', [
+    'api_key' => ''
+]);
+
+$CONFIG->set('jina', [
+    'base_url' => 'https://r.jina.ai/',
+    'api_key' => ''
+]);
+
+$CONFIG->set('screenshot_one', [
+    'base_url' => 'https://api.screenshotone.com/',
+    'api_key' => ''
+]);

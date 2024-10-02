@@ -64,15 +64,21 @@ class AutoLoginService
     /**
      * Build the URL for autologin from tenant to be used with query params, not POST
      * @param Tenant $tenant - the tenant.
+     * @param string|null $redirectPath - Path to redirect a user to upon login.
      * @return string - login URL.
      */
     public function buildLoginUrlWithParamsFromTenant(
         Tenant $tenant,
         User $loggedInUser,
+        ?string $redirectPath = null
     ): string {
         $domain = $this->tenantDomainService->buildNavigatableDomain($tenant);
         $jwtToken = $this->buildJwtToken($tenant->id, $loggedInUser);
-        return "https://$domain/api/v3/multi-tenant/auto-login/login?token=$jwtToken";
+
+        return "https://$domain/api/v3/multi-tenant/auto-login/login?". http_build_query([
+            'token' => $jwtToken,
+            'redirect_path' => $redirectPath
+        ]);
     }
 
     /**

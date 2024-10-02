@@ -49,10 +49,14 @@ class BillingPsrController
      */
     public function externalTrialCheckout(ServerRequestInterface $request): RedirectResponse
     {
+        $customerUrl = $request->getQueryParams()['customer_url'] ?? null;
+
         $checkoutUrl = $this->service->createExternalTrialCheckoutLink(
             plan: TenantPlanEnum::TEAM,
-            timePeriod: CheckoutTimePeriodEnum::MONTHLY
+            timePeriod: CheckoutTimePeriodEnum::MONTHLY,
+            customerUrl: $customerUrl,
         );
+
         return new RedirectResponse($checkoutUrl);
     }
 

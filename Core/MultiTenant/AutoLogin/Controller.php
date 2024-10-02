@@ -50,10 +50,13 @@ class Controller
     public function postLogin(ServerRequest $request): RedirectResponse
     {
         $jwtToken = $request->getParsedBody()['jwt_token'];
+        $redirectPath = $this->getSanitizedRedirectPath(
+            $request->getParsedBody()['redirect_path'] ?? null
+        );
 
         $this->autoLoginService->performLogin($jwtToken);
 
-        return new RedirectResponse('/network/admin');
+        return new RedirectResponse($redirectPath);
     }
 
     
@@ -63,10 +66,24 @@ class Controller
     public function getLogin(ServerRequest $request): RedirectResponse
     {
         $jwtToken = $request->getQueryParams()['token'];
+        $redirectPath = $this->getSanitizedRedirectPath(
+            $request->getQueryParams()['redirect_path'] ?? null
+        );
 
         $this->autoLoginService->performLogin($jwtToken);
 
-        return new RedirectResponse('/network/admin');
+        return new RedirectResponse($redirectPath);
     }
 
+    /**
+     * Gets sanitized redirect path.
+     * @param string|null $redirectPath - the path to sanitize.
+     * @return string - the redirect path.
+     */
+    private function getSanitizedRedirectPath(?string $redirectPath): string
+    {
+        return $redirectPath && str_starts_with($redirectPath, '/') ?
+            $redirectPath :
+            '/network/admin';
+    }
 }

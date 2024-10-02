@@ -7,6 +7,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Email\V2\Campaigns\Recurring\TenantTrial\TenantTrialEmailer;
+use Minds\Core\EventStreams\Topics\TenantBootstrapRequestsTopic;
 use Minds\Core\MultiTenant\AutoLogin\AutoLoginService;
 use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
@@ -33,6 +34,7 @@ class Provider extends DiProvider
                 tenantsService: $di->get(TenantsService::class),
                 usersService: $di->get(TenantUsersService::class),
                 emailService: new TenantTrialEmailer(),
+                tenantBootstrapRequestsTopic: $di->get(TenantBootstrapRequestsTopic::class),
                 stripeSubscriptionsService: $di->get(SubscriptionsService::class),
                 autoLoginService: $di->get(AutoLoginService::class),
                 customerPortalService: $di->get(CustomerPortalService::class),
