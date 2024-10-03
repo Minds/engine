@@ -28,9 +28,6 @@ class Manager
     /** @var Delegates\InitializeSettingsDelegate */
     protected $initializeSettingsDelegate;
 
-    /** @var Delegates\HydrateSettingsDelegate */
-    protected $hydrateSettingsDelegate;
-
     /** @var Delegates\SubscriptionDelegate */
     protected $subscriptionDelegate;
 
@@ -47,7 +44,6 @@ class Manager
      * @param Save                                 $saveAction
      * @param EntitiesBuilder                      $entitiesBuilder
      * @param Delegates\InitializeSettingsDelegate $initializeSettingsDelegate
-     * @param Delegates\HydrateSettingsDelegate    $hydrateSettingsDelegate
      * @param Delegates\SubscriptionDelegate       $subscriptionDelegate
      */
     public function __construct(
@@ -55,14 +51,12 @@ class Manager
         $saveAction = null,
         $entitiesBuilder = null,
         $initializeSettingsDelegate = null,
-        $hydrateSettingsDelegate = null,
         $subscriptionDelegate = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->saveAction = $saveAction ?: new Save();
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->initializeSettingsDelegate = $initializeSettingsDelegate ?: new Delegates\InitializeSettingsDelegate();
-        $this->hydrateSettingsDelegate = $hydrateSettingsDelegate ?: new Delegates\HydrateSettingsDelegate();
         $this->subscriptionDelegate = $subscriptionDelegate ?: new Delegates\SubscriptionDelegate();
     }
 
@@ -180,25 +174,9 @@ class Manager
         if (!$settings && !$this->isActive()) {
             $settings = new Settings();
             $settings->setUserGuid($this->user->guid);
-            $settings->setTitle($this->user->name ?: $this->user->username);
         }
 
-        if (!$settings) {
-            return null;
-        }
-
-        return $this->hydrate($settings);
-    }
-
-    /**
-     * @param Settings $settings
-     *
-     * @return Settings
-     */
-    public function hydrate(Settings $settings): Settings
-    {
-        return $this->hydrateSettingsDelegate
-            ->onGet($this->user, $settings);
+        return $settings ?? null;
     }
 
     /**
@@ -218,150 +196,6 @@ class Manager
 
         $settings
             ->setUserGuid($this->user->guid);
-
-        if (isset($values['domain'])) {
-            $domain = trim($values['domain']);
-
-            if (!StringValidator::isDomain($domain)) {
-                throw new \Exception('Invalid domain');
-            }
-
-            $settings
-                ->setDomain($domain);
-        }
-
-        if (isset($values['title'])) {
-            $title = trim($values['title']);
-
-            if (strlen($title) > 60) {
-                throw new \Exception('Title must be 60 characters or less');
-            }
-
-            $settings
-                ->setTitle($title);
-        }
-
-        if (isset($values['headline'])) {
-            $headline = trim($values['headline']);
-
-            if (strlen($headline) > 80) {
-                throw new \Exception('Headline must be 80 characters or less');
-            }
-
-            $settings
-                ->setHeadline($headline);
-        }
-
-        if (isset($values['text_color'])) {
-            if (!StringValidator::isHexColor($values['text_color'])) {
-                throw new \Exception('Text color must be a valid hex color');
-            }
-
-            $settings
-                ->setTextColor($values['text_color']);
-        }
-
-        if (isset($values['primary_color'])) {
-            if (!StringValidator::isHexColor($values['primary_color'])) {
-                throw new \Exception('Primary color must be a valid hex color');
-            }
-
-            $settings
-                ->setPrimaryColor($values['primary_color']);
-        }
-
-        if (isset($values['plain_background_color'])) {
-            if (!StringValidator::isHexColor($values['plain_background_color'])) {
-                throw new \Exception('Plain background color must be a valid hex color');
-            }
-            $settings
-                ->setPlainBackgroundColor($values['plain_background_color']);
-        }
-
-        if (isset($values['tile_ratio'])) {
-            if (!in_array($values['tile_ratio'], Settings::TILE_RATIOS, true)) {
-                throw new \Exception('Invalid tile ratio');
-            }
-
-            $settings
-                ->setTileRatio($values['tile_ratio']);
-        }
-
-        if (isset($values['footer_text'])) {
-            $footer_text = trim($values['footer_text']);
-
-            if (strlen($footer_text) > 80) {
-                throw new \Exception('Footer text must be 80 characters or less');
-            }
-
-            $settings
-                ->setFooterText($footer_text);
-        }
-
-        if (isset($values['footer_links']) && is_array($values['footer_links'])) {
-            $footerLinks = array_map(function ($item) {
-                $href = $item['href'];
-                $title = ($item['title'] ?? null) ?: $item['href'];
-
-                return compact('title', 'href');
-            }, array_filter($values['footer_links'], function ($item) {
-                return $item && $item['href'] && filter_var($item['href'], FILTER_VALIDATE_URL);
-            }));
-
-            $settings
-                ->setFooterLinks(array_values($footerLinks));
-        }
-
-        if (isset($values['tag_list']) && is_array($values['tag_list'])) {
-            $tagList = array_map(function ($item) {
-                $tag = trim($item['tag'], "#\t\n\r");
-                $label = ($item['label'] ?? null) ?: "#{$item['tag']}";
-
-                return compact('label', 'tag');
-            }, array_filter($values['tag_list'], function ($item) {
-                return $item && $item['tag'];
-            }));
-
-            $settings
-                ->setTagList(array_values($tagList));
-        }
-
-        if (isset($values['scheme'])) {
-            if (!in_array($values['scheme'], Settings::COLOR_SCHEMES, true)) {
-                throw new \Exception('Invalid tile ratio');
-            }
-            $settings
-                ->setScheme($values['scheme']);
-        }
-
-        if (isset($values['custom_head']) && $this->actor->isAdmin()) {
-            $settings
-                ->setCustomHead($values['custom_head']);
-        }
-
-        if (isset($values['has_custom_logo'])) {
-            $settings
-                ->setHasCustomLogo((bool) $values['has_custom_logo']);
-        }
-
-        if (isset($values['has_custom_background'])) {
-            $settings
-                ->setHasCustomBackground((bool) $values['has_custom_background']);
-        }
-
-        if (isset($values['published'])) {
-            $this->user->setProPublished($values['published']);
-            $this->saveAction
-                ->setEntity($this->user)
-                ->withMutatedAttributes([
-                    'pro_published',
-                ])
-                ->save();
-        }
-
-        if (isset($values['splash'])) {
-            $settings->setSplash($values['splash']);
-        }
 
         if (isset($values['payout_method'])) {
             if ($this->user->isPro()) {

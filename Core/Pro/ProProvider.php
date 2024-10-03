@@ -19,13 +19,5 @@ class ProProvider extends Provider
         $this->di->bind('Pro\Manager', function ($di) {
             return new Manager();
         }, ['useFactory' => true]);
-
-        $this->di->bind('Pro\Channel\Manager', function ($di) {
-            return new Channel\Manager();
-        }, ['useFactory' => true]);
-
-        $this->di->bind('Pro\Assets\Manager', function ($di) {
-            return new Assets\Manager();
-        }, ['useFactory' => true]);
     }
 }
