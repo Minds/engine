@@ -16,7 +16,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function let(SubscriptionDelegate $subscriptionDelegate, Save $saveAction)
     {
-        $this->beConstructedWith(null, $saveAction, null, null, null, $subscriptionDelegate);
+        $this->beConstructedWith(null, $saveAction, null, null, $subscriptionDelegate);
         $this->subscriptionDelegate = $subscriptionDelegate;
         $this->saveAction = $saveAction;
     }
