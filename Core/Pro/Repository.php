@@ -52,7 +52,7 @@ class Repository
         if ($opts['user_guid']) {
             $where[] = 'user_guid = ?';
             $values[] = new Bigint($opts['user_guid']);
-        } 
+        }
 
         if ($where) {
             $cql .= sprintf(' WHERE %s', implode(' AND ', $where));
