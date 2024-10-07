@@ -44,6 +44,7 @@ class MobileConfigReaderService
         $config = new AppReadyMobileConfig(
             appName: $tenant->config?->siteName ?? '',
             tenantId: $tenant->id,
+            productionAppVersion: $mobileConfig->productionAppVersion ?? null,
             appHost: parse_url($this->config->get('site_url'), PHP_URL_HOST),
             appSplashResize: strtolower($mobileConfig->splashScreenType->name),
             accentColorLight: $tenant->config?->primaryColor ?? '',

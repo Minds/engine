@@ -46,5 +46,13 @@ class ServicesProvider extends Provider
                 mobilePreviewHandler: $di->get(MobilePreviewHandler::class),
             )
         );
+
+        $this->di->bind(
+            ProductionAppVersionService::class,
+            fn (Di $di): ProductionAppVersionService => new ProductionAppVersionService(
+                repository: $di->get(MobileConfigRepository::class),
+                logger: $di->get('Logger'),
+            )
+        );
     }
 }

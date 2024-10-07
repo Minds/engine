@@ -81,6 +81,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $previewStatus,
             null,
             null,
+            null,
             null
         )
             ->shouldBeCalledOnce();
@@ -92,6 +93,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $splashScreenType,
             $welcomeScreenLogoType,
             $previewStatus,
+            null,
             null,
             null
         );
@@ -121,6 +123,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $previewStatus,
             null,
             null,
+            null,
             null
         )
             ->shouldBeCalledOnce();
@@ -134,6 +137,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $previewStatus,
             null,
             null,
+            null
         );
 
         $response->splashScreenType->shouldBe(MobileSplashScreenTypeEnum::CONTAIN);
@@ -161,6 +165,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $previewStatus,
             null,
             null,
+            null,
             null
         )
             ->shouldBeCalledOnce();
@@ -175,6 +180,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $splashScreenType,
             $welcomeScreenLogoType,
             $previewStatus,
+            null,
             null,
             null
         );
@@ -204,6 +210,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             null,
             null,
             null,
+            null,
             null
         )
             ->shouldBeCalledOnce();
@@ -215,6 +222,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $splashScreenType,
             $welcomeScreenLogoType,
             $previewStatus,
+            null,
             null,
             null
         );
@@ -244,8 +252,9 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $welcomeScreenLogoType,
             null,
             null,
+            null,
             $appTrackingMessageEnabled,
-            null
+            null,
         )
             ->shouldBeCalledOnce();
 
@@ -258,6 +267,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $previewStatus,
             $appTrackingMessageEnabled,
             null,
+            null
         );
 
         $response->splashScreenType->shouldBe(MobileSplashScreenTypeEnum::CONTAIN);
@@ -275,6 +285,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
         $previewStatus = null;
         $appTrackingMessageEnabled = true;
         $appTrackingMessage = 'test';
+        $productionAppVersion = '1.0.0';
 
         $this->mobileConfigRepositoryMock->getMobileConfig()
             ->shouldBeCalledOnce()
@@ -286,6 +297,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $welcomeScreenLogoType,
             null,
             null,
+            $productionAppVersion,
             $appTrackingMessageEnabled,
             $appTrackingMessage
         )
@@ -300,6 +312,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $previewStatus,
             $appTrackingMessageEnabled,
             $appTrackingMessage,
+            $productionAppVersion
         );
 
         $response->splashScreenType->shouldBe(MobileSplashScreenTypeEnum::CONTAIN);
@@ -334,7 +347,8 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $previewStatus,
             null,
             null,
-            MobileConfig::DEFAULT_APP_TRACKING_MESSAGE
+            null,
+            "Allow this app to collect app-related data that can be used for tracking you or your device."
         )
             ->shouldBeCalledOnce();
 
@@ -346,6 +360,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $welcomeScreenLogoType,
             $previewStatus,
             null,
+            "Allow this app to collect app-related data that can be used for tracking you or your device.",
             null
         );
 
@@ -381,6 +396,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $previewStatus,
             null,
             null,
+            null,
             MobileConfig::DEFAULT_APP_TRACKING_MESSAGE
         )
             ->shouldBeCalledOnce();
@@ -392,6 +408,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $splashScreenType,
             $welcomeScreenLogoType,
             $previewStatus,
+            null,
             null,
             null
         );
@@ -428,6 +445,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $previewStatus,
             null,
             null,
+            null,
             MobileConfig::DEFAULT_APP_TRACKING_MESSAGE
         )
             ->shouldBeCalledOnce();
@@ -442,6 +460,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $splashScreenType,
             $welcomeScreenLogoType,
             $previewStatus,
+            null,
             null,
             null
         );
@@ -478,6 +497,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             null,
             null,
             null,
+            null,
             MobileConfig::DEFAULT_APP_TRACKING_MESSAGE
         )
             ->shouldBeCalledOnce();
@@ -489,6 +509,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $splashScreenType,
             $welcomeScreenLogoType,
             $previewStatus,
+            null,
             null,
             null
         );
@@ -525,6 +546,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $welcomeScreenLogoType,
             null,
             null,
+            null,
             true,
             MobileConfig::DEFAULT_APP_TRACKING_MESSAGE
         )
@@ -538,6 +560,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $welcomeScreenLogoType,
             $previewStatus,
             true,
+            null,
             null
         );
 
@@ -575,6 +598,7 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $welcomeScreenLogoType,
             null,
             null,
+            null,
             true,
             $appTrackingMessage
         )
@@ -588,7 +612,8 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             $welcomeScreenLogoType,
             $previewStatus,
             true,
-            $appTrackingMessage
+            $appTrackingMessage,
+            null
         );
 
         $response->splashScreenType->shouldBe($expectedMobileConfig->splashScreenType);

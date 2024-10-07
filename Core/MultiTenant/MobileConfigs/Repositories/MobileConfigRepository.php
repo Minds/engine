@@ -22,7 +22,8 @@ class MobileConfigRepository extends AbstractRepository
      * @param MobileSplashScreenTypeEnum|null $splashScreenType
      * @param MobileWelcomeScreenLogoTypeEnum|null $welcomeScreenLogoType
      * @param MobilePreviewStatusEnum|null $previewStatus
-     * @param string|null $appVersion
+     * @param string|null $productionAppVersion - app version of tenant app in production.
+     * @param string|null $appVersion - app version for previewer.
      * @param bool|null $appTrackingMessageEnabled
      * @param string|null $appTrackingMessage
      * @return void
@@ -33,6 +34,7 @@ class MobileConfigRepository extends AbstractRepository
         ?MobileWelcomeScreenLogoTypeEnum $welcomeScreenLogoType = null,
         ?MobilePreviewStatusEnum         $previewStatus = null,
         ?string                          $appVersion = null,
+        ?string                          $productionAppVersion = null,
         ?bool                            $appTrackingMessageEnabled = null,
         ?string                          $appTrackingMessage = null
     ): void {
@@ -44,6 +46,7 @@ class MobileConfigRepository extends AbstractRepository
                 'welcome_screen_logo_type' => $welcomeScreenLogoType?->value ?? MobileWelcomeScreenLogoTypeEnum::SQUARE->value,
                 'preview_status' => $previewStatus?->value ?? MobilePreviewStatusEnum::NO_PREVIEW->value,
                 'preview_last_updated_timestamp' => $previewStatus ? date('c', time()) : null,
+                'production_app_version' => $productionAppVersion,
                 'app_version' => $appVersion,
                 'app_tracking_message_enabled' => $appTrackingMessageEnabled !== null ? (int) $appTrackingMessageEnabled : null,
                 'app_tracking_message' => $appTrackingMessage
@@ -53,6 +56,7 @@ class MobileConfigRepository extends AbstractRepository
                 'welcome_screen_logo_type' => $welcomeScreenLogoType ? $welcomeScreenLogoType->value : new RawExp('welcome_screen_logo_type'),
                 'preview_status' => $previewStatus ? $previewStatus->value : new RawExp('preview_status'),
                 'preview_last_updated_timestamp' => $previewStatus ? date('c', time()) : null,
+                'production_app_version' => $productionAppVersion,
                 'app_version' => $appVersion,
                 'app_tracking_message_enabled' => $appTrackingMessageEnabled !== null ? (int) $appTrackingMessageEnabled : null,
                 'app_tracking_message' => $appTrackingMessage
@@ -84,6 +88,7 @@ class MobileConfigRepository extends AbstractRepository
             welcomeScreenLogoType: $entry['welcome_screen_logo_type'] ? MobileWelcomeScreenLogoTypeEnum::tryFrom($entry['welcome_screen_logo_type']) : null,
             previewStatus: MobilePreviewStatusEnum::tryFrom($entry['preview_status']),
             previewLastUpdatedTimestamp: $entry['preview_last_updated_timestamp'] ? strtotime($entry['preview_last_updated_timestamp']) : null,
+            productionAppVersion: $entry['production_app_version'] ?? null,
             appVersion: $entry['app_version'],
             easProjectId: $entry['eas_project_id'],
             appSlug: $entry['app_slug'],
@@ -95,5 +100,17 @@ class MobileConfigRepository extends AbstractRepository
             appTrackingMessageEnabled: (bool) $entry['app_tracking_message_enabled'],
             appTrackingMessage: $entry['app_tracking_message'] ?? MobileConfig::DEFAULT_APP_TRACKING_MESSAGE,
         );
+    }
+
+    /**
+     * Clear the mobile production app version for all tenants.
+     * @return bool - true on success.
+     */
+    public function clearAllProductionMobileAppVersions(): bool
+    {
+        return $this->mysqlClientWriterHandler->update()
+            ->table(self::TABLE_NAME)
+            ->set(['production_app_version' => null])
+            ->execute();
     }
 }
