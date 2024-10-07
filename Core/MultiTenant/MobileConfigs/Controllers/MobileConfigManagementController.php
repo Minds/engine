@@ -96,8 +96,7 @@ class MobileConfigManagementController
     public function clearAllMobileAppVersions(): bool
     {
         $jwtToken = (ServerRequestFactory::fromGlobals())->getHeader('token');
-        // Expects the token to be for the tenant network `-1`.
-        if (!$this->gitlabPipelineJwtTokenValidator->checkToken($jwtToken[0], -1)) {
+        if (!isset($jwtToken[0]) || !$this->gitlabPipelineJwtTokenValidator->checkTokenForNonTenant($jwtToken[0])) {
             throw new GraphQLException('Invalid token', 403);
         }
         return $this->productionAppVersionService->clearForAllTenants();
