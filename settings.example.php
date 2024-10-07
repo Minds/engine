@@ -950,7 +950,10 @@ $CONFIG->set('supermind', [
     'minimum_amount' => [
         'usd' => 1.00,
         'offchain_token' => 0.01
-    ]
+    ],
+    // Add user guids to exclude them from global supermind feeds.
+    // Useful for E2E test users.
+    'excluded_user_guids' => []
 ]);
 
 $CONFIG->set('nostr', [
