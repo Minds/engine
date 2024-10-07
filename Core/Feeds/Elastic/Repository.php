@@ -200,6 +200,7 @@ class Repository
             'pinned_guids' => null,
             'future' => false,
             'exclude' => null,
+            'exclude_owner_guids' => null,
             'pending' => false,
             'plus' => false,
             'portrait' => false,
@@ -658,6 +659,13 @@ class Repository
             }
         }
 
+        if ($opts['exclude_owner_guids'] && is_array($opts['exclude_owner_guids']) && count($opts['exclude_owner_guids']) > 0) {
+            $body['query']['function_score']['query']['bool']['must_not'][] = [
+                'terms' => [
+                    'owner_guid' => $opts['exclude_owner_guids'],
+                ],
+            ];
+        }
 
         // firehose options
 
