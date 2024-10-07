@@ -114,6 +114,7 @@ class Manager
             'pinned_guids' => null,
             'as_activities' => false,
             'exclude' => null,
+            'exclude_owner_guids' => null,
             'pending' => false,
             'plus' => false,
             'wire_support_tier_only' => false,
