@@ -69,6 +69,7 @@ class Manager
             'rate' => $blockchainConfig['eth_rate'],
             'plus_address' => $blockchainConfig['contracts']['wire']['plus_address'],
             'default_gas_price' => $blockchainConfig['default_gas_price'],
+            'server_gas_price' => $blockchainConfig['server_gas_price'],
             'transak' => $blockchainConfig['transak'] ?? [
                 'api_key' => '',
                 'environment' => 'STAGING',
