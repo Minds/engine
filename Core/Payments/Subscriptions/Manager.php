@@ -8,8 +8,11 @@
 
 namespace Minds\Core\Payments\Subscriptions;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
+use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService;
+use Minds\Core\Payments\Stripe\Customers\ManagerV2 as CustomersManager;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 
@@ -40,12 +43,22 @@ class Manager
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
-    public function __construct($repository = null, $analyticsDelegate = null, $emailDelegate = null, $entitiesBuilder = null)
-    {
+    public function __construct(
+        $repository = null,
+        $analyticsDelegate = null,
+        $emailDelegate = null,
+        $entitiesBuilder = null,
+        private ?CustomersManager $customersManager = null,
+        private ?SubscriptionsService $stripeSubscriptionsService = null,
+        private ?Config $config = null,
+    ) {
         $this->repository = $repository ?: Di::_()->get('Payments\Subscriptions\Repository');
         $this->analyticsDelegate = $analyticsDelegate ?? new Delegates\AnalyticsDelegate();
         $this->emailDelegate = $emailDelegate ?? new Delegates\EmailDelegate();
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->customersManager ??= Di::_()->get('Stripe\Customers\ManagerV2');
+        $this->stripeSubscriptionsService ??= Di::_()->get(SubscriptionsService::class);
+        $this->config ??= Di::_()->get(Config::class);
     }
 
     /**
@@ -96,6 +109,10 @@ class Manager
      */
     public function get($id)
     {
+        if (strpos($id, 'sub_') === 0) {
+            // Collect from Stripe
+            return $this->buildSubscriptionFromStripeObject($this->stripeSubscriptionsService->retrieveSubscription($id));
+        }
         return $this->repository->get($id);
     }
 
@@ -145,7 +162,36 @@ class Manager
      */
     public function getList(array $opts = [])
     {
-        return $this->repository->getList($opts);
+        $subscriptions = $this->repository->getList($opts);
+        if ($opts['user']) {
+            // Hack, include stripe subscriptions
+            $customer = $this->customersManager->getByUser($opts['user']);
+            $stripeSubscriptions = $this->stripeSubscriptionsService->getSubscriptions(
+                customerId: $customer->id,
+            );
+            foreach ($stripeSubscriptions as $item) {
+                $subscriptions[] = $this->buildSubscriptionFromStripeObject($item);
+            }
+        }
+        return $subscriptions;
+    }
+
+    /**
+     * Build a Minds object from a stripe subscription object
+     */
+    private function buildSubscriptionFromStripeObject(\Stripe\Subscription $item): Subscription
+    {
+        $subscription = new Subscription();
+        $subscription->setId($item->id)
+            ->setPlanId($item->plan->nickname)
+            ->setPaymentMethod('usd')
+            //->setUser($opts['user']->guid)
+            ->setAmount($item->plan->amount)
+            ->setInterval($item->plan->interval)
+            ->setLastBilling($item->current_period_start)
+            ->setNextBilling($item->current_period_end)
+            ->setStatus($item->status);
+        return $subscription;
     }
 
     /////
@@ -202,6 +248,12 @@ class Manager
      */
     public function cancel()
     {
+        if (strpos($this->subscription->getId(), 'sub_') === 0) {
+            // Cancel on stripe
+            $this->stripeSubscriptionsService->cancelSubscription($this->subscription->getId());
+            return;
+        }
+
         $this->subscription->isValid();
 
         $this->subscription->setStatus('cancelled');

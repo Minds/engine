@@ -9,6 +9,7 @@ use Minds\Exceptions\UserErrorException;
 use Minds\Core\Wire\Wire;
 use Minds\Helpers\Urn;
 use Minds\Core\Util\BigNumber;
+use Minds\Core\Wire\SupportTiers\Delegates\PaymentsDelegate;
 
 /**
  * Wire Support Tiers Manager
@@ -47,7 +48,7 @@ class Manager
         $this->repository = $repository ?: new Repository();
         $this->guidBuilder = $guidBuilder ?: new GuidBuilder();
         $this->currenciesDelegate = $currenciesDelegate ?: new Delegates\CurrenciesDelegate();
-        $this->paymentsDelegate = $paymentsDelegate ?: new Delegates\PaymentsDelegate();
+        $this->paymentsDelegate = $paymentsDelegate;
     }
 
     /**
@@ -257,11 +258,16 @@ class Manager
     {
         $delegates = [
             $this->currenciesDelegate,
-            $this->paymentsDelegate,
+            $this->getPaymentsDelegate(),
         ];
         foreach ($delegates as $delegate) {
             $supportTier = $delegate->hydrate($supportTier);
         }
         return $supportTier;
+    }
+
+    private function getPaymentsDelegate(): PaymentsDelegate
+    {
+        return $this->paymentsDelegate ??= new PaymentsDelegate();
     }
 }
