@@ -55,20 +55,22 @@ class MobileConfigAssetsService
      * Upload an image blob for the specified mobile config image type.
      * @param string $imageBlob - The image data as a binary string.
      * @param MobileConfigImageTypeEnum $imageType - The type of mobile config image being uploaded.
-     * @return void
+     * @return bool
      */
-    public function uploadBlob(string $imageBlob, MobileConfigImageTypeEnum $imageType): void
+    public function uploadBlob(string $imageBlob, MobileConfigImageTypeEnum $imageType): bool
     {
         $file = new File();
         $file->setFilename("mobile_config/{$imageType->value}.png");
         $file->owner_guid = $this->getTenantOwnerGuid();
         $file->open('write');
-        $file->write($imageBlob);
+        $success = (bool) $file->write($imageBlob);
         $file->close();
 
         $this->multiTenantConfigManager->upsertConfigs(
             lastCacheTimestamp: time()
         );
+
+        return $success;
     }
 
     /**
