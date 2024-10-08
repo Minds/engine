@@ -53,14 +53,45 @@ class UpdateLogosDelegateSpec extends ObjectBehavior
         $squareLogoBlob = 'square-logo-blob';
 
         $this->configImageManagerMock->uploadBlob($squareLogoBlob, MultiTenantConfigImageType::SQUARE_LOGO)
-            ->shouldBeCalled();
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->mobileConfigAssetsServiceMock->uploadBlob($squareLogoBlob, MobileConfigImageTypeEnum::ICON)
-            ->shouldBeCalled();
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->mobileConfigAssetsServiceMock->uploadBlob($squareLogoBlob, MobileConfigImageTypeEnum::SQUARE_LOGO)
-            ->shouldBeCalled();
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->loggerMock->info("Uploaded web square logo")->shouldBeCalled();
         $this->loggerMock->info("Uploaded mobile icon")->shouldBeCalled();
         $this->loggerMock->info("Uploaded mobile square logo")->shouldBeCalled();
+        $this->loggerMock->info("Done uploading logos")->shouldBeCalled();
+
+        $this->onUpdate($squareLogoBlob);
+    }
+
+    public function it_should_handle_failure_to_update_square_logo()
+    {
+        $squareLogoBlob = 'square-logo-blob';
+
+        $this->configImageManagerMock->uploadBlob($squareLogoBlob, MultiTenantConfigImageType::SQUARE_LOGO)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->mobileConfigAssetsServiceMock->uploadBlob($squareLogoBlob, MobileConfigImageTypeEnum::ICON)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->mobileConfigAssetsServiceMock->uploadBlob($squareLogoBlob, MobileConfigImageTypeEnum::SQUARE_LOGO)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->loggerMock->error("Failed to upload web square logo: Upload failed")->shouldBeCalled();
+        $this->loggerMock->error("Failed to upload mobile icon: Upload failed")->shouldBeCalled();
+        $this->loggerMock->error("Failed to upload mobile square logo: Upload failed")->shouldBeCalled();
+        $this->loggerMock->error("Failed to upload all logos, some may have been saved.")->shouldBeCalled();
 
         $this->onUpdate($squareLogoBlob);
     }
@@ -70,11 +101,35 @@ class UpdateLogosDelegateSpec extends ObjectBehavior
         $horizontalLogoBlob = 'horizontal-logo-blob';
 
         $this->configImageManagerMock->uploadBlob($horizontalLogoBlob, MultiTenantConfigImageType::HORIZONTAL_LOGO)
-            ->shouldBeCalled();
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->mobileConfigAssetsServiceMock->uploadBlob($horizontalLogoBlob, MobileConfigImageTypeEnum::HORIZONTAL_LOGO)
-            ->shouldBeCalled();
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->loggerMock->info("Uploaded web horizontal logo")->shouldBeCalled();
         $this->loggerMock->info("Uploaded mobile horizontal logo")->shouldBeCalled();
+        $this->loggerMock->info("Done uploading logos")->shouldBeCalled();
+
+        $this->onUpdate(null, null, $horizontalLogoBlob);
+    }
+
+    public function it_should_handle_failure_to_update_horizontal_logo()
+    {
+        $horizontalLogoBlob = 'horizontal-logo-blob';
+
+        $this->configImageManagerMock->uploadBlob($horizontalLogoBlob, MultiTenantConfigImageType::HORIZONTAL_LOGO)
+            ->shouldBeCalled()
+            ->willReturn(false);
+            
+        $this->mobileConfigAssetsServiceMock->uploadBlob($horizontalLogoBlob, MobileConfigImageTypeEnum::HORIZONTAL_LOGO)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->loggerMock->error("Failed to upload web horizontal logo: Upload failed")->shouldBeCalled();
+        $this->loggerMock->error("Failed to upload mobile horizontal logo: Upload failed")->shouldBeCalled();
+        $this->loggerMock->error("Failed to upload all logos, some may have been saved.")->shouldBeCalled();
 
         $this->onUpdate(null, null, $horizontalLogoBlob);
     }
@@ -84,8 +139,25 @@ class UpdateLogosDelegateSpec extends ObjectBehavior
         $faviconBlob = 'favicon-blob';
 
         $this->configImageManagerMock->uploadBlob($faviconBlob, MultiTenantConfigImageType::FAVICON)
-            ->shouldBeCalled();
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->loggerMock->info("Uploaded web favicon")->shouldBeCalled();
+        $this->loggerMock->info("Done uploading logos")->shouldBeCalled();
+
+        $this->onUpdate(null, $faviconBlob);
+    }
+
+    public function it_should_handle_failure_to_update_favicon()
+    {
+        $faviconBlob = 'favicon-blob';
+
+        $this->configImageManagerMock->uploadBlob($faviconBlob, MultiTenantConfigImageType::FAVICON)
+            ->shouldBeCalled()
+            ->willReturn(false);
+            
+        $this->loggerMock->error("Failed to upload web favicon: Upload failed")->shouldBeCalled();
+        $this->loggerMock->error("Failed to upload all logos, some may have been saved.")->shouldBeCalled();
 
         $this->onUpdate(null, $faviconBlob);
     }
@@ -95,8 +167,25 @@ class UpdateLogosDelegateSpec extends ObjectBehavior
         $splashBlob = 'splash-blob';
 
         $this->mobileConfigAssetsServiceMock->uploadBlob($splashBlob, MobileConfigImageTypeEnum::SPLASH)
-            ->shouldBeCalled();
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->loggerMock->info("Uploaded mobile splash")->shouldBeCalled();
+        $this->loggerMock->info("Done uploading logos")->shouldBeCalled();
+
+        $this->onUpdate(null, null, null, $splashBlob);
+    }
+
+    public function it_should_handle_failure_to_update_mobile_splash()
+    {
+        $splashBlob = 'splash-blob';
+
+        $this->mobileConfigAssetsServiceMock->uploadBlob($splashBlob, MobileConfigImageTypeEnum::SPLASH)
+            ->shouldBeCalled()
+            ->willReturn(false);
+            
+        $this->loggerMock->error("Failed to upload mobile splash: Upload failed")->shouldBeCalled();
+        $this->loggerMock->error("Failed to upload all logos, some may have been saved.")->shouldBeCalled();
 
         $this->onUpdate(null, null, null, $splashBlob);
     }

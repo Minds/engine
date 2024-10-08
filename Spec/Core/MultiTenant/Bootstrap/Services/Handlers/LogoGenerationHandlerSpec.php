@@ -11,7 +11,9 @@ use Minds\Core\MultiTenant\Bootstrap\Delegates\UpdateLogosDelegate;
 use Minds\Core\MultiTenant\Bootstrap\Repositories\BootstrapProgressRepository;
 use Minds\Core\Log\Logger;
 use Minds\Core\MultiTenant\Bootstrap\Enums\BootstrapStepEnum;
+use Minds\Helpers\Image as ImageHelpers;
 use PhpSpec\ObjectBehavior;
+use Prophecy\Argument;
 
 class LogoGenerationHandlerSpec extends ObjectBehavior
 {
@@ -21,6 +23,7 @@ class LogoGenerationHandlerSpec extends ObjectBehavior
     private $mobileSplashLogoExtractorMock;
     private $updateLogosDelegateMock;
     private $progressRepositoryMock;
+    private $imageHelpersMock;
     private $loggerMock;
 
     public function let(
@@ -30,6 +33,7 @@ class LogoGenerationHandlerSpec extends ObjectBehavior
         MobileSplashLogoExtractor $mobileSplashLogoExtractor,
         UpdateLogosDelegate $updateLogosDelegate,
         BootstrapProgressRepository $progressRepository,
+        ImageHelpers $imageHelpers,
         Logger $logger
     ) {
         $this->metadataExtractorMock = $metadataExtractor;
@@ -38,6 +42,7 @@ class LogoGenerationHandlerSpec extends ObjectBehavior
         $this->mobileSplashLogoExtractorMock = $mobileSplashLogoExtractor;
         $this->updateLogosDelegateMock = $updateLogosDelegate;
         $this->progressRepositoryMock = $progressRepository;
+        $this->imageHelpersMock = $imageHelpers;
         $this->loggerMock = $logger;
 
         $this->beConstructedWith(
@@ -47,6 +52,7 @@ class LogoGenerationHandlerSpec extends ObjectBehavior
             $mobileSplashLogoExtractor,
             $updateLogosDelegate,
             $progressRepository,
+            $imageHelpers,
             $logger
         );
     }
@@ -69,12 +75,16 @@ class LogoGenerationHandlerSpec extends ObjectBehavior
         $this->horizontalLogoExtractorMock->extract($squareLogoBlob)->willReturn($horizontalLogoBlob);
         $this->mobileSplashLogoExtractorMock->extract($squareLogoBlob)->willReturn($splashBlob);
 
+        $this->imageHelpersMock->isValidImage(Argument::any())->willReturn(true);
+
         $this->updateLogosDelegateMock->onUpdate(
             $squareLogoBlob,
             $faviconBlob,
             $horizontalLogoBlob,
             $splashBlob
-        )->shouldBeCalled();
+        )
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->progressRepositoryMock->updateProgress(BootstrapStepEnum::LOGO_STEP, true)->shouldBeCalled();
 
@@ -87,6 +97,9 @@ class LogoGenerationHandlerSpec extends ObjectBehavior
         $faviconBlob = 'favicon-blob';
 
         $this->websiteIconExtractorMock->extract($siteUrl, 256)->willReturn(null);
+
+        $this->imageHelpersMock->isValidImage(Argument::any())->willReturn(true);
+
         $this->websiteIconExtractorMock->extract($siteUrl, 32)->willReturn($faviconBlob);
         $this->horizontalLogoExtractorMock->extract(null)->shouldNotBeCalled();
         $this->mobileSplashLogoExtractorMock->extract(null)->shouldNotBeCalled();
@@ -98,7 +111,33 @@ class LogoGenerationHandlerSpec extends ObjectBehavior
             null
         )->shouldBeCalled();
 
-        $this->progressRepositoryMock->updateProgress(BootstrapStepEnum::LOGO_STEP, true)->shouldBeCalled();
+        $this->progressRepositoryMock->updateProgress(BootstrapStepEnum::LOGO_STEP, false)->shouldBeCalled();
+
+        $this->handle($siteUrl);
+    }
+
+    public function it_should_handle_logo_generation_when_invalid_square_logo_blob_is_returned()
+    {
+        $siteUrl = 'https://example.minds.com';
+        $faviconBlob = 'favicon-blob';
+
+        $this->websiteIconExtractorMock->extract($siteUrl, 256)->willReturn('square-logo-blob');
+        $this->websiteIconExtractorMock->extract($siteUrl, 32)->willReturn($faviconBlob);
+
+        $this->imageHelpersMock->isValidImage('square-logo-blob')->willReturn(false);
+        $this->imageHelpersMock->isValidImage($faviconBlob)->willReturn(true);
+
+        $this->horizontalLogoExtractorMock->extract(null)->shouldNotBeCalled();
+        $this->mobileSplashLogoExtractorMock->extract(null)->shouldNotBeCalled();
+
+        $this->updateLogosDelegateMock->onUpdate(
+            null,
+            $faviconBlob,
+            null,
+            null
+        )->shouldBeCalled();
+
+        $this->progressRepositoryMock->updateProgress(BootstrapStepEnum::LOGO_STEP, false)->shouldBeCalled();
 
         $this->handle($siteUrl);
     }
@@ -115,6 +154,8 @@ class LogoGenerationHandlerSpec extends ObjectBehavior
         $this->websiteIconExtractorMock->extract($siteUrl, 32)->willReturn($faviconBlob);
         $this->horizontalLogoExtractorMock->extract($squareLogoBlob)->willReturn($horizontalLogoBlob);
         $this->mobileSplashLogoExtractorMock->extract($squareLogoBlob)->willReturn($splashBlob);
+
+        $this->imageHelpersMock->isValidImage(Argument::any())->willReturn(true);
 
         $this->updateLogosDelegateMock->onUpdate(
             $squareLogoBlob,

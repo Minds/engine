@@ -11,6 +11,8 @@ use Minds\Core\MultiTenant\Bootstrap\Enums\BootstrapStepEnum;
 use Minds\Core\MultiTenant\Bootstrap\Repositories\BootstrapProgressRepository;
 use Minds\Core\MultiTenant\Bootstrap\Services\Extractors\HorizontalLogoExtractor;
 use Minds\Core\MultiTenant\Bootstrap\Services\Extractors\MobileSplashLogoExtractor;
+use Minds\Exceptions\ServerErrorException;
+use Minds\Helpers\Image as ImageHelpers;
 
 /**
  * Handles the generation of logos.
@@ -24,7 +26,8 @@ class LogoGenerationHandler
         private MobileSplashLogoExtractor $mobileSplashLogoExtractor,
         private UpdateLogosDelegate $updateLogosDelegate,
         private BootstrapProgressRepository $progressRepository,
-        private Logger $logger
+        private ImageHelpers $imageHelpers,
+        private Logger $logger,
     ) {
     }
 
@@ -40,6 +43,11 @@ class LogoGenerationHandler
 
             $squareLogoBlob = $this->getSquareLogoBlob($siteUrl);
             $faviconBlob = $this->getFaviconBlob($siteUrl);
+
+            if (!$squareLogoBlob && !$faviconBlob) {
+                throw new ServerErrorException("No logos found");
+            }
+
             $horizontalLogoBlob = null;
             $splashBlob = null;
 
@@ -48,13 +56,14 @@ class LogoGenerationHandler
                 $splashBlob = $this->getSplashBlob($squareLogoBlob);
             }
 
-            $this->updateLogosDelegate->onUpdate(
+            if (!$this->updateLogosDelegate->onUpdate(
                 squareLogoBlob: $squareLogoBlob,
                 faviconBlob: $faviconBlob,
                 horizontalLogoBlob: $horizontalLogoBlob,
                 splashBlob: $splashBlob
-            );
-            $this->logger->info("Logos updated");
+            )) {
+                throw new ServerErrorException("Failed to upload all logos");
+            }
 
             $this->progressRepository->updateProgress(BootstrapStepEnum::LOGO_STEP, true);
             $this->logger->info("Updated bootstrap progress for logos step to success");
@@ -74,6 +83,11 @@ class LogoGenerationHandler
     {
         try {
             $squareLogoBlob = $this->websiteIconExtractor->extract($siteUrl, 256);
+
+            if (!$squareLogoBlob || !$this->imageHelpers->isValidImage($squareLogoBlob)) {
+                throw new ServerErrorException("Valid square logo not extracted");
+            }
+
             $this->logger->info("Square logo retrieved");
             return $squareLogoBlob;
         } catch (\Exception $e) {
@@ -92,6 +106,11 @@ class LogoGenerationHandler
     {
         try {
             $faviconBlob = $this->websiteIconExtractor->extract($siteUrl, 32);
+
+            if (!$faviconBlob || !$this->imageHelpers->isValidImage($faviconBlob)) {
+                throw new ServerErrorException("Valid favicon not extracted");
+            }
+
             $this->logger->info("Favicon retrieved");
             return $faviconBlob;
         } catch (\Exception $e) {
@@ -109,6 +128,11 @@ class LogoGenerationHandler
     {
         try {
             $horizontalLogoBlob = $this->horizontalLogoExtractor->extract($squareLogoBlob);
+            
+            if (!$horizontalLogoBlob || !$this->imageHelpers->isValidImage($horizontalLogoBlob)) {
+                throw new ServerErrorException("Valid horizontal logo not extracted");
+            }
+
             $this->logger->info("Horizontal logo retrieved");
             return $horizontalLogoBlob;
         } catch (\Exception $e) {
@@ -126,6 +150,11 @@ class LogoGenerationHandler
     {
         try {
             $splashBlob = $this->mobileSplashLogoExtractor->extract($squareLogoBlob);
+
+            if (!$splashBlob || !$this->imageHelpers->isValidImage($splashBlob)) {
+                throw new ServerErrorException("Valid splash logo not extracted");
+            }
+
             $this->logger->info("Splash logo retrieved");
             return $splashBlob;
         } catch (\Exception $e) {
