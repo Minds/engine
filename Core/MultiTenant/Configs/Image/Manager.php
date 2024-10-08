@@ -51,20 +51,22 @@ class Manager
      * Upload an image blob for the passed in type.
      * @param string $imageBlob - binary image data to upload.
      * @param MultiTenantConfigImageType $imageType - type of image being uploaded.
-     * @return void
+     * @return bool
      */
-    public function uploadBlob(string $imageBlob, MultiTenantConfigImageType $imageType): void
+    public function uploadBlob(string $imageBlob, MultiTenantConfigImageType $imageType): bool
     {
         $file = new File();
         $file->setFilename("config/{$imageType->value}.png");
         $file->owner_guid = $this->getTenantOwnerGuid();
         $file->open('write');
-        $file->write($imageBlob);
+        $success = (bool) $file->write($imageBlob);
         $file->close();
 
         $this->multiTenantConfigManager->upsertConfigs(
             lastCacheTimestamp: time()
         );
+
+        return $success;
     }
 
     /**

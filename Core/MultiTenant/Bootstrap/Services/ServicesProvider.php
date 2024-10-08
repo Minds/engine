@@ -32,6 +32,7 @@ use Minds\Core\MultiTenant\Bootstrap\Services\Extractors\ThemeExtractor;
 use Minds\Core\MultiTenant\Bootstrap\Services\Processors\LogoImageProcessor;
 use Minds\Core\MultiTenant\Bootstrap\Repositories\BootstrapProgressRepository;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
+use Minds\Helpers\Image as ImageHelpers;
 
 class ServicesProvider extends DiProvider
 {
@@ -134,7 +135,8 @@ class ServicesProvider extends DiProvider
                     mobileSplashLogoExtractor: $di->get(MobileSplashLogoExtractor::class),
                     updateLogosDelegate: $di->get(UpdateLogosDelegate::class),
                     progressRepository: $di->get(BootstrapProgressRepository::class),
-                    logger: $di->get('Logger')
+                    imageHelpers: new ImageHelpers(),
+                    logger: $di->get('Logger'),
                 );
             }
         );
