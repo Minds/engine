@@ -90,6 +90,7 @@ class MultiTenantBootstrapService
      */
     private function bootFromTenantId(int $tenantId): Tenant
     {
+        $this->multiTenantBootService->resetRootConfigs();
         $this->logger->info("Bootstrapping tenant with ID: $tenantId");
         $this->multiTenantBootService->bootFromTenantId($tenantId);
         $tenant = $this->multiTenantBootService->getTenant();
