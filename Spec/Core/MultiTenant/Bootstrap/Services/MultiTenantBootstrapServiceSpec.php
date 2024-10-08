@@ -100,6 +100,7 @@ class MultiTenantBootstrapServiceSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($description);
 
+        $this->multiTenantBootServiceMock->resetRootConfigs()->shouldBeCalled();
         $this->multiTenantBootServiceMock->bootFromTenantId($tenantId)->shouldBeCalled();
         $this->multiTenantBootServiceMock->getTenant()->willReturn($tenant);
         $this->entitiesBuilderMock->single($tenant->rootUserGuid)->willReturn($rootUser);
@@ -145,6 +146,7 @@ class MultiTenantBootstrapServiceSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($description);
 
+        $this->multiTenantBootServiceMock->resetRootConfigs()->shouldBeCalled();
         $this->multiTenantBootServiceMock->bootFromTenantId($tenantId)->shouldBeCalled();
         $this->multiTenantBootServiceMock->getTenant()->willReturn($tenant);
         $this->entitiesBuilderMock->single($tenant->rootUserGuid)->willReturn($rootUser);
@@ -183,6 +185,7 @@ class MultiTenantBootstrapServiceSpec extends ObjectBehavior
         $rootUserGuid = 1234567890123456;
         $tenant = $this->generateTenantMock(rootUserGuid: $rootUserGuid);
 
+        $this->multiTenantBootServiceMock->resetRootConfigs()->shouldBeCalled();
         $this->multiTenantBootServiceMock->bootFromTenantId($tenantId)->shouldBeCalled();
         $this->multiTenantBootServiceMock->getTenant()->willReturn($tenant);
         $this->entitiesBuilderMock->single($tenant->rootUserGuid)->willReturn($rootUser);
