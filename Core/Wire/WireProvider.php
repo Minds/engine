@@ -4,6 +4,7 @@ namespace Minds\Core\Wire;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider;
+use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService;
 
 /**
  * Wire Providers
@@ -21,7 +22,9 @@ class WireProvider extends Provider
 
         $this->di->bind('Wire\Manager', function (Di $di): Manager {
             return new Manager(
-                giftCardsManager: $di->get(\Minds\Core\Payments\GiftCards\Manager::class)
+                giftCardsManager: $di->get(\Minds\Core\Payments\GiftCards\Manager::class),
+                stripeSubscriptionsService: $di->get(SubscriptionsService::class),
+                customersManager: $di->get('Stripe\Customers\ManagerV2'),
             );
         }, ['useFactory' => true]);
 

@@ -18,6 +18,7 @@ use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\Stripe\Intents\Intent;
 use Minds\Core\Payments\Stripe\Intents\Manager as StripeIntentsManager;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
+use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService;
 use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Core\Util\BigNumber;
@@ -29,6 +30,9 @@ use Minds\Entities\Activity;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
+use Minds\Core\Payments\Stripe\Customers\ManagerV2 as CustomersManager;
+use Minds\Exceptions\UserErrorException;
+use Stripe\Subscription;
 
 class Manager
 {
@@ -128,6 +132,8 @@ class Manager
         private ?SupportTiersManager $supportTiersManager = null,
         private ?PaymentsManager $paymentsManager = null,
         private readonly ?GiftCardsManager $giftCardsManager = null,
+        private readonly ?SubscriptionsService $stripeSubscriptionsService = null,
+        private readonly ?CustomersManager $customersManager = null,
     ) {
         $this->repository = $repository ?: Di::_()->get('Wire\Repository');
         $this->txManager = $txManager ?: Di::_()->get('Blockchain\Transactions\Manager');
@@ -387,7 +393,7 @@ class Manager
                 if ($paymentMethod === "usd") {
                     $intent = $this->processStripeWirePayment($wire);
 
-                    $transactionId = $intent->getId();
+                    $transactionId = $intent instanceof Subscription ? $intent->id : $intent->getId();
                 } else {
                     $transactionId = GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID;
                 }
@@ -443,10 +449,49 @@ class Manager
      * @return Intent
      * @throws \Exception
      */
-    private function processStripeWirePayment(Wire $wire): Intent
+    private function processStripeWirePayment(Wire $wire): Intent|Subscription
     {
         $statementDescriptor = $this->getStatementDescriptorFromWire($wire);
         $description = $this->getDescriptionFromWire($wire);
+
+        // Setup a stripe subscription for Plus & Pro subscriptions ONLY
+        if ($this->isPlusReceiver($this->receiver->getGuid()) || $this->isProReceiver($this->receiver->getGuid())) {
+            $this->recurring = false; // Do not do recurring as we will use a stripe subscription instead
+            
+            $productKey = $this->isPlusReceiver($this->receiver->getGuid()) ? 'plus' : 'pro';
+            $stripePriceId = $this->config->get('upgrades')[$productKey][$wire->getRecurringInterval() ?: 'monthly']['stripe_price_id'];
+            $stripeProductId = $this->config->get('upgrades')[$productKey]['stripe_product_id'];
+
+            $items = [
+                [
+                    'price' => $stripePriceId
+                ]
+            ];
+
+            $customer = $this->customersManager->getByUser($this->sender);
+
+            // Before we make a new subscription, confirm a subscription doesn't already exist
+            $existingSubscriptions = $this->stripeSubscriptionsService->getSubscriptions(
+                customerId: $customer->id,
+                status: 'active'
+            );
+            foreach ($existingSubscriptions as $existingSubscription) {
+                if ($existingSubscription->plan->product === $stripeProductId) {
+                    throw new UserErrorException("You already have an active subscription to this product");
+                }
+            }
+
+            $subscription = $this->stripeSubscriptionsService->createSubscription(
+                customerId: $customer->id,
+                paymentMethodId: $this->payload['paymentMethodId'],
+                items: $items,
+                trialDays: (int) $wire->getTrialDays(),
+                metadata: [
+                    'user_guid' => $this->sender->getGuid(),
+                ],
+            );
+            return $subscription;
+        }
 
         // If this is a trial, we still create the subscription but do not charge
         $intent = new PaymentIntent();

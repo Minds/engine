@@ -7,9 +7,13 @@ use Minds\Core\Events\Dispatcher;
 use Minds\Core\Payments\Subscriptions\Delegates;
 use Minds\Core\Payments\Subscriptions\Repository;
 use Minds\Core\Payments\Subscriptions\Subscription;
+use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService;
+use Minds\Core\Payments\Stripe\Customers\ManagerV2 as CustomersManager;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
+use Stripe\Customer;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -25,18 +29,25 @@ class ManagerSpec extends ObjectBehavior
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
+    private Collaborator $customersManagerMock;
+    private Collaborator $subscriptionsServiceMock;
+
     public function let(
         Repository $repository,
         Delegates\AnalyticsDelegate $analyticsDelegate,
         Delegates\EmailDelegate $emailDelegate,
-        EntitiesBuilder $entitiesBuilder
+        EntitiesBuilder $entitiesBuilder,
+        CustomersManager $customersManagerMock,
+        SubscriptionsService $subscriptionsServiceMock,
     ) {
         $this->repository = $repository;
         $this->analyticsDelegate = $analyticsDelegate;
         $this->emailDelegate = $emailDelegate;
         $this->entitiesBuilder = $entitiesBuilder;
+        $this->customersManagerMock = $customersManagerMock;
+        $this->subscriptionsServiceMock = $subscriptionsServiceMock;
 
-        $this->beConstructedWith($repository, $analyticsDelegate, $emailDelegate, $entitiesBuilder);
+        $this->beConstructedWith($repository, $analyticsDelegate, $emailDelegate, $entitiesBuilder, $customersManagerMock, $subscriptionsServiceMock);
     }
 
     public function it_is_initializable()
@@ -60,7 +71,7 @@ class ManagerSpec extends ObjectBehavior
 
         $subscription->getId()
             ->shouldBecalled()
-            ->willReturn('sub_test');
+            ->willReturn('msubs_test');
 
         $subscription->getUser()
             ->shouldBeCalled()
@@ -83,7 +94,7 @@ class ManagerSpec extends ObjectBehavior
         $subscription->setStatus('active')
             ->shouldBeCalled();
         
-        $this->repository->get('sub_test')
+        $this->repository->get('msubs_test')
             ->shouldBeCalledOnce()
             ->willReturn($subscription);
 
@@ -210,12 +221,12 @@ class ManagerSpec extends ObjectBehavior
         $user->guid = 123;
 
         $subscription = new Subscription;
-        $subscription->setId('sub_test')
+        $subscription->setId('msubs_test')
             ->setPlanId('spec')
             ->setPaymentMethod('spec')
             ->setUser($user);
 
-        $this->repository->get('sub_test')
+        $this->repository->get('msubs_test')
             ->shouldBeCalledOnce()
             ->willReturn($subscription);
 
@@ -240,7 +251,7 @@ class ManagerSpec extends ObjectBehavior
         $user->guid = 123;
 
         $subscription = new Subscription;
-        $subscription->setId('sub_test')
+        $subscription->setId('msubs_test')
             ->setPlanId('spec')
             ->setPaymentMethod('spec')
             ->setUser($user)
@@ -248,7 +259,7 @@ class ManagerSpec extends ObjectBehavior
             ->setNextBilling(time() + 86400)
             ->setTrialDays(7);
 
-        $this->repository->get('sub_test')
+        $this->repository->get('msubs_test')
             ->shouldBeCalledOnce()
             ->willReturn($subscription);
 
@@ -273,7 +284,7 @@ class ManagerSpec extends ObjectBehavior
         $user->guid = 123;
 
         $subscription = new Subscription;
-        $subscription->setId('sub_test')
+        $subscription->setId('msubs_test')
             ->setPlanId('spec')
             ->setPaymentMethod('spec')
             ->setInterval('daily')
@@ -281,7 +292,7 @@ class ManagerSpec extends ObjectBehavior
             ->setNextBilling(time() + 86400)
             ->setUser($user);
 
-        $this->repository->get('sub_test')
+        $this->repository->get('msubs_test')
             ->shouldBeCalledOnce()
             ->willReturn($subscription);
 
@@ -297,7 +308,7 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_throw_if_not_valid()
     {
         $subscription = new Subscription;
-        $subscription->setId('sub_test');
+        $subscription->setId('msubs_test');
 
         $this->setSubscription($subscription);
         $this->shouldThrow('\Exception')->duringCreate();
@@ -309,7 +320,7 @@ class ManagerSpec extends ObjectBehavior
         $user->guid = 123;
 
         $subscription = new Subscription;
-        $subscription->setId('sub_test')
+        $subscription->setId('msubs_test')
             ->setPlanId('spec')
             ->setPaymentMethod('spec')
             ->setUser($user);
@@ -329,7 +340,7 @@ class ManagerSpec extends ObjectBehavior
         $user->guid = 123;
 
         $subscription = new Subscription;
-        $subscription->setId('sub_test')
+        $subscription->setId('msubs_test')
             ->setPlanId('spec')
             ->setPaymentMethod('spec')
             ->setInterval('daily')
@@ -346,7 +357,7 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_throw_if_no_type_during_cancel()
     {
         $subscription = new Subscription;
-        $subscription->setId('sub_test');
+        $subscription->setId('msubs_test');
 
         $this->setSubscription($subscription);
         $this->shouldThrow('\Exception')->duringCancel();
@@ -493,5 +504,51 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this->cancelSubscriptions("123", "456");
+    }
+
+    public function it_should_return_stripe_subscriptions_too()
+    {
+        $this->repository->getList(Argument::type('array'))
+            ->shouldBeCalled()
+            ->willReturn([]);
+
+        $this->customersManagerMock->getByUser(Argument::type(User::class))
+            ->shouldBeCalled()
+            ->willReturn(new Customer('cus_test'));
+
+        $sub1 = new \Stripe\Subscription('sub_1');
+        $sub1->plan = new \Stripe\Plan();
+
+        $sub2 = new \Stripe\Subscription('sub_1');
+        $sub2->plan = new \Stripe\Plan();
+
+        $response = new \Stripe\Collection();
+        $response->refreshFrom([
+            'data' => [
+                $sub1,
+                $sub2
+            ]
+        ], []);
+
+        $this->subscriptionsServiceMock->getSubscriptions(
+            'cus_test'
+        )->willReturn($response);
+
+        $list = $this->getList([
+            'user' => new User(),
+        ]);
+        $list->shouldHaveCount(2);
+    }
+
+    public function it_should_cancel_a_stripe_subscription()
+    {
+        $subscription = new Subscription();
+
+        $subscription->setId('sub_test');
+
+        $this->subscriptionsServiceMock->cancelSubscription('sub_test')
+            ->shouldBeCalled();
+
+        $this->setSubscription($subscription)->cancel();
     }
 }

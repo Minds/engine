@@ -29,6 +29,7 @@ use Selective\Database\RawExp;
 use Selective\Database\SelectQuery;
 use Selective\Database\UpdateQuery;
 use Spec\Minds\Common\Traits\CommonMatchers;
+use Minds\Core\Di\Di;
 
 class RoomRepositorySpec extends ObjectBehavior
 {

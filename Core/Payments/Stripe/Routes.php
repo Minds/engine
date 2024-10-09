@@ -2,6 +2,7 @@
 namespace Minds\Core\Payments\Stripe;
 
 use Minds\Core\Di\Ref;
+use Minds\Core\Payments\Stripe\Webhooks\Controllers\WebhookPsrController;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 use Minds\Core\Router\Middleware\LoggedInMiddleware;
@@ -53,6 +54,11 @@ class Routes extends ModuleRoutes
                             Ref::_('Stripe\Checkout\Controller', 'closeWindow')
                         );
                     });
+                // webhooks
+                $route->post(
+                    'webhook',
+                    Ref::_(WebhookPsrController::class, 'onWebhook'),
+                );
             });
     }
 }

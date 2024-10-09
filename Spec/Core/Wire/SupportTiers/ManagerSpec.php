@@ -8,7 +8,9 @@ use Minds\Core\Wire\SupportTiers\SupportTier;
 use Minds\Entities\User;
 use Minds\Core\Wire\Wire;
 use Minds\Common\Repository\Response;
+use Minds\Core\Wire\SupportTiers\Delegates\PaymentsDelegate;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
@@ -16,10 +18,13 @@ class ManagerSpec extends ObjectBehavior
     /** @var Repository */
     protected $repository;
 
-    public function let(Repository $repository)
+    private Collaborator $paymentsDelegateMock;
+
+    public function let(Repository $repository, PaymentsDelegate $paymentsDelegateMock)
     {
-        $this->beConstructedWith($repository);
+        $this->beConstructedWith($repository, null, null, $paymentsDelegateMock);
         $this->repository = $repository;
+        $this->paymentsDelegateMock = $paymentsDelegateMock;
     }
 
     public function it_is_initializable()
@@ -35,14 +40,17 @@ class ManagerSpec extends ObjectBehavior
         $wire->getAmount()->willReturn(100);
         $wire->getMethod()->willReturn('usd');
         
+        $t1 = (new SupportTier)
+            ->setPublic(true)
+            ->setHasUsd(true)
+            ->setUsd(1);
+    
         $this->repository->getList(Argument::any())
             ->willReturn(new Response([
-                (new SupportTier)
-                    ->setPublic(true)
-                    ->setHasUsd(true)
-                    ->setUsd(1)
+                $t1
             ]));
 
+        $this->paymentsDelegateMock->hydrate($t1)->willReturn($t1);
 
         $supportTier = $this->getByWire($wire);
         $supportTier->getUsd()->shouldBe(1);
@@ -56,14 +64,17 @@ class ManagerSpec extends ObjectBehavior
         $wire->getAmount()->willReturn("800000000000000000");
         $wire->getMethod()->willReturn('tokens');
         
+        $t1 = (new SupportTier)
+            ->setPublic(true)
+            ->setHasTokens(true)
+            ->setUsd(1);
+
         $this->repository->getList(Argument::any())
             ->willReturn(new Response([
-                (new SupportTier)
-                    ->setPublic(true)
-                    ->setHasTokens(true)
-                    ->setUsd(1)
+                $t1
             ]));
 
+        $this->paymentsDelegateMock->hydrate($t1)->willReturn($t1);
 
         $supportTier = $this->getByWire($wire);
         $supportTier->getTokens()->shouldBe(0.8);
