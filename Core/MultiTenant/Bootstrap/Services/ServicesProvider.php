@@ -17,6 +17,7 @@ use Minds\Core\MultiTenant\Bootstrap\Clients\ScreenshotOneClient;
 use Minds\Core\MultiTenant\Bootstrap\Delegates\ActivityCreationDelegate;
 use Minds\Core\MultiTenant\Bootstrap\Delegates\UpdateConfigDelegate;
 use Minds\Core\MultiTenant\Bootstrap\Delegates\UpdateLogosDelegate;
+use Minds\Core\MultiTenant\Bootstrap\Delegates\UpdateUserAvatarDelegate;
 use Minds\Core\MultiTenant\Bootstrap\Services\Handlers\ConfigGenerationHandler;
 use Minds\Core\MultiTenant\Bootstrap\Services\Handlers\ContentGenerationHandler;
 use Minds\Core\MultiTenant\Bootstrap\Services\Handlers\LogoGenerationHandler;
@@ -133,6 +134,7 @@ class ServicesProvider extends DiProvider
                     horizontalLogoExtractor: $di->get(HorizontalLogoExtractor::class),
                     mobileSplashLogoExtractor: $di->get(MobileSplashLogoExtractor::class),
                     updateLogosDelegate: $di->get(UpdateLogosDelegate::class),
+                    updateUserAvatarDelegate: $di->get(UpdateUserAvatarDelegate::class),
                     progressRepository: $di->get(BootstrapProgressRepository::class),
                     imageHelpers: new ImageHelpers(),
                     logger: $di->get('Logger'),

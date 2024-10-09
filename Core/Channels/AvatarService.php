@@ -68,6 +68,24 @@ class AvatarService
     }
 
     /**
+     * Upload avatar from raw image blob.
+     * @param string $blob - raw image blob.
+     * @return bool - true on success.
+     */
+    public function createFromBlob(string $blob): bool
+    {
+        $tmpfile = tmpfile();
+        fwrite($tmpfile, $blob);
+        $tmpfilePath = stream_get_meta_data($tmpfile)['uri'];
+
+        try {
+            return $this->resizeAndSave($tmpfilePath);
+        } finally {
+            fclose($tmpfile);
+        }
+    }
+
+    /**
      * Will resize and save avatar
      * @param resource|string $file
      * @return bool

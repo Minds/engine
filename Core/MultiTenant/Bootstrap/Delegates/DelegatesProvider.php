@@ -60,5 +60,16 @@ class DelegatesProvider extends DiProvider
                 );
             }
         );
+
+        $this->di->bind(
+            UpdateUserAvatarDelegate::class,
+            function (Di $di): UpdateUserAvatarDelegate {
+                return new UpdateUserAvatarDelegate(
+                    avatarService: $di->get('Channels\AvatarService'),
+                    logger: $di->get('Logger'),
+                    acl: $di->get(ACL::class)
+                );
+            }
+        );
     }
 }
