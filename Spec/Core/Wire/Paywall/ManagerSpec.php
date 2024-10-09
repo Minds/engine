@@ -4,6 +4,7 @@ namespace Spec\Minds\Core\Wire\Paywall;
 
 use Minds\Core\Wire\Paywall\Manager;
 use Minds\Core\Wire\Thresholds;
+use Minds\Core\Wire\SupportTiers\Manager as SupportTiersManager;
 use Minds\Entities\Activity;
 use Minds\Entities\Image;
 use Minds\Entities\Video;
@@ -16,9 +17,9 @@ class ManagerSpec extends ObjectBehavior
 {
     protected Collaborator $thresholdsMock;
 
-    public function let(Thresholds $thresholdsMock)
+    public function let(Thresholds $thresholdsMock, SupportTiersManager $supportTiersManagerMock)
     {
-        $this->beConstructedWith($thresholdsMock);
+        $this->beConstructedWith($thresholdsMock, $supportTiersManagerMock);
         $this->thresholdsMock = $thresholdsMock;
     }
 

@@ -16,6 +16,7 @@ use Minds\Core\Payments\V2\Enums\PaymentStatus;
 use Minds\Core\Payments\V2\Enums\PaymentType;
 use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Payments\V2\PaymentOptions;
+use Minds\Core\Pro\Manager as ProManager;
 use Minds\Core\Plus;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -48,6 +49,7 @@ class ManagerSpec extends ObjectBehavior
         EntitiesBuilder $entitiesBuilder,
         Plus\Manager $plusManager,
         Stripe\Connect\Manager $connectManager,
+        ProManager $proManagerMock,
         Delegates\PayoutsDelegate $payoutsDelegateMock,
         Delegates\EmailDelegate $emailDelegate,
         BoostPartnersManager $boostPartnersManager,
@@ -68,7 +70,7 @@ class ManagerSpec extends ObjectBehavior
             $entitiesBuilder,
             $plusManager,
             $connectManager,
-            null,
+            $proManagerMock,
             $payoutsDelegateMock,
             $emailDelegate,
             $this->boostPartnersManager,
