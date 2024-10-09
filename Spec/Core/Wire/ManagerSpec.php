@@ -19,6 +19,7 @@ use Minds\Core\Wire\Wire as WireModel;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use Minds\Core\Payments\Stripe\Customers\ManagerV2 as CustomersManager;
+use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
@@ -73,6 +74,7 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $paymentsManager;
     private Collaborator $stripeSubscriptionsServiceMock;
     private Collaborator $customersManagerMock;
+    private Collaborator $stripeApiKeyConfigMock;
 
     public function let(
         Repository $repo,
@@ -94,6 +96,7 @@ class ManagerSpec extends ObjectBehavior
         SupportTiersManager $supportTiersManager = null,
         SubscriptionsService $stripeSubscriptionsServiceMock = null,
         CustomersManager $customersManagerMock = null,
+        StripeApiKeyConfig $stripeApiKeyConfigMock = null
     ) {
         $this->paymentsManager = $paymentsManager;
 
@@ -118,6 +121,7 @@ class ManagerSpec extends ObjectBehavior
             null,
             $stripeSubscriptionsServiceMock,
             $customersManagerMock,
+            $stripeApiKeyConfigMock,
         );
 
         $this->cacheDelegate = $cacheDelegate;
@@ -137,6 +141,7 @@ class ManagerSpec extends ObjectBehavior
         $this->supportTiersManager = $supportTiersManager;
         $this->stripeSubscriptionsServiceMock = $stripeSubscriptionsServiceMock;
         $this->customersManagerMock = $customersManagerMock;
+        $this->stripeApiKeyConfigMock = $stripeApiKeyConfigMock;
     }
 
     public function it_is_initializable()
@@ -338,6 +343,10 @@ class ManagerSpec extends ObjectBehavior
         }))
             ->willReturn((new PaymentIntent())->setId('trial-id'));
 
+        $this->stripeApiKeyConfigMock->shouldUseTestMode(Argument::type(User::class))
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $this->customersManagerMock->getByUser(Argument::type(User::class))
             ->shouldBeCalled()
             ->willReturn(new Customer('cus_1'));
@@ -434,6 +443,10 @@ class ManagerSpec extends ObjectBehavior
         }))
             ->willReturn((new PaymentIntent())->setId('trial-id'));
 
+        $this->stripeApiKeyConfigMock->shouldUseTestMode(Argument::type(User::class))
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $this->customersManagerMock->getByUser(Argument::type(User::class))
             ->shouldBeCalled()
             ->willReturn(new Customer('cus_1'));
@@ -527,6 +540,10 @@ class ManagerSpec extends ObjectBehavior
 
         $intent = new PaymentIntent();
         $intent->setId('123');
+
+        $this->stripeApiKeyConfigMock->shouldUseTestMode(Argument::type(User::class))
+            ->shouldBeCalled()
+            ->willReturn(false);
 
         $this->customersManagerMock->getByUser(Argument::type(User::class))
             ->shouldBeCalled()

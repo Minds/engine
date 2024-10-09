@@ -14,6 +14,7 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Session;
 use Minds\Core\Events\Dispatcher;
+use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
 use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService;
 use Minds\Entities\User;
 
@@ -94,6 +95,7 @@ class Events
                 new Save(),
                 Di::_()->get(Config::class),
                 Di::_()->get('Security\ACL'),
+                Di::_()->get(StripeApiKeyConfig::class),
             );
             $service->onWebhookEvent($webhook);
         });
