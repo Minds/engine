@@ -7,6 +7,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService;
 use Minds\Core\Payments\Stripe\Webhooks\Enums\WebhookEventTypeEnum;
 use Minds\Core\Payments\Stripe\Customers\ManagerV2 as CustomerManager;
+use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
 use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 use Stripe\Event;
@@ -21,6 +22,7 @@ class WireWebhookService
         private Save $save,
         private Config $config,
         private ACL $acl,
+        private StripeApiKeyConfig $stripeApiKeyConfig,
     ) {
         
     }
@@ -55,8 +57,17 @@ class WireWebhookService
         /** @var User */
         $user = $this->entitiesBuilder->single($stripeSubscription->metadata->toArray()['user_guid']);
 
+        // Is this a test account? If so we will use different product and price ids
+        $isTestMode = false;
+        if ($this->stripeApiKeyConfig->shouldUseTestMode($user)) {
+            $isTestMode = true;
+        }
+
+        $plusProductId = $this->config->get('upgrades')['plus'][$isTestMode ? 'stripe_product_id_test' : 'stripe_product_id'];
+        $proProductId = $this->config->get('upgrades')['pro'][$isTestMode ? 'stripe_product_id_test' : 'stripe_product_id'];
+
         switch ($product) {
-            case $this->config->get('upgrades')['plus']['stripe_product_id']:
+            case $plusProductId:
                 $user->setPlusExpires($stripeSubscription->current_period_end);
 
                 $this->acl->setIgnore(true);
@@ -68,7 +79,7 @@ class WireWebhookService
                     ])
                     ->save();
                 break;
-            case $this->config->get('upgrades')['pro']['stripe_product_id']:
+            case $proProductId:
                 $user->setProExpires($stripeSubscription->current_period_end);
 
                 $this->acl->setIgnore(true);

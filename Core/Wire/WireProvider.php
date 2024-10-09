@@ -4,6 +4,7 @@ namespace Minds\Core\Wire;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider;
+use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
 use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService;
 
 /**
@@ -25,6 +26,7 @@ class WireProvider extends Provider
                 giftCardsManager: $di->get(\Minds\Core\Payments\GiftCards\Manager::class),
                 stripeSubscriptionsService: $di->get(SubscriptionsService::class),
                 customersManager: $di->get('Stripe\Customers\ManagerV2'),
+                stripeApiKeyConfig: $di->get(StripeApiKeyConfig::class),
             );
         }, ['useFactory' => true]);
 

@@ -31,6 +31,7 @@ use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Core\Payments\Stripe\Customers\ManagerV2 as CustomersManager;
+use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
 use Minds\Exceptions\UserErrorException;
 use Stripe\Subscription;
 
@@ -134,6 +135,7 @@ class Manager
         private readonly ?GiftCardsManager $giftCardsManager = null,
         private readonly ?SubscriptionsService $stripeSubscriptionsService = null,
         private readonly ?CustomersManager $customersManager = null,
+        private readonly ?StripeApiKeyConfig $stripeApiKeyConfig = null,
     ) {
         $this->repository = $repository ?: Di::_()->get('Wire\Repository');
         $this->txManager = $txManager ?: Di::_()->get('Blockchain\Transactions\Manager');
@@ -457,10 +459,16 @@ class Manager
         // Setup a stripe subscription for Plus & Pro subscriptions ONLY
         if ($this->isPlusReceiver($this->receiver->getGuid()) || $this->isProReceiver($this->receiver->getGuid())) {
             $this->recurring = false; // Do not do recurring as we will use a stripe subscription instead
-            
+
+            // Are we in test mode? We use different product and price id's in case
+            $isTestMode = false;
+            if ($this->stripeApiKeyConfig->shouldUseTestMode($this->sender)) {
+                $isTestMode = true;
+            }
+
             $productKey = $this->isPlusReceiver($this->receiver->getGuid()) ? 'plus' : 'pro';
-            $stripePriceId = $this->config->get('upgrades')[$productKey][$wire->getRecurringInterval() ?: 'monthly']['stripe_price_id'];
-            $stripeProductId = $this->config->get('upgrades')[$productKey]['stripe_product_id'];
+            $stripePriceId = $this->config->get('upgrades')[$productKey][$wire->getRecurringInterval() ?: 'monthly'][$isTestMode ? 'stripe_price_id_test' : 'stripe_price_id'];
+            $stripeProductId = $this->config->get('upgrades')[$productKey][$isTestMode ? 'stripe_product_id_test' : 'stripe_product_id'];
 
             $items = [
                 [
