@@ -11,7 +11,6 @@ use Minds\Core\MultiTenant\Bootstrap\Services\Extractors\MarkdownExtractor;
 use Minds\Core\MultiTenant\Bootstrap\Services\Extractors\MetadataExtractor;
 use Minds\Core\MultiTenant\Bootstrap\Services\Extractors\ScreenshotExtractor;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
-use Minds\Core\MultiTenant\Bootstrap\Delegates\UpdateUserNameDelegate;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
 use Minds\Core\MultiTenant\Bootstrap\Enums\BootstrapStepEnum;

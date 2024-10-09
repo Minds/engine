@@ -5,7 +5,6 @@ namespace Minds\Core\MultiTenant\Bootstrap\Services;
 
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
-use Minds\Core\MultiTenant\Bootstrap\Delegates\UpdateUserNameDelegate;
 use Minds\Core\MultiTenant\Bootstrap\Enums\BootstrapStepEnum;
 use Minds\Core\MultiTenant\Bootstrap\Models\ExtractedMetadata;
 use Minds\Core\MultiTenant\Bootstrap\Repositories\BootstrapProgressRepository;
