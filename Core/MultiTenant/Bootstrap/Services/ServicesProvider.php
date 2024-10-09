@@ -190,7 +190,6 @@ class ServicesProvider extends DiProvider
                     logoGenerationHandler: $di->get(LogoGenerationHandler::class),
                     configGenerationHandler: $di->get(ConfigGenerationHandler::class),
                     contentGenerationHandler: $di->get(ContentGenerationHandler::class),
-                    updateUserNameDelegate: $di->get(UpdateUserNameDelegate::class),
                     entitiesBuilder: $di->get(EntitiesBuilder::class),
                     logger: $di->get('Logger')
                 );

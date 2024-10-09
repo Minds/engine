@@ -424,7 +424,7 @@ class BillingService
     }
 
     /**
-     * A ephemeral 'fake' account that is not initially created.
+     * An ephemeral 'fake' account that is not automatically created.
      * @param string $email - The email address of the user.
      * @param string|null $username - The username of the user (defaults to networkadmin).
      * @return User
@@ -511,28 +511,5 @@ class BillingService
 
         // Revert back to tenant configs
         $this->multiTenantBootService->bootFromTenantId($tenant->id);
-    }
-
-    public function handleSuccessfulTrialCheckout(
-        string $tenantId,
-        string $username,
-        string $email,
-        ?string $customerUrl = null
-    ): void {
-        // ...
-
-        // Modify this part
-        $this->emailService
-            ->setTenantId($tenantId)
-            ->setUsername($username)
-            ->setEmail($email);
-
-        if ($customerUrl) {
-            $this->emailService->setCustomerUrl($customerUrl);
-        }
-
-        $this->emailService->send();
-
-        // ...
     }
 }

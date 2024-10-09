@@ -35,7 +35,6 @@ class MultiTenantBootstrapService
         private LogoGenerationHandler $logoGenerationHandler,
         private ConfigGenerationHandler $configGenerationHandler,
         private ContentGenerationHandler $contentGenerationHandler,
-        private UpdateUserNameDelegate $updateUserNameDelegate,
         private EntitiesBuilder $entitiesBuilder,
         private Logger $logger
     ) {
@@ -64,11 +63,6 @@ class MultiTenantBootstrapService
             $screenshotBlob = $this->screenshotExtractor->extract($siteUrl);
             $markdownContent = $this->markdownExtractor->extract($siteUrl);
             $metadata = $this->metadataExtractor->extract($siteUrl);
-
-            // We should set this with the username during tenant creation in future.
-            if ($metadata?->getPublisher()) {
-                $this->handleUserNameUpdate($rootUser, $metadata->getPublisher());
-            }
 
             $this->handleConfigs(screenshotBlob: $screenshotBlob, metadata: $metadata);
             $this->handleLogos($siteUrl);
@@ -144,30 +138,6 @@ class MultiTenantBootstrapService
             );
         } else {
             $this->logger->info("No markdown content found, skipping content generation");
-        }
-    }
-
-    /**
-     * Handle the user name update.
-     * @param User $rootUser - The root user.
-     * @param string $publisherName - The publisher name.
-     * @return void
-     */
-    private function handleUserNameUpdate(User $rootUser, string $publisherName)
-    {
-        try {
-            $name = ucfirst($publisherName);
-
-            // Remove any TLD's from the publisher name.
-            if (str_contains($name, '.')) {
-                $name = explode('.', $name)[0];
-            }
-
-            $this->logger->info("Updating user name to: $name");
-            $this->updateUserNameDelegate->onUpdate($rootUser, $name);
-            $this->logger->info("User name updated successfully");
-        } catch (\Exception $e) {
-            $this->logger->error("Failed to update user name: " . $e->getMessage());
         }
     }
 }
