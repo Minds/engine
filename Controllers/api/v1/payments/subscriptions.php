@@ -25,10 +25,11 @@ class subscriptions implements Interfaces\Api
     public function get($pages)
     {
         /** @var Payments\Subscriptions\Repository $repository */
-        $repository = Core\Di\Di::_()->get('Payments\Subscriptions\Repository');
+        $repository = Core\Di\Di::_()->get('Payments\Subscriptions\Manager');
 
         $subscriptions = $repository
             ->getList([
+                'user' => Core\Session::getLoggedInUser(),
                 'user_guid' => Core\Session::getLoggedInUser()->guid
             ]);
     
@@ -71,14 +72,11 @@ class subscriptions implements Interfaces\Api
             ]);
         }
 
-        /** @var Payments\Subscriptions\Repository $repository */
-        $repository = Core\Di\Di::_()->get('Payments\Subscriptions\Repository');
-
         /** @var Payments\Subscriptions\Manager $manager */
         $manager = Core\Di\Di::_()->get('Payments\Subscriptions\Manager');
 
         $subscription_id = $pages[0];
-        $subscription = $repository->get($subscription_id);
+        $subscription = $manager->get($subscription_id);
 
         if (!$subscription) {
             return Factory::response([
@@ -104,12 +102,6 @@ class subscriptions implements Interfaces\Api
         $success = $manager
             ->setSubscription($subscription)
             ->cancel();
-
-        if ($subscription->getPlanId() == 'plus') {
-            $user = Core\Session::getLoggedInUser();
-            $user->plus = false;
-            (new Save())->setEntity($user)->withMutatedAttributes(['plus'])->save();
-        }
 
         return Factory::response([
             'done' => (bool) $success

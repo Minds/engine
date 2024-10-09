@@ -7,6 +7,7 @@ use Minds\Core\Blockchain\Transactions\Manager as BlockchainManager;
 use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Config;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
+use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService;
 use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Core\Security\ACL;
@@ -17,9 +18,14 @@ use Minds\Core\Wire\SupportTiers\SupportTier;
 use Minds\Core\Wire\Wire as WireModel;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
+use Minds\Core\Payments\Stripe\Customers\ManagerV2 as CustomersManager;
+use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
+use Stripe\Collection;
+use Stripe\Customer;
+use Stripe\Subscription;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -66,6 +72,9 @@ class ManagerSpec extends ObjectBehavior
     protected $supportTiersManager;
 
     private Collaborator $paymentsManager;
+    private Collaborator $stripeSubscriptionsServiceMock;
+    private Collaborator $customersManagerMock;
+    private Collaborator $stripeApiKeyConfigMock;
 
     public function let(
         Repository $repo,
@@ -85,6 +94,9 @@ class ManagerSpec extends ObjectBehavior
         Core\Wire\Delegates\EventsDelegate $eventsDelegate,
         PaymentsManager $paymentsManager,
         SupportTiersManager $supportTiersManager = null,
+        SubscriptionsService $stripeSubscriptionsServiceMock = null,
+        CustomersManager $customersManagerMock = null,
+        StripeApiKeyConfig $stripeApiKeyConfigMock = null
     ) {
         $this->paymentsManager = $paymentsManager;
 
@@ -105,7 +117,11 @@ class ManagerSpec extends ObjectBehavior
             $acl,
             $eventsDelegate,
             $supportTiersManager,
-            $this->paymentsManager
+            $this->paymentsManager,
+            null,
+            $stripeSubscriptionsServiceMock,
+            $customersManagerMock,
+            $stripeApiKeyConfigMock,
         );
 
         $this->cacheDelegate = $cacheDelegate;
@@ -123,6 +139,9 @@ class ManagerSpec extends ObjectBehavior
         $this->acl = $acl;
         $this->eventsDelegate = $eventsDelegate;
         $this->supportTiersManager = $supportTiersManager;
+        $this->stripeSubscriptionsServiceMock = $stripeSubscriptionsServiceMock;
+        $this->customersManagerMock = $customersManagerMock;
+        $this->stripeApiKeyConfigMock = $stripeApiKeyConfigMock;
     }
 
     public function it_is_initializable()
@@ -298,6 +317,16 @@ class ManagerSpec extends ObjectBehavior
                 'handler' => 789
             ]);
 
+        $this->config->get('upgrades')
+            ->willReturn([
+                'plus' => [
+                    'stripe_product_id' => 'prod_plus',
+                    'monthly' => [
+                        'stripe_price_id' => 'price_monthly'
+                    ]
+                ]
+            ]);
+
         $payload = [
             'method' => 'usd',
             'paymentMethodId' => 'mockPaymentId',
@@ -314,11 +343,42 @@ class ManagerSpec extends ObjectBehavior
         }))
             ->willReturn((new PaymentIntent())->setId('trial-id'));
 
+        $this->stripeApiKeyConfigMock->shouldUseTestMode(Argument::type(User::class))
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->customersManagerMock->getByUser(Argument::type(User::class))
+            ->shouldBeCalled()
+            ->willReturn(new Customer('cus_1'));
+
+        $subscriptions = new Collection();
+        $subscriptions->refreshFrom([
+            'data' => [
+                
+            ]], []);
+        $this->stripeSubscriptionsServiceMock->getSubscriptions('cus_1', null, 'active')
+            ->willReturn($subscriptions);
+
+        $this->stripeSubscriptionsServiceMock->createSubscription(
+            'cus_1',
+            'mockPaymentId',
+            [
+                [
+                    'price' => 'price_monthly'
+                ]
+            ],
+            7,
+            [
+                'user_guid' => '123'
+            ]
+        )->shouldBeCalled()
+        ->willReturn(new Subscription('sub_1'));
+
         $paymentDetailsMock->paymentGuid = 123;
 
         $this->paymentsManager->createPaymentFromWire(
             wire: Argument::type(WireModel::class),
-            paymentTxId: "trial-id",
+            paymentTxId: "sub_1",
             isPlus: true,
             isPro: false,
             sourceActivity: null,
@@ -358,6 +418,16 @@ class ManagerSpec extends ObjectBehavior
                 'handler' => 789
             ]);
 
+        $this->config->get('upgrades')
+            ->willReturn([
+                'plus' => [
+                    'stripe_product_id' => 'prod_plus',
+                    'monthly' => [
+                        'stripe_price_id' => 'price_monthly'
+                    ]
+                ]
+            ]);
+
         $payload = [
             'method' => 'usd',
             'paymentMethodId' => 'mockPaymentId',
@@ -373,11 +443,42 @@ class ManagerSpec extends ObjectBehavior
         }))
             ->willReturn((new PaymentIntent())->setId('trial-id'));
 
+        $this->stripeApiKeyConfigMock->shouldUseTestMode(Argument::type(User::class))
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->customersManagerMock->getByUser(Argument::type(User::class))
+            ->shouldBeCalled()
+            ->willReturn(new Customer('cus_1'));
+
+        $subscriptions = new Collection();
+        $subscriptions->refreshFrom([
+            'data' => [
+                
+            ]], []);
+        $this->stripeSubscriptionsServiceMock->getSubscriptions('cus_1', null, 'active')
+            ->willReturn($subscriptions);
+
+        $this->stripeSubscriptionsServiceMock->createSubscription(
+            'cus_1',
+            'mockPaymentId',
+            [
+                [
+                    'price' => 'price_monthly'
+                ]
+            ],
+            7,
+            [
+                'user_guid' => '123'
+            ]
+        )->shouldBeCalled()
+        ->willReturn(new Subscription('sub_1'));
+
         $paymentDetailsMock->paymentGuid = 123;
 
         $this->paymentsManager->createPaymentFromWire(
             wire: Argument::type(WireModel::class),
-            paymentTxId: "trial-id",
+            paymentTxId: "sub_1",
             isPlus: true,
             isPro: false,
             sourceActivity: null,
@@ -417,6 +518,16 @@ class ManagerSpec extends ObjectBehavior
                 'handler' => 789
             ]);
 
+        $this->config->get('upgrades')
+            ->willReturn([
+                'plus' => [
+                    'stripe_product_id' => 'prod_plus',
+                    'monthly' => [
+                        'stripe_price_id' => 'price_monthly'
+                    ]
+                ]
+            ]);
+
         $payload = [
             'method' => 'usd',
             'paymentMethodId' => 'mockPaymentId',
@@ -430,15 +541,42 @@ class ManagerSpec extends ObjectBehavior
         $intent = new PaymentIntent();
         $intent->setId('123');
 
-        $this->stripeIntentsManager->add(Argument::any())
+        $this->stripeApiKeyConfigMock->shouldUseTestMode(Argument::type(User::class))
             ->shouldBeCalled()
-            ->willReturn($intent);
+            ->willReturn(false);
+
+        $this->customersManagerMock->getByUser(Argument::type(User::class))
+            ->shouldBeCalled()
+            ->willReturn(new Customer('cus_1'));
+
+        $subscriptions = new Collection();
+        $subscriptions->refreshFrom([
+            'data' => [
+                
+            ]], []);
+        $this->stripeSubscriptionsServiceMock->getSubscriptions('cus_1', null, 'active')
+            ->willReturn($subscriptions);
+
+        $this->stripeSubscriptionsServiceMock->createSubscription(
+            'cus_1',
+            'mockPaymentId',
+            [
+                [
+                    'price' => 'price_monthly'
+                ]
+            ],
+            0,
+            [
+                'user_guid' => '123'
+            ]
+        )->shouldBeCalled()
+        ->willReturn(new Subscription('sub_1'));
 
         $paymentDetailsMock->paymentGuid = 123;
 
         $this->paymentsManager->createPaymentFromWire(
             wire: Argument::type(WireModel::class),
-            paymentTxId: "123",
+            paymentTxId: "sub_1",
             isPlus: true,
             isPro: false,
             sourceActivity: null,
@@ -586,133 +724,6 @@ class ManagerSpec extends ObjectBehavior
             paymentTxId: "123",
             isPlus: false,
             isPro: false,
-            sourceActivity: null,
-            paidWithGiftCard: false
-        )
-            ->shouldBeCalledOnce()
-            ->willReturn($paymentDetailsMock);
-
-        $this->setSender($sender)
-            ->setEntity($receiver)
-            ->setPayload($payload)
-            ->setAmount(100001)
-            ->create()
-            ->shouldReturn(true);
-    }
-
-    public function it_should_create_a_cash_transaction_with_plus_sub_descriptor(
-        PaymentDetails $paymentDetailsMock
-    ): void {
-        $sender = new User();
-        $sender->guid = 123;
-        $sender->plus_expires = strtotime('30 days ago'); // We had plus 30 days ago, so we cant have it again
-
-        $receiver = new User();
-        $receiver->guid = 456;
-        $receiver->merchant = [
-            'id' => 'mock_id'
-        ];
-
-        $this->config->get('plus')
-            ->willReturn([
-                'handler' => 456
-            ]);
-
-        $this->config->get('pro')
-            ->willReturn([
-                'handler' => 789
-            ]);
-
-        $payload = [
-            'method' => 'usd',
-            'paymentMethodId' => 'mockPaymentId',
-        ];
-
-        $this->repo->add(Argument::that(function ($wire) {
-            return !$wire->getTrialDays();
-        }))
-            ->shouldBeCalled();
-
-        $intent = new PaymentIntent();
-        $intent->setId('123');
-
-        $this->stripeIntentsManager->add(Argument::that(function ($arg) {
-            return $arg->getStatementDescriptor() === 'Minds: Plus sub' &&
-                $arg->getDescription() === 'Minds Plus';
-        }))
-            ->shouldBeCalled()
-            ->willReturn($intent);
-
-        $paymentDetailsMock->paymentGuid = 123;
-
-        $this->paymentsManager->createPaymentFromWire(
-            wire: Argument::type(WireModel::class),
-            paymentTxId: "123",
-            isPlus: true,
-            isPro: false,
-            sourceActivity: null,
-            paidWithGiftCard: false
-        )
-            ->shouldBeCalledOnce()
-            ->willReturn($paymentDetailsMock);
-
-        $this->setSender($sender)
-            ->setEntity($receiver)
-            ->setPayload($payload)
-            ->setAmount(100001)
-            ->create()
-            ->shouldReturn(true);
-    }
-
-    public function it_should_create_a_cash_transaction_with_pro_sub_descriptor(
-        PaymentDetails $paymentDetailsMock
-    ): void {
-        $sender = new User();
-        $sender->guid = 123;
-
-        $receiver = new User();
-        $receiver->guid = 456;
-        $receiver->merchant = [
-            'id' => 'mock_id'
-        ];
-
-        $this->config->get('plus')
-            ->willReturn([
-                'handler' => 545
-            ]);
-
-        $this->config->get('pro')
-            ->willReturn([
-                'handler' => 456
-            ]);
-
-        $payload = [
-            'method' => 'usd',
-            'paymentMethodId' => 'mockPaymentId',
-        ];
-
-        $this->repo->add(Argument::that(function ($wire) {
-            return !$wire->getTrialDays();
-        }))
-            ->shouldBeCalled();
-
-        $intent = new PaymentIntent();
-        $intent->setId('123');
-
-        $this->stripeIntentsManager->add(Argument::that(function ($arg) {
-            return $arg->getStatementDescriptor() === 'Minds: Pro sub' &&
-            $arg->getDescription() === 'Minds Pro';
-        }))
-            ->shouldBeCalled()
-            ->willReturn($intent);
-
-        $paymentDetailsMock->paymentGuid = 123;
-
-        $this->paymentsManager->createPaymentFromWire(
-            wire: Argument::type(WireModel::class),
-            paymentTxId: "123",
-            isPlus: false,
-            isPro: true,
             sourceActivity: null,
             paidWithGiftCard: false
         )

@@ -63,7 +63,7 @@ class wire implements Interfaces\Api
         }
 
         $user = $entity;
-        if (Core\Session::getLoggedInUserGuid() === $user->guid) {
+        if (Core\Session::getLoggedInUserGuid() === $user->guid && !Core\Session::isAdmin()) {
             Factory::response(['status' => 'error', 'message' => 'You cannot send a wire to yourself!']);
             return;
         }
