@@ -101,8 +101,6 @@ class FeaturedEntitySyncSubscription implements SubscriptionInterface
             ),
             default => $this->handleUnsupportedEntityType($entity),
         };
-
-        return true;
     }
 
     /**
