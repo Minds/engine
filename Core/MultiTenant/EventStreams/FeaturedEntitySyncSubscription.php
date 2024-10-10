@@ -85,7 +85,7 @@ class FeaturedEntitySyncSubscription implements SubscriptionInterface
 
         $tenantId = $this->config->get('tenant_id');
 
-        if (!$tenantId && $tenantId < 1) {
+        if (!$tenantId || $tenantId < 1) {
             $this->logger->error("No tenant id set");
             return true;
         }
