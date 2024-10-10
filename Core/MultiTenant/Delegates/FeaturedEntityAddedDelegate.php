@@ -10,6 +10,7 @@ use Minds\Core\Log\Logger;
 use Minds\Core\MultiTenant\Types\FeaturedEntity;
 use Minds\Entities\Group;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 
 /**
  * Featured entity added delegate.
@@ -31,22 +32,25 @@ class FeaturedEntityAddedDelegate
      */
     public function onAdd(FeaturedEntity $featuredEntity, User $loggedInUser): void
     {
-        $entity = $this->entitiesBuilder->single($featuredEntity->entityGuid);
-        
-        if (!$entity || !($entity instanceof User || $entity instanceof Group)) {
-            $this->logger->error("Valid featured entity not found: {$featuredEntity->entityGuid}");
-            return;
+        try {
+            $entity = $this->entitiesBuilder->single($featuredEntity->entityGuid);
+            
+            if (!$entity || !($entity instanceof User || $entity instanceof Group)) {
+                throw new ServerErrorException("Valid featured entity not found: {$featuredEntity->entityGuid}");
+            }
+
+            $actionEvent = new ActionEvent();
+            $actionEvent->setAction(ActionEvent::ACTION_FEATURED_ENTITY_ADDED)
+                ->setEntity($entity)
+                ->setUser($loggedInUser)
+                ->setActionData([
+                    // will be serialized to an array.
+                    'featured_entity_data' => $featuredEntity
+                ]);
+
+            $this->actionEventsTopic->send($actionEvent);
+        } catch (\Exception $e) {
+            $this->logger->error("Error sending action event: {$e->getMessage()}");
         }
-
-        $actionEvent = new ActionEvent();
-        $actionEvent->setAction(ActionEvent::ACTION_FEATURED_ENTITY_ADDED)
-            ->setEntity($entity)
-            ->setUser($loggedInUser)
-            ->setActionData([
-                // will be serialized to an array.
-                'featured_entity_data' => $featuredEntity
-            ]);
-
-        $this->actionEventsTopic->send($actionEvent);
     }
 }

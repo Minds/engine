@@ -109,7 +109,7 @@ class FeaturedEntityAddedDelegateSpec extends ObjectBehavior
 
         $this->entitiesBuilder->single('789')->willReturn(null);
 
-        $this->logger->error("Valid featured entity not found: 789")->shouldBeCalled();
+        $this->logger->error("Error sending action event: Valid featured entity not found: 789")->shouldBeCalled();
         $this->actionEventsTopic->send(Argument::any())->shouldNotBeCalled();
 
         $this->onAdd($featuredEntity, $loggedInUser);
