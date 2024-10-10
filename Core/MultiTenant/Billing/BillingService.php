@@ -251,7 +251,12 @@ class BillingService
         $loginUrl = $this->autoLoginService->buildLoginUrlWithParamsFromTenant($tenant, $user);
 
         // We want to redirect back to the networks site, as we need to attach the identity
-        $redirectUrl = 'https://networks.minds.com/complete-checkout?email=' . $email . '&redirectUrl=' . urlencode($loginUrl);
+        $redirectUrl = 'https://networks.minds.com/complete-checkout?' . http_build_query([
+            'email' => $email,
+            'tenantId' => $tenant->id,
+            'tenantDomain' => $this->buildDomain($tenant),
+            'redirectUrl' => $loginUrl,
+        ]);
 
         // Tell stripe billing about this tenant
         $this->stripeSubscriptionsService->updateSubscription(
@@ -330,7 +335,9 @@ class BillingService
             'firstName' => $firstName,
             'lastName' => $lastName,
             'phone' => $phoneNumber,
-            'redirectUrl' => $loginUrl
+            'tenantId' => $tenant->id,
+            'tenantDomain' => $this->buildDomain($tenant),
+            'redirectUrl' => $loginUrl,
         ]);
 
         // Tell stripe billing about this tenant.
@@ -497,5 +504,13 @@ class BillingService
 
         // Revert back to tenant configs
         $this->multiTenantBootService->bootFromTenantId($tenant->id);
+    }
+
+    /**
+     * Quick function to build the initial domain. Should probably use the DomainService?
+     */
+    private function buildDomain(Tenant $tenant): string
+    {
+        return md5($tenant->id) . '.' . ($this->config->get('multi_tenant')['subdomain_suffix'] ?? 'minds.com');
     }
 }
