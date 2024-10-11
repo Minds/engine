@@ -7,6 +7,7 @@ use Minds\Core\MultiTenant\Bootstrap\Services\Extractors\ContentExtractor;
 use Minds\Core\MultiTenant\Bootstrap\Delegates\ActivityCreationDelegate;
 use Minds\Core\MultiTenant\Bootstrap\Repositories\BootstrapProgressRepository;
 use Minds\Core\Log\Logger;
+use Minds\Core\MultiTenant\Bootstrap\Delegates\ContentGeneratedSocketDelegate;
 use Minds\Core\MultiTenant\Bootstrap\Enums\BootstrapStepEnum;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -17,20 +18,23 @@ class ContentGenerationHandlerSpec extends ObjectBehavior
     private $contentExtractorMock;
     private $activityCreationDelegateMock;
     private $progressRepositoryMock;
+    private $contentGeneratedSocketDelegateMock;
     private $loggerMock;
 
     public function let(
         ContentExtractor $contentExtractor,
         ActivityCreationDelegate $activityCreationDelegate,
         BootstrapProgressRepository $progressRepository,
+        ContentGeneratedSocketDelegate $contentGeneratedSocketDelegate,
         Logger $logger
     ) {
         $this->contentExtractorMock = $contentExtractor;
         $this->activityCreationDelegateMock = $activityCreationDelegate;
         $this->progressRepositoryMock = $progressRepository;
+        $this->contentGeneratedSocketDelegateMock = $contentGeneratedSocketDelegate;
         $this->loggerMock = $logger;
 
-        $this->beConstructedWith($contentExtractor, $activityCreationDelegate, $progressRepository, $logger);
+        $this->beConstructedWith($contentExtractor, $activityCreationDelegate, $progressRepository, $contentGeneratedSocketDelegate, $logger);
     }
 
     public function it_is_initializable()
@@ -56,6 +60,9 @@ class ContentGenerationHandlerSpec extends ObjectBehavior
         $this->activityCreationDelegateMock->onBulkCreate($articles, $user)->shouldBeCalled();
 
         $this->progressRepositoryMock->updateProgress(BootstrapStepEnum::CONTENT_STEP, true)->shouldBeCalled();
+
+        $this->contentGeneratedSocketDelegateMock->onContentGenerated()
+            ->shouldBeCalled();
 
         $this->handle($contentMarkdown, $user);
     }

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Bootstrap\Delegates;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
@@ -17,6 +18,7 @@ use Minds\Core\MultiTenant\Configs\Manager as MultiTenantConfigManager;
 use Minds\Core\MultiTenant\Configs\Image\Manager as ConfigImageManager;
 use Minds\Core\MultiTenant\MobileConfigs\Services\MobileConfigAssetsService;
 use Minds\Core\Security\ACL;
+use Minds\Core\Sockets\Events as SocketEvents;
 
 class DelegatesProvider extends DiProvider
 {
@@ -67,6 +69,17 @@ class DelegatesProvider extends DiProvider
                     mobileConfigAssetsService: $di->get(MobileConfigAssetsService::class),
                     horizontalLogoExtractor: $di->get(HorizontalLogoExtractor::class),
                     mobileSplashLogoExtractor: $di->get(MobileSplashLogoExtractor::class),
+                    logger: $di->get('Logger')
+                );
+            }
+        );
+
+        $this->di->bind(
+            ContentGeneratedSocketDelegate::class,
+            function (Di $di): ContentGeneratedSocketDelegate {
+                return new ContentGeneratedSocketDelegate(
+                    socketEvents: new SocketEvents(),
+                    config: $di->get(Config::class),
                     logger: $di->get('Logger')
                 );
             }

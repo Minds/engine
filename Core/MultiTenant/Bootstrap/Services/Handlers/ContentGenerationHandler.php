@@ -6,6 +6,7 @@ namespace Minds\Core\MultiTenant\Bootstrap\Services\Handlers;
 use Minds\Core\MultiTenant\Bootstrap\Delegates\ActivityCreationDelegate;
 use Minds\Entities\User;
 use Minds\Core\Log\Logger;
+use Minds\Core\MultiTenant\Bootstrap\Delegates\ContentGeneratedSocketDelegate;
 use Minds\Core\MultiTenant\Bootstrap\Enums\BootstrapStepEnum;
 use Minds\Core\MultiTenant\Bootstrap\Repositories\BootstrapProgressRepository;
 use Minds\Core\MultiTenant\Bootstrap\Services\Extractors\ContentExtractor;
@@ -20,6 +21,7 @@ class ContentGenerationHandler
         private ContentExtractor $contentExtractor,
         private ActivityCreationDelegate $activityCreationDelegate,
         private BootstrapProgressRepository $progressRepository,
+        private ContentGeneratedSocketDelegate $contentGeneratedSocketDelegate,
         private Logger $logger
     ) {
     }
@@ -43,6 +45,8 @@ class ContentGenerationHandler
                     $this->activityCreationDelegate->onBulkCreate($content['articles'], $rootUser);
                     $this->progressRepository->updateProgress(BootstrapStepEnum::CONTENT_STEP, true);
                     $this->logger->info("Updated bootstrap progress for content step to success");
+
+                    $this->contentGeneratedSocketDelegate->onContentGenerated();
                 } else {
                     throw new ServerErrorException("No articles generated");
                 }
