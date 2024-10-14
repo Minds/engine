@@ -30,7 +30,7 @@ class ContentGeneratedSocketDelegate
             $tenantId = $this->config->get('tenant_id') ?? -1;
         }
 
-        $roomName = "tenant:$tenantId:bootstrap:content";
+        $roomName = "tenant:bootstrap:content:$tenantId";
 
         try {
             $this->socketEvents

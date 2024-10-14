@@ -33,11 +33,11 @@ class ContentGeneratedSocketDelegateSpec extends ObjectBehavior
     {
         $this->configMock->get('tenant_id')->willReturn(123);
 
-        $this->socketEventsMock->setRoom('tenant:123:bootstrap:content')
+        $this->socketEventsMock->setRoom('tenant:bootstrap:content:123')
             ->shouldBeCalled()
             ->willReturn($this->socketEventsMock);
 
-        $this->socketEventsMock->emit('tenant:123:bootstrap:content', 1)
+        $this->socketEventsMock->emit('tenant:bootstrap:content:123', 1)
             ->shouldBeCalled();
 
         $this->onContentGenerated();
@@ -47,11 +47,11 @@ class ContentGeneratedSocketDelegateSpec extends ObjectBehavior
     {
         $this->configMock->get('tenant_id')->willReturn(null);
 
-        $this->socketEventsMock->setRoom('tenant:456:bootstrap:content')
+        $this->socketEventsMock->setRoom('tenant:bootstrap:content:456')
             ->shouldBeCalled()
             ->willReturn($this->socketEventsMock);
 
-        $this->socketEventsMock->emit('tenant:456:bootstrap:content', 1)
+        $this->socketEventsMock->emit('tenant:bootstrap:content:456', 1)
             ->shouldBeCalled();
 
         $this->onContentGenerated(456);
