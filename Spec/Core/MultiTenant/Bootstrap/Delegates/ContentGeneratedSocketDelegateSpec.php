@@ -7,6 +7,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Core\Log\Logger;
 use Minds\Core\MultiTenant\Bootstrap\Delegates\ContentGeneratedSocketDelegate;
+use Minds\Core\MultiTenant\Bootstrap\Enums\BootstrapStepEnum;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 
@@ -33,11 +34,14 @@ class ContentGeneratedSocketDelegateSpec extends ObjectBehavior
     {
         $this->configMock->get('tenant_id')->willReturn(123);
 
-        $this->socketEventsMock->setRoom('tenant:bootstrap:content:123')
+        $this->socketEventsMock->setRoom('tenant:bootstrap:123')
             ->shouldBeCalled()
             ->willReturn($this->socketEventsMock);
 
-        $this->socketEventsMock->emit('tenant:bootstrap:content:123', 1)
+        $this->socketEventsMock->emit('tenant:bootstrap:123', json_encode([
+            "step" => BootstrapStepEnum::CONTENT_STEP->name,
+            "completed" => true
+        ]))
             ->shouldBeCalled();
 
         $this->onContentGenerated();
@@ -47,11 +51,14 @@ class ContentGeneratedSocketDelegateSpec extends ObjectBehavior
     {
         $this->configMock->get('tenant_id')->willReturn(null);
 
-        $this->socketEventsMock->setRoom('tenant:bootstrap:content:456')
+        $this->socketEventsMock->setRoom('tenant:bootstrap:456')
             ->shouldBeCalled()
             ->willReturn($this->socketEventsMock);
 
-        $this->socketEventsMock->emit('tenant:bootstrap:content:456', 1)
+        $this->socketEventsMock->emit('tenant:bootstrap:456', json_encode([
+            "step" => BootstrapStepEnum::CONTENT_STEP->name,
+            "completed" => true
+        ]))
             ->shouldBeCalled();
 
         $this->onContentGenerated(456);

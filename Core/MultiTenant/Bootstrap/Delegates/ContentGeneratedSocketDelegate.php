@@ -6,6 +6,7 @@ namespace Minds\Core\MultiTenant\Bootstrap\Delegates;
 use Minds\Core\Config\Config;
 use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Core\Log\Logger;
+use Minds\Core\MultiTenant\Bootstrap\Enums\BootstrapStepEnum;
 
 /**
  * Delegate for emitting content generated events to clients.
@@ -30,12 +31,15 @@ class ContentGeneratedSocketDelegate
             $tenantId = $this->config->get('tenant_id') ?? -1;
         }
 
-        $roomName = "tenant:bootstrap:content:$tenantId";
+        $roomName = "tenant:bootstrap:$tenantId";
 
         try {
             $this->socketEvents
                 ->setRoom($roomName)
-                ->emit($roomName, 1);
+                ->emit($roomName, json_encode([
+                    "step" => BootstrapStepEnum::CONTENT_STEP->name,
+                    "completed" => true
+                ]));
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
         }
