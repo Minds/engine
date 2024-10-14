@@ -40,7 +40,6 @@ class Repository
     {
         $opts = array_merge([
             'user_guid' => null,
-            'domain' => null,
             'limit' => null,
             'offset' => null,
         ], $opts);
@@ -53,10 +52,6 @@ class Repository
         if ($opts['user_guid']) {
             $where[] = 'user_guid = ?';
             $values[] = new Bigint($opts['user_guid']);
-        } elseif ($opts['domain']) {
-            $cql = 'SELECT * FROM pro_by_domain';
-            $where[] = 'domain = ?';
-            $values[] = $opts['domain'];
         }
 
         if ($where) {
@@ -85,28 +80,12 @@ class Repository
                 foreach ($rows as $row) {
                     $settings = new Settings();
                     $settings
-                        ->setUserGuid($row['user_guid']->toInt())
-                        ->setDomain($row['domain']);
+                        ->setUserGuid($row['user_guid']->toInt());
 
                     $data = json_decode($row['json_data'] ?: '{}', true);
                     $settings
-                        ->setTitle($data['title'] ?? '')
-                        ->setHeadline($data['headline'] ?? '')
-                        ->setTextColor($data['text_color'] ?? '')
-                        ->setPrimaryColor($data['primary_color'] ?? '')
-                        ->setPlainBackgroundColor($data['plain_background_color'] ?? '')
-                        ->setTileRatio($data['tile_ratio'] ?? '')
-                        ->setFooterText($data['footer_text'] ?? '')
-                        ->setFooterLinks($data['footer_links'] ?? [])
-                        ->setTagList($data['tag_list'] ?? [])
-                        ->setScheme($data['scheme'] ?? '')
-                        ->setCustomHead($data['custom_head'] ?? '')
-                        ->setHasCustomLogo($data['has_custom_logo'] ?? false)
-                        ->setHasCustomBackground($data['has_custom_background'] ?? false)
-                        ->setSplash($data['splash'] ?? false)
                         ->setTimeUpdated($data['time_updated'] ?? 0)
-                        ->setPayoutMethod($data['payout_method'] ?? 'usd')
-                    ;
+                        ->setPayoutMethod($data['payout_method'] ?? 'usd');
 
                     $response[] = $settings;
                 }
@@ -139,24 +118,9 @@ class Repository
         $cql = 'INSERT INTO pro (user_guid, domain, json_data) VALUES (?, ?, ?)';
         $settings = [
             new Bigint($settings->getUserGuid()),
-            $settings->getDomain(),
+            null, // @deprecated domain column.
             json_encode([
                 'user_guid' => (string) $settings->getUserGuid(),
-                'domain' => $settings->getDomain(),
-                'title' => $settings->getTitle(),
-                'headline' => $settings->getHeadline(),
-                'text_color' => $settings->getTextColor(),
-                'primary_color' => $settings->getPrimaryColor(),
-                'plain_background_color' => $settings->getPlainBackgroundColor(),
-                'tile_ratio' => $settings->getTileRatio(),
-                'footer_text' => $settings->getFooterText(),
-                'footer_links' => $settings->getFooterLinks(),
-                'tag_list' => $settings->getTagList(),
-                'scheme' => $settings->getScheme(),
-                'custom_head' => $settings->getCustomHead(),
-                'has_custom_logo' => $settings->hasCustomLogo(),
-                'has_custom_background' => $settings->hasCustomBackground(),
-                'splash' => $settings->getSplash(),
                 'time_updated' => $settings->getTimeUpdated(),
                 'payout_method' => $settings->getPayoutMethod(),
             ]),
