@@ -741,6 +741,8 @@ class BillingServiceSpec extends ObjectBehavior
             'firstName' => $firstName,
             'lastName' => $lastName,
             'phone' => $phoneNumber,
+            'tenantId' => $tenant->id,
+            'tenantDomain' => '6bb61e3b7bce0931da574d19d1d82c88.minds.com',
             'redirectUrl' => $loginUrl
         ]);
 
@@ -850,6 +852,8 @@ class BillingServiceSpec extends ObjectBehavior
             'firstName' => $firstName,
             'lastName' => $lastName,
             'phone' => $phoneNumber,
+            'tenantId' => $tenant->id,
+            'tenantDomain' => '6bb61e3b7bce0931da574d19d1d82c88.minds.com',
             'redirectUrl' => $loginUrl
         ]);
 
