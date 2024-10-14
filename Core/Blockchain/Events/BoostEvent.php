@@ -116,11 +116,11 @@ class BoostEvent implements BlockchainEventInterface
                 throw new \Exception("Boost ({$boostGuid}) found without hydratable owner ({$boostV3->getOwnerGuid()}). Processing failed");
             }
 
-            if ($this->preApprovalManager->shouldPreApprove($boostOwner)) {
-                $this->boostManagerV3->approveBoost($boostGuid);
-            } else {
-                $this->boostManagerV3->updateStatus($boostGuid, BoostStatus::PENDING);
-            }
+            // if ($this->preApprovalManager->shouldPreApprove($boostOwner)) {
+            //     $this->boostManagerV3->approveBoost($boostGuid);
+            // } else {
+            $this->boostManagerV3->updateStatus($boostGuid, BoostStatus::PENDING);
+            // }
 
             return;
         }

@@ -242,7 +242,7 @@ class BillingServiceSpec extends ObjectBehavior
         //
 
         $this->onSuccessfulCheckout('stripe_checkout_id')
-            ->shouldBe('https://networks.minds.com/complete-checkout?email=phpspec@minds.com&redirectUrl=https%3A%2F%2Fstripe.com%2Fcheckout%2Fxyz');
+            ->shouldBe('https://networks.minds.com/complete-checkout?email=phpspec%40minds.com&tenantId=-1&tenantDomain=6bb61e3b7bce0931da574d19d1d82c88.minds.com&redirectUrl=https%3A%2F%2Fstripe.com%2Fcheckout%2Fxyz');
     }
 
     public function it_should_not_create_tenant_if_already_configured(
@@ -630,6 +630,8 @@ class BillingServiceSpec extends ObjectBehavior
             'firstName' => $firstName,
             'lastName' => $lastName,
             'phone' => $phoneNumber,
+            'tenantId' => -1,
+            'tenantDomain' => '6bb61e3b7bce0931da574d19d1d82c88.minds.com',
             'redirectUrl' => $loginUrl
         ]);
 
@@ -739,6 +741,8 @@ class BillingServiceSpec extends ObjectBehavior
             'firstName' => $firstName,
             'lastName' => $lastName,
             'phone' => $phoneNumber,
+            'tenantId' => $tenant->id,
+            'tenantDomain' => '6bb61e3b7bce0931da574d19d1d82c88.minds.com',
             'redirectUrl' => $loginUrl
         ]);
 
@@ -848,6 +852,8 @@ class BillingServiceSpec extends ObjectBehavior
             'firstName' => $firstName,
             'lastName' => $lastName,
             'phone' => $phoneNumber,
+            'tenantId' => -1,
+            'tenantDomain' => '6bb61e3b7bce0931da574d19d1d82c88.minds.com',
             'redirectUrl' => $loginUrl
         ]);
 
@@ -957,6 +963,8 @@ class BillingServiceSpec extends ObjectBehavior
             'firstName' => $firstName,
             'lastName' => $lastName,
             'phone' => $phoneNumber,
+            'tenantId' => -1,
+            'tenantDomain' => '6bb61e3b7bce0931da574d19d1d82c88.minds.com',
             'redirectUrl' => $loginUrl
         ]);
 
