@@ -128,11 +128,11 @@ class OnchainBoostBackgroundJob
             $this->manager->updateStatus($boost->getGuid(), BoostStatus::PENDING);
             $this->log($boost, "Moved to pending.");
 
-            // If eligible, auto approve
-            if ($this->preApprovalManager->shouldPreApprove($boostOwner)) {
-                $this->manager->approveBoost($boost->getGuid());
-                $this->log($boost, "Auto approved.");
-            }
+            // // If eligible, auto approve
+            // if ($this->preApprovalManager->shouldPreApprove($boostOwner)) {
+            //     $this->manager->approveBoost($boost->getGuid());
+            //     $this->log($boost, "Auto approved.");
+            // }
         } catch (\Exception $e) {
             $this->log($boost, "Unexpected error: {$e->getMessage()}.");
         }

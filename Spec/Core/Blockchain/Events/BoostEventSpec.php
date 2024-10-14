@@ -127,9 +127,9 @@ class BoostEventSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($user);
 
-        $this->preApprovalManager->shouldPreApprove($user)
-            ->shouldBeCalled()
-            ->willReturn(false);
+        // $this->preApprovalManager->shouldPreApprove($user)
+        //     ->shouldBeCalled()
+        //     ->willReturn(false);
 
         $transaction = new Transaction();
         $transaction->setContract('boost')
@@ -141,42 +141,42 @@ class BoostEventSpec extends ObjectBehavior
         $this->boostSent(['address' => '0xasd'], $transaction);
     }
 
-    public function it_should_record_as_resolved_for_v3_boosts_that_should_be_preapproved(
-        BoostV3 $boost,
-        User $user
-    ) {
-        $guid = '1234';
-        $ownerGuid = '2345';
+    // public function it_should_record_as_resolved_for_v3_boosts_that_should_be_preapproved(
+    //     BoostV3 $boost,
+    //     User $user
+    // ) {
+    //     $guid = '1234';
+    //     $ownerGuid = '2345';
 
-        $this->boostManagerV3->getBoostByGuid($guid)
-            ->shouldBeCalled()
-            ->willReturn($boost);
+    //     $this->boostManagerV3->getBoostByGuid($guid)
+    //         ->shouldBeCalled()
+    //         ->willReturn($boost);
 
-        $boost->getStatus()
-            ->shouldBeCalled()
-            ->willReturn(BoostStatus::PENDING_ONCHAIN_CONFIRMATION);
+    //     $boost->getStatus()
+    //         ->shouldBeCalled()
+    //         ->willReturn(BoostStatus::PENDING_ONCHAIN_CONFIRMATION);
 
-        $boost->getOwnerGuid()
-            ->shouldBeCalled()
-            ->willReturn($ownerGuid);
+    //     $boost->getOwnerGuid()
+    //         ->shouldBeCalled()
+    //         ->willReturn($ownerGuid);
 
-        $this->entitiesBuilder->single($ownerGuid)
-            ->shouldBeCalled()
-            ->willReturn($user);
+    //     $this->entitiesBuilder->single($ownerGuid)
+    //         ->shouldBeCalled()
+    //         ->willReturn($user);
 
-        $this->preApprovalManager->shouldPreApprove($user)
-            ->shouldBeCalled()
-            ->willReturn(true);
+    //     $this->preApprovalManager->shouldPreApprove($user)
+    //         ->shouldBeCalled()
+    //         ->willReturn(true);
 
-        $transaction = new Transaction();
-        $transaction->setContract('boost')
-            ->setData([ 'guid' => $guid ]);
+    //     $transaction = new Transaction();
+    //     $transaction->setContract('boost')
+    //         ->setData([ 'guid' => $guid ]);
 
-        $this->boostManagerV3->approveBoost($guid)
-            ->shouldBeCalled();
+    //     $this->boostManagerV3->approveBoost($guid)
+    //         ->shouldBeCalled();
 
-        $this->boostSent(['address' => '0xasd'], $transaction);
-    }
+    //     $this->boostSent(['address' => '0xasd'], $transaction);
+    // }
 
     public function it_should_fail_if_address_is_wrong(Transaction $transaction)
     {

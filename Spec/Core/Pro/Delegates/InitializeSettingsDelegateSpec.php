@@ -40,10 +40,6 @@ class InitializeSettingsDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(1000);
 
-        $user->get('name')
-            ->shouldBeCalled()
-            ->willReturn('PHPSpec');
-
         $this->repository->getList([
             'user_guid' => 1000
         ])
@@ -51,14 +47,6 @@ class InitializeSettingsDelegateSpec extends ObjectBehavior
             ->willReturn($getListResponse);
 
         $getListResponse->first()
-            ->shouldBeCalled()
-            ->willReturn($settings);
-
-        $settings->getTitle()
-            ->shouldBeCalled()
-            ->willReturn('');
-
-        $settings->setTitle('PHPSpec')
             ->shouldBeCalled()
             ->willReturn($settings);
 

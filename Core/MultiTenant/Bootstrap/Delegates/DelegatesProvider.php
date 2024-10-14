@@ -51,17 +51,6 @@ class DelegatesProvider extends DiProvider
         );
 
         $this->di->bind(
-            UpdateUserNameDelegate::class,
-            function (Di $di): UpdateUserNameDelegate {
-                return new UpdateUserNameDelegate(
-                    saveAction: new Save(),
-                    logger: $di->get('Logger'),
-                    acl: $di->get(ACL::class)
-                );
-            }
-        );
-
-        $this->di->bind(
             UpdateLogosDelegate::class,
             function (Di $di): UpdateLogosDelegate {
                 return new UpdateLogosDelegate(
