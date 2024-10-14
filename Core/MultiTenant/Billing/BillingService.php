@@ -34,6 +34,9 @@ use Stripe\Price;
 
 class BillingService
 {
+    /** @var string */
+    const DEFAULT_ROOT_ACCOUNT_USERNAME = 'networkadmin';
+
     public function __construct(
         private readonly StripeCheckoutManager        $stripeCheckoutManager,
         private readonly StripeProductPriceService    $stripeProductPriceService,
@@ -241,7 +244,7 @@ class BillingService
         $email = $checkoutSession->customer_details->email;
 
         // Create a temporary user, so that we can send them an email
-        $user = $this->createtEphemeralUser($email);
+        $user = $this->createEphemeralUser($email);
 
         // Create the tenant
         $tenant = $this->createTenant($plan, $user, $subscription->id);
@@ -289,8 +292,14 @@ class BillingService
 
         $customerUrl = $checkoutSession->metadata['customer_url'] ?? null;
 
+        $firstNameField = array_values(array_filter($checkoutSession->custom_fields, fn ($field) => $field['key'] === 'first_name'));
+        $firstName = count($firstNameField) ? $firstNameField[0]['text']['value'] : null;
+        
+        $lastNameField = array_values(array_filter($checkoutSession->custom_fields, fn ($field) => $field['key'] === 'last_name'));
+        $lastName = count($lastNameField) ? $lastNameField[0]['text']['value'] : null;
+
         // Create a temporary user, so that we can send them an email.
-        $user = $this->createtEphemeralUser($email);
+        $user = $this->createEphemeralUser($email, $firstName);
 
         // Create the tenant.
         $tenant = $this->createTenant(
@@ -318,12 +327,6 @@ class BillingService
 
         // Get input data from the form.
         $phoneNumber = $checkoutSession->customer_details?->phone ?? null;
-
-        $firstNameField = array_values(array_filter($checkoutSession->custom_fields, fn ($field) => $field['key'] === 'first_name'));
-        $firstName = count($firstNameField) ? $firstNameField[0]['text']['value'] : null;
-        
-        $lastNameField = array_values(array_filter($checkoutSession->custom_fields, fn ($field) => $field['key'] === 'last_name'));
-        $lastName = count($lastNameField) ? $lastNameField[0]['text']['value'] : null;
 
         $redirectUrl = 'https://networks.minds.com/complete-trial-checkout?' . http_build_query([
             'email' => $email,
@@ -421,12 +424,23 @@ class BillingService
     }
 
     /**
-     * Aephemeral 'fake' account that is never mADE
+     * An ephemeral 'fake' account that is not automatically created.
+     * @param string $email - The email address of the user.
+     * @param string|null $username - The username of the user (defaults to networkadmin).
+     * @return User
      */
-    protected function createtEphemeralUser(string $email): User
+    protected function createEphemeralUser(string $email, ?string $username = null): User
     {
+        try {
+            $username = $username && validate_username($username) ?
+                strtolower(trim($username)) :
+                self::DEFAULT_ROOT_ACCOUNT_USERNAME;
+        } catch (\Exception $e) {
+            $username = self::DEFAULT_ROOT_ACCOUNT_USERNAME;
+        }
+
         $user = new User();
-        $user->username = 'networkadmin';
+        $user->username = $username;
         $user->setEmail($email);
 
         return $user;

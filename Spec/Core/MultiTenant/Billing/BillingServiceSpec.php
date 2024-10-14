@@ -598,7 +598,7 @@ class BillingServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($this->emailServiceMock);
 
-        $this->emailServiceMock->setUsername('networkadmin')
+        $this->emailServiceMock->setUsername(strtolower($firstName))
             ->shouldBeCalledOnce()
             ->willReturn($this->emailServiceMock);
 
@@ -642,6 +642,224 @@ class BillingServiceSpec extends ObjectBehavior
         $checkoutSessionId = 'cs_test_123';
         $email = 'test@example.com';
         $firstName = 'John';
+        $lastName = 'Doe';
+        $phoneNumber = '+1234567890';
+        $plan = TenantPlanEnum::TEAM;
+        $subscriptionId = 'sub_123';
+        $tenantId = -1;
+        $tenant = new Tenant(-1, plan: TenantPlanEnum::TEAM);
+        $customerUrl = 'https://example.minds.com';
+
+        $checkoutSessionMock = $this->generateStripeCheckoutSessionMock(
+            subscriptionId: $subscriptionId,
+            plan: $plan,
+            email: $email,
+            phoneNumber: $phoneNumber,
+            firstName: $firstName,
+            lastName: $lastName,
+            customerUrl: $customerUrl
+        );
+
+        $subscriptionMock = $this->generateStripeSubscriptionMock(
+            subscriptionId: $subscriptionId,
+            tenantId: null
+        );
+
+        $this->stripeCheckoutSessionServiceMock->retrieveCheckoutSession($checkoutSessionId)
+            ->shouldBeCalled()
+            ->willReturn($checkoutSessionMock);
+
+        $this->stripeSubscriptionsServiceMock->retrieveSubscription($subscriptionId)
+            ->shouldBeCalled()
+            ->willReturn($subscriptionMock);
+
+        $this->tenantsServiceMock->createNetwork(Argument::any(), true)
+            ->willReturn($tenant);
+
+        $this->usersServiceMock->createNetworkRootUser(
+            Argument::that(function ($params) {
+                return true;
+            }),
+            Argument::that(function ($params) {
+                return true;
+            })
+        );
+
+        //
+
+        $this->emailServiceMock->setUser(Argument::type(User::class))
+            ->shouldBeCalledOnce()
+            ->willReturn($this->emailServiceMock);
+
+        $this->emailServiceMock->setTenantId(-1)
+            ->shouldBeCalledOnce()
+            ->willReturn($this->emailServiceMock);
+
+        $this->emailServiceMock->setIsTrial(false)
+            ->shouldBeCalledOnce()
+            ->willReturn($this->emailServiceMock);
+
+        $this->emailServiceMock->setUsername(strtolower($firstName))
+            ->shouldBeCalledOnce()
+            ->willReturn($this->emailServiceMock);
+
+        $this->emailServiceMock->setPassword(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($this->emailServiceMock);
+
+        $this->emailServiceMock->send()
+            ->shouldBeCalledOnce();
+
+        //
+
+        $this->tenantBootstrapRequestsTopicMock->send(Argument::that(function ($event) use ($tenant, $customerUrl) {
+            return $event->getTenantId() === $tenant->id
+                && $event->getSiteUrl() === $customerUrl;
+        }))
+            ->shouldBeCalled();
+
+        //
+        
+        $loginUrl = 'https://example.com/login';
+
+        $this->autoLoginServiceMock->buildLoginUrlWithParamsFromTenant(Argument::any(), Argument::any(), '/network/admin/bootstrap')
+            ->shouldBeCalled()
+            ->willReturn($loginUrl);
+
+        $this->stripeSubscriptionsServiceMock->updateSubscription(
+            $subscriptionId,
+            [
+                'tenant_id' => $tenantId,
+                'tenant_plan' => $plan->name,
+            ]
+        )->shouldBeCalled();
+
+        $expectedRedirectUrl = 'https://networks.minds.com/complete-trial-checkout?' . http_build_query([
+            'email' => $email,
+            'firstName' => $firstName,
+            'lastName' => $lastName,
+            'phone' => $phoneNumber,
+            'redirectUrl' => $loginUrl
+        ]);
+
+        $this->onSuccessfulTrialCheckout($checkoutSessionId)
+            ->shouldBe($expectedRedirectUrl);
+    }
+
+    public function it_should_set_username_to_default_when_handling_successful_trial_checkout_when_first_name_is_too_short()
+    {
+        $checkoutSessionId = 'cs_test_123';
+        $email = 'test@example.com';
+        $firstName = 'Abc';
+        $lastName = 'Doe';
+        $phoneNumber = '+1234567890';
+        $plan = TenantPlanEnum::TEAM;
+        $subscriptionId = 'sub_123';
+        $tenantId = -1;
+        $tenant = new Tenant(-1, plan: TenantPlanEnum::TEAM);
+        $customerUrl = 'https://example.minds.com';
+
+        $checkoutSessionMock = $this->generateStripeCheckoutSessionMock(
+            subscriptionId: $subscriptionId,
+            plan: $plan,
+            email: $email,
+            phoneNumber: $phoneNumber,
+            firstName: $firstName,
+            lastName: $lastName,
+            customerUrl: $customerUrl
+        );
+
+        $subscriptionMock = $this->generateStripeSubscriptionMock(
+            subscriptionId: $subscriptionId,
+            tenantId: null
+        );
+
+        $this->stripeCheckoutSessionServiceMock->retrieveCheckoutSession($checkoutSessionId)
+            ->shouldBeCalled()
+            ->willReturn($checkoutSessionMock);
+
+        $this->stripeSubscriptionsServiceMock->retrieveSubscription($subscriptionId)
+            ->shouldBeCalled()
+            ->willReturn($subscriptionMock);
+
+        $this->tenantsServiceMock->createNetwork(Argument::any(), true)
+            ->willReturn($tenant);
+
+        $this->usersServiceMock->createNetworkRootUser(
+            Argument::that(function ($params) {
+                return true;
+            }),
+            Argument::that(function ($params) {
+                return true;
+            })
+        );
+
+        //
+
+        $this->emailServiceMock->setUser(Argument::type(User::class))
+            ->shouldBeCalledOnce()
+            ->willReturn($this->emailServiceMock);
+
+        $this->emailServiceMock->setTenantId(-1)
+            ->shouldBeCalledOnce()
+            ->willReturn($this->emailServiceMock);
+
+        $this->emailServiceMock->setIsTrial(false)
+            ->shouldBeCalledOnce()
+            ->willReturn($this->emailServiceMock);
+
+        $this->emailServiceMock->setUsername('networkadmin')
+            ->shouldBeCalledOnce()
+            ->willReturn($this->emailServiceMock);
+
+        $this->emailServiceMock->setPassword(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($this->emailServiceMock);
+
+        $this->emailServiceMock->send()
+            ->shouldBeCalledOnce();
+
+        //
+
+        $this->tenantBootstrapRequestsTopicMock->send(Argument::that(function ($event) use ($tenant, $customerUrl) {
+            return $event->getTenantId() === $tenant->id
+                && $event->getSiteUrl() === $customerUrl;
+        }))
+            ->shouldBeCalled();
+
+        //
+        
+        $loginUrl = 'https://example.com/login';
+
+        $this->autoLoginServiceMock->buildLoginUrlWithParamsFromTenant(Argument::any(), Argument::any(), '/network/admin/bootstrap')
+            ->shouldBeCalled()
+            ->willReturn($loginUrl);
+
+        $this->stripeSubscriptionsServiceMock->updateSubscription(
+            $subscriptionId,
+            [
+                'tenant_id' => $tenantId,
+                'tenant_plan' => $plan->name,
+            ]
+        )->shouldBeCalled();
+
+        $expectedRedirectUrl = 'https://networks.minds.com/complete-trial-checkout?' . http_build_query([
+            'email' => $email,
+            'firstName' => $firstName,
+            'lastName' => $lastName,
+            'phone' => $phoneNumber,
+            'redirectUrl' => $loginUrl
+        ]);
+
+        $this->onSuccessfulTrialCheckout($checkoutSessionId)
+            ->shouldBe($expectedRedirectUrl);
+    }
+
+    public function it_should_set_username_to_default_when_handling_successful_trial_checkout_when_first_name_is_invalid()
+    {
+        $checkoutSessionId = 'cs_test_123';
+        $email = 'test@example.com';
+        $firstName = 'A@b~c';
         $lastName = 'Doe';
         $phoneNumber = '+1234567890';
         $plan = TenantPlanEnum::TEAM;
