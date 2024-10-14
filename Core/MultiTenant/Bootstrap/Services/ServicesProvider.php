@@ -17,7 +17,6 @@ use Minds\Core\MultiTenant\Bootstrap\Clients\ScreenshotOneClient;
 use Minds\Core\MultiTenant\Bootstrap\Delegates\ActivityCreationDelegate;
 use Minds\Core\MultiTenant\Bootstrap\Delegates\UpdateConfigDelegate;
 use Minds\Core\MultiTenant\Bootstrap\Delegates\UpdateLogosDelegate;
-use Minds\Core\MultiTenant\Bootstrap\Delegates\UpdateUserNameDelegate;
 use Minds\Core\MultiTenant\Bootstrap\Services\Handlers\ConfigGenerationHandler;
 use Minds\Core\MultiTenant\Bootstrap\Services\Handlers\ContentGenerationHandler;
 use Minds\Core\MultiTenant\Bootstrap\Services\Handlers\LogoGenerationHandler;
@@ -190,7 +189,6 @@ class ServicesProvider extends DiProvider
                     logoGenerationHandler: $di->get(LogoGenerationHandler::class),
                     configGenerationHandler: $di->get(ConfigGenerationHandler::class),
                     contentGenerationHandler: $di->get(ContentGenerationHandler::class),
-                    updateUserNameDelegate: $di->get(UpdateUserNameDelegate::class),
                     entitiesBuilder: $di->get(EntitiesBuilder::class),
                     logger: $di->get('Logger')
                 );
