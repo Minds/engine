@@ -43,11 +43,6 @@ class InitializeSettingsDelegate
                 ->setUserGuid($user->guid);
         }
 
-        if (!$settings->getTitle()) {
-            $settings->setTitle($user->name ?: $user->username);
-        }
-
-
         $this->repository
             ->add($settings);
     }
