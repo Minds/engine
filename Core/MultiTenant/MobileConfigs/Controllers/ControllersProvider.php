@@ -11,6 +11,7 @@ use Minds\Core\MultiTenant\MobileConfigs\Services\MobileConfigAssetsService;
 use Minds\Core\MultiTenant\MobileConfigs\Services\MobileConfigManagementService;
 use Minds\Core\MultiTenant\MobileConfigs\Services\MobileConfigReaderService;
 use Minds\Core\MultiTenant\MobileConfigs\Services\MobileAppPreviewQRCodeService;
+use Minds\Core\MultiTenant\MobileConfigs\Services\ProductionAppVersionService;
 
 class ControllersProvider extends Provider
 {
@@ -46,7 +47,9 @@ class ControllersProvider extends Provider
         $this->di->bind(
             MobileConfigManagementController::class,
             fn (Di $di): MobileConfigManagementController => new MobileConfigManagementController(
-                mobileConfigManagementService: $di->get(MobileConfigManagementService::class)
+                mobileConfigManagementService: $di->get(MobileConfigManagementService::class),
+                productionAppVersionService: $di->get(ProductionAppVersionService::class),
+                gitlabPipelineJwtTokenValidator: $di->get(GitlabPipelineJwtTokenValidator::class),
             )
         );
 

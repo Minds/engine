@@ -7,6 +7,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
 use Minds\Core\Admin\Manager;
+use Minds\Core\Admin\Services\HashtagExclusionService;
 use Minds\Core\Admin\Services\ModerationService;
 
 class ControllersProvider extends Provider
@@ -27,6 +28,12 @@ class ControllersProvider extends Provider
         $this->di->bind(ModerationController::class, function (Di $di): ModerationController {
             return new ModerationController(
                 $di->get(ModerationService::class)
+            );
+        });
+
+        $this->di->bind(HashtagExclusionController::class, function (Di $di): HashtagExclusionController {
+            return new HashtagExclusionController(
+                $di->get(HashtagExclusionService::class)
             );
         });
     }

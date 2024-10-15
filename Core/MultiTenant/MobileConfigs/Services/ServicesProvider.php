@@ -57,5 +57,13 @@ class ServicesProvider extends Provider
                 config: $di->get(Config::class)
             )
         );
+
+        $this->di->bind(
+            ProductionAppVersionService::class,
+            fn (Di $di): ProductionAppVersionService => new ProductionAppVersionService(
+                repository: $di->get(MobileConfigRepository::class),
+                logger: $di->get('Logger'),
+            )
+        );
     }
 }

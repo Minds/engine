@@ -49,6 +49,7 @@ class MobileConfigManagementService
      * @param MobilePreviewStatusEnum|null $mobilePreviewStatus
      * @param bool|null $appTrackingMessageEnabled
      * @param string|null $appTrackingMessage
+     * @param string|null $productionAppVersion
      * @return MobileConfig
      * @throws GuzzleException
      */
@@ -57,7 +58,8 @@ class MobileConfigManagementService
         ?MobileWelcomeScreenLogoTypeEnum $mobileWelcomeScreenLogoType,
         ?MobilePreviewStatusEnum         $mobilePreviewStatus,
         ?bool                            $appTrackingMessageEnabled,
-        ?string                          $appTrackingMessage
+        ?string                          $appTrackingMessage,
+        ?string                          $productionAppVersion
     ): MobileConfig {
         try {
             $mobileConfig = $this->mobileConfigRepository->getMobileConfig();
@@ -78,7 +80,10 @@ class MobileConfigManagementService
                 $mobileConfig?->appTrackingMessageEnabled,
             appTrackingMessage: $appTrackingMessage !== null ?
                 $appTrackingMessage :
-                $mobileConfig?->appTrackingMessage
+                $mobileConfig?->appTrackingMessage,
+            productionAppVersion: $productionAppVersion !== null ?
+                $productionAppVersion :
+                $mobileConfig?->productionAppVersion
         );
 
         if ($mobilePreviewStatus === MobilePreviewStatusEnum::PENDING) {
@@ -92,7 +97,8 @@ class MobileConfigManagementService
             previewStatus: $mobilePreviewStatus ?? ($mobileConfig?->previewStatus ?? MobilePreviewStatusEnum::NO_PREVIEW),
             previewLastUpdatedTimestamp: $mobilePreviewStatus ? time() : $mobileConfig?->previewLastUpdatedTimestamp,
             appTrackingMessageEnabled: $appTrackingMessageEnabled ?? ($mobileConfig?->appTrackingMessageEnabled ?? false),
-            appTrackingMessage: $appTrackingMessage ?? ($mobileConfig?->appTrackingMessage ?? null)
+            appTrackingMessage: $appTrackingMessage ?? ($mobileConfig?->appTrackingMessage ?? null),
+            productionAppVersion: $productionAppVersion ?? ($mobileConfig?->productionAppVersion ?? null)
         );
     }
 }

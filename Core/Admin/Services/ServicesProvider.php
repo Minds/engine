@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Admin\Services;
 
+use Minds\Core\Admin\Repositories\HashtagExclusionRepository;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
@@ -30,6 +31,16 @@ class ServicesProvider extends Provider
                     entitiesBuilder: $di->get(EntitiesBuilder::class),
                     entitiesResolver: $di->get(EntitiesResolver::class),
                     acl: $di->get('Security\ACL')
+                );
+            }
+        );
+
+        $this->di->bind(
+            HashtagExclusionService::class,
+            function (Di $di): HashtagExclusionService {
+                return new HashtagExclusionService(
+                    repository: $di->get(HashtagExclusionRepository::class),
+                    cache: $di->get('Hashtags\Trending\Cache')
                 );
             }
         );

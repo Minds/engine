@@ -24,7 +24,8 @@ class MobileConfig
         #[Field] public MobileWelcomeScreenLogoTypeEnum $welcomeScreenLogoType = MobileWelcomeScreenLogoTypeEnum::SQUARE,
         #[Field] public MobilePreviewStatusEnum         $previewStatus = MobilePreviewStatusEnum::NO_PREVIEW,
         public ?int                                     $previewLastUpdatedTimestamp = null,
-        public ?string                                  $appVersion = null,
+        #[Field] public ?string                         $productionAppVersion = null, // app version of tenant app in production.
+        #[Field] public ?string                         $appVersion = null, // app version for previewer.
         public ?string                                  $easProjectId = null,
         public ?string                                  $appSlug = null,
         public ?string                                  $appScheme = null,

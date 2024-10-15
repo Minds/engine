@@ -46,4 +46,14 @@ class Cache implements BasicCacheInterface
         $cached = $this->cache->get(self::CACHE_KEY);
         return is_array($cached) ? $cached : [];
     }
+
+    /**
+     * Invalidates the cache entry.
+     * @return self instance of this.
+     */
+    public function invalidate(): self
+    {
+        $this->cache->delete(self::CACHE_KEY);
+        return $this;
+    }
 }

@@ -13,5 +13,6 @@ class GraphQLMappings extends AbstractGraphQLMappings
     public function register(): void
     {
         $this->schemaFactory->addControllerNamespace('Minds\Core\Admin\Controllers');
+        $this->schemaFactory->addTypeNamespace('Minds\\Core\\Admin\\Types\\HashtagExclusion');
     }
 }

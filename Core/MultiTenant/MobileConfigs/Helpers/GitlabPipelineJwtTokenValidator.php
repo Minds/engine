@@ -54,4 +54,32 @@ class GitlabPipelineJwtTokenValidator
             return false;
         }
     }
+
+    /**
+     * Validates JWT token for non-tenant usage.
+     * @param string $token - The token to validate.
+     * @return bool true on success.
+     */
+    public function checkTokenForNonTenant(string $token): bool
+    {
+        $tokenOptions = $this->config->get('gitlab')['mobile']['pipeline']['jwt_token'];
+
+        try {
+            $claims = $this->jwt
+                ->setKey($tokenOptions['secret_key'])
+                ->decode($token);
+
+            if ($claims['iss'] !== self::ISSUER || $claims['aud'][0] !== $this->config->get('site_url')) {
+                return false;
+            }
+
+            if ($claims['exp'] < (new DateTimeImmutable())) {
+                return false;
+            }
+
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
 }
