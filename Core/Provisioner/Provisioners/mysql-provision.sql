@@ -1184,6 +1184,15 @@ ALTER TABLE minds_tenants
     ADD COLUMN stripe_subscription varchar(128) DEFAULT NULL
     AFTER plan;
 
+CREATE TABLE IF NOT EXISTS minds_admin_hashtag_exclusions (
+    tenant_id int NOT NULL,
+    tag varchar(256) NOT NULL,
+    admin_guid bigint NOT NULL,
+    created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP,
+    updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (tenant_id, tag)
+);
+
 CREATE TABLE IF NOT EXISTS minds_tenant_bootstrap_progress (
     tenant_id int NOT NULL,
     step_name varchar(64) NOT NULL,

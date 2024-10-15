@@ -9,6 +9,7 @@ use Minds\Core\Config;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Hashtags\User\Manager as HashtagManager;
 use Minds\Core\Feeds\Elastic\Manager as ElasticFeedsManager;
+use Minds\Core\Hashtags\Trending\Manager as TrendingHashtagManager;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Common\Repository\Response;
 use Minds\Core\Discovery\Manager;
@@ -38,9 +39,11 @@ class ManagerSpec extends ObjectBehavior
 
     private Collaborator $aclMock;
 
-    public function let(ElasticSearch\Client $es, EntitiesBuilder $entitiesBuilder, HashtagManager $hashtagManager, ElasticFeedsManager $elasticFeedsManager, User $user, ACL $aclMock)
+    private Collaborator $trendingHashtagManagerMock;
+
+    public function let(ElasticSearch\Client $es, EntitiesBuilder $entitiesBuilder, HashtagManager $hashtagManager, ElasticFeedsManager $elasticFeedsManager, User $user, ACL $aclMock, TrendingHashtagManager $trendingHashtagManagerMock)
     {
-        $this->beConstructedWith($es, $entitiesBuilder, null, $hashtagManager, $elasticFeedsManager, $user, $aclMock);
+        $this->beConstructedWith($es, $entitiesBuilder, null, $hashtagManager, $elasticFeedsManager, $user, $aclMock, $trendingHashtagManagerMock);
         $this->es = $es;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->hashtagManager = $hashtagManager;
@@ -50,6 +53,7 @@ class ManagerSpec extends ObjectBehavior
         $this->elasticFeedsManager = $elasticFeedsManager;
         $this->user = $user;
         $this->aclMock = $aclMock;
+        $this->trendingHashtagManagerMock = $trendingHashtagManagerMock;
     }
 
     public function it_is_initializable()

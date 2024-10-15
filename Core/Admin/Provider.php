@@ -13,6 +13,7 @@ class Provider extends DiProvider
     {
         (new Controllers\ControllersProvider())->register();
         (new Services\ServicesProvider())->register();
+        (new Repositories\RepositoriesProvider())->register();
 
         $this->di->bind(Manager::class, function (Di $di): Manager {
             return new Manager(
