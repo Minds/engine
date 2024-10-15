@@ -103,11 +103,11 @@ class WireWebhookService
         }
 
         // If invoice is positive (ie. not a trial), issue a gift card
-        if ($invoice->amount_due > 0) {
+        if ($invoice->total_excluding_tax > 0) {
             $this->giftCardsManager->issueMindsPlusAndProGiftCards(
                 sender: $sender ?? new SystemUser(),
                 recipient: $user,
-                amount: $invoice->amount_due / 100,
+                amount: $invoice->total_excluding_tax / 100,
                 expiryTimestamp: $stripeSubscription->current_period_end
             );
         }
