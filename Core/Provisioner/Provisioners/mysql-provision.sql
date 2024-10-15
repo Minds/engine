@@ -1191,3 +1191,7 @@ CREATE TABLE IF NOT EXISTS minds_tenant_bootstrap_progress (
     last_run_timestamp timestamp DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (tenant_id, step_name)
 );
+
+ALTER TABLE minds_tenant_mobile_configs
+    ADD COLUMN production_app_version varchar(48) COMMENT "Version of the app in production" DEFAULT NULL
+    AFTER app_version;
