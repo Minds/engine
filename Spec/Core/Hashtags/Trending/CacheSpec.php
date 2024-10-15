@@ -64,4 +64,10 @@ class CacheSpec extends ObjectBehavior
         $this->redis->get('hashtags:trending:daily')->willReturn($json);
         $this->get()->shouldHaveCount(3);
     }
+
+    public function it_should_invalidate_cache(
+    ) {
+        $this->redis->delete('hashtags:trending:daily')->shouldBeCalled();
+        $this->invalidate();
+    }
 }
