@@ -31,7 +31,7 @@ class WireWebhookServiceSpec extends ObjectBehavior
     private Collaborator $giftCardsManagerMock;
 
     
-    function let (
+    public function let(
         SubscriptionsService $stripeSubscriptionsServiceMock,
         EntitiesBuilder $entitiesBuilderMock,
         Save $saveMock,
@@ -59,12 +59,12 @@ class WireWebhookServiceSpec extends ObjectBehavior
         $this->giftCardsManagerMock = $giftCardsManagerMock;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(WireWebhookService::class);
     }
 
-    function it_should_issue_minds_plus_and_a_gift_card(User $purchasingUser)
+    public function it_should_issue_minds_plus_and_a_gift_card(User $purchasingUser)
     {
         $invoice = new Invoice();
         $invoice->subscription = 'sub_id';
@@ -141,7 +141,7 @@ class WireWebhookServiceSpec extends ObjectBehavior
         $this->onWebhookEvent($event);
     }
 
-    function it_should_issue_minds_pro_and_a_gift_card(User $purchasingUser)
+    public function it_should_issue_minds_pro_and_a_gift_card(User $purchasingUser)
     {
         $invoice = new Invoice();
         $invoice->subscription = 'sub_id';
