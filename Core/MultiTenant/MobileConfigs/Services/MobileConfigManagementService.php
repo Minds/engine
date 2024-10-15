@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\MultiTenant\MobileConfigs\Services;
 
 use GuzzleHttp\Exception\GuzzleException;
+use Minds\Core\MultiTenant\MobileConfigs\Delegates\MobileAppPreviewReadyEmailDelegate;
 use Minds\Core\MultiTenant\MobileConfigs\Deployments\Builds\MobilePreviewHandler;
 use Minds\Core\MultiTenant\MobileConfigs\Enums\MobilePreviewStatusEnum;
 use Minds\Core\MultiTenant\MobileConfigs\Enums\MobileSplashScreenTypeEnum;
@@ -17,6 +18,7 @@ class MobileConfigManagementService
     public function __construct(
         private readonly MobileConfigRepository $mobileConfigRepository,
         private readonly MobilePreviewHandler   $mobilePreviewHandler,
+        private readonly MobileAppPreviewReadyEmailDelegate $mobileAppPreviewReadyEmailDelegate,
     ) {
     }
 
@@ -35,6 +37,10 @@ class MobileConfigManagementService
             appVersion: $appVersion,
             previewStatus: $status === 'success' ? MobilePreviewStatusEnum::READY : MobilePreviewStatusEnum::ERROR,
         );
+
+        if ($status === 'success') {
+            $this->mobileAppPreviewReadyEmailDelegate->onMobileAppPreviewReady();
+        }
     }
 
     /**

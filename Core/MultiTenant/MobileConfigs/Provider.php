@@ -31,6 +31,10 @@ class Provider extends DiProvider
         (new Repositories\RepositoriesProvider())->register();
         #endregion
 
+        #region Delegates
+        (new Delegates\DelegatesProvider())->register();
+        #endregion
+
         #region Deployments
         (new Deployments\Provider())->register();
         #endregion

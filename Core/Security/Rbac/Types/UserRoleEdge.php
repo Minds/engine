@@ -38,4 +38,13 @@ class UserRoleEdge implements EdgeInterface
     {
         return $this->roles;
     }
+
+    /**
+     * Gets user.
+     * @return User - the user.
+     */
+    public function getUser(): User
+    {
+        return $this->user;
+    }
 }

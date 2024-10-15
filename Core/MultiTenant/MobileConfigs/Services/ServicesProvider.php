@@ -8,6 +8,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
 use Minds\Core\MultiTenant\Configs\Manager as MultiTenantConfigManager;
+use Minds\Core\MultiTenant\MobileConfigs\Delegates\MobileAppPreviewReadyEmailDelegate;
 use Minds\Core\MultiTenant\MobileConfigs\Deployments\Builds\MobilePreviewHandler;
 use Minds\Core\MultiTenant\MobileConfigs\Repositories\MobileConfigRepository;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
@@ -44,6 +45,16 @@ class ServicesProvider extends Provider
             fn (Di $di): MobileConfigManagementService => new MobileConfigManagementService(
                 mobileConfigRepository: $di->get(MobileConfigRepository::class),
                 mobilePreviewHandler: $di->get(MobilePreviewHandler::class),
+                mobileAppPreviewReadyEmailDelegate: $di->get(MobileAppPreviewReadyEmailDelegate::class),
+            )
+        );
+
+        $this->di->bind(
+            MobileAppPreviewQRCodeService::class,
+            fn (Di $di): MobileAppPreviewQRCodeService => new MobileAppPreviewQRCodeService(
+                mobileConfigRepository: $di->get(MobileConfigRepository::class),
+                multiTenantBootService: $di->get(MultiTenantBootService::class),
+                config: $di->get(Config::class)
             )
         );
     }

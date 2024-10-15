@@ -10,6 +10,7 @@ use Minds\Core\MultiTenant\MobileConfigs\Helpers\GitlabPipelineJwtTokenValidator
 use Minds\Core\MultiTenant\MobileConfigs\Services\MobileConfigAssetsService;
 use Minds\Core\MultiTenant\MobileConfigs\Services\MobileConfigManagementService;
 use Minds\Core\MultiTenant\MobileConfigs\Services\MobileConfigReaderService;
+use Minds\Core\MultiTenant\MobileConfigs\Services\MobileAppPreviewQRCodeService;
 
 class ControllersProvider extends Provider
 {
@@ -46,6 +47,13 @@ class ControllersProvider extends Provider
             MobileConfigManagementController::class,
             fn (Di $di): MobileConfigManagementController => new MobileConfigManagementController(
                 mobileConfigManagementService: $di->get(MobileConfigManagementService::class)
+            )
+        );
+
+        $this->di->bind(
+            MobilePreviewQRCodeController::class,
+            fn (Di $di): MobilePreviewQRCodeController => new MobilePreviewQRCodeController(
+                mobileAppPreviewQRCodeService: $di->get(MobileAppPreviewQRCodeService::class)
             )
         );
     }

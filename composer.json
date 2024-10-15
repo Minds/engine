@@ -69,7 +69,8 @@
         "nyholm/psr7": "^1.8",
         "posthog/posthog-php": "dev-chore/ff-fetch-optional",
         "zircote/swagger-php": "^4.9",
-        "openai-php/client": "^0.4.2"
+        "openai-php/client": "^0.4.2",
+        "chillerlan/php-qrcode": "^5.0"
     },
     "repositories": [
         {

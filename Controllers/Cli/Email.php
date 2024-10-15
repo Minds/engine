@@ -19,10 +19,12 @@ use Minds\Core\Supermind;
 use Minds\Entities\User;
 use Minds\Interfaces;
 use Minds\Core\Email\V2\Campaigns\Recurring\ForgotPassword\ForgotPasswordEmailer;
+use Minds\Core\Email\V2\Campaigns\Recurring\MobileAppPreviewReady\MobileAppPreviewReadyEmailer;
 use Minds\Core\Email\V2\Campaigns\Recurring\TenantUserWelcome\TenantUserWelcomeEmailer;
 use Minds\Core\Email\V2\Campaigns\Recurring\UnreadMessages\UnreadMessages;
 use Minds\Core\Email\V2\Campaigns\Recurring\UnreadMessages\UnreadMessagesDispatcher;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\MultiTenant\MobileConfigs\Delegates\MobileAppPreviewReadyEmailDelegate;
 use Minds\Core\MultiTenant\Services\AutoTrialService;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\MultiTenant\Services\MultiTenantDataService;
@@ -629,5 +631,64 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             $this->out('Tried to send email - printing HTML:');
             $this->out($message->buildHtml());
         }
+    }
+
+    /**
+     * Tests tenant mobile app preview ready email.
+     * @example usage:
+     * - php cli.php Email testMobileAppPreviewReadyEmail --output=/var/www/Minds/engine/mobile-preview-ready.html --userGuid="1540482017907445761" --tenantId=123
+     * @return void
+     */
+    public function testMobileAppPreviewReadyEmail(): void
+    {
+        $userGuid = $this->getOpt('userGuid');
+        $tenantId = $this->getOpt('tenantId');
+        $output = $this->getOpt('output');
+
+        if (!$tenantId) {
+            throw new CliException('Tenant id required');
+        }
+
+        if (!$userGuid) {
+            throw new CliException('User guid required');
+        }
+
+        Di::_()->get(MultiTenantBootService::class)->bootFromTenantId($tenantId);
+        $user = Di::_()->get(EntitiesBuilder::class)->single($userGuid);
+
+        if (!$user || !($user instanceof User)) {
+            throw new CliException('User not found');
+        }
+
+        $campaign = Di::_()->get(MobileAppPreviewReadyEmailer::class);
+        $campaign->setUser($user);
+
+        $message = $campaign->build();
+
+        if ($output) {
+            file_put_contents($output, $message->buildHtml());
+        } else {
+            $campaign->send();
+            $this->out('Tried to send email - printing HTML:');
+            $this->out($message->buildHtml());
+        }
+    }
+
+    /**
+     * Tests tenant mobile app preview ready email, sending it to all admins.
+     * @example usage:
+     * - php cli.php Email sendMobileAppPreviewReadyEmailToAdmins --tenantId=123
+     * @return void
+     */
+    public function sendMobileAppPreviewReadyEmailToAdmins(): void
+    {
+        $tenantId = $this->getOpt('tenantId');
+
+        if (!$tenantId) {
+            throw new CliException('Tenant id required');
+        }
+
+        Di::_()->get(MultiTenantBootService::class)->bootFromTenantId($tenantId);
+        Di::_()->get(MobileAppPreviewReadyEmailDelegate::class)->onMobileAppPreviewReady();
     }
 }

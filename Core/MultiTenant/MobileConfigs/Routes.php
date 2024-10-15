@@ -29,6 +29,11 @@ class Routes extends ModuleRoutes
                     Ref::_(Controllers\MobileConfigPreviewPsrController::class, 'processMobilePreviewWebhook')
                 );
 
+                $route->get(
+                    'qr-code',
+                    Ref::_(Controllers\MobilePreviewQRCodeController::class, 'getQrCode')
+                );
+
                 // admin routes.
                 $route
                     ->withMiddleware([

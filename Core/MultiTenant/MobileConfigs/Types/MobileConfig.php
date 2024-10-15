@@ -48,4 +48,14 @@ class MobileConfig
     {
         return "mindspreview://preview/" . Di::_()->get(Config::class)->get("tenant_id") . "?version=$this->appVersion";
     }
+
+    /**
+     * Gets the versionless preview QR code URL.
+     * @return string
+     */
+    #[Field]
+    public function getVersionlessPreviewQRCode(): string
+    {
+        return "mindspreview://preview/" . Di::_()->get(Config::class)->get("tenant_id");
+    }
 }

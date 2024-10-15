@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\MultiTenant\MobileConfigs\Services;
 
-use Google\Service\TrafficDirectorService\NullMatch;
+use Minds\Core\MultiTenant\MobileConfigs\Delegates\MobileAppPreviewReadyEmailDelegate;
 use Minds\Core\MultiTenant\MobileConfigs\Deployments\Builds\MobilePreviewHandler;
 use Minds\Core\MultiTenant\MobileConfigs\Enums\MobilePreviewStatusEnum;
 use Minds\Core\MultiTenant\MobileConfigs\Enums\MobileSplashScreenTypeEnum;
@@ -19,17 +19,21 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
 {
     private Collaborator $mobileConfigRepositoryMock;
     private Collaborator $mobilePreviewHandlerMock;
+    private Collaborator $mobileAppPreviewReadyEmailDelegateMock;
 
     public function let(
         MobileConfigRepository $mobileConfigRepository,
         MobilePreviewHandler   $mobilePreviewHandler,
+        MobileAppPreviewReadyEmailDelegate $mobileAppPreviewReadyEmailDelegate
     ): void {
         $this->mobileConfigRepositoryMock = $mobileConfigRepository;
         $this->mobilePreviewHandlerMock = $mobilePreviewHandler;
+        $this->mobileAppPreviewReadyEmailDelegateMock = $mobileAppPreviewReadyEmailDelegate;
 
         $this->beConstructedWith(
             $this->mobileConfigRepositoryMock,
             $this->mobilePreviewHandlerMock,
+            $this->mobileAppPreviewReadyEmailDelegateMock,
         );
     }
 
@@ -54,10 +58,36 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
         )
             ->shouldBeCalledOnce();
 
+        $this->mobileAppPreviewReadyEmailDelegateMock->onMobileAppPreviewReady()
+            ->shouldBeCalledOnce();
+
         $this->processMobilePreviewWebhook(
             1,
             '5.0.0',
             'success'
+        );
+    }
+
+    public function it_should_process_mobile_preview_webhook_and_not_email_on_error(): void
+    {
+        $this->mobileConfigRepositoryMock->storeMobileConfig(
+            1,
+            null,
+            null,
+            MobilePreviewStatusEnum::ERROR,
+            "5.0.0",
+            null,
+            null
+        )
+            ->shouldBeCalledOnce();
+
+        $this->mobileAppPreviewReadyEmailDelegateMock->onMobileAppPreviewReady()
+            ->shouldNotBeCalled();
+
+        $this->processMobilePreviewWebhook(
+            1,
+            '5.0.0',
+            'error'
         );
     }
 

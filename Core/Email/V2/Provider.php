@@ -12,6 +12,7 @@ use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\V2\Campaigns\Recurring\GiftCard\Emailer;
 use Minds\Core\Email\V2\Campaigns\Recurring\GiftCard\Issuer\Emailer as IssuerEmailer;
+use Minds\Core\Email\V2\Campaigns\Recurring\MobileAppPreviewReady\MobileAppPreviewReadyEmailer;
 use Minds\Core\Email\V2\Campaigns\Recurring\TenantUserWelcome\TenantUserWelcomeEmailer;
 use Minds\Core\Email\V2\Campaigns\Recurring\UnreadMessages\UnreadMessages;
 use Minds\Core\Email\V2\Campaigns\Recurring\UnreadMessages\UnreadMessagesDispatcher;
@@ -19,6 +20,7 @@ use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Common\TenantTemplateVariableInjector;
 use Minds\Core\Email\V2\Partials\UnreadMessages\UnreadMessagesPartial;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\MultiTenant\MobileConfigs\Services\MobileAppPreviewQRCodeService;
 use Minds\Core\MultiTenant\Services\FeaturedEntityService;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\MultiTenant\Services\MultiTenantDataService;
@@ -72,6 +74,20 @@ class Provider extends DiProvider
                     $di->get(SiteMembershipReaderService::class),
                     $di->get(SiteMembershipSubscriptionsService::class),
                     $di->get(FeaturedEntityService::class),
+                    $di->get('Email\Manager')
+                )
+        );
+
+        $this->di->bind(
+            MobileAppPreviewReadyEmailer::class,
+            fn (Di $di): MobileAppPreviewReadyEmailer =>
+                new MobileAppPreviewReadyEmailer(
+                    new Template(),
+                    new Mailer(),
+                    $di->get(Config::class),
+                    $di->get(TenantTemplateVariableInjector::class),
+                    $di->get(MobileAppPreviewQRCodeService::class),
+                    $di->get('Logger'),
                     $di->get('Email\Manager')
                 )
         );

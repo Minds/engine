@@ -29,6 +29,7 @@ use GuzzleHttp\Client;
 use Minds\Core\Authentication\Services\RegisterService;
 use Minds\Core\Email\V2\Campaigns\Recurring\TenantTrial\TenantTrialEmailer;
 use Minds\Core\Media\Services\OciS3Client;
+use Minds\Core\MultiTenant\MobileConfigs\Delegates\MobileAppPreviewReadyEmailDelegate;
 
 class ServicesProvider extends Provider
 {
@@ -127,6 +128,7 @@ class ServicesProvider extends Provider
             fn (Di $di): MobileConfigManagementService => new MobileConfigManagementService(
                 mobileConfigRepository: $di->get(MobileConfigRepository::class),
                 mobilePreviewHandler: $di->get(MobilePreviewHandler::class),
+                mobileAppPreviewReadyEmailDelegate: $di->get(MobileAppPreviewReadyEmailDelegate::class),
             )
         );
 
