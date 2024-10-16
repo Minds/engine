@@ -45,7 +45,7 @@ class MobileAppPreviewReadyEmailDelegate
         foreach ($uniqueUserRoleEdges as $userRoleEdge) {
             try {
                 $this->mobileAppPreviewReadyEmailer->setUser($userRoleEdge->getUser())
-                    ->send();
+                    ->queue();
             } catch (\Exception $e) {
                 $this->logger->error($e->getMessage());
             }
