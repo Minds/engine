@@ -12,7 +12,7 @@
 </p>
 
 <!--QR CODE IMG-->
-<img class="m-mobileAppPreview__qrCode" src="<?= $vars['qrCodeImgSrc']; ?>" style="text-align: center; margin-top: 20px; margin-bottom: 30px; max-width: 200px;" alt="QR Code" />
+<img class="m-mobileAppPreview__qrCode" src="<?= $vars['qrCodeImgSrc']; ?>" style="text-align: center; margin-top: 20px; margin-bottom: 30px; max-width: 200px;" width="200" alt="QR Code" />
 
 <p <?= $emailStylesV2->getStyles(['m-mainContent__paragraph']) ?> >
     3. Preview your own app, as it will appear with your current configuration.
