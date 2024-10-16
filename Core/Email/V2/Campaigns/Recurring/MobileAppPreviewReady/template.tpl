@@ -12,7 +12,7 @@
 </p>
 
 <!--QR CODE IMG-->
-<img style="text-align: center; margin-top: 20px; margin-bottom: 30px; max-width: 200px;" width="200" alt="QR Code" src="<?= $vars['qrCodeImgSrc']; ?>" />
+<img width="200" alt="QR Code"  style="text-align: center; margin-top: 20px; margin-bottom: 30px; max-width: 200px;" src="<?= $vars['qrCodeImgSrc']; ?>" />
 
 <p <?= $emailStylesV2->getStyles(['m-mainContent__paragraph']) ?> >
     3. Preview your own app, as it will appear with your current configuration.
