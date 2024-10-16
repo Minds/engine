@@ -64,7 +64,7 @@ class MultiTenantBootstrapService
             $metadata = $this->metadataExtractor->extract($siteUrl);
 
             $this->handleConfigs(screenshotBlob: $screenshotBlob, metadata: $metadata);
-            $this->handleLogos($siteUrl);
+            $this->handleLogos($siteUrl, $rootUser);
             $this->handleContent(markdownContent: $markdownContent, rootUser: $rootUser);
         } catch (\Exception $e) {
             $this->logger->error("Error during bootstrap process: " . $e->getMessage());
@@ -115,11 +115,12 @@ class MultiTenantBootstrapService
     /**
      * Handle the logo generation.
      * @param string $siteUrl - The URL of the site.
+     * @param User $rootUser - The root user.
      * @return void
      */
-    private function handleLogos(string $siteUrl)
+    private function handleLogos(string $siteUrl, User $rootUser)
     {
-        $this->logoGenerationHandler->handle($siteUrl);
+        $this->logoGenerationHandler->handle($siteUrl, $rootUser);
     }
 
     /**
