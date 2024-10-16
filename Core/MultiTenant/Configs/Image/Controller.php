@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Configs\Image;
 
+use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Core\Config\Config;
 use Minds\Core\MultiTenant\Configs\Enums\MultiTenantConfigImageType;
 use Minds\Exceptions\UserErrorException;
@@ -17,7 +18,8 @@ class Controller
 {
     public function __construct(
         private Manager $manager,
-        private Config $config
+        private Config $config,
+        private readonly PostHogService $postHogService,
     ) {
     }
 
@@ -56,6 +58,10 @@ class Controller
      */
     public function upload(ServerRequest $request): JsonResponse
     {
+        $loggedInUser =  $request->getAttribute('_user');
+
+        $this->postHogService->capture('tenant_assets_update', $loggedInUser);
+
         if (!$type = MultiTenantConfigImageType::tryFrom($_POST['type'])) {
             throw new UserErrorException('A valid type must be provided');
         }
