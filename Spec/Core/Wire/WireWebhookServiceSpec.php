@@ -68,7 +68,7 @@ class WireWebhookServiceSpec extends ObjectBehavior
     {
         $invoice = new Invoice();
         $invoice->subscription = 'sub_id';
-        $invoice->amount_due = 700;
+        $invoice->total_excluding_tax = 700;
         
         $event = new Event();
         $event->type = 'invoice.paid';
