@@ -7,10 +7,12 @@ use Minds\Core\MultiTenant\Bootstrap\Services\Extractors\MetadataExtractor;
 use Minds\Core\MultiTenant\Bootstrap\Services\Extractors\WebsiteIconExtractor;
 use Minds\Core\MultiTenant\Bootstrap\Delegates\UpdateLogosDelegate;
 use Minds\Core\Log\Logger;
+use Minds\Core\MultiTenant\Bootstrap\Delegates\UpdateUserAvatarDelegate;
 use Minds\Core\MultiTenant\Bootstrap\Enums\BootstrapStepEnum;
 use Minds\Core\MultiTenant\Bootstrap\Repositories\BootstrapProgressRepository;
 use Minds\Core\MultiTenant\Bootstrap\Services\Extractors\HorizontalLogoExtractor;
 use Minds\Core\MultiTenant\Bootstrap\Services\Extractors\MobileSplashLogoExtractor;
+use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Helpers\Image as ImageHelpers;
 
@@ -25,6 +27,7 @@ class LogoGenerationHandler
         private HorizontalLogoExtractor $horizontalLogoExtractor,
         private MobileSplashLogoExtractor $mobileSplashLogoExtractor,
         private UpdateLogosDelegate $updateLogosDelegate,
+        private UpdateUserAvatarDelegate $updateUserAvatarDelegate,
         private BootstrapProgressRepository $progressRepository,
         private ImageHelpers $imageHelpers,
         private Logger $logger,
@@ -34,9 +37,10 @@ class LogoGenerationHandler
     /**
      * Handles the generation of logos.
      * @param string $siteUrl - The URL of the website to generate logos from.
+     * @param User $rootUser - The root user.
      * @return void
      */
-    public function handle(string $siteUrl): void
+    public function handle(string $siteUrl, User $rootUser): void
     {
         try {
             $this->logger->info("Extracting logos...");
@@ -63,6 +67,10 @@ class LogoGenerationHandler
                 splashBlob: $splashBlob
             )) {
                 throw new ServerErrorException("Failed to upload all logos");
+            }
+
+            if ($squareLogoBlob) {
+                $this->updateUserAvatar($squareLogoBlob, $rootUser);
             }
 
             $this->progressRepository->updateProgress(BootstrapStepEnum::LOGO_STEP, true);
@@ -161,5 +169,23 @@ class LogoGenerationHandler
             $this->logger->error("Error retrieving splash logo: " . $e->getMessage());
             return null;
         }
+    }
+
+    /**
+     * Updates the user avatar.
+     * @param string $squareLogoBlob - The square logo blob.
+     * @param User $rootUser - The root user.
+     * @throws ServerErrorException - If the user avatar upload fails to update.
+     * @return void
+     */
+    private function updateUserAvatar(string $squareLogoBlob, User $rootUser): void
+    {
+        if (!$this->updateUserAvatarDelegate->onUpdate(
+            user: $rootUser,
+            imageBlob: $squareLogoBlob
+        )) {
+            throw new ServerErrorException("Failed to update user avatar");
+        }
+        $this->logger->info("Updated user avatar");
     }
 }

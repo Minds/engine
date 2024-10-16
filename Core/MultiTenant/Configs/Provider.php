@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Configs;
 
+use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\MultiTenant\Configs\Manager as MultiTenantConfigManager;
@@ -17,7 +18,8 @@ class Provider extends DiProvider
         $this->di->bind(Controllers\Controller::class, function ($di) {
             return new Controllers\Controller(
                 $di->get(Manager::class),
-                $di->get('Logger')
+                $di->get('Logger'),
+                $di->get(PostHogService::class),
             );
         });
         $this->di->bind(Manager::class, function ($di) {
@@ -40,6 +42,7 @@ class Provider extends DiProvider
             return new Image\Controller(
                 $di->get(Image\Manager::class),
                 $di->get(Config::class),
+                $di->get(PostHogService::class),
             );
         });
         $this->di->bind(Image\Manager::class, function ($di) {
