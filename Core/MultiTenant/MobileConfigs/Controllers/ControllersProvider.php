@@ -56,7 +56,8 @@ class ControllersProvider extends Provider
         $this->di->bind(
             MobilePreviewQRCodeController::class,
             fn (Di $di): MobilePreviewQRCodeController => new MobilePreviewQRCodeController(
-                mobileAppPreviewQRCodeService: $di->get(MobileAppPreviewQRCodeService::class)
+                mobileAppPreviewQRCodeService: $di->get(MobileAppPreviewQRCodeService::class),
+                logger: $di->get('Logger')
             )
         );
     }

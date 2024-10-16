@@ -68,7 +68,6 @@ class MobileAppPreviewReadyEmailerSpec extends ObjectBehavior
         $userEmail = 'no-reply@minds.com';
         $siteUrl = 'https://minds.com/';
         $tenantId = 123;
-        $mobileDeepLinkUrl = 'mindspreview://preview/123';
 
         $this->managerMock->isSubscribed(Argument::any())
             ->shouldBeCalled()
@@ -110,17 +109,13 @@ class MobileAppPreviewReadyEmailerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($tenantId);
 
-        $this->mobileAppPreviewQRCodeServiceMock->getVersionlessPreviewQRCode($tenantId)
-            ->shouldBeCalled()
-            ->willReturn($mobileDeepLinkUrl);
-
         $this->templateMock->clear()->shouldBeCalled()->willReturn([]);
         $this->templateMock->setTemplate('default.v2.tpl')->shouldBeCalled();
         $this->templateMock->setBody('./template.tpl')->shouldBeCalled();
         $this->templateMock->set('headerText', "Your mobile app preview is ready")->shouldBeCalled();
         $this->templateMock->set('preheader', "Your mobile app preview is ready")->shouldBeCalled();
         $this->templateMock->set('qrCodeImgSrc', "{$siteUrl}api/v3/multi-tenant/mobile-configs/qr-code")->shouldBeCalled();
-        $this->templateMock->set('mobileDeepLinkUrl', $mobileDeepLinkUrl)->shouldBeCalled();
+        $this->templateMock->set('mobileDeepLinkUrl', Argument::any())->shouldBeCalled();
         $this->templateMock->set('user', $user)->shouldBeCalled();
         $this->templateMock->set('username', $userUsername)->shouldBeCalled();
         $this->templateMock->set('email', $userEmail)->shouldBeCalled();

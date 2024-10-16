@@ -34,6 +34,11 @@ class Routes extends ModuleRoutes
                     Ref::_(Controllers\MobilePreviewQRCodeController::class, 'getQrCode')
                 );
 
+                $route->get(
+                    'qr-code-link',
+                    Ref::_(Controllers\MobilePreviewQRCodeController::class, 'redirectToMobilePreviewDeepLink')
+                );
+
                 // admin routes.
                 $route
                     ->withMiddleware([

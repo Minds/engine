@@ -58,13 +58,6 @@ class MobileAppPreviewReadyEmailer extends EmailCampaign
 
         $trackingQuery = http_build_query($tracking);
 
-        $mobileDeepLinkUrl = $this->mobileAppPreviewQRCodeService->getVersionlessPreviewQRCode($tenantId);
-
-        if (!$mobileDeepLinkUrl) {
-            $this->logger->error('Mobile deep link URL not set');
-            return null;
-        }
-
         $subject = "Your mobile app preview is ready";
 
         $this->template->clear();
@@ -74,7 +67,7 @@ class MobileAppPreviewReadyEmailer extends EmailCampaign
         $this->template->set('headerText', "Your mobile app preview is ready");
         $this->template->set('preheader', "Your mobile app preview is ready");
         $this->template->set('qrCodeImgSrc', "{$siteUrl}api/v3/multi-tenant/mobile-configs/qr-code");
-        $this->template->set('mobileDeepLinkUrl', $mobileDeepLinkUrl);
+        $this->template->set('mobileDeepLinkUrl', "{$siteUrl}api/v3/multi-tenant/mobile-configs/qr-code-link");
         $this->template->set('user', $this->user);
         $this->template->set('username', $this->user->username);
         $this->template->set('email', $this->user->getEmail());
