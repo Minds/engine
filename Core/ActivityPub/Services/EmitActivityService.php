@@ -158,6 +158,14 @@ class EmitActivityService
             return false;
         }
 
+        $disallowInboxes = [
+            'https://freespeechextremist.com/inbox'
+        ];
+
+        if (in_array($inboxUrl, $disallowInboxes, true) === true) {
+            return false;
+        }
+
         $this->logger->info("POST $inboxUrl: Sending");
         try {
             $privateKey = $actor ? $this->manager->getPrivateKey($actor) : $this->manager->getPrivateKeyByUserGuid(0);

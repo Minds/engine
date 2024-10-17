@@ -4,6 +4,7 @@ namespace Minds\Core\ActivityPub\Factories;
 use DateTime;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ServerException;
 use Minds\Core\ActivityPub\Client;
 use Minds\Core\ActivityPub\Helpers\ContentParserBuild;
@@ -59,7 +60,7 @@ class ObjectFactory
             }
         } catch (ConnectException $e) {
             throw new UserErrorException("Could not connect to $uri");
-        } catch (ClientException|ServerException $e) {
+        } catch (ClientException|ServerException|RequestException $e) {
             $code = $e->getCode();
 
             switch ($code) {
