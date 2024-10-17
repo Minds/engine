@@ -159,7 +159,10 @@ class EmitActivityService
         }
 
         $disallowInboxes = [
-            'https://freespeechextremist.com/inbox'
+            'https://freespeechextremist.com/inbox', // Unresponsive
+            'https://bae.st/inbox', // Unresponsive
+            'https://shitposter.club/inbox', // Unresponsive
+            'https://poster.place/inbox', // Unresponsive
         ];
 
         if (in_array($inboxUrl, $disallowInboxes, true) === true) {

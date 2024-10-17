@@ -10,6 +10,7 @@ use Minds\Core\EventStreams\Topics\AbstractTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\EventStreams\UndeliveredEventException;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
+use Minds\Exceptions\NotFoundException;
 use PDOException;
 use Pulsar\Consumer;
 use Pulsar\ConsumerConfiguration;
@@ -124,6 +125,9 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
                 if (call_user_func($callback, $event, $message) === true) {
                     $consumer->acknowledge($message);
                 }
+            } catch (NotFoundException) {
+                // The entity no longer exists, skip
+                $consumer->acknowledge($message);
             } catch (\Exception $e) {
                 $consumer->negativeAcknowledge($message);
                 $this->logger->error("Topic(Consume): Uncaught error: " . $e->getMessage());
