@@ -66,14 +66,14 @@ class TopV2 implements SortingAlgorithm
     public function getFunctionScores(): array
     {
         return [
-            [
-                'filter' => [
-                    'term' => [
-                        'custom_type' => 'video',
-                    ],
-                ],
-                'weight' => 2,
-            ],
+            // [
+            //     'filter' => [
+            //         'term' => [
+            //             'custom_type' => 'video',
+            //         ],
+            //     ],
+            //     'weight' => 2,
+            // ],
             [
                 'field_value_factor' => [
                     'field' => 'votes:up',
