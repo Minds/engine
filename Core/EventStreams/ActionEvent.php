@@ -270,6 +270,7 @@ class ActionEvent implements EventInterface
                 ];
                 break;
             case self::ACTION_UPHELD_REPORT:
+                break;
             case self::ACTION_FEATURED_ENTITY_ADDED:
                 $allowedKeys = [ 'featured_entity_data' ];
                 break;
