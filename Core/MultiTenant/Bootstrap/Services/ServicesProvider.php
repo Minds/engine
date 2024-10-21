@@ -15,6 +15,7 @@ use GuzzleHttp\Client as GuzzleClient;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\MultiTenant\Bootstrap\Clients\ScreenshotOneClient;
 use Minds\Core\MultiTenant\Bootstrap\Delegates\ActivityCreationDelegate;
+use Minds\Core\MultiTenant\Bootstrap\Delegates\ContentGeneratedSocketDelegate;
 use Minds\Core\MultiTenant\Bootstrap\Delegates\UpdateConfigDelegate;
 use Minds\Core\MultiTenant\Bootstrap\Delegates\UpdateLogosDelegate;
 use Minds\Core\MultiTenant\Bootstrap\Delegates\UpdateUserAvatarDelegate;
@@ -120,6 +121,7 @@ class ServicesProvider extends DiProvider
                     contentExtractor: $di->get(ContentExtractor::class),
                     activityCreationDelegate: $di->get(ActivityCreationDelegate::class),
                     progressRepository: $di->get(BootstrapProgressRepository::class),
+                    contentGeneratedSocketDelegate: $di->get(ContentGeneratedSocketDelegate::class),
                     logger: $di->get('Logger')
                 );
             }
