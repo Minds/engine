@@ -13,7 +13,6 @@ use Minds\Core\Pro;
 use Minds\Traits\MagicAttributes;
 use Minds\Core\Di\Di;
 use Minds\Core\Util\BigNumber;
-use Minds\Core\Email\V2\Partials\ProHeader\ProHeader;
 
 class WireSent extends EmailCampaign
 {
@@ -99,15 +98,6 @@ class WireSent extends EmailCampaign
         $this->template->set('preheader', $translator->trans("You've sent a payment on Minds."));
         $this->template->set('tracking', http_build_query($tracking));
         $this->template->set('supportTier', $supportTier);
-
-        /** @var Pro\Settings */
-        $proSettings = $this->proManager->setUser($this->wire->getReceiver())->get();
-        if ($proSettings && $this->proManager->isActive()) {
-            $proHeader = (new ProHeader())
-                ->set('tracking', $tracking)
-                ->setProSettings($proSettings);
-            $this->template->set('custom_header', $proHeader->build());
-        }
 
         $message = new Message();
         $message->setTo($this->user)

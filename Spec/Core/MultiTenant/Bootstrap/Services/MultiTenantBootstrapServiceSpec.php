@@ -11,7 +11,6 @@ use Minds\Core\MultiTenant\Bootstrap\Services\Extractors\MarkdownExtractor;
 use Minds\Core\MultiTenant\Bootstrap\Services\Extractors\MetadataExtractor;
 use Minds\Core\MultiTenant\Bootstrap\Services\Extractors\ScreenshotExtractor;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
-use Minds\Core\MultiTenant\Bootstrap\Delegates\UpdateUserNameDelegate;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
 use Minds\Core\MultiTenant\Bootstrap\Enums\BootstrapStepEnum;
@@ -34,7 +33,6 @@ class MultiTenantBootstrapServiceSpec extends ObjectBehavior
     private $logoGenerationHandlerMock;
     private $configGenerationHandlerMock;
     private $contentGenerationHandlerMock;
-    private $updateUserNameDelegateMock;
     private $entitiesBuilderMock;
     private $loggerMock;
 
@@ -47,7 +45,6 @@ class MultiTenantBootstrapServiceSpec extends ObjectBehavior
         LogoGenerationHandler $logoGenerationHandler,
         ConfigGenerationHandler $configGenerationHandler,
         ContentGenerationHandler $contentGenerationHandler,
-        UpdateUserNameDelegate $updateUserNameDelegate,
         EntitiesBuilder $entitiesBuilder,
         Logger $logger
     ) {
@@ -59,7 +56,6 @@ class MultiTenantBootstrapServiceSpec extends ObjectBehavior
         $this->logoGenerationHandlerMock = $logoGenerationHandler;
         $this->configGenerationHandlerMock = $configGenerationHandler;
         $this->contentGenerationHandlerMock = $contentGenerationHandler;
-        $this->updateUserNameDelegateMock = $updateUserNameDelegate;
         $this->entitiesBuilderMock = $entitiesBuilder;
         $this->loggerMock = $logger;
 
@@ -72,7 +68,6 @@ class MultiTenantBootstrapServiceSpec extends ObjectBehavior
             $logoGenerationHandler,
             $configGenerationHandler,
             $contentGenerationHandler,
-            $updateUserNameDelegate,
             $entitiesBuilder,
             $logger
         );
@@ -115,7 +110,7 @@ class MultiTenantBootstrapServiceSpec extends ObjectBehavior
             siteName: $publisher
         )->shouldBeCalled();
 
-        $this->logoGenerationHandlerMock->handle($siteUrl)->shouldBeCalled();
+        $this->logoGenerationHandlerMock->handle($siteUrl, $rootUser)->shouldBeCalled();
         $this->contentGenerationHandlerMock->handle(
             markdownContent: 'markdown-content',
             rootUser: $rootUser
@@ -155,16 +150,13 @@ class MultiTenantBootstrapServiceSpec extends ObjectBehavior
         $this->markdownExtractorMock->extract($siteUrl)->willReturn('markdown-content');
         $this->metadataExtractorMock->extract($siteUrl)->willReturn($metadata);
 
-        $this->updateUserNameDelegateMock->onUpdate($rootUser, 'Minds')
-            ->shouldBeCalled();
-
         $this->configGenerationHandlerMock->handle(
             screenshotBlob: 'screenshot-blob',
             description: $description,
             siteName: $publisher
         )->shouldBeCalled();
 
-        $this->logoGenerationHandlerMock->handle($siteUrl)->shouldBeCalled();
+        $this->logoGenerationHandlerMock->handle($siteUrl, $rootUser)->shouldBeCalled();
         $this->contentGenerationHandlerMock->handle(
             markdownContent: 'markdown-content',
             rootUser: $rootUser

@@ -34,7 +34,12 @@ class ManagerV2
 
         if (!$customerId) {
             // TODO: add Minds user guid to stripe metadata
-            $stripeCustomer = $this->stripeClient->customers->create([]);
+            $stripeCustomer = $this->stripeClient->customers->create([
+                'email' => $user->getEmail(),
+                'metadata' => [
+                    'user_guid' => $user->getGuid(),
+                ]
+            ]);
 
             $this->lookup->set("{$user->getGuid()}:payments", [
                 'customer_id' => (string) $stripeCustomer->id

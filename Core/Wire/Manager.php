@@ -384,14 +384,6 @@ class Manager
                     $paymentMethod = GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID;
                 }
 
-                // Determine if a trial is eligible
-                // If the reciever is Minds+ channel and the sender has never had plus (no plus_expires field)
-                // or they haven't had plus in 90 days then they will have a trial.
-                $canHavePlusTrial = !$this->sender->plus_expires || $this->sender->plus_expires <= strtotime(self::TRIAL_THRESHOLD_DAYS . ' days ago');
-                if ($paymentMethod === "usd" && $this->receiver->getGuid() == $this->config->get('plus')['handler'] && $canHavePlusTrial) { // No trial provided if purchased via gift card credits
-                    $wire->setTrialDays(self::TRIAL_DAYS);
-                }
-
                 if ($paymentMethod === "usd") {
                     $intent = $this->processStripeWirePayment($wire);
 

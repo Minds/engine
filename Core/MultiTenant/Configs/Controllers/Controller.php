@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Configs\Controllers;
 
+use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Core\Log\Logger;
 use Minds\Core\MultiTenant\Configs\Models\MultiTenantConfig;
 use Minds\Core\MultiTenant\Configs\Manager;
@@ -22,7 +23,8 @@ class Controller
 {
     public function __construct(
         private readonly Manager $manager,
-        private readonly Logger $logger
+        private readonly Logger $logger,
+        private readonly PostHogService $postHogService,
     ) {
     }
 
@@ -50,6 +52,8 @@ class Controller
         MultiTenantConfigInput $multiTenantConfigInput,
         #[InjectUser] User $loggedInUser // Do not add in docblock as it will break GraphQL
     ): bool {
+        $this->postHogService->capture('tenant_configs_update', $loggedInUser);
+
         return $this->manager->upsertConfigs(
             siteName: $multiTenantConfigInput->siteName,
             colorScheme: $multiTenantConfigInput->colorScheme,

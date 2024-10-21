@@ -2,6 +2,7 @@
 namespace Minds\Core\Hashtags\Trending;
 
 use Minds\Common\Repository\Response;
+use Minds\Core\Admin\Services\HashtagExclusionService;
 use Minds\Core\Config\Config as ConfigConfig;
 use Minds\Core\Di\Di;
 use Minds\Interfaces\BasicCacheInterface;
@@ -16,10 +17,12 @@ class Manager implements ManagerInterface
     public function __construct(
         private ?Repository $repository = null,
         private ?BasicCacheInterface $cache = null,
+        private ?HashtagExclusionService $hashtagExclusionService = null,
         private ?ConfigConfig $config = null
     ) {
         $this->repository = $repository ?? Di::_()->get('Hashtags\Trending\Repository');
         $this->cache = $cache ?? Di::_()->get('Hashtags\Trending\Cache');
+        $this->hashtagExclusionService ??= Di::_()->get(HashtagExclusionService::class);
         $this->config = $config ?? Di::_()->get('Config');
     }
 
@@ -36,8 +39,9 @@ class Manager implements ManagerInterface
             return $cached;
         }
 
-        $previouslyTrending = $this->getPreviouslyTrending();
-        $dailyTrending = $this->getDailyTrending($previouslyTrending);
+        $adminExcludedTags = $this->getAdminExcludedTags();
+        $previouslyTrending = $this->getPreviouslyTrending($adminExcludedTags);
+        $dailyTrending = $this->getDailyTrending([...$previouslyTrending, ...$adminExcludedTags]);
 
         $currentlyTrending = $this->mapToLegacyTagFormat($dailyTrending);
 
@@ -48,9 +52,10 @@ class Manager implements ManagerInterface
 
     /**
      * Gets array of previous days trending hashtags (between 24 and 48 hours ago).
+     * @param array $excludeTags - array of tags to exclude.
      * @return array - array of tag names. e.g. ['hashtag1', 'hashtag2'].
      */
-    protected function getPreviouslyTrending(): array
+    protected function getPreviouslyTrending(array $excludeTags = []): array
     {
         $from = strtotime('-48 hours', time());
         $to = strtotime('-24 hours', time());
@@ -68,6 +73,7 @@ class Manager implements ManagerInterface
         $response = $this->repository->getList([
             'from' => $from,
             'to' => $to,
+            'exclude_tags' => $excludeTags,
         ]);
 
         return $this->getTagNameArrayFromResponse($response);
@@ -129,5 +135,17 @@ class Manager implements ManagerInterface
             $object['type'] = 'trending';
             return $object;
         }, $tags);
+    }
+
+    /**
+     * Gets admin excluded tags.
+     * @return array - array of tags.
+     */
+    private function getAdminExcludedTags(): array
+    {
+        return array_map(
+            fn ($exclusion) => $exclusion->tag,
+            iterator_to_array($this->hashtagExclusionService->getExcludedHashtags()) ?? []
+        );
     }
 }

@@ -74,4 +74,17 @@ class AvatarServiceSpec extends ObjectBehavior
         $this->withUser($user)->createFromFile('/tmp/fake-file-path')
             ->shouldBe(true);
     }
+
+    public function it_should_create_avatar_from_blob()
+    {
+        $user = new User();
+        $user->guid = '123';
+        $blob = 'fake-blob';
+
+        $this->entitiesDbMock->insert('123', Argument::any())
+            ->willReturn(true);
+
+        $this->withUser($user)->createFromBlob($blob)
+            ->shouldBe(true);
+    }
 }

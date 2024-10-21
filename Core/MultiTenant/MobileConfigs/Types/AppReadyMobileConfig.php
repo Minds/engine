@@ -16,6 +16,7 @@ class AppReadyMobileConfig
     public function __construct(
         #[Field(name: "APP_NAME")] public readonly string                $appName,
         #[Field(name: "TENANT_ID")] public readonly int                  $tenantId,
+        #[Field(name: "PRODUCTION_APP_VERSION")] public readonly ?string $productionAppVersion = null, // This is the production app version
         #[Field(name: "APP_HOST")] public readonly string                $appHost, // this is the tenant's domain
         #[Field(name: "APP_SPLASH_RESIZE")] public readonly string       $appSplashResize,
         #[Field(name: "ACCENT_COLOR_LIGHT")] public readonly string      $accentColorLight,

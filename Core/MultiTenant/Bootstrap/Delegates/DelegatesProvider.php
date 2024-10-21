@@ -49,17 +49,6 @@ class DelegatesProvider extends DiProvider
         );
 
         $this->di->bind(
-            UpdateUserNameDelegate::class,
-            function (Di $di): UpdateUserNameDelegate {
-                return new UpdateUserNameDelegate(
-                    saveAction: new Save(),
-                    logger: $di->get('Logger'),
-                    acl: $di->get(ACL::class)
-                );
-            }
-        );
-
-        $this->di->bind(
             UpdateLogosDelegate::class,
             function (Di $di): UpdateLogosDelegate {
                 return new UpdateLogosDelegate(
@@ -68,6 +57,18 @@ class DelegatesProvider extends DiProvider
                     horizontalLogoExtractor: $di->get(HorizontalLogoExtractor::class),
                     mobileSplashLogoExtractor: $di->get(MobileSplashLogoExtractor::class),
                     logger: $di->get('Logger')
+                );
+            }
+        );
+
+        $this->di->bind(
+            UpdateUserAvatarDelegate::class,
+            function (Di $di): UpdateUserAvatarDelegate {
+                return new UpdateUserAvatarDelegate(
+                    avatarService: $di->get('Channels\AvatarService'),
+                    logger: $di->get('Logger'),
+                    saveAction: new Save(),
+                    acl: $di->get(ACL::class)
                 );
             }
         );
