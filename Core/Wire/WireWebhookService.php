@@ -1,12 +1,13 @@
 <?php
 namespace Minds\Core\Wire;
 
+use Minds\Common\SystemUser;
 use Minds\Core\Config\Config;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService;
 use Minds\Core\Payments\Stripe\Webhooks\Enums\WebhookEventTypeEnum;
-use Minds\Core\Payments\Stripe\Customers\ManagerV2 as CustomerManager;
+use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
 use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
 use Minds\Core\Security\ACL;
 use Minds\Entities\User;
@@ -23,6 +24,7 @@ class WireWebhookService
         private Config $config,
         private ACL $acl,
         private StripeApiKeyConfig $stripeApiKeyConfig,
+        private GiftCardsManager $giftCardsManager,
     ) {
         
     }
@@ -66,6 +68,7 @@ class WireWebhookService
         $plusProductId = $this->config->get('upgrades')['plus'][$isTestMode ? 'stripe_product_id_test' : 'stripe_product_id'];
         $proProductId = $this->config->get('upgrades')['pro'][$isTestMode ? 'stripe_product_id_test' : 'stripe_product_id'];
 
+        $sender = null;
         switch ($product) {
             case $plusProductId:
                 $user->setPlusExpires($stripeSubscription->current_period_end);
@@ -78,6 +81,8 @@ class WireWebhookService
                         'plus_expires',
                     ])
                     ->save();
+
+                $sender = $this->entitiesBuilder->single($this->config->get('plus')['handler']);
                 break;
             case $proProductId:
                 $user->setProExpires($stripeSubscription->current_period_end);
@@ -90,7 +95,21 @@ class WireWebhookService
                         'pro_expires',
                     ])
                     ->save();
+
+                $sender = $this->entitiesBuilder->single($this->config->get('pro')['handler']);
                 break;
+            default:
+                return;
+        }
+
+        // If invoice is positive (ie. not a trial), issue a gift card
+        if ($invoice->total_excluding_tax > 0) {
+            $this->giftCardsManager->issueMindsPlusAndProGiftCards(
+                sender: $sender ?? new SystemUser(),
+                recipient: $user,
+                amount: $invoice->total_excluding_tax / 100,
+                expiryTimestamp: $stripeSubscription->current_period_end
+            );
         }
     }
 }

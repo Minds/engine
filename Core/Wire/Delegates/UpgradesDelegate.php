@@ -10,7 +10,6 @@ use Minds\Common\SystemUser;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
-use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
 use Minds\Core\Plus\Subscription as PlusSubscription;
 use Minds\Core\Pro\Manager as ProManager;
 use Minds\Core\Wire\Wire;
@@ -37,12 +36,10 @@ class UpgradesDelegate
         $entitiesBuilder = null,
         $proManager = null,
         $logger = null,
-        private ?GiftCardsManager $giftCardsManager = null,
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->proManager = $proManager ?? Di::_()->get('Pro\Manager');
-        $this->giftCardsManager ??= Di::_()->get(GiftCardsManager::class);
         $this->logger = $logger ?? Di::_()->get('Logger');
         $this->save = new Save();
     }
@@ -72,21 +69,6 @@ class UpgradesDelegate
         }
 
         $wireType = $result();
-
-        $sender = match ($wireType) {
-            "plus" => $this->entitiesBuilder->single($this->config->get('plus')['handler']),
-            "pro" => $this->entitiesBuilder->single($this->config->get('pro')['handler']),
-            default => null
-        };
-
-        if ($wire->getMethod() === 'usd' && !$wire->getTrialDays()) {
-            $this->giftCardsManager->issueMindsPlusAndProGiftCards(
-                sender: $sender ?? new SystemUser(),
-                recipient: $wire->getSender(),
-                amount: $wire->getAmount() / 100,
-                expiryTimestamp: $wireType === "plus" ? $wire->getSender()->getPlusExpires() : $wire->getSender()->getProExpires()
-            );
-        }
 
         return $wire; // Not expected
     }

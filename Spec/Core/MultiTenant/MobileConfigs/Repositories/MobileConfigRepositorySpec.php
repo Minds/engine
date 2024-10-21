@@ -76,6 +76,7 @@ class MobileConfigRepositorySpec extends ObjectBehavior
         $welcomeScreenLogoType = MobileWelcomeScreenLogoTypeEnum::HORIZONTAL;
         $previewStatus = null;
         $appVersion = '2';
+        $productionAppVersion = '1';
         $appTrackingMessageEnabled = true;
         $appTrackingMessage = 'message';
 
@@ -93,6 +94,7 @@ class MobileConfigRepositorySpec extends ObjectBehavior
             'welcome_screen_logo_type' => $welcomeScreenLogoType->value,
             'preview_status' => null,
             'preview_last_updated_timestamp' => null,
+            'production_app_version' => $productionAppVersion,
             'app_version' => $appVersion,
             'app_tracking_message_enabled' => 1,
             'app_tracking_message' => $appTrackingMessage
@@ -105,6 +107,7 @@ class MobileConfigRepositorySpec extends ObjectBehavior
             'welcome_screen_logo_type' => $welcomeScreenLogoType->value,
             'preview_status' => new RawExp('preview_status'),
             'preview_last_updated_timestamp' => null,
+            'production_app_version' => $productionAppVersion,
             'app_version' => $appVersion,
             'app_tracking_message_enabled' => 1,
             'app_tracking_message' => $appTrackingMessage
@@ -122,6 +125,7 @@ class MobileConfigRepositorySpec extends ObjectBehavior
             $welcomeScreenLogoType,
             $previewStatus,
             $appVersion,
+            $productionAppVersion,
             $appTrackingMessageEnabled,
             $appTrackingMessage
         );
@@ -162,6 +166,7 @@ class MobileConfigRepositorySpec extends ObjectBehavior
                 'welcome_screen_logo_type' => MobileWelcomeScreenLogoTypeEnum::SQUARE->value,
                 'preview_status' => MobilePreviewStatusEnum::NO_PREVIEW->value,
                 'preview_last_updated_timestamp' => null,
+                'production_app_version' => '1',
                 'app_version' => '2',
                 'app_tracking_message_enabled' => 1,
                 'app_tracking_message' => 'message',

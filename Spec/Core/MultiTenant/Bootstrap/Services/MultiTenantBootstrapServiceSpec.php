@@ -110,7 +110,7 @@ class MultiTenantBootstrapServiceSpec extends ObjectBehavior
             siteName: $publisher
         )->shouldBeCalled();
 
-        $this->logoGenerationHandlerMock->handle($siteUrl)->shouldBeCalled();
+        $this->logoGenerationHandlerMock->handle($siteUrl, $rootUser)->shouldBeCalled();
         $this->contentGenerationHandlerMock->handle(
             markdownContent: 'markdown-content',
             rootUser: $rootUser
@@ -156,7 +156,7 @@ class MultiTenantBootstrapServiceSpec extends ObjectBehavior
             siteName: $publisher
         )->shouldBeCalled();
 
-        $this->logoGenerationHandlerMock->handle($siteUrl)->shouldBeCalled();
+        $this->logoGenerationHandlerMock->handle($siteUrl, $rootUser)->shouldBeCalled();
         $this->contentGenerationHandlerMock->handle(
             markdownContent: 'markdown-content',
             rootUser: $rootUser
