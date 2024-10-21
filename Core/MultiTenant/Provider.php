@@ -24,6 +24,9 @@ class Provider extends DiProvider
         ####### Repositories #######
         (new Repositories\RepositoriesProvider())->register();
 
+        ####### Delegates #######
+        (new Delegates\DelegatesProvider())->register();
+
         ####### Types Factories #######
         (new Types\Factories\FactoriesProvider())->register();
 

@@ -5,6 +5,7 @@ namespace Minds\Core\MultiTenant\Services;
 
 use Minds\Core\Config\Config;
 use Minds\Core\GraphQL\Types\PageInfo;
+use Minds\Core\MultiTenant\Delegates\FeaturedEntityAddedDelegate;
 use Minds\Core\MultiTenant\Enums\FeaturedEntityTypeEnum;
 use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Core\MultiTenant\Repositories\FeaturedEntitiesRepository;
@@ -12,6 +13,7 @@ use Minds\Core\MultiTenant\Types\FeaturedEntity;
 use Minds\Core\MultiTenant\Types\FeaturedEntityConnection;
 use Minds\Core\MultiTenant\Types\FeaturedEntityEdge;
 use Minds\Core\MultiTenant\Types\FeaturedUser;
+use Minds\Entities\User;
 
 /**
  * Service for featured entities.
@@ -20,6 +22,7 @@ class FeaturedEntityService
 {
     public function __construct(
         private FeaturedEntitiesRepository $repository,
+        private FeaturedEntityAddedDelegate $featuredEntityAddedDelegate,
         private Config $config
     ) {
     }
@@ -66,11 +69,18 @@ class FeaturedEntityService
     /**
      * Stores featured entity.
      * @param FeaturedEntity $featuredEntity - featured entity to store.
+     * @param User $loggedInUser - the user triggering the action.
      * @return FeaturedEntity - stored featured entity.
      */
-    public function storeFeaturedEntity(FeaturedEntity $featuredEntity): FeaturedEntity
+    public function storeFeaturedEntity(FeaturedEntity $featuredEntity, User $loggedInUser = null): FeaturedEntity
     {
-        return $this->repository->upsertFeaturedEntity($featuredEntity);
+        $featuredEntity = $this->repository->upsertFeaturedEntity($featuredEntity);
+        
+        if ((bool) $featuredEntity) {
+            $this->featuredEntityAddedDelegate->onAdd($featuredEntity, $loggedInUser);
+        }
+
+        return $featuredEntity;
     }
 
     /**
