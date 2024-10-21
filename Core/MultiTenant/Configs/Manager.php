@@ -64,6 +64,7 @@ class Manager
      * @param ?string $loggedInLandingPageIdWeb - logged in landing page ID for web.
      * @param ?string $loggedInLandingPageIdMobile - logged in landing page ID for mobile.
      * @param ?bool $isNonProfit - whether the tenant is a non-profit.
+     * @param ?bool $membersOnlyModeEnabled - whether the tenant enforces membership for logged in users.
      * @param ?int $lastCacheTimestamp - last cache timestamp.
      * @return bool - true on success.
      */
@@ -83,7 +84,8 @@ class Manager
         ?string $loggedInLandingPageIdWeb = null,
         ?string $loggedInLandingPageIdMobile = null,
         ?bool $isNonProfit = null,
-        ?int $lastCacheTimestamp = null
+        ?bool $membersOnlyModeEnabled = null,
+        ?int $lastCacheTimestamp = null,
     ): bool {
         $tenantId = $this->config->get('tenant_id');
 
@@ -104,6 +106,7 @@ class Manager
             loggedInLandingPageIdWeb: $loggedInLandingPageIdWeb,
             loggedInLandingPageIdMobile: $loggedInLandingPageIdMobile,
             isNonProfit: $isNonProfit,
+            membersOnlyModeEnabled: $membersOnlyModeEnabled,
             lastCacheTimestamp: $lastCacheTimestamp
         );
 

@@ -92,6 +92,7 @@ class Repository extends AbstractRepository
                 'logged_in_landing_page_id_web',
                 'logged_in_landing_page_id_mobile',
                 'is_non_profit',
+                'members_only_mode_enabled',
                 'last_cache_timestamp',
                 'updated_timestamp',
                 'nsfw_enabled',
@@ -123,6 +124,7 @@ class Repository extends AbstractRepository
         $loggedInLandingPageIdWeb = $row['logged_in_landing_page_id_web'] ?? null;
         $loggedInLandingPageIdMobile = $row['logged_in_landing_page_id_mobile'] ?? null;
         $isNonProfit = $row['is_non_profit'] ?? false;
+        $membersOnlyModeEnabled = $row['members_only_mode_enabled'] ?? false;
         $updatedTimestamp = $row['updated_timestamp'] ?? null;
         $lastCacheTimestamp = $row['last_cache_timestamp'] ?? null;
         $nsfwEnabled = $row['nsfw_enabled'] ?? true;
@@ -153,6 +155,7 @@ class Repository extends AbstractRepository
                 loggedInLandingPageIdWeb: $loggedInLandingPageIdWeb,
                 loggedInLandingPageIdMobile: $loggedInLandingPageIdMobile,
                 isNonProfit: $isNonProfit,
+                membersOnlyModeEnabled: $membersOnlyModeEnabled,
                 updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null,
                 lastCacheTimestamp: $lastCacheTimestamp ? strtotime($lastCacheTimestamp) : null,
                 bloomerangApiKey: $bloomerangApiKey,

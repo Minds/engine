@@ -32,7 +32,8 @@ class AppReadyMobileConfig
         #[Field(name: 'APP_ANDROID_PACKAGE')] public readonly ?string    $appAndroidPackage = null,
         #[Field(name: 'APP_TRACKING_MESSAGE_ENABLED')] public ?bool      $appTrackingMessageEnabled = null,
         #[Field(name: 'APP_TRACKING_MESSAGE')] public ?string            $appTrackingMessage = null,
-        #[Field(name: 'IS_NON_PROFIT')] public ?bool                     $isNonProfit = null
+        #[Field(name: 'IS_NON_PROFIT')] public ?bool                     $isNonProfit = null,
+        #[Field(name: 'MEMBERS_ONLY_MODE_ENABLED')] public ?bool         $membersOnlyModeEnabled = null,
     ) {
     }
 

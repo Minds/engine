@@ -209,6 +209,11 @@ class Defaults
         (new Core\Chat\Events\Events(
             eventsDispatcher: Di::_()->get('EventsDispatcher'),
         ))->register();
+
+        // Config Events
+        (new Core\Config\Events\Events(
+            eventsDispatcher: Di::_()->get('EventsDispatcher'),
+        ))->register();
     }
 
     public static function _()

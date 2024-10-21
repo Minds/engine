@@ -21,6 +21,7 @@ use Minds\Core\Payments\Stripe\CustomerPortal\Services\CustomerPortalService as 
 use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService as StripeSubscriptionsService;
 use Minds\Core\Payments\Stripe\Webhooks\Services\SubscriptionsWebhookService;
 use Minds\Core\Groups\V2\Membership\Manager as GroupMembershipService;
+use Minds\Core\Security\Rbac\Services\RolesService;
 
 class ServicesProvider extends Provider
 {
@@ -101,6 +102,17 @@ class ServicesProvider extends Provider
                 config: $di->get(Config::class),
                 readerService: $di->get(SiteMembershipReaderService::class),
                 siteMembershipSubscriptionsService: $di->get(SiteMembershipSubscriptionsService::class),
+                logger: $di->get('Logger'),
+            )
+        );
+
+        $this->di->bind(
+            SiteMembershipOnlyModeService::class,
+            fn (Di $di): SiteMembershipOnlyModeService => new SiteMembershipOnlyModeService(
+                siteMembershipRepository: $di->get(SiteMembershipRepository::class),
+                siteMembershipSubscriptionsService: $di->get(SiteMembershipSubscriptionsService::class),
+                rolesService: $di->get(RolesService::class),
+                config: $di->get(Config::class),
                 logger: $di->get('Logger'),
             )
         );

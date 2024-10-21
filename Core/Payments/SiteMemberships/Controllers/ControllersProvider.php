@@ -10,6 +10,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services\PaywalledEntityService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipBatchService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipManagementService;
+use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipOnlyModeService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipReaderService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipSubscriptionsManagementService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipSubscriptionsService;
@@ -64,6 +65,13 @@ class ControllersProvider extends Provider
             SiteMembershipBatchPsrController::class,
             fn (Di $di) => new SiteMembershipBatchPsrController(
                 batchService: $di->get(SiteMembershipBatchService::class)
+            ),
+        );
+
+        $this->di->bind(
+            SiteMembershipOnlyModeController::class,
+            fn (Di $di) => new SiteMembershipOnlyModeController(
+                siteMembershipOnlyModeService: $di->get(SiteMembershipOnlyModeService::class)
             ),
         );
     }

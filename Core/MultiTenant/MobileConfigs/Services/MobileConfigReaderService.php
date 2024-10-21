@@ -61,6 +61,7 @@ class MobileConfigReaderService
             appTrackingMessageEnabled: $mobileConfig->appTrackingMessageEnabled,
             appTrackingMessage: $mobileConfig->appTrackingMessage,
             isNonProfit: $tenant?->config?->isNonProfit ?? false,
+            membersOnlyModeEnabled: $tenant?->config?->membersOnlyModeEnabled ?? false
         );
 
         $this->multiTenantBootService->resetRootConfigs();

@@ -70,6 +70,7 @@ class RepositorySpec extends ObjectBehavior
         $loggedInLandingPageIdWeb = 'newsfeed';
         $loggedInLandingPageIdMobile = 'explore';
         $isNonProfit = true;
+        $membersOnlyModeEnabled = true;
         $updatedTimestamp = date('c', time());
 
         $this->mysqlMasterMock->prepare(Argument::any())
@@ -102,6 +103,7 @@ class RepositorySpec extends ObjectBehavior
                 'logged_in_landing_page_id_web' => $loggedInLandingPageIdWeb,
                 'logged_in_landing_page_id_mobile' => $loggedInLandingPageIdMobile,
                 'is_non_profit' => $isNonProfit,
+                'members_only_mode_enabled' => $membersOnlyModeEnabled,
                 'updated_timestamp' => $updatedTimestamp,
             ]);
 
@@ -122,6 +124,7 @@ class RepositorySpec extends ObjectBehavior
             loggedInLandingPageIdWeb: $loggedInLandingPageIdWeb,
             loggedInLandingPageIdMobile: $loggedInLandingPageIdMobile,
             isNonProfit: $isNonProfit,
+            membersOnlyModeEnabled: $membersOnlyModeEnabled,
             updatedTimestamp: strtotime($updatedTimestamp)
         ));
     }
@@ -167,7 +170,7 @@ class RepositorySpec extends ObjectBehavior
         $loggedInLandingPageIdWeb = 'newsfeed';
         $loggedInLandingPageIdMobile = 'explore';
         $isNonProfit = true;
-
+        $membersOnlyModeEnabled = true;
         $this->mysqlMasterMock->prepare(Argument::any())
             ->willReturn($statement);
 
@@ -187,6 +190,7 @@ class RepositorySpec extends ObjectBehavior
             'logged_in_landing_page_id_web' => $loggedInLandingPageIdWeb,
             'logged_in_landing_page_id_mobile' => $loggedInLandingPageIdMobile,
             'is_non_profit' => $isNonProfit,
+            'members_only_mode_enabled' => $membersOnlyModeEnabled,
         ])->shouldBeCalled();
 
         $statement->execute()
@@ -208,7 +212,8 @@ class RepositorySpec extends ObjectBehavior
             welcomeEmailEnabled: $welcomeEmailEnabled,
             loggedInLandingPageIdWeb: $loggedInLandingPageIdWeb,
             loggedInLandingPageIdMobile: $loggedInLandingPageIdMobile,
-            isNonProfit: $isNonProfit
+            isNonProfit: $isNonProfit,
+            membersOnlyModeEnabled: $membersOnlyModeEnabled,
         )->shouldBe(true);
     }
 }

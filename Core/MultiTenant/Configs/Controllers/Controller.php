@@ -69,6 +69,7 @@ class Controller
             welcomeEmailEnabled: $multiTenantConfigInput->welcomeEmailEnabled,
             loggedInLandingPageIdWeb: $multiTenantConfigInput->loggedInLandingPageIdWeb,
             loggedInLandingPageIdMobile: $multiTenantConfigInput->loggedInLandingPageIdMobile,
+            membersOnlyModeEnabled: $multiTenantConfigInput->membersOnlyModeEnabled,
             isNonProfit: $multiTenantConfigInput->isNonProfit,
         );
     }

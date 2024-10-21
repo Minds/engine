@@ -61,6 +61,7 @@ class Repository extends AbstractRepository
             loggedInLandingPageIdWeb: $row['logged_in_landing_page_id_web'] ?? null,
             loggedInLandingPageIdMobile: $row['logged_in_landing_page_id_mobile'] ?? null,
             isNonProfit: (bool) $row['is_non_profit'] ?? false,
+            membersOnlyModeEnabled: (bool) $row['members_only_mode_enabled'] ?? false,
             bloomerangApiKey: $row['bloomerang_api_key'] ?? null,
             lastCacheTimestamp: isset($row['last_cache_timestamp']) ? strtotime($row['last_cache_timestamp']) : null,
             updatedTimestamp: isset($row['updated_timestamp']) ? strtotime($row['updated_timestamp']) : null
@@ -87,6 +88,7 @@ class Repository extends AbstractRepository
      * @param ?string $loggedInLandingPageIdMobile - logged in landing page ID for mobile.
      * @param ?bool $isNonProfit - whether the tenant is a non-profit.
      * @param ?int $lastCacheTimestamp - timestamp of last caching.
+     * @param ?bool $membersOnlyModeEnabled - whether the tenant enforces membership for logged in users.
      * @return bool - true on success.
      */
     public function upsert(
@@ -106,6 +108,7 @@ class Repository extends AbstractRepository
         ?string $loggedInLandingPageIdWeb = null,
         ?string $loggedInLandingPageIdMobile = null,
         ?bool $isNonProfit = null,
+        ?bool $membersOnlyModeEnabled = null,
         ?int $lastCacheTimestamp = null
     ): bool {
         $boundValues = ['tenant_id' => $tenantId];
@@ -190,6 +193,11 @@ class Repository extends AbstractRepository
         if ($isNonProfit !== null) {
             $rawValues['is_non_profit'] = new RawExp(':is_non_profit');
             $boundValues['is_non_profit'] = $isNonProfit;
+        }
+
+        if ($membersOnlyModeEnabled !== null) {
+            $rawValues['members_only_mode_enabled'] = new RawExp(':members_only_mode_enabled');
+            $boundValues['members_only_mode_enabled'] = $membersOnlyModeEnabled;
         }
 
         $query = $this->mysqlClientWriterHandler

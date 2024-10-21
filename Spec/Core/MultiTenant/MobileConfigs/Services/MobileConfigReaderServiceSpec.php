@@ -104,6 +104,7 @@ class MobileConfigReaderServiceSpec extends ObjectBehavior
         $response->apiUrl->shouldBe($siteUrl);
         $response->appTrackingMessage->shouldBe(MobileConfig::DEFAULT_APP_TRACKING_MESSAGE);
         $response->isNonProfit->shouldBe(true);
+        $response->membersOnlyModeEnabled->shouldBe(false);
 
         $imageTypes = array_map(fn (MobileConfigImageTypeEnum $imageType): string => $imageType->value, MobileConfigImageTypeEnum::cases());
 

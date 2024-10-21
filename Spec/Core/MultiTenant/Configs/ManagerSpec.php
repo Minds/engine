@@ -128,6 +128,7 @@ class ManagerSpec extends ObjectBehavior
         $loggedInLandingPageIdWeb = 'newsfeed';
         $loggedInLandingPageIdMobile = 'explore';
         $isNonProfit = true;
+        $membersOnlyModeEnabled = true;
 
         $this->config->get('tenant_id')
             ->shouldBeCalled()
@@ -150,6 +151,7 @@ class ManagerSpec extends ObjectBehavior
             $loggedInLandingPageIdWeb,
             $loggedInLandingPageIdMobile,
             $isNonProfit,
+            $membersOnlyModeEnabled,
             $lastCacheTimestamp
         )
             ->shouldBeCalled()
@@ -178,6 +180,7 @@ class ManagerSpec extends ObjectBehavior
             $loggedInLandingPageIdWeb,
             $loggedInLandingPageIdMobile,
             $isNonProfit,
+            $membersOnlyModeEnabled,
             $lastCacheTimestamp
         )->shouldBe($result);
     }
@@ -202,6 +205,7 @@ class ManagerSpec extends ObjectBehavior
         $loggedInLandingPageIdMobile = 'explore';
         $welcomeEmailEnabled = true;
         $isNonProfit = true;
+        $membersOnlyModeEnabled = true;
         $lastCacheTimestamp = time();
 
         $this->config->get('tenant_id')
@@ -225,6 +229,7 @@ class ManagerSpec extends ObjectBehavior
             loggedInLandingPageIdWeb: $loggedInLandingPageIdWeb,
             loggedInLandingPageIdMobile: $loggedInLandingPageIdMobile,
             isNonProfit: $isNonProfit,
+            membersOnlyModeEnabled: $membersOnlyModeEnabled,
             lastCacheTimestamp: $lastCacheTimestamp
         )
             ->shouldBeCalled()
@@ -252,6 +257,7 @@ class ManagerSpec extends ObjectBehavior
             $loggedInLandingPageIdWeb,
             $loggedInLandingPageIdMobile,
             $isNonProfit,
+            $membersOnlyModeEnabled,
             $lastCacheTimestamp
         )->shouldBe($result);
     }

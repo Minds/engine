@@ -1204,3 +1204,7 @@ CREATE TABLE IF NOT EXISTS minds_tenant_bootstrap_progress (
 ALTER TABLE minds_tenant_mobile_configs
     ADD COLUMN production_app_version varchar(48) COMMENT "Version of the app in production" DEFAULT NULL
     AFTER app_version;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD members_only_mode_enabled boolean DEFAULT false
+    AFTER is_non_profit;

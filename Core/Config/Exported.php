@@ -8,7 +8,6 @@
 
 namespace Minds\Core\Config;
 
-use Exception;
 use Minds\Api\Exportable;
 use Minds\Core\Analytics\PostHog\PostHogConfig;
 use Minds\Core\Analytics\PostHog\PostHogService;
@@ -17,12 +16,12 @@ use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Custom\Navigation\CustomNavigationService;
 use Minds\Core\Chat\Services\ReceiptService;
 use Minds\Core\Di\Di;
+use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Experiments\LegacyGrowthBook;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\I18n\Manager as I18nManager;
 use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
 use Minds\Core\MultiTenant\Models\Tenant;
-use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRepository;
 use Minds\Core\Rewards\Contributions\ContributionValues;
 use Minds\Core\Security\Rbac\Services\PermissionIntentsService;
 use Minds\Core\Security\Rbac\Services\RolesService;
@@ -64,11 +63,11 @@ class Exported
         $blockchain = null,
         private ?ExperimentsManager $experimentsManager = null,
         private ?RolesService $rolesService = null,
-        private ?SiteMembershipRepository $siteMembershipRepository = null,
         private ?CustomNavigationService $customNavigationService = null,
         private ?ReceiptService $chatReceiptsService = null,
         private ?PostHogConfig $postHogConfig = null,
-        private ?PermissionIntentsService $permissionIntentsService = null
+        private ?PermissionIntentsService $permissionIntentsService = null,
+        private ?EventsDispatcher $eventsDispatcher = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->thirdPartyNetworks = $thirdPartyNetworks ?: Di::_()->get('ThirdPartyNetworks\Manager');
@@ -76,11 +75,11 @@ class Exported
         $this->blockchain = $blockchain ?: Di::_()->get('Blockchain\Manager');
         $this->experimentsManager = $experimentsManager ?? Di::_()->get('Experiments\Manager');
         $this->rolesService ??= Di::_()->get(RolesService::class);
-        $this->siteMembershipRepository ??= Di::_()->get(SiteMembershipRepository::class);
         $this->customNavigationService ??= Di::_()->get(CustomNavigationService::class);
         $this->chatReceiptsService ??= Di::_()->get(ReceiptService::class);
         $this->postHogConfig ??= Di::_()->get(PostHogConfig::class);
         $this->permissionIntentsService ??= Di::_()->get(PermissionIntentsService::class);
+        $this->eventsDispatcher ??= Di::_()->get('EventsDispatcher');
     }
 
     /**
@@ -235,15 +234,17 @@ class Exported
             ];
 
             $exported['tenant']['max_memberships'] = $multiTenantConfig['plan_memberships'][$exported['tenant']['plan']] ?? 0;
-            try {
-                $exported['tenant']['total_active_memberships'] = $this->siteMembershipRepository->getTotalSiteMemberships() ?? 0;
-            } catch (Exception $e) {
-                $exported['tenant']['total_active_memberships'] = 0;
-            }
-
             $exported['theme_override'] = $this->config->get('theme_override');
             $exported['nsfw_enabled'] = $this->config->get('nsfw_enabled') ?? true;
         }
+        
+        /** @var array */
+        $exported = $this->eventsDispatcher->trigger(
+            event: 'config:extender',
+            namespace: 'config',
+            params: [],
+            default_return: $exported
+        );
 
         return $exported;
     }
