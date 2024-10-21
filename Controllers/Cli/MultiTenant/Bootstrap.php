@@ -8,6 +8,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\Events\TenantBootstrapRequestEvent;
 use Minds\Core\EventStreams\Topics\TenantBootstrapRequestsTopic;
+use Minds\Core\MultiTenant\Bootstrap\Delegates\ContentGeneratedSocketDelegate;
 use Minds\Core\MultiTenant\Bootstrap\Services\MultiTenantBootstrapService;
 use Minds\Exceptions\CliException;
 use Minds\Interfaces\CliControllerInterface;
@@ -56,6 +57,27 @@ class Bootstrap extends Controller implements CliControllerInterface
                 ->setSiteUrl($siteUrl);
             $sent = $this->tenantBootstrapRequestsTopic->send($event);
             $this->out($sent ? 'Event sent to pulsar' : 'Event failed to send to pulsar');
+        }
+    }
+
+    /**
+     * Emit a content generated event to clients.
+     * @example
+     * - php cli.php MultiTenant Bootstrap emitContentGeneratedEvent --tenantId=123
+     * @return void
+     */
+    public function emitContentGeneratedEvent(): void
+    {
+        $tenantId = $this->getOpt('tenantId') ? (int) $this->getOpt('tenantId') : null;
+
+        if (!$tenantId) {
+            throw new CliException('Tenant ID is a required parameter');
+        }
+
+        try {
+            Di::_()->get(ContentGeneratedSocketDelegate::class)->onContentGenerated($tenantId);
+        } catch (\Exception $e) {
+            $this->out('Failed to emit content_generated event: ' . $e->getMessage());
         }
     }
 }
