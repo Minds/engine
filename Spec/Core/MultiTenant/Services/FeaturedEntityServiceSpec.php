@@ -4,6 +4,7 @@ namespace Spec\Minds\Core\MultiTenant\Services;
 
 use Minds\Core\Config\Config;
 use Minds\Core\GraphQL\Types\PageInfo;
+use Minds\Core\MultiTenant\Delegates\FeaturedEntityAddedDelegate;
 use Minds\Core\MultiTenant\Enums\FeaturedEntityTypeEnum;
 use Minds\Core\MultiTenant\Repositories\FeaturedEntitiesRepository;
 use Minds\Core\MultiTenant\Services\FeaturedEntityService;
@@ -12,6 +13,7 @@ use Minds\Core\MultiTenant\Types\FeaturedEntityConnection;
 use Minds\Core\MultiTenant\Types\FeaturedEntityEdge;
 use Minds\Core\MultiTenant\Types\FeaturedGroup;
 use Minds\Core\MultiTenant\Types\FeaturedUser;
+use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
@@ -19,12 +21,17 @@ use Prophecy\Argument;
 class FeaturedEntityServiceSpec extends ObjectBehavior
 {
     private Collaborator $repository;
+    private Collaborator $featuredEntityAddedDelegate;
     private Collaborator $config;
 
-    public function let(FeaturedEntitiesRepository $repository, Config $config)
-    {
-        $this->beConstructedWith($repository, $config);
+    public function let(
+        FeaturedEntitiesRepository $repository,
+        FeaturedEntityAddedDelegate $featuredEntityAddedDelegate,
+        Config $config,
+    ) {
+        $this->beConstructedWith($repository, $featuredEntityAddedDelegate, $config);
         $this->repository = $repository;
+        $this->featuredEntityAddedDelegate = $featuredEntityAddedDelegate;
         $this->config = $config;
     }
 
@@ -91,10 +98,14 @@ class FeaturedEntityServiceSpec extends ObjectBehavior
     }
 
     public function it_can_store_featured_entity(
-        FeaturedEntity $featuredEntity
+        FeaturedEntity $featuredEntity,
+        User $loggedInUser
     ) {
         $this->repository->upsertFeaturedEntity($featuredEntity)->willReturn($featuredEntity);
-        $this->storeFeaturedEntity($featuredEntity)->shouldBe($featuredEntity);
+        
+        $this->featuredEntityAddedDelegate->onAdd($featuredEntity, $loggedInUser)->shouldBeCalled();
+        
+        $this->storeFeaturedEntity($featuredEntity, $loggedInUser)->shouldBe($featuredEntity);
     }
 
     public function it_can_delete_featured_entity()
