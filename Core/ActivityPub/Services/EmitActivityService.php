@@ -158,6 +158,17 @@ class EmitActivityService
             return false;
         }
 
+        $disallowInboxes = [
+            'https://freespeechextremist.com/inbox', // Unresponsive
+            'https://bae.st/inbox', // Unresponsive
+            'https://shitposter.club/inbox', // Unresponsive
+            'https://poster.place/inbox', // Unresponsive
+        ];
+
+        if (in_array($inboxUrl, $disallowInboxes, true) === true) {
+            return false;
+        }
+
         $this->logger->info("POST $inboxUrl: Sending");
         try {
             $privateKey = $actor ? $this->manager->getPrivateKey($actor) : $this->manager->getPrivateKeyByUserGuid(0);

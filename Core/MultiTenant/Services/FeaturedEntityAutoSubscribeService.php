@@ -54,7 +54,7 @@ class FeaturedEntityAutoSubscribeService
      * @param User $subject - subject user.
      * @return void
      */
-    private function handleFeaturedUser(FeaturedUser $featuredUser, User $subject): void
+    public function handleFeaturedUser(FeaturedUser $featuredUser, User $subject): void
     {
         if (!$featuredUser->autoSubscribe) {
             return;
@@ -78,7 +78,7 @@ class FeaturedEntityAutoSubscribeService
      * @param User $subject - subject user.
      * @return void
      */
-    private function handleFeaturedGroup(FeaturedGroup $featuredGroup, User $subject): void
+    public function handleFeaturedGroup(FeaturedGroup $featuredGroup, User $subject): void
     {
         if (!$featuredGroup->autoSubscribe) {
             return;

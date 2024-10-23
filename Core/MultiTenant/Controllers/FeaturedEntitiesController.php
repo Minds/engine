@@ -53,7 +53,7 @@ class FeaturedEntitiesController
         FeaturedEntity $featuredEntity,
         #[InjectUser] ?User $loggedInUser = null,
     ): FeaturedEntity {
-        return $this->service->storeFeaturedEntity($featuredEntity);
+        return $this->service->storeFeaturedEntity($featuredEntity, $loggedInUser);
     }
 
     /**

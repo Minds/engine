@@ -30,6 +30,7 @@ use Minds\Core\Authentication\Services\RegisterService;
 use Minds\Core\Email\V2\Campaigns\Recurring\TenantTrial\TenantTrialEmailer;
 use Minds\Core\Media\Services\OciS3Client;
 use Minds\Core\MultiTenant\MobileConfigs\Delegates\MobileAppPreviewReadyEmailDelegate;
+use Minds\Core\MultiTenant\Delegates\FeaturedEntityAddedDelegate;
 
 class ServicesProvider extends Provider
 {
@@ -99,6 +100,7 @@ class ServicesProvider extends Provider
             function (Di $di): FeaturedEntityService {
                 return new FeaturedEntityService(
                     $di->get(FeaturedEntitiesRepository::class),
+                    $di->get(FeaturedEntityAddedDelegate::class),
                     $di->get('Config')
                 );
             }

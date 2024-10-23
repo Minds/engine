@@ -30,6 +30,8 @@ use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\FederatedEntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
+use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\UserErrorException;
 
 class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
 {
@@ -153,7 +155,7 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
                 entity: $entity,
                 actor: $owner
             );
-        } catch (NotFoundException|MissingEntityException|NotImplementedException|ForbiddenException $e) {
+        } catch (NotFoundException|MissingEntityException|NotImplementedException|ForbiddenException|UserErrorException|ServerErrorException $e) {
             $this->logger->info($loggerPrefix . ' Skipping.  (' . $e->getMessage() . ')');
             return true;
         }

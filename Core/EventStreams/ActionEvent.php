@@ -139,6 +139,9 @@ class ActionEvent implements EventInterface
     public const ACTION_UPHELD_REPORT = "upheld_report";
 
     /** @var string */
+    public const ACTION_FEATURED_ENTITY_ADDED = "featured_entity_added";
+
+    /** @var string */
     protected $action;
 
     /** @var string[] */
@@ -267,6 +270,9 @@ class ActionEvent implements EventInterface
                 ];
                 break;
             case self::ACTION_UPHELD_REPORT:
+                break;
+            case self::ACTION_FEATURED_ENTITY_ADDED:
+                $allowedKeys = [ 'featured_entity_data' ];
                 break;
             default:
                 throw new \Exception("Invalid action set. Ensure allowedKeys are set in ActionEvent model");
