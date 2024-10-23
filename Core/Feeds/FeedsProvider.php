@@ -7,6 +7,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider;
 use Minds\Core\Feeds\ClusteredRecommendations\MySQLRepository;
 use Minds\Core\Groups\V2\Membership;
+use Minds\Core\Suggestions\DefaultTagMapping;
 
 class FeedsProvider extends Provider
 {
@@ -86,6 +87,7 @@ class FeedsProvider extends Provider
                 $di->get('Security\ACL'),
                 $di->get('Experiments\Manager'),
                 $di->get(Config::class),
+                $di->get(DefaultTagMapping\Manager::class),
             );
         });
     }
