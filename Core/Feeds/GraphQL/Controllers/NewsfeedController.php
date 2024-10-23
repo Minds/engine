@@ -184,23 +184,19 @@ class NewsfeedController
                 loadBefore: $loadBefore,
                 hasMore: $hasMore,
             ),
-            NewsfeedAlgorithmsEnum::FORYOU => $this->feedsManager->getClusteredRecs(
-                user: $loggedInUser,
-                limit: $limit,
+            NewsfeedAlgorithmsEnum::FORYOU => $this->feedsManager->getJustForYouByTags(
+                queryOpts: new QueryOpts(
+                    user: $loggedInUser,
+                    limit: $limit,
+                    accessId: Access::PUBLIC,
+                    nsfw: $allowedNsfw,
+                ),
                 loadAfter: $loadAfter,
                 loadBefore: $loadBefore,
                 hasMore: $hasMore,
             ),
             default => throw new UserError("Invalid algorithm supplied")
         };
-
-        if ($isFirstPage && $algorithm === NewsfeedAlgorithmsEnum::FORYOU && $this->isForYouTagRecsExperimentOn($loggedInUser)) {
-            $edges = $this->tagRecommendationsManager->prepend(
-                edges: $edges,
-                user: $loggedInUser,
-                cursor: '' // loadAfter not yet passed back by reference from generator.
-            );
-        }
 
         // Build the boosts
         $boosts = $this->buildBoosts(
@@ -219,17 +215,8 @@ class NewsfeedController
                 break;
             }
 
-            if (
-                (
-                    $this->isForYouTopExperimentActive($loggedInUser, $algorithm, $after) &&
-                    $i === 1
-                )
-                ||
-                (
-                    !$this->isForYouTopExperimentActive($loggedInUser, $algorithm, $after) &&
-                    $i === 0
-                )
-            ) { // Priority notice is always at the top
+            if ($i === 0) {
+                // Priority notice is always at the top
                 $priorityNotices = $this->buildInFeedNotices(
                     loggedInUser: $loggedInUser,
                     cursor: $cursor,
@@ -438,14 +425,6 @@ class NewsfeedController
         return $edges;
     }
 
-    private function isForYouTopExperimentActive(User $loggedInUser, NewsfeedAlgorithmsEnum $algorithm, ?string $after): bool
-    {
-        return
-            $algorithm === NewsfeedAlgorithmsEnum::FORYOU &&
-            !$after &&
-            $this->experimentsManager->setUser($loggedInUser)->isOn('minds-4169-for-you-top-posts-injection');
-    }
-
     /**
      * Will attempt to build feed highlights, if there any available
      * @return FeedHighlightsEdge|null
@@ -630,16 +609,6 @@ class NewsfeedController
             ->setDirection($direction === Votes\Enums\VoteDirectionEnum::UP ? 'up' : 'down');
 
         return $this->votesManager->has($vote);
-    }
-
-    /**
-     * Whether for you tag recs experiment is on.
-     * @param User $loggedInUser - logged in user.
-     * @return bool true if experiment is on.
-     */
-    public function isForYouTagRecsExperimentOn(User $loggedInUser): bool
-    {
-        return $this->experimentsManager->setUser($loggedInUser)->isOn('minds-4228-for-you-tag-recs');
     }
 
     /**
