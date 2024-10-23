@@ -190,6 +190,7 @@ class NewsfeedController
                     limit: $limit,
                     accessId: Access::PUBLIC,
                     nsfw: $allowedNsfw,
+                    seenEntitiesFilterStrategy: SeenEntitiesFilterStrategyEnum::DEMOTE,
                 ),
                 loadAfter: $loadAfter,
                 loadBefore: $loadBefore,
