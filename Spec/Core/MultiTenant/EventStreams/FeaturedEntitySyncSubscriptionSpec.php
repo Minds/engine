@@ -88,6 +88,42 @@ class FeaturedEntitySyncSubscriptionSpec extends ObjectBehavior
         $this->consume($event)->shouldReturn(true);
     }
 
+    public function it_should_consume_featured_user_added_event_while_skipping_self_subscriptions(
+        ActionEvent $event,
+        User $featuredUserEntity,
+        User $user1,
+        User $user2
+    ) {
+        $entityGuid = 123456789;
+
+        $event->getAction()->willReturn(ActionEvent::ACTION_FEATURED_ENTITY_ADDED);
+        $event->getEntity()->willReturn($featuredUserEntity);
+        $event->getActionData()->willReturn([
+            'featured_entity_data' => [
+                'tenantId' => 1,
+                'entityGuid' => $entityGuid,
+                'autoSubscribe' => true,
+                'recommended' => true,
+                'autoPostSubscription' => true,
+                'username' => 'testuser',
+                'name' => 'Test User'
+            ]
+        ]);
+
+        $featuredUserEntity->getType()->willReturn('user');
+
+        $this->config->get('tenant_id')->willReturn(1);
+
+        $user1->getGuid()->willReturn($entityGuid);
+
+        $this->multiTenantUsersService->getUsers(tenantId: 1)->willReturn([$user1, $user2]);
+
+        $this->featuredEntityAutoSubscribeService->handleFeaturedUser(Argument::any(), $user1)->shouldNotBeCalled();
+        $this->featuredEntityAutoSubscribeService->handleFeaturedUser(Argument::any(), $user2)->shouldBeCalled();
+
+        $this->consume($event)->shouldReturn(true);
+    }
+
     public function it_should_consume_featured_group_added_event(
         ActionEvent $event,
         Group $group,
