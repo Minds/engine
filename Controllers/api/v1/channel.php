@@ -23,6 +23,7 @@ use Minds\Core\Channels\BannerService;
 use Minds\Core\Config\Config;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipOnlyModeService;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\ACL;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
@@ -122,6 +123,14 @@ class channel implements Interfaces\Api
                 'status'=>'error',
                 'message'=>'This user has been banned',
                 'type'=>'ChannelBannedException',
+            ]);
+        }
+
+        if (Di::_()->get(SiteMembershipOnlyModeService::class)->shouldRestrictAccess(Core\Session::getLoggedinUser())) {
+            return Factory::response([
+                'status'=> 'error',
+                'message'=> 'This network is in members only mode',
+                'type'=> 'RequireLoginException',
             ]);
         }
 
