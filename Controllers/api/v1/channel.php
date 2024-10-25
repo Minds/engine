@@ -126,7 +126,7 @@ class channel implements Interfaces\Api
             ]);
         }
 
-        if (Di::_()->get(SiteMembershipOnlyModeService::class)->shouldRestrictAccess(Core\Session::getLoggedinUser())) {
+        if (!$isLoggedIn && Di::_()->get(SiteMembershipOnlyModeService::class)->shouldRestrictAccess(Core\Session::getLoggedinUser())) {
             return Factory::response([
                 'status'=> 'error',
                 'message'=> 'This network is in members only mode',
