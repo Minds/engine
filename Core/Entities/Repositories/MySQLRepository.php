@@ -110,6 +110,20 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                         ELSE FALSE
                     END
                 "),
+                'membership_subscriptions_count' => new RawExp("
+                    CASE
+                        WHEN
+                            e.type = 'user'
+                            AND e.guid=:loggedInUser3
+                        THEN (              
+                            SELECT COUNT(*) FROM minds_site_membership_subscriptions
+                            WHERE user_guid=e.guid
+                            AND (valid_to IS NULL OR valid_to > NOW())
+                        )
+                        ELSE
+                            0
+                    END
+                "),
                 'rbac_roles.role_ids',
             ])
             ->from(new RawExp('minds_entities as e'))
@@ -161,6 +175,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
             'rbac_roles_tenantId' => $this->config->get('tenant_id'),
             'loggedInUser1' => $this->activeSession->getUserGuid(),
             'loggedInUser2' => $this->activeSession->getUserGuid(),
+            'loggedInUser3' => $this->activeSession->getUserGuid(),
         ]);
 
         $statement->execute();
@@ -180,7 +195,21 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
             ->columns([
                 'e.*',
                 'u.*',
-                'rbac_roles.role_ids'
+                'rbac_roles.role_ids',
+                'membership_subscriptions_count' => new RawExp("
+                    CASE
+                        WHEN
+                            e.type = 'user'
+                            AND e.guid=:loggedInUser1
+                        THEN (              
+                            SELECT COUNT(*) FROM minds_site_membership_subscriptions
+                            WHERE user_guid=e.guid
+                            AND (valid_to IS NULL OR valid_to > NOW())
+                        )
+                        ELSE
+                            0
+                    END
+                "),
             ])
             ->leftJoin(['u' => 'minds_entities_user'], 'e.guid', Operator::EQ, 'u.guid')
             ->leftJoin(
@@ -204,7 +233,8 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
         $statement = $query->prepare();
 
         $statement->execute([
-            'val' => strtolower($value)
+            'val' => strtolower($value),
+            'loggedInUser1' => $this->activeSession->getUserGuid(),
         ]);
 
         $entities = $this->buildEntities($statement);
@@ -690,6 +720,10 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     $row = [...$row, ...$tableMappedRow['u']];
                     if (array_key_exists('rbac_roles', $tableMappedRow)) {
                         $row = array_merge($row, $tableMappedRow['rbac_roles']);
+                    }
+
+                    if (is_numeric($tableMappedRow['']['membership_subscriptions_count'])) {
+                        $row['membership_subscriptions_count'] = (int) $tableMappedRow['']['membership_subscriptions_count'];
                     }
 
                     $mapToUnix = ['time_created', 'time_updated', 'last_login', 'last_accepted_tos', 'icontime'];

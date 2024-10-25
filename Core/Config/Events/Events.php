@@ -47,10 +47,7 @@ class Events
         
                 try {
                     $totalActiveMemberships = $this->getSiteMembershipRepository()->getTotalSiteMemberships() ?? 0;
-                    $shouldShowMembershipGate = $this->getSiteMembershipOnlyModeService()->shouldRestrictAccess(
-                        user: $user,
-                        hasActiveMemberships: $totalActiveMemberships > 0
-                    );
+                    $shouldShowMembershipGate = $this->getSiteMembershipOnlyModeService()->shouldRestrictAccess($user);
                 } catch (\Exception $e) {
                     $this->getLogger()->error($e->getMessage());
                 }

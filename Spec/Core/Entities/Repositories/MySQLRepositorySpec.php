@@ -94,7 +94,14 @@ class MySQLRepositorySpec extends ObjectBehavior
             'table' => 'a',
         ]);
 
-        $this->mysqlClientMock->bindValuesToPreparedStatement($pdoStatementMock, [ 'guid' => 123, 'e_tenantId' => null, 'rbac_roles_tenantId' => null,  'loggedInUser1' => null, 'loggedInUser2' => null ])
+        $this->mysqlClientMock->bindValuesToPreparedStatement($pdoStatementMock, [
+            'guid' => 123,
+            'e_tenantId' => null,
+            'rbac_roles_tenantId' => null,
+            'loggedInUser1' => null,
+            'loggedInUser2' => null,
+            'loggedInUser3' => null,
+        ])
             ->shouldBeCalled();
 
         $entity = $this->loadFromGuid(123);
@@ -115,7 +122,14 @@ class MySQLRepositorySpec extends ObjectBehavior
 
         $pdoStatementMock->rowCount()->shouldBeCalled()->willReturn(0);
 
-        $this->mysqlClientMock->bindValuesToPreparedStatement($pdoStatementMock, [ 'guid' => 123, 'e_tenantId' => null, 'rbac_roles_tenantId' => null, 'loggedInUser1' => null, 'loggedInUser2' => null ])
+        $this->mysqlClientMock->bindValuesToPreparedStatement($pdoStatementMock, [
+            'guid' => 123,
+            'e_tenantId' => null,
+            'rbac_roles_tenantId' => null,
+            'loggedInUser1' => null,
+            'loggedInUser2' => null,
+            'loggedInUser3' => null
+        ])
             ->shouldBeCalled();
 
         $this->loadFromGuid(123)->shouldBe(null);
@@ -128,7 +142,8 @@ class MySQLRepositorySpec extends ObjectBehavior
             ->willReturn($pdoStatementMock);
 
         $pdoStatementMock->execute([
-            'val' => 'minds'
+            'val' => 'minds',
+            'loggedInUser1' => null
         ])->shouldBeCalled();
 
         $pdoStatementMock->fetchAll(PDO::FETCH_NUM)
@@ -140,6 +155,7 @@ class MySQLRepositorySpec extends ObjectBehavior
                     'user', // e.type
                     // ...
                     'username', // u.username
+                    0, // u.membership_subscriptions_count
                 ]
             ]);
 
@@ -165,6 +181,11 @@ class MySQLRepositorySpec extends ObjectBehavior
             'table' => 'u',
         ]);
 
+        $pdoStatementMock->getColumnMeta(4)->willReturn([
+            'name' => 'membership_subscriptions_count',
+            'table' => '',
+        ]);
+
         $user = $this->loadFromIndex('username', 'minds');
         $user->getGuid()->shouldBe('123');
     }
@@ -176,7 +197,8 @@ class MySQLRepositorySpec extends ObjectBehavior
             ->willReturn($pdoStatementMock);
 
         $pdoStatementMock->execute([
-            'val' => 'minds'
+            'val' => 'minds',
+            'loggedInUser1' => null,
         ])->shouldBeCalled();
 
         $pdoStatementMock->fetchAll(PDO::FETCH_NUM)

@@ -109,7 +109,6 @@ class ServicesProvider extends Provider
         $this->di->bind(
             SiteMembershipOnlyModeService::class,
             fn (Di $di): SiteMembershipOnlyModeService => new SiteMembershipOnlyModeService(
-                siteMembershipRepository: $di->get(SiteMembershipRepository::class),
                 siteMembershipSubscriptionsService: $di->get(SiteMembershipSubscriptionsService::class),
                 rolesService: $di->get(RolesService::class),
                 config: $di->get(Config::class),
