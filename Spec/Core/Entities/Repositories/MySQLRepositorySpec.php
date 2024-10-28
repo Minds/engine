@@ -99,8 +99,7 @@ class MySQLRepositorySpec extends ObjectBehavior
             'e_tenantId' => null,
             'rbac_roles_tenantId' => null,
             'loggedInUser1' => null,
-            'loggedInUser2' => null,
-            'loggedInUser3' => null,
+            'loggedInUser2' => null
         ])
             ->shouldBeCalled();
 
@@ -127,8 +126,7 @@ class MySQLRepositorySpec extends ObjectBehavior
             'e_tenantId' => null,
             'rbac_roles_tenantId' => null,
             'loggedInUser1' => null,
-            'loggedInUser2' => null,
-            'loggedInUser3' => null
+            'loggedInUser2' => null
         ])
             ->shouldBeCalled();
 
@@ -142,8 +140,7 @@ class MySQLRepositorySpec extends ObjectBehavior
             ->willReturn($pdoStatementMock);
 
         $pdoStatementMock->execute([
-            'val' => 'minds',
-            'loggedInUser1' => null
+            'val' => 'minds'
         ])->shouldBeCalled();
 
         $pdoStatementMock->fetchAll(PDO::FETCH_NUM)
@@ -197,8 +194,7 @@ class MySQLRepositorySpec extends ObjectBehavior
             ->willReturn($pdoStatementMock);
 
         $pdoStatementMock->execute([
-            'val' => 'minds',
-            'loggedInUser1' => null,
+            'val' => 'minds'
         ])->shouldBeCalled();
 
         $pdoStatementMock->fetchAll(PDO::FETCH_NUM)

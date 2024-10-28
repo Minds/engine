@@ -114,7 +114,6 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     CASE
                         WHEN
                             e.type = 'user'
-                            AND e.guid=:loggedInUser3
                         THEN (              
                             SELECT COUNT(*) FROM minds_site_membership_subscriptions
                             WHERE user_guid=e.guid
@@ -169,13 +168,13 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
 
         $statement = $query->prepare();
 
+        // Active session user WILL be null when this function is called on session init.
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, [
             'guid' => $guid,
             'e_tenantId' => $this->config->get('tenant_id'),
             'rbac_roles_tenantId' => $this->config->get('tenant_id'),
             'loggedInUser1' => $this->activeSession->getUserGuid(),
             'loggedInUser2' => $this->activeSession->getUserGuid(),
-            'loggedInUser3' => $this->activeSession->getUserGuid(),
         ]);
 
         $statement->execute();
@@ -200,7 +199,6 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     CASE
                         WHEN
                             e.type = 'user'
-                            AND e.guid=:loggedInUser1
                         THEN (              
                             SELECT COUNT(*) FROM minds_site_membership_subscriptions
                             WHERE user_guid=e.guid
@@ -233,8 +231,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
         $statement = $query->prepare();
 
         $statement->execute([
-            'val' => strtolower($value),
-            'loggedInUser1' => $this->activeSession->getUserGuid(),
+            'val' => strtolower($value)
         ]);
 
         $entities = $this->buildEntities($statement);

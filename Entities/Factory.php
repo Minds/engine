@@ -103,12 +103,28 @@ class Factory
     }
 
     /**
-     * Caches an entity (currently just in memory)
+     * Invalidates an entity cache.
+     * @param EntityInterface $entity - entity to invalidate cache entry for.
+     * @return void
      */
     public static function invalidateCache(EntityInterface $entity): void
     {
-        $guid = $entity->getGuid();
+        $guid = $entity?->getGuid();
 
+        if (!$guid) {
+            return;
+        }
+
+        self::invalidateCacheByGuid($guid);
+    }
+
+    /**
+     * Caches an entity by guid.
+     * @param int|string $guid - entity GUID.
+     * @return void
+     */
+    public static function invalidateCacheByGuid(int|string $guid): void
+    {
         $cacheKey = "entity:" . $guid;
 
         $inMemoryCache = Di::_()->get(InMemoryCache::class);
@@ -117,5 +133,4 @@ class Factory
         $psrCache = Di::_()->get('Cache\PsrWrapper');
         $psrCache->delete($cacheKey);
     }
-
 }

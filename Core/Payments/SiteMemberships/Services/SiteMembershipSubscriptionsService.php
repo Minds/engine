@@ -20,6 +20,7 @@ use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as Stri
 use Minds\Core\Payments\Stripe\Checkout\Session\Services\SessionService as StripeCheckoutSessionService;
 use Minds\Core\Groups\V2\Membership\Manager as GroupMembershipService;
 use Minds\Core\Payments\SiteMemberships\Repositories\DTO\SiteMembershipSubscriptionDTO;
+use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
@@ -157,9 +158,9 @@ class SiteMembershipSubscriptionsService
             $this->joinGroups($siteMembershipSubscription->siteMembership, $siteMembershipSubscription->user);
         }
 
-        $this->hasActiveSiteMembershipCacheService->delete(
-            (int) $siteMembershipSubscription->user->getGuid()
-        );
+        $userGuid = (int) $siteMembershipSubscription->user->getGuid();
+        $this->hasActiveSiteMembershipCacheService->delete($userGuid);
+        EntitiesFactory::invalidateCacheByGuid($userGuid);
 
         return $success;
     }
@@ -244,6 +245,7 @@ class SiteMembershipSubscriptionsService
                 true,
                 $endTimestamp - time()
             );
+            EntitiesFactory::invalidateCacheByGuid($userGuid);
         }
 
         return $success;
