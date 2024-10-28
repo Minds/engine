@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Boost\V3;
 
+use Minds\Core\Boost\V3\Cache\BoostFeedCache;
 use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\GraphQL\Controllers\AdminController;
 use Minds\Core\Boost\V3\Utils\BoostConsoleUrlBuilder;
@@ -62,5 +63,11 @@ class Provider extends DiProvider
         Di::_()->bind(AdminController::class, function (Di $di): AdminController {
             return new AdminController($di->get(Manager::class));
         }, ['factory' => true]);
+
+        Di::_()->bind(BoostFeedCache::class, function (Di $di): BoostFeedCache {
+            return new BoostFeedCache(
+                cache: $di->get('Cache\PsrWrapper')
+            );
+        });
     }
 }
