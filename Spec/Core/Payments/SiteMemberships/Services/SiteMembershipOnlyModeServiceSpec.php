@@ -163,7 +163,7 @@ class SiteMembershipOnlyModeServiceSpec extends ObjectBehavior
         $this->callOnWrappedObject('shouldRestrictAccess', [$user])->shouldReturn(true);
     }
 
-    public function it_should_not_restrict_access_when_exception_is_thrown(User $user): void
+    public function it_should_rethrow_exception_when_when_exception_is_thrown(User $user): void
     {
         $this->configMock->get('tenant')->willReturn((object)[
             'config' => (object)[
@@ -177,6 +177,6 @@ class SiteMembershipOnlyModeServiceSpec extends ObjectBehavior
 
         $this->loggerMock->error(Argument::type('string'))->shouldBeCalled();
 
-        $this->callOnWrappedObject('shouldRestrictAccess', [$user])->shouldReturn(false);
+        $this->shouldThrow(\Exception::class)->during('shouldRestrictAccess', [$user]);
     }
 }

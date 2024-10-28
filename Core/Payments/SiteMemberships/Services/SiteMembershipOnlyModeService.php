@@ -49,7 +49,7 @@ class SiteMembershipOnlyModeService
             return !$this->hasActiveSiteMembershipSubscription($user);
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
-            return false;
+            throw $e;
         }
     }
 
