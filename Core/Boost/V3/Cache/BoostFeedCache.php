@@ -161,7 +161,7 @@ class BoostFeedCache
         ?int $targetLocation,
         ?string $loggedInUserGuid,
     ): string {
-        return self::CACHE_KEY_PREFIX . ':' . implode(':', [
+        return self::CACHE_KEY_PREFIX . ':' . md5(implode(':', [
             $limit,
             $offset,
             $targetStatus,
@@ -171,6 +171,6 @@ class BoostFeedCache
             $targetAudience,
             $targetLocation,
             $loggedInUserGuid,
-        ]);
+        ]));
     }
 }

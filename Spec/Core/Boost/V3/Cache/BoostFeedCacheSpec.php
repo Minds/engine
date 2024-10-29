@@ -30,7 +30,7 @@ class BoostFeedCacheSpec extends ObjectBehavior
 
     public function it_should_get_from_cache()
     {
-        $cacheKey = "boost-feed:12:0:1:0:234:0:1:0:123";
+        $cacheKey = "boost-feed:" . md5('12:0:1:0:234:0:1:0:123');
         $cachedValue = serialize([
             'boosts' => [['guid' => '123']],
             'hasNext' => true
@@ -81,7 +81,7 @@ class BoostFeedCacheSpec extends ObjectBehavior
             'hasNext' => true
         ]);
 
-        $this->cacheMock->set("boost-feed:12:0:1:1::1:1:0:123", $value, 1)
+        $this->cacheMock->set("boost-feed:".md5('12:0:1:1::1:1:0:123'), $value, 1)
             ->willReturn(true);
 
         $this->set(
@@ -111,6 +111,6 @@ class BoostFeedCacheSpec extends ObjectBehavior
             targetAudience: 1,
             targetLocation: 0,
             loggedInUserGuid: '123'
-        )->shouldBe('boost-feed:12:0:1:0::0:1:0:123');
+        )->shouldBe('boost-feed:' . md5('12:0:1:0::0:1:0:123'));
     }
 }
