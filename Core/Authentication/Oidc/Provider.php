@@ -18,6 +18,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Email\V2\Campaigns\Recurring\TenantUserWelcome\TenantUserWelcomeEmailer;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Security\Vault\VaultTransitService;
 
 class Provider extends DiProvider
 {
@@ -51,6 +52,7 @@ class Provider extends DiProvider
                 oidcUserService: $di->get(OidcUserService::class),
                 sessionsManager: $di->get('Sessions\Manager'),
                 config: $di->get(Config::class),
+                vaultTransitService: $di->get(VaultTransitService::class),
             );
         });
 
@@ -69,6 +71,7 @@ class Provider extends DiProvider
         $this->di->bind(OidcProvidersService::class, function (Di $di): OidcProvidersService {
             return new OidcProvidersService(
                 oidcProvidersRepository: $di->get(OidcProvidersRepository::class),
+                vaultTransitService: $di->get(VaultTransitService::class),
             );
         });
 
