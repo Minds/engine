@@ -79,13 +79,13 @@ class OidcProvidersRepositorySpec extends ObjectBehavior
         $result[0]->name->shouldBe('PHP Spec');
         $result[0]->issuer->shouldBe('https://phpspec.local');
         $result[0]->clientId->shouldBe('phpspec');
-        $result[0]->clientSecret->shouldBe('secrets');
+        $result[0]->clientSecretCipherText->shouldBe('secrets');
 
         $result[1]->shouldBeAnInstanceOf(OidcProvider::class);
         $result[1]->id->shouldBe(2);
         $result[1]->name->shouldBe('Oidc');
         $result[1]->issuer->shouldBe('https://phpspec.local');
         $result[1]->clientId->shouldBe('phpspec');
-        $result[1]->clientSecret->shouldBe('secrets');
+        $result[1]->clientSecretCipherText->shouldBe('secrets');
     }
 }

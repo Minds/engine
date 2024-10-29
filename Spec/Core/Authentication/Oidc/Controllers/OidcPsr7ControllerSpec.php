@@ -45,7 +45,7 @@ class OidcPsr7ControllerSpec extends ObjectBehavior
                 name: 'PHPSpec',
                 issuer: 'https://phpspec.local',
                 clientId: 'phpspec',
-                clientSecret: 'secret'
+                clientSecretCipherText: 'secret'
             ));
 
         $this->oidcAuthServiceMock->getAuthorizationUrl(Argument::type(OidcProvider::class), Argument::type('string'))
@@ -73,7 +73,7 @@ class OidcPsr7ControllerSpec extends ObjectBehavior
                 name: 'PHPSpec',
                 issuer: 'https://phpspec.local',
                 clientId: 'phpspec',
-                clientSecret: 'secret'
+                clientSecretCipherText: 'secret'
             ));
 
         $this->oidcAuthServiceMock->performAuthentication(Argument::type(OidcProvider::class), 'auth-code', 'csrf-token')
@@ -101,7 +101,7 @@ class OidcPsr7ControllerSpec extends ObjectBehavior
                 name: 'PHPSpec',
                 issuer: 'https://phpspec.local',
                 clientId: 'phpspec',
-                clientSecret: 'secret'
+                clientSecretCipherText: 'secret'
             ));
 
         $this->oidcAuthServiceMock->performAuthentication(Argument::type(OidcProvider::class), 'auth-code', 'csrf-token')
