@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Boost\V3\Cache;
 
 use Minds\Core\Data\cache\PsrWrapper;
+use Minds\Core\Log\Logger;
 
 class BoostFeedCache
 {
@@ -11,10 +12,17 @@ class BoostFeedCache
     private const CACHE_KEY_PREFIX = 'boost-feed';
 
     /** @var int */
-    private const TTL_SECONDS = 60;
+    private const TTL_SECONDS = 1;
+
+    /** @var string */
+    private const BOOSTS_KEY = 'boosts';
+
+    /** @var string */
+    private const HAS_NEXT_KEY = 'hasNext';
 
     public function __construct(
-        private PsrWrapper $cache
+        private PsrWrapper $cache,
+        private Logger $logger
     ) {
     }
 
@@ -29,7 +37,7 @@ class BoostFeedCache
      * @param int $targetAudience - target audience.
      * @param ?int $targetLocation - target location.
      * @param ?string $loggedInUserGuid - logged in user guid.
-     * @param bool &$hasNext - has next.
+     * @param bool &$hasNext - has next, passed by reference.
      * @return array|null - boost feed.
      */
     public function get(
@@ -42,7 +50,7 @@ class BoostFeedCache
         int $targetAudience,
         ?int $targetLocation,
         ?string $loggedInUserGuid,
-        bool &$hasNext
+        bool &$hasNext = null
     ): ?array {
         try {
             $cachedValue = $this->cache->get(
@@ -63,14 +71,15 @@ class BoostFeedCache
                 unserialize($cachedValue) :
                 null;
 
-            if (!$unserializedValue || !$unserializedValue['boosts']) {
+            if (!$unserializedValue || !$unserializedValue[self::BOOSTS_KEY]) {
                 return null;
             }
 
             // Passed by reference - so that cached values paginate.
-            $hasNext = $unserializedValue['hasNext'] ?? false;
-            return $unserializedValue['boosts'];
+            $hasNext = $unserializedValue[self::HAS_NEXT_KEY] ?? false;
+            return $unserializedValue[self::BOOSTS_KEY] ?? null;
         } catch (\Exception $e) {
+            $this->logger->error($e);
             return null;
         }
     }
@@ -103,24 +112,29 @@ class BoostFeedCache
         array $boosts,
         bool $hasNext
     ): bool {
-        return $this->cache->set(
-            key: $this->buildCacheKey(
-                limit: $limit,
-                offset: $offset,
-                targetStatus: $targetStatus,
-                forApprovalQueue: $forApprovalQueue,
-                targetUserGuid: $targetUserGuid,
-                orderByRanking: $orderByRanking,
-                targetAudience: $targetAudience,
-                targetLocation: $targetLocation,
-                loggedInUserGuid: $loggedInUserGuid,
-            ),
-            value: serialize([
-                'boosts' => $boosts,
-                'hasNext' => $hasNext
-            ]),
-            ttl: self::TTL_SECONDS
-        );
+        try {
+            return $this->cache->set(
+                key: $this->buildCacheKey(
+                    limit: $limit,
+                    offset: $offset,
+                    targetStatus: $targetStatus,
+                    forApprovalQueue: $forApprovalQueue,
+                    targetUserGuid: $targetUserGuid,
+                    orderByRanking: $orderByRanking,
+                    targetAudience: $targetAudience,
+                    targetLocation: $targetLocation,
+                    loggedInUserGuid: $loggedInUserGuid,
+                ),
+                value: serialize([
+                    self::BOOSTS_KEY => $boosts,
+                    self::HAS_NEXT_KEY => $hasNext
+                ]),
+                ttl: self::TTL_SECONDS
+            );
+        } catch (\Exception $e) {
+            $this->logger->error($e);
+            return false;
+        }
     }
 
     /**
@@ -151,9 +165,9 @@ class BoostFeedCache
             $limit,
             $offset,
             $targetStatus,
-            $forApprovalQueue,
+            is_bool($forApprovalQueue) && !is_null($forApprovalQueue) ? (int) $forApprovalQueue : null, // boolean to string or null
             $targetUserGuid,
-            $orderByRanking,
+            is_bool($orderByRanking) && !is_null($orderByRanking) ? (int) $orderByRanking : null, // boolean to string or null
             $targetAudience,
             $targetLocation,
             $loggedInUserGuid,

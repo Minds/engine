@@ -66,7 +66,8 @@ class Provider extends DiProvider
 
         Di::_()->bind(BoostFeedCache::class, function (Di $di): BoostFeedCache {
             return new BoostFeedCache(
-                cache: $di->get('Cache\PsrWrapper')
+                cache: $di->get('Cache\PsrWrapper'),
+                logger: $di->get('Logger')
             );
         });
     }
