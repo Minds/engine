@@ -6,6 +6,7 @@ use Firebase\JWT\JWT;
 use GuzzleHttp\Client;
 use Minds\Core\Authentication\Oidc\Models\OidcProvider;
 use Minds\Core\Config\Config;
+use Minds\Core\Security\Vault\VaultTransitService;
 use Minds\Core\Security\XSRF;
 use Minds\Core\Session;
 use Minds\Core\Sessions\Manager as SessionsManager;
@@ -17,6 +18,7 @@ class OidcAuthService
         private OidcUserService $oidcUserService,
         private SessionsManager $sessionsManager,
         private Config $config,
+        private VaultTransitService $vaultTransitService,
     ) {
         
     }
@@ -66,7 +68,7 @@ class OidcAuthService
                 'form_params' => [
                     'code' => $code,
                     'client_id' => $provider->clientId,
-                    'client_secret' => $provider->clientSecret,
+                    'client_secret' => $this->decryptClientSecret($provider->clientSecretCipherText),
                     'redirect_uri' => $this->getCallbackUrl(),
                     'grant_type' => 'authorization_code',
                 ]
@@ -123,5 +125,17 @@ class OidcAuthService
     private function getCallbackUrl(): string
     {
         return $this->config->get('site_url') . 'api/v3/authenticate/oidc/callback';
+    }
+
+    /**
+     * Returns the cipher text of the client secret that needs to be decrypted
+     */
+    private function decryptClientSecret(string $cipherText): string
+    {
+        // If the cipherText doesn't start with vault, we will assume this is pre-migrated and return the value
+        if (strpos($cipherText, 'vault:', 0) === false) {
+            return $cipherText;
+        }
+        return $this->vaultTransitService->decrypt($cipherText);
     }
 }
