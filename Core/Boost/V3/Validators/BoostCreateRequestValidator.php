@@ -430,7 +430,7 @@ class BoostCreateRequestValidator implements ValidatorInterface
             $this->errors->add(
                 new ValidationError(
                     'entity_guid',
-                    "You cannot boost a post that hasn't been published yet"
+                    "Scheduled posts cannot be boosted"
                 )
             );
         }
