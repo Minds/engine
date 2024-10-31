@@ -29,10 +29,6 @@ class CustomScriptPsrController
     {
         $customScript = $request->getParsedBody()['customScript'] ?? null;
 
-        if (mb_strlen($customScript) > 100000) {
-            throw new InvalidParameterException('customScript must not be greater than 50000 characters', 400);
-        }
-
         if (!$this->manager->upsertConfigs(customScript: $customScript)) {
             throw new ServerErrorException('Failed to update customScript', 500);
         }
