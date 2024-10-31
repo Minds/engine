@@ -29,7 +29,7 @@ class CustomScriptPsrController
     {
         $customScript = $request->getParsedBody()['customScript'] ?? null;
 
-        if (mb_strlen($customScript) > 50000) {
+        if (mb_strlen($customScript) > 100000) {
             throw new InvalidParameterException('customScript must not be greater than 50000 characters', 400);
         }
 
