@@ -430,7 +430,7 @@ class BoostCreateRequestValidator implements ValidatorInterface
             $this->errors->add(
                 new ValidationError(
                     'entity_guid',
-                    "Scheduled posts cannot be boosted"
+                    'Scheduled posts cannot be boosted'
                 )
             );
         }
