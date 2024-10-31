@@ -113,7 +113,7 @@ class Repository extends AbstractRepository
         $siteEmail = $row['site_email'] ?? null;
         $primaryColor = $row['primary_color'] ?? '#1b85d6';
         $colorScheme = $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : MultiTenantColorScheme::LIGHT;
-        $customScript = $row['custom_script'] ? htmlspecialchars_decode($row['custom_script']): null;
+        $customScript = isset($row['custom_script']) ? htmlspecialchars_decode($row['custom_script']): null;
         $federationDisabled = (bool) $row['federation_disabled'] ?? false;
         $boostEnabled = $row['boost_enabled'] ?? false;
         $replyEmail = $row['reply_email'] ?? null;

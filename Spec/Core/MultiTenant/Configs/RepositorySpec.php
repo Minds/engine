@@ -180,7 +180,7 @@ class RepositorySpec extends ObjectBehavior
             'site_name' => $siteName,
             'color_scheme' => $colorScheme->value,
             'primary_color' => $primaryColor,
-            'custom_script' => $customScript,
+            'custom_script' => htmlspecialchars($customScript),
             'federation_disabled' => $federationDisabled,
             'reply_email' => $replyEmail,
             'nsfw_enabled' => $nsfwEnabled,
