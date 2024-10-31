@@ -425,6 +425,15 @@ class BoostCreateRequestValidator implements ValidatorInterface
                 )
             );
         }
+
+        if (method_exists($boostedEntity, 'getTimeCreated') && $boostedEntity->getTimeCreated() > time()) {
+            $this->errors->add(
+                new ValidationError(
+                    'entity_guid',
+                    "You cannot boost a post that hasn't been published yet"
+                )
+            );
+        }
     }
 
     /**
