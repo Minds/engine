@@ -58,6 +58,7 @@ class Controller
             siteName: $multiTenantConfigInput->siteName,
             colorScheme: $multiTenantConfigInput->colorScheme,
             primaryColor: $multiTenantConfigInput->primaryColor,
+            customScript: $multiTenantConfigInput->customScript,
             federationDisabled: $multiTenantConfigInput->federationDisabled,
             replyEmail: $multiTenantConfigInput->replyEmail,
             nsfwEnabled: $multiTenantConfigInput->nsfwEnabled,
