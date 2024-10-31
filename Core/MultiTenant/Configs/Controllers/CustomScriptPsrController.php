@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Configs\Controllers;
 
-use InvalidParameterException;
 use Minds\Core\MultiTenant\Configs\Manager as TenantConfigsManager;
 use Minds\Exceptions\ServerErrorException;
 use Psr\Http\Message\ServerRequestInterface;
