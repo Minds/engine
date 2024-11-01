@@ -239,8 +239,8 @@ class Manager
 
             usort($entities, function ($a, $b) use ($scores) {
                 if (
-                    ($a instanceof FeedSyncEntity && $a->getEntity()->pinned) ||
-                    ($b instanceof FeedSyncEntity && $b->getEntity()->pinned)
+                    ($a instanceof FeedSyncEntity && $a->getEntity()?->pinned) ||
+                    ($b instanceof FeedSyncEntity && $b->getEntity()?->pinned)
                 ) {
                     return ($b instanceof FeedSyncEntity && $b->getEntity()->pinned) <=> ($a instanceof FeedSyncEntity && $a->getEntity()->pinned);
                 }
