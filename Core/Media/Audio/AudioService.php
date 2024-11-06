@@ -95,7 +95,7 @@ class AudioService
         $this->audioRepository->update($audioEntity, [ 'uploadedAt' ]);
 
         // Clear cache
-        $this->cache->delete(self::ENTITY_CACHE_KEY_PREFIX . $audioEntity->guid);
+        $this->cache->destroy(self::ENTITY_CACHE_KEY_PREFIX . $audioEntity->guid);
 
         // Submit an event to the event stream so the workers can process in the background
         $event = new ActionEvent();
@@ -141,7 +141,7 @@ class AudioService
         $this->audioRepository->update($audioEntity, [ 'processedAt', 'durationSecs' ]);
 
         // Clear cache
-        $this->cache->delete(self::ENTITY_CACHE_KEY_PREFIX . $audioEntity->guid);
+        $this->cache->destroy(self::ENTITY_CACHE_KEY_PREFIX . $audioEntity->guid);
 
         return true;
     }
@@ -156,7 +156,7 @@ class AudioService
 
         $success = $this->audioRepository->updateAccessId($audioEntity);
         if ($success) {
-            $this->cache->delete(self::ENTITY_CACHE_KEY_PREFIX . $audioEntity->guid);
+            $this->cache->destroy(self::ENTITY_CACHE_KEY_PREFIX . $audioEntity->guid);
         }
 
         return $success;

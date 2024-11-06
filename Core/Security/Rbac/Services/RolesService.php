@@ -314,7 +314,6 @@ class RolesService
                     PermissionsEnum::CAN_BOOST,
                     PermissionsEnum::CAN_CREATE_CHAT_ROOM,
                     PermissionsEnum::CAN_UPLOAD_CHAT_MEDIA,
-                    PermissionsEnum::CAN_UPLOAD_AUDIO,
                 ]
             ),
         ];
