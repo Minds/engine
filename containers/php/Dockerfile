@@ -23,6 +23,8 @@ RUN apk add --virtual build-deps \
     libjpeg \
     nodejs \
     linux-headers \
+    # Install FFMpeg
+    ffmpeg \
     # Install PHP extension
     && docker-php-ext-install -j$(nproc) bcmath \
     && docker-php-ext-install -j$(nproc) zip \

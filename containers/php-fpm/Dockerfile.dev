@@ -11,9 +11,6 @@ RUN apk add --virtual .bdeps $PHPIZE_DEPS \
     && pecl install xdebug \
     && docker-php-ext-enable xdebug
 
-# Install ffmepg
-RUN apk add ffmpeg
-
 # Copy config
 COPY containers/php-fpm/php.ini /usr/local/etc/php/
 COPY containers/php-fpm/opcache-dev.ini /usr/local/etc/php/conf.d/opcache-recommended.ini
