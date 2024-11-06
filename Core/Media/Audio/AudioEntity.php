@@ -15,7 +15,6 @@ class AudioEntity implements EntityInterface
         public ?DateTimeImmutable $uploadedAt = null,
         public ?DateTimeImmutable $processedAt = null,
     ) {
-        $this->uploadedAt ??= new DateTimeImmutable('now');
     }
 
     /**
