@@ -14,6 +14,7 @@ use Minds\Core\Media\ClientUpload\Manager;
 use Minds\Core\Session;
 use Minds\Interfaces;
 use Minds\Core\Media\ClientUpload\ClientUploadLease;
+use Minds\Core\Media\ClientUpload\MediaTypeEnum;
 
 class upload implements Interfaces\Api
 {
@@ -41,25 +42,24 @@ class upload implements Interfaces\Api
     public function put($pages)
     {
         /** @var Manager $manager */
-        $manager = Di::_()->get("Media\ClientUpload\Manager");
+        $manager = Di::_()->get(Manager::class);
         switch ($pages[0]) {
             case 'prepare':
-                $mediaType = $pages[1] ?? 'not-set';
-                $lease = $manager->prepare($mediaType);
+                $mediaType = MediaTypeEnum::tryFrom($pages[1] ?? 'not-set');
+                $lease = $manager->prepare($mediaType, Session::getLoggedinUser());
                 return Factory::response([
                     'lease' => $lease->export(),
                 ]);
                 break;
             case 'complete':
-                $mediaType = $pages[1] ?? 'not-set';
+                $mediaType = MediaTypeEnum::tryFrom($pages[1] ?? 'not-set');
                 $guid = $pages[2] ?? null;
 
-                $lease = new ClientUploadLease();
-                $lease->setGuid($guid)
-                    ->setUser(Session::getLoggedinUser())
-                    ->setMediaType($mediaType);
-
-                $manager->complete($lease);
+                $lease = new ClientUploadLease(
+                    guid: $guid,
+                    mediaType: $mediaType
+                );
+                $manager->complete($lease, Session::getLoggedinUser());
                 break;
         }
         return Factory::response([]);

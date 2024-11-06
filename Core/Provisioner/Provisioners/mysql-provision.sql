@@ -1204,3 +1204,14 @@ CREATE TABLE IF NOT EXISTS minds_tenant_bootstrap_progress (
 ALTER TABLE minds_tenant_mobile_configs
     ADD COLUMN production_app_version varchar(48) COMMENT "Version of the app in production" DEFAULT NULL
     AFTER app_version;
+
+CREATE TABLE IF NOT EXISTS minds_entities_audio  (
+    tenant_id int NOT NULL,
+    guid bigint NOT NULL,
+    created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+    uploaded_at timestamp,
+    processed_at timestamp,
+    duration_secs float,
+    PRIMARY KEY (tenant_id, guid),
+    FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
+);

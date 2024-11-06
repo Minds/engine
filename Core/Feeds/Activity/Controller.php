@@ -12,6 +12,7 @@ use Minds\Core\Feeds\Activity\Exceptions\CreateActivityFailedException;
 use Minds\Core\Feeds\Scheduled\EntityTimeCreated;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
+use Minds\Core\Media\Audio\AudioService;
 use Minds\Core\Monetization\Demonetization\Validators\DemonetizedPlusValidator;
 use Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services\CreatePaywalledEntityService;
 use Minds\Core\Router\Exceptions\ForbiddenException;
@@ -217,7 +218,7 @@ class Controller
             /**
              * Build out the attachment entities
              */
-            $attachmentEntities = $this->entitiesBuilder->get([ 'guids' => $payload['attachment_guids'] ]);
+            $attachmentEntities = $this->entitiesBuilder->get([ 'guids' => $payload['attachment_guids'] ]) ?: [];
 
             $imageCount = count(array_filter($attachmentEntities, function ($attachmentEntity) {
                 return $attachmentEntity instanceof Image;
@@ -226,6 +227,15 @@ class Controller
             $videoCount = count(array_filter($attachmentEntities, function ($attachmentEntity) {
                 return $attachmentEntity instanceof Video;
             }));
+
+            // If neither, was this an audio upload?
+            if ($imageCount === 0 && $videoCount === 0) {
+                $audioService = Di::_()->get(AudioService::class);
+                $attachmentEntities = [ $audioService->getByGuid($payload['attachment_guids'][0]) ];
+                $audioCount = count($attachmentEntities);
+            } else {
+                $audioCount = 0;
+            }
 
             // validate there is not a mix of videos and images
             if ($imageCount >= 1 && $videoCount >= 1) {

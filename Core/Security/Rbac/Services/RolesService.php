@@ -252,7 +252,8 @@ class RolesService
                     PermissionsEnum::CAN_MODERATE_CONTENT,
                     PermissionsEnum::CAN_CREATE_PAYWALL,
                     PermissionsEnum::CAN_CREATE_CHAT_ROOM,
-                    PermissionsEnum::CAN_UPLOAD_CHAT_MEDIA
+                    PermissionsEnum::CAN_UPLOAD_CHAT_MEDIA,
+                    PermissionsEnum::CAN_UPLOAD_AUDIO,
                 ]
             ),
             RolesEnum::ADMIN->value => new Role(
@@ -268,7 +269,8 @@ class RolesService
                     PermissionsEnum::CAN_USE_RSS_SYNC,
                     PermissionsEnum::CAN_MODERATE_CONTENT,
                     PermissionsEnum::CAN_CREATE_CHAT_ROOM,
-                    PermissionsEnum::CAN_UPLOAD_CHAT_MEDIA
+                    PermissionsEnum::CAN_UPLOAD_CHAT_MEDIA,
+                    PermissionsEnum::CAN_UPLOAD_AUDIO,
                 ]
             ),
             RolesEnum::MODERATOR->value => new Role(

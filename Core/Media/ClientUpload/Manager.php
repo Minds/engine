@@ -4,62 +4,81 @@
  */
 namespace Minds\Core\Media\ClientUpload;
 
+use DateTimeImmutable;
+use Minds\Common\Access;
 use Minds\Core\Media\Video\Transcoder;
 use Minds\Core\Media\Video\Manager as VideoManager;
 use Minds\Core\GuidBuilder;
 use Minds\Core\Di\Di;
+use Minds\Core\Media\Audio\AudioEntity;
+use Minds\Core\Media\Audio\AudioService;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
+use Minds\Entities\User;
 use Minds\Entities\Video;
 
 class Manager
 {
-    /** @var Transcoder\Manager */
-    private $transcoderManager;
-
-    /** @var VideoManager */
-    private $videoManager;
-
-    /** @var Guid $guid */
-    private $guid;
-
     public function __construct(
-        Transcoder\Manager $transcoderManager = null,
-        VideoManager $videoManager = null,
-        GuidBuilder $guid = null,
-        private ?RbacGatekeeperService $rbacGatekeeperService = null,
+        private readonly Transcoder\Manager $transcoderManager,
+        private readonly VideoManager $videoManager,
+        private readonly GuidBuilder $guid,
+        private readonly RbacGatekeeperService $rbacGatekeeperService,
+        private readonly AudioService $audioService,
     ) {
-        $this->transcoderManager = $transcoderManager ?? Di::_()->get('Media\Video\Transcoder\Manager');
-        $this->videoManager = $videoManager ?: Di::_()->get('Media\Video\Manager');
-        $this->guid = $guid ?: new GuidBuilder();
-        $this->rbacGatekeeperService ??= Di::_()->get(RbacGatekeeperService::class);
     }
 
     /**
      * Prepare an upload, return a lease
-     * @param $type - the media type
+     * @param MediaTypeEnum $type - the media type
      * @return ClientUploadLease
      */
-    public function prepare($type = 'video')
+    public function prepare(MediaTypeEnum $type = MediaTypeEnum::VIDEO, User $user)
     {
-        if ($type != 'video') {
-            throw new \Exception("$type is not currently supported for client based uploads");
+        switch ($type) {
+            case MediaTypeEnum::VIDEO:
+                // Do not allow video uploads
+                $this->rbacGatekeeperService->isAllowed(PermissionsEnum::CAN_UPLOAD_VIDEO);
+
+                $video = new Video();
+                $video->set('guid', $this->guid->build());
+
+                $preSignedUrl = $this->transcoderManager->getClientSideUploadUrl($video);
+
+                $lease = new ClientUploadLease(
+                    guid: $video->getGuid(),
+                    mediaType: $type,
+                    presignedUrl: $preSignedUrl,
+                );
+
+                return $lease;
+                break;
+            case MediaTypeEnum::AUDIO:
+                // Check if the site allows audio uploads (user level)
+                $this->rbacGatekeeperService->isAllowed(PermissionsEnum::CAN_UPLOAD_AUDIO);
+
+                $audio = new AudioEntity(
+                    guid: (int) $this->guid->build(),
+                    ownerGuid: (int) $user->getGuid(),
+                    accessId: Access::UNLISTED, // Hide until published
+                );
+
+                $this->audioService->onUploadInitiated($audio);
+
+                $preSignedUrl = $this->audioService->getClientSideUploadUrl($audio);
+
+                $lease = new ClientUploadLease(
+                    guid: $audio->guid,
+                    mediaType: $type,
+                    presignedUrl: $preSignedUrl,
+                );
+
+                return $lease;
+
+                break;
+            default:
+                throw new \Exception("$type is not currently supported for client based uploads");
         }
-
-        // Do not allow video uploads
-        $this->rbacGatekeeperService->isAllowed(PermissionsEnum::CAN_UPLOAD_VIDEO);
-
-        $video = new Video();
-        $video->set('guid', $this->guid->build());
-
-        $preSignedUrl = $this->transcoderManager->getClientSideUploadUrl($video);
-
-        $lease = new ClientUploadLease();
-        $lease->setGuid($video->getGuid())
-            ->setMediaType($type)
-            ->setPresignedUrl($preSignedUrl);
-
-        return $lease;
     }
 
     /**
@@ -67,22 +86,37 @@ class Manager
      * @param ClientUploadLease $lease
      * @return boolean
      */
-    public function complete(ClientUploadLease $lease)
+    public function complete(ClientUploadLease $lease, User $user)
     {
-        if ($lease->getMediaType() !== 'video') {
-            throw new \Exception("{$lease->getMediaType()} is not currently supported for client based uploads");
+        switch ($lease->mediaType) {
+            case MediaTypeEnum::VIDEO:
+                $video = new Video();
+                $video->set('guid', $lease->guid);
+                $video->set('owner_guid', $user->getGuid());
+                $video->set('cinemr_guid', $lease->guid);
+                $video->set('access_id', 0); // Hide until published
+                $video->setFlag('full_hd', !!$user->isPro());
+        
+                $video->setTranscoder('cloudflare');
+        
+                $this->videoManager->add($video);
+                break;
+            case MediaTypeEnum::AUDIO:
+
+                // Get the audio entity
+                $audio = $this->audioService->getByGuid($lease->guid);
+
+                // $audio = new AudioEntity(
+                //     guid: $lease->guid,
+                //     ownerGuid: $user->getGuid(),
+                    
+                // );
+
+                $this->audioService->onUploadCompleted($audio, $user);
+                break;
+            default:
+                throw new \Exception("{$lease->mediaType} is not currently supported for client based uploads");
         }
-
-        $video = new Video();
-        $video->set('guid', $lease->getGuid());
-        $video->set('owner_guid', $lease->getUser()->getGuid());
-        $video->set('cinemr_guid', $lease->getGuid());
-        $video->set('access_id', 0); // Hide until published
-        $video->setFlag('full_hd', !!$lease->getUser()->isPro());
-
-        $video->setTranscoder('cloudflare');
-
-        $this->videoManager->add($video);
 
         return true;
     }

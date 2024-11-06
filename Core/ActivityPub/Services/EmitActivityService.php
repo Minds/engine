@@ -163,6 +163,9 @@ class EmitActivityService
             'https://bae.st/inbox', // Unresponsive
             'https://shitposter.club/inbox', // Unresponsive
             'https://poster.place/inbox', // Unresponsive
+            'https://detroitriotcity.com/inbox',
+            'https://social.fbxl.net/inbox',
+            'https://fuwafuwa.town/inbox',
         ];
 
         if (in_array($inboxUrl, $disallowInboxes, true) === true) {

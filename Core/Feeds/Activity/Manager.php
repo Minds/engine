@@ -56,6 +56,8 @@ use Minds\Core\Blogs\Blog;
 use Minds\Core\Counters;
 use InvalidArgumentException;
 use Minds\Core\Feeds\Elastic\V2\Manager as ElasticV2Manager;
+use Minds\Core\Media\Audio\AudioEntity;
+use Minds\Core\Media\Audio\AudioService;
 
 class Manager
 {
@@ -116,6 +118,7 @@ class Manager
         private ?RbacGatekeeperService $rbacGatekeeperService = null,
         private ?Counters $counters = null,
         private ?ElasticV2Manager $elasticV2Manager = null,
+        private ?AudioService $audioService = null,
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -135,6 +138,7 @@ class Manager
         $this->rbacGatekeeperService ??= Di::_()->get(RbacGatekeeperService::class);
         $this->counters ??= new Counters();
         $this->elasticV2Manager ??= Di::_()->get(ElasticV2Manager::class);
+        $this->audioService ??= Di::_()->get(AudioService::class);
     }
 
     public function getSupermindManager(): SupermindManager
@@ -707,6 +711,12 @@ class Manager
      */
     public function patchAttachmentEntity(Activity $activity, EntityInterface $entity): bool
     {
+        if ($entity instanceof AudioEntity) {
+            return $this->audioService->onActivityPostCreated(
+                audioEntity: $entity,
+                activityGuid: $activity->getGuid(),
+            );
+        }
         return $this->save
             ->setEntity($entity)
             ->withMutatedAttributes([

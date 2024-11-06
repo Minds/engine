@@ -23,6 +23,7 @@ use Prophecy\Argument;
 use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 use InvalidArgumentException;
 use Minds\Core\Feeds\Elastic\V2\Manager as ElasticV2Manager;
+use Minds\Core\Media\Audio\AudioService;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -66,7 +67,8 @@ class ManagerSpec extends ObjectBehavior
         ElasticManager $elasticManager,
         RbacGatekeeperService $rbacGatekeeperServiceMock,
         Counters $counters,
-        ElasticV2Manager $elasticV2Manager
+        ElasticV2Manager $elasticV2Manager,
+        AudioService $audioService,
     ) {
         $this->beConstructedWith(
             $foreignEntityDelegate,
@@ -87,6 +89,7 @@ class ManagerSpec extends ObjectBehavior
             $rbacGatekeeperServiceMock,
             $counters,
             $elasticV2Manager,
+            $audioService,
         );
         $this->foreignEntityDelegate = $foreignEntityDelegate;
 

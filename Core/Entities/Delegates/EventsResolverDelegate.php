@@ -31,6 +31,7 @@ class EventsResolverDelegate implements ResolverDelegate
             'wire',
             'withdraw-request',
             'peer-boost',
+            'audio',
         ], true);
     }
 
