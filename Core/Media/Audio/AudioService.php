@@ -7,6 +7,7 @@ use FFMpeg\FFProbe;
 use FFMpeg\Format\Audio\Mp3;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Entities\User;
 use Psr\SimpleCache\CacheInterface;
 
@@ -59,7 +60,7 @@ class AudioService
 
         $url = $this->audioAssetStorageService->getDownloadUrl($audioEntity, $filename);
 
-        $this->cache->set($cacheKey, $url);
+        $this->cache->set($cacheKey, $url, 43200); // 12 hours
 
         return $url;
     }
@@ -90,6 +91,11 @@ class AudioService
      */
     public function onUploadCompleted(AudioEntity $audioEntity, User $user): void
     {
+        // If already marked as uploaded, do not proceed
+        if ($audioEntity->uploadedAt) {
+            throw new ForbiddenException();
+        }
+
         // Mark as uploaded on the datastore
         $audioEntity->uploadedAt = new DateTimeImmutable('now');
         $this->audioRepository->update($audioEntity, [ 'uploadedAt' ]);
