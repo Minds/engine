@@ -33,7 +33,7 @@ class Manager
      * @param MediaTypeEnum $type - the media type
      * @return ClientUploadLease
      */
-    public function prepare(MediaTypeEnum $type = MediaTypeEnum::VIDEO, User $user)
+    public function prepare(MediaTypeEnum $type, User $user)
     {
         switch ($type) {
             case MediaTypeEnum::VIDEO:
