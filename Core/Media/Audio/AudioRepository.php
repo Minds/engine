@@ -154,7 +154,7 @@ class AudioRepository extends AbstractRepository
             ownerGuid: $row['owner_guid'],
             accessId: $row['access_id'],
             durationSecs: (float) $row['duration_secs'],
-            uploadedAt: new DateTimeImmutable($row['uploaded_at']),
+            uploadedAt: isset($row['uploaded_at']) ? new DateTimeImmutable($row['uploaded_at']) : null,
         );
     }
 
