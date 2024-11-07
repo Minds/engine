@@ -120,7 +120,7 @@ class AudioService
     public function processAudio(AudioEntity $audioEntity): bool
     {
         // Download the source file from s3 bucket
-        $audioSrc = $this->audioAssetStorageService->download($audioEntity);
+        $audioSrc = $this->audioAssetStorageService->downloadToTmpfile($audioEntity);
 
         // Output to tmp directory (need .mp3 suffix)
         $resampledMp3Filename = sys_get_temp_dir() . "/$audioEntity->guid.mp3";

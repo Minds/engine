@@ -34,7 +34,7 @@ class AudioThumbnailService
 
         $this->audioAssetStorageService->upload(
             audioEntity: $audioEntity,
-            source: $imageData,
+            data: $imageData,
             filename: AudioAssetStorageService::THUMBNAIL_FILENAME
         );
 
@@ -47,7 +47,7 @@ class AudioThumbnailService
     public function get(AudioEntity $audioEntity): string
     {
         try {
-            $data = $this->audioAssetStorageService->download(
+            $data = $this->audioAssetStorageService->downloadToMemory(
                 audioEntity: $audioEntity,
                 filename: AudioAssetStorageService::THUMBNAIL_FILENAME
             );

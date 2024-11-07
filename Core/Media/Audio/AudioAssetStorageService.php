@@ -24,7 +24,7 @@ class AudioAssetStorageService
      * Downloads a copy of the audio file to tmp storage
      * @return resource
      */
-    public function download(AudioEntity $audioEntity, string $filename = self::SOURCE_FILENMAME)
+    public function downloadToTmpfile(AudioEntity $audioEntity, string $filename = self::SOURCE_FILENMAME)
     {
         $tmpfile = tmpfile();
         $tmpfilename = stream_get_meta_data($tmpfile)['uri'];
@@ -36,6 +36,20 @@ class AudioAssetStorageService
         ]);
 
         return $tmpfile;
+    }
+
+    /**
+     * Downloads a copy of the audio file to tmp storage
+     * @return resource
+     */
+    public function downloadToMemory(AudioEntity $audioEntity, string $filename = self::SOURCE_FILENMAME)
+    {
+        $result = $this->ociS3->getObject([
+            'Bucket' => $this->getBucketName(),
+            'Key' => $this->getFilepath($audioEntity) . '/' . $filename,
+        ]);
+
+        return $result['Body'];
     }
 
     /**
@@ -63,15 +77,15 @@ class AudioAssetStorageService
      */
     public function upload(
         AudioEntity $audioEntity,
-        mixed $source,
+        string $source = null,
+        string $data = null,
         string $filename = self::RESAMPLED_FILENAME
     ): bool {
 
         $this->ociS3->putObject([
-            'ACL' => 'public-read',
             'Bucket' => $this->getBucketName(),
             'Key' => $this->getFilepath($audioEntity) . '/' . $filename,
-            'Body' => is_resource($source) ? $source : fopen($source, 'r'),
+            'Body' => $source ? fopen($source, 'r') : $data,
         ]);
 
         return true;
