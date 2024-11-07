@@ -138,7 +138,6 @@ class Manager
         $this->rbacGatekeeperService ??= Di::_()->get(RbacGatekeeperService::class);
         $this->counters ??= new Counters();
         $this->elasticV2Manager ??= Di::_()->get(ElasticV2Manager::class);
-        $this->audioService ??= Di::_()->get(AudioService::class);
     }
 
     public function getSupermindManager(): SupermindManager
@@ -712,7 +711,7 @@ class Manager
     public function patchAttachmentEntity(Activity $activity, EntityInterface $entity): bool
     {
         if ($entity instanceof AudioEntity) {
-            return $this->audioService->onActivityPostCreated(
+            return $this->getAudioService()->onActivityPostCreated(
                 audioEntity: $entity,
                 activityGuid: $activity->getGuid(),
             );
@@ -752,5 +751,10 @@ class Manager
         $this->messageLengthValidator->validate($activity->getMessage() ?? '', nameOverride: 'post');
         $this->titleLengthValidator->validate($activity->getTitle() ?? '');
         return true;
+    }
+
+    private function getAudioService(): AudioService
+    {
+        return $this->audioService ??= Di::_()->get(AudioService::class);
     }
 }

@@ -11,6 +11,7 @@ class AudioAssetStorageService
 {
     public const SOURCE_FILENMAME = 'source';
     public const RESAMPLED_FILENAME = 'resampled.mp3';
+    public const THUMBNAIL_FILENAME = 'thumbnail.jpg';
 
     public function __construct(
         protected readonly Config $config,
@@ -61,16 +62,16 @@ class AudioAssetStorageService
      * Uploads an asset to the filestore
      */
     public function upload(
-        AudioEntity $audio,
-        string $source,
+        AudioEntity $audioEntity,
+        mixed $source,
         string $filename = self::RESAMPLED_FILENAME
     ): bool {
 
         $this->ociS3->putObject([
             'ACL' => 'public-read',
             'Bucket' => $this->getBucketName(),
-            'Key' => $this->getFilepath($audio) . '/' . $filename,
-            'Body' => fopen($source, 'r'),
+            'Key' => $this->getFilepath($audioEntity) . '/' . $filename,
+            'Body' => is_resource($source) ? $source : fopen($source, 'r'),
         ]);
 
         return true;

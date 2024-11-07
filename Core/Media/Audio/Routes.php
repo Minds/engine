@@ -20,8 +20,13 @@ class Routes extends ModuleRoutes
             ->withPrefix('fs/v3/media/audio')
             ->do(function (Route $route) {
                 $route->get(
-                    'download/:guid',
+                    ':guid/download',
                     Ref::_(AudioPsrController::class, 'downloadAudioAsset')
+                );
+
+                $route->get(
+                    ':guid/thumbnail',
+                    Ref::_(AudioPsrController::class, 'getThumbnail')
                 );
             });
     }

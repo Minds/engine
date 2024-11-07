@@ -5,6 +5,7 @@ use DateTimeImmutable;
 use FFMpeg\FFMpeg;
 use FFMpeg\FFProbe;
 use FFMpeg\Format\Audio\Mp3;
+use Minds\Common\Access;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\Router\Exceptions\ForbiddenException;
@@ -19,6 +20,7 @@ class AudioService
     public function __construct(
         private AudioAssetStorageService $audioAssetStorageService,
         private AudioRepository $audioRepository,
+        private AudioThumbnailService $audioThumbnailService,
         private FFMpeg $fFMpeg,
         private FFProbe $fFProbe,
         private ActionEventsTopic $actionEventsTopic,
@@ -101,7 +103,7 @@ class AudioService
         $this->audioRepository->update($audioEntity, [ 'uploadedAt' ]);
 
         // Clear cache
-        $this->cache->destroy(self::ENTITY_CACHE_KEY_PREFIX . $audioEntity->guid);
+        $this->cache->delete(self::ENTITY_CACHE_KEY_PREFIX . $audioEntity->guid);
 
         // Submit an event to the event stream so the workers can process in the background
         $event = new ActionEvent();
@@ -147,7 +149,7 @@ class AudioService
         $this->audioRepository->update($audioEntity, [ 'processedAt', 'durationSecs' ]);
 
         // Clear cache
-        $this->cache->destroy(self::ENTITY_CACHE_KEY_PREFIX . $audioEntity->guid);
+        $this->cache->delete(self::ENTITY_CACHE_KEY_PREFIX . $audioEntity->guid);
 
         return true;
     }
@@ -157,15 +159,28 @@ class AudioService
      */
     public function onActivityPostCreated(AudioEntity $audioEntity, int $activityGuid): bool
     {
+        if ($audioEntity->accessId > (int) Access::UNLISTED) {
+            // Audio file must have already been attached, do not allow again
+            throw new ForbiddenException();
+        }
+
         // Update the access id to be the activity guid
         $audioEntity->accessId = $activityGuid;
 
         $success = $this->audioRepository->updateAccessId($audioEntity);
         if ($success) {
-            $this->cache->destroy(self::ENTITY_CACHE_KEY_PREFIX . $audioEntity->guid);
+            $this->cache->delete(self::ENTITY_CACHE_KEY_PREFIX . $audioEntity->guid);
         }
 
         return $success;
     }
 
+    /**
+     * Audio files can have thumbnails, we upload them to the same the folder as the mp3's
+     * are at at and call them thumbnail.jpeg
+     */
+    public function uploadThumbnailFromBlob(AudioEntity $audioEntity, string $blob): void
+    {
+        $this->audioThumbnailService->process($audioEntity, $blob);
+    }
 }

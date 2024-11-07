@@ -25,6 +25,7 @@ class Provider extends DiProvider
             new AudioService(
                 audioAssetStorageService: $di->get(AudioAssetStorageService::class),
                 audioRepository: $di->get(AudioRepository::class),
+                audioThumbnailService: $di->get(AudioThumbnailService::class),
                 fFMpeg: $di->get(FFMpeg::class),
                 fFProbe: $di->get(FFProbe::class),
                 actionEventsTopic: $di->get('EventStreams\Topics\ActionEventsTopic'),
@@ -45,9 +46,16 @@ class Provider extends DiProvider
                 osClient: $di->get(ObjectStorageClient::class),
             ));
 
+        $this->di->bind(AudioThumbnailService::class, fn (Di $di) =>
+            new AudioThumbnailService(
+                audioAssetStorageService: $di->get(AudioAssetStorageService::class),
+                imagickManager: $di->get('Media\Imagick\Manager'),
+            ));
+
         $this->di->bind(AudioPsrController::class, fn (Di $di) =>
             new AudioPsrController(
                 audioService: $di->get(AudioService::class),
+                audioThumbnailService: $di->get(AudioThumbnailService::class),
                 acl: $di->get('Security\ACL'),
             ));
     }

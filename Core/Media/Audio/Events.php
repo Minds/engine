@@ -58,7 +58,8 @@ class Events
                     $audioEntity = $this->getAudioService()->getByGuid($attachment['guid']);
 
                     if ($audioEntity) {
-                        $export['custom_data']['src'] = $this->config->get('site_url') . 'fs/v3/media/audio/download/' . $audioEntity->guid;
+                        $export['custom_data']['thumbnail_src'] = $this->config->get('site_url') . 'fs/v3/media/audio/' . $audioEntity->guid . '/thumbnail';
+                        $export['custom_data']['src'] = $this->config->get('site_url') . 'fs/v3/media/audio/' . $audioEntity->guid . '/download';
                         $export['custom_data']['duration_secs'] = $audioEntity->durationSecs;
                         $event->setResponse($export);
                     }
