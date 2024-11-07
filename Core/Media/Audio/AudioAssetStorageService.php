@@ -40,9 +40,8 @@ class AudioAssetStorageService
 
     /**
      * Downloads a copy of the audio file to tmp storage
-     * @return resource
      */
-    public function downloadToMemory(AudioEntity $audioEntity, string $filename = self::SOURCE_FILENMAME)
+    public function downloadToMemory(AudioEntity $audioEntity, string $filename = self::SOURCE_FILENMAME): string
     {
         $result = $this->ociS3->getObject([
             'Bucket' => $this->getBucketName(),

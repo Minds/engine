@@ -23,7 +23,7 @@ class AudioPsrController
      */
     public function downloadAudioAsset(ServerRequestInterface $request): RedirectResponse
     {
-        $guid = $request->getAttribute('parameters')['guid'];
+        $guid = (int)  $request->getAttribute('parameters')['guid'];
 
         $audioEntity = $this->audioService->getByGuid($guid);
 
