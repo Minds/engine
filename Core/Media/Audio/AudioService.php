@@ -83,7 +83,6 @@ class AudioService
     public function onUploadInitiated(AudioEntity $audioEntity): void
     {
         // Save a reference to the database.
-        // If this fails then delete the asset
         $this->audioRepository->add($audioEntity);
     }
 
@@ -100,18 +99,20 @@ class AudioService
 
         // Mark as uploaded on the datastore
         $audioEntity->uploadedAt = new DateTimeImmutable('now');
-        $this->audioRepository->update($audioEntity, [ 'uploadedAt' ]);
+        $success = $this->audioRepository->update($audioEntity, [ 'uploadedAt' ]);
 
-        // Clear cache
-        $this->cache->delete(self::ENTITY_CACHE_KEY_PREFIX . $audioEntity->guid);
+        if ($success) {
+            // Clear cache
+            $this->cache->delete(self::ENTITY_CACHE_KEY_PREFIX . $audioEntity->guid);
 
-        // Submit an event to the event stream so the workers can process in the background
-        $event = new ActionEvent();
-        $event->setAction(ActionEvent::ACTION_AUDIO_UPLOAD)
-            ->setEntity($audioEntity)
-            ->setUser($user);
+            // Submit an event to the event stream so the workers can process in the background
+            $event = new ActionEvent();
+            $event->setAction(ActionEvent::ACTION_AUDIO_UPLOAD)
+                ->setEntity($audioEntity)
+                ->setUser($user);
 
-        $this->actionEventsTopic->send($event);
+            $this->actionEventsTopic->send($event);
+        }
     }
 
     /**
@@ -142,7 +143,7 @@ class AudioService
         $this->audioAssetStorageService->upload($audioEntity, $resampledMp3Filename);
 
         // Cleanup the file
-        unlink($resampledMp3Filename);
+        @unlink($resampledMp3Filename);
 
         // Update the database with the completed state (TODO: Prune abandoned audio uploads every 24 hours)
         $audioEntity->processedAt = new DateTimeImmutable('now');
