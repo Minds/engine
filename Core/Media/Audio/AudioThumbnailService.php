@@ -16,7 +16,7 @@ class AudioThumbnailService
     /**
      * Processes and uploads the thumbnail for an audio entity
      */
-    public function process(AudioEntity $audioEntity, string $blob)
+    public function process(AudioEntity $audioEntity, string $blob): void
     {
         $blobParts = explode(',', $blob);
 
@@ -37,8 +37,6 @@ class AudioThumbnailService
             data: $imageData,
             filename: AudioAssetStorageService::THUMBNAIL_FILENAME
         );
-
-        return true;
     }
 
     /**
