@@ -186,7 +186,9 @@ class MediaProvider extends Provider
             );
         });
 
-        $this->di->bind(FFMpeg::class, fn (Di $di) => FFMpeg::create());
+        $this->di->bind(FFMpeg::class, fn (Di $di) => FFMpeg::create([
+            'timeout'          => 3600, // 1 hour
+        ]));
         $this->di->bind(FFProbe::class, fn (Di $di) => FFProbe::create());
     }
 }
