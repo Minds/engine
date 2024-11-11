@@ -26,8 +26,8 @@ class ProvisionerSpec extends ObjectBehavior
     }
 
     public function it_should_set_up(
-        \Elasticsearch\Client $esClient,
-        \Elasticsearch\Namespaces\IndicesNamespace $indicesNamespace
+        \OpenSearch\Client $esClient,
+        \OpenSearch\Namespaces\IndicesNamespace $indicesNamespace
     ) {
         $this->_client->getClient()
             ->shouldBeCalled()
