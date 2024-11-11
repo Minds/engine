@@ -127,13 +127,15 @@ class AudioService
         $resampledMp3Filename = sys_get_temp_dir() . "/$audioEntity->guid.mp3";
 
         // Reprocess the file
-        $audio = $this->fFMpeg->open(stream_get_meta_data($audioSrc)['uri']);
-        $audio->save(
-            format: (new Mp3())
-                ->setAudioChannels(1) // Force to mono
-                ->setAudioKiloBitrate(128),
-            outputPathfile: $resampledMp3Filename
-        );
+        $advancedMedia = $this->fFMpeg->openAdvanced([stream_get_meta_data($audioSrc)['uri']]);
+        $advancedMedia->map(
+            outs: [
+                    '0:a', // Only audio channel
+                ],
+            format: new Mp3(),
+            outputFilename: $resampledMp3Filename
+        )
+            ->save();
     
         // Get the stats
         $format = $this->fFProbe->format(stream_get_meta_data($audioSrc)['uri']);

@@ -7,6 +7,7 @@ use FFMpeg\FFMpeg;
 use FFMpeg\FFProbe;
 use FFMpeg\FFProbe\DataMapping\Format;
 use FFMpeg\Format\Audio\Mp3;
+use FFMpeg\Media\AdvancedMedia;
 use FFMpeg\Media\Audio;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
@@ -222,7 +223,7 @@ class AudioServiceSpec extends ObjectBehavior
         $this->shouldThrow(ForbiddenException::class)->duringOnUploadCompleted($audioEntity, $user);
     }
 
-    public function it_should_process_audio(Audio $ffmpegAudioMock, Format $ffprobeFormatMock)
+    public function it_should_process_audio(AdvancedMedia $ffmpegAMMock, Format $ffprobeFormatMock)
     {
         $audioEntity = new AudioEntity(
             guid: 123,
@@ -235,9 +236,11 @@ class AudioServiceSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($resource);
 
-        $this->fFMpegMock->open(Argument::any())->willReturn($ffmpegAudioMock);
-        $ffmpegAudioMock->save(Argument::type(Mp3::class), Argument::type('string'))
-            ->shouldBeCalled();
+        $this->fFMpegMock->openAdvanced(Argument::any())->willReturn($ffmpegAMMock);
+        $ffmpegAMMock->map(['0:a'], Argument::type(Mp3::class), Argument::type('string'))
+            ->shouldBeCalled()
+            ->willReturn($ffmpegAMMock);
+        $ffmpegAMMock->save()->shouldBeCalled();
 
         $this->fFProbeMock->format(Argument::type('string'))->willReturn($ffprobeFormatMock);
         $ffprobeFormatMock->get('duration')->willReturn(12.5);
