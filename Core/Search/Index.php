@@ -8,7 +8,7 @@
 
 namespace Minds\Core\Search;
 
-use Elasticsearch\Common\Exceptions\Missing404Exception;
+use OpenSearch\Common\Exceptions\Missing404Exception;
 use Minds\Common\SystemUser;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch\Prepared;

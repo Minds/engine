@@ -3,7 +3,7 @@
 namespace Minds\Controllers\Cli;
 
 use DateTime;
-use Elasticsearch\ClientBuilder;
+use OpenSearch\ClientBuilder;
 use Minds\Cli;
 use Minds\Core;
 use Minds\Core\Di\Di;

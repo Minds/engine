@@ -215,7 +215,7 @@ class SearchRepositorySpec extends ObjectBehavior
 
         $this->client->request($preparedDelete)
             ->shouldBeCalled()
-            ->willThrow(new \Elasticsearch\Common\Exceptions\Missing404Exception());
+            ->willThrow(new \OpenSearch\Common\Exceptions\Missing404Exception());
 
         $this->delete('1000')->shouldReturn(true);
     }
