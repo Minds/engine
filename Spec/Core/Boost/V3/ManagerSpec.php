@@ -5,6 +5,7 @@ namespace Spec\Minds\Core\Boost\V3;
 use Minds\Common\Repository\Response;
 use Minds\Core\Analytics\Views\Manager as ViewsManager;
 use Minds\Core\Blogs\Blog;
+use Minds\Core\Boost\V3\Cache\BoostFeedCache;
 use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
@@ -69,6 +70,7 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $inAppPurchasesManagerMock;
     private Collaborator $configMock;
     private Collaborator $tenantBootServiceMock;
+    private Collaborator $boostFeedCacheMock;
 
     public function let(
         Repository            $repository,
@@ -84,6 +86,7 @@ class ManagerSpec extends ObjectBehavior
         InAppPurchasesManager $inAppPurchasesManager,
         Config                $config,
         MultiTenantBootService $tenantBootServiceMock,
+        BoostFeedCache        $boostFeedCacheMock
     ) {
         $this->repository = $repository;
         $this->paymentProcessor = $paymentProcessor;
@@ -98,6 +101,7 @@ class ManagerSpec extends ObjectBehavior
         $this->inAppPurchasesManagerMock = $inAppPurchasesManager;
         $this->configMock = $config;
         $this->tenantBootServiceMock = $tenantBootServiceMock;
+        $this->boostFeedCacheMock = $boostFeedCacheMock;
 
         $this->beConstructedWith(
             $this->repository,
@@ -113,6 +117,7 @@ class ManagerSpec extends ObjectBehavior
             $this->inAppPurchasesManagerMock,
             $this->configMock,
             $this->tenantBootServiceMock,
+            $this->boostFeedCacheMock
         );
     }
 
@@ -1559,6 +1564,12 @@ class ManagerSpec extends ObjectBehavior
 
         $this->setUser($user);
 
+        $this->boostFeedCacheMock->get(
+            Argument::cetera()
+        )
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $this->repository->getBoosts(
             limit: 12,
             offset: 0,
@@ -1576,9 +1587,82 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willYield([$boost]);
 
+        $this->boostFeedCacheMock->set(
+            Argument::cetera()
+        )
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->acl->read(Argument::type(Boost::class))
             ->willReturn(true);
 
+
+        $this->getBoostFeed()->toArray()->shouldBeLike([
+            (new FeedSyncEntity())
+                ->setGuid($boostGuid)
+                ->setOwnerGuid($ownerGuid)
+                ->setTimestamp($createdTimestamp)
+                ->setUrn($boostUrn)
+                ->setEntity(new BoostEntityWrapper($boost))
+        ]);
+    }
+
+    public function it_should_get_boosts_as_feed_sync_entity_from_cache(
+        Boost $boost,
+        User $user
+    ): void {
+        $boostGuid = '234';
+        $ownerGuid = '123';
+        $createdTimestamp = 999999;
+        $boostUrn = "urn:boost:$boostGuid";
+        $activity = new Activity();
+
+        $boost = (new Boost(
+            '123',
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))->setOwnerGuid($ownerGuid)
+            ->setGuid($boostGuid)
+            ->setCreatedTimestamp($createdTimestamp)
+            ->setEntity($activity);
+
+        $this->setUser($user);
+
+        $this->boostFeedCacheMock->get(
+            limit: 12,
+            offset: 0,
+            targetStatus: null,
+            forApprovalQueue: false,
+            targetUserGuid: null,
+            orderByRanking: false,
+            targetAudience: BoostTargetAudiences::SAFE,
+            targetLocation: null,
+            loggedInUserGuid: null,
+            hasNext: false
+        )
+            ->shouldBeCalled()
+            ->willReturn([$boost]);
+
+        $this->repository->getBoosts(Argument::cetera())
+            ->shouldNotBeCalled();
+
+        $this->acl->read(Argument::type(Boost::class))
+            ->willReturn(true);
+
+        $this->boostFeedCacheMock->set(
+            Argument::cetera()
+        )
+            ->shouldNotBeCalled();
 
         $this->getBoostFeed()->toArray()->shouldBeLike([
             (new FeedSyncEntity())
@@ -1613,6 +1697,12 @@ class ManagerSpec extends ObjectBehavior
         ))->setOwnerGuid('123')
             ->setGuid('234');
 
+        $this->boostFeedCacheMock->get(
+            Argument::cetera()
+        )
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
             offset: Argument::type('integer'),
@@ -1629,6 +1719,12 @@ class ManagerSpec extends ObjectBehavior
         )
             ->shouldBeCalledOnce()
             ->willYield([$boost]);
+
+        $this->boostFeedCacheMock->set(
+            Argument::cetera()
+        )
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->entitiesBuilder->single($servedByGuid)
             ->shouldBeCalled()
@@ -1673,6 +1769,12 @@ class ManagerSpec extends ObjectBehavior
         ))->setOwnerGuid('123')
             ->setGuid('234');
 
+        $this->boostFeedCacheMock->get(
+            Argument::cetera()
+        )
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
             offset: Argument::type('integer'),
@@ -1689,6 +1791,12 @@ class ManagerSpec extends ObjectBehavior
         )
             ->shouldBeCalledOnce()
             ->willYield([$boost]);
+
+        $this->boostFeedCacheMock->set(
+            Argument::cetera()
+        )
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->entitiesBuilder->single($servedByGuid)
             ->shouldBeCalled()
@@ -1733,6 +1841,12 @@ class ManagerSpec extends ObjectBehavior
         ))->setOwnerGuid('123')
             ->setGuid('234');
 
+        $this->boostFeedCacheMock->get(
+            Argument::cetera()
+        )
+            ->shouldBeCalled()
+            ->willReturn(null);
+            
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
             offset: Argument::type('integer'),
@@ -1749,6 +1863,12 @@ class ManagerSpec extends ObjectBehavior
         )
             ->shouldBeCalledOnce()
             ->willYield([$boost]);
+
+        $this->boostFeedCacheMock->set(
+            Argument::cetera()
+        )
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->entitiesBuilder->single($servedByGuid)
             ->shouldBeCalled()
@@ -1793,6 +1913,12 @@ class ManagerSpec extends ObjectBehavior
         ))->setOwnerGuid('123')
             ->setGuid('234');
 
+        $this->boostFeedCacheMock->get(
+            Argument::cetera()
+        )
+            ->shouldBeCalled()
+            ->willReturn(null);
+            
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
             offset: Argument::type('integer'),
@@ -1809,6 +1935,12 @@ class ManagerSpec extends ObjectBehavior
         )
             ->shouldBeCalledOnce()
             ->willYield([$boost]);
+
+        $this->boostFeedCacheMock->set(
+            Argument::cetera()
+        )
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->entitiesBuilder->single($servedByGuid)
             ->shouldBeCalled()
@@ -1853,6 +1985,12 @@ class ManagerSpec extends ObjectBehavior
         ))->setOwnerGuid('123')
             ->setGuid('234');
 
+        $this->boostFeedCacheMock->get(
+            Argument::cetera()
+        )
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
             offset: Argument::type('integer'),
@@ -1869,6 +2007,12 @@ class ManagerSpec extends ObjectBehavior
         )
             ->shouldBeCalledOnce()
             ->willYield([$boost]);
+
+        $this->boostFeedCacheMock->set(
+            Argument::cetera()
+        )
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->entitiesBuilder->single($servedByGuid)
             ->shouldBeCalled()
@@ -1913,6 +2057,12 @@ class ManagerSpec extends ObjectBehavior
         ))->setOwnerGuid('123')
             ->setGuid('234');
 
+        $this->boostFeedCacheMock->get(
+            Argument::cetera()
+        )
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
             offset: Argument::type('integer'),
@@ -1929,6 +2079,12 @@ class ManagerSpec extends ObjectBehavior
         )
             ->shouldBeCalledOnce()
             ->willYield([$boost]);
+
+        $this->boostFeedCacheMock->set(
+            Argument::cetera()
+        )
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->entitiesBuilder->single($servedByGuid)
             ->shouldBeCalled()
@@ -2032,6 +2188,12 @@ class ManagerSpec extends ObjectBehavior
         ))->setOwnerGuid('123')
             ->setGuid('234');
 
+        $this->boostFeedCacheMock->get(
+            Argument::cetera()
+        )
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
             offset: Argument::type('integer'),
@@ -2048,6 +2210,12 @@ class ManagerSpec extends ObjectBehavior
         )
             ->shouldBeCalledOnce()
             ->willYield([$boost]);
+
+        $this->boostFeedCacheMock->set(
+            Argument::cetera()
+        )
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->entitiesBuilder->single($servedByGuid)
             ->shouldBeCalled()
