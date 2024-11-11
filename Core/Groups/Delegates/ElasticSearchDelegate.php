@@ -56,7 +56,6 @@ class ElasticSearchDelegate
 
         $query = [
             'index' => 'minds-search-group',
-            'type' => '_doc',
             'id' => $group->getGuid(),
             'body' => [
                 'doc' => $doc,

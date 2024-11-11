@@ -89,8 +89,7 @@ class SearchRepository
     private function prepareDelete(string $guid): PreparedDelete
     {
         $query = [
-            'index' => 'minds-comments',
-            'type' => '_doc',
+            'index' => 'minds-comments', 
             'id' => $guid,
         ];
         $delete = new PreparedDelete();
@@ -116,7 +115,6 @@ class SearchRepository
     ): PreparedUpdate {
         $query = [
             'index' => 'minds-comments',
-            'type' => '_doc',
             'id' => $comment->getGuid(),
             'body' => [
                 'doc' => [
