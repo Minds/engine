@@ -49,6 +49,7 @@ class Repository extends AbstractRepository
             siteEmail: $row['site_email'] ?? null,
             colorScheme: $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : MultiTenantColorScheme::LIGHT,
             primaryColor: $row['primary_color'] ?? '#1b85d6',
+            customScript: isset($row['custom_script']) ? htmlspecialchars_decode($row['custom_script']) : null,
             federationDisabled: (bool) $row['federation_disabled'] ?? false,
             replyEmail: $row['reply_email'] ?? null,
             nsfwEnabled: ($row['nsfw_enabled'] ?? 1) === 1,
@@ -73,6 +74,7 @@ class Repository extends AbstractRepository
      * @param ?string $siteName - site name.
      * @param ?MultiTenantColorScheme $colorScheme - color scheme.
      * @param ?string $primaryColor - primary color.
+     * @param ?string $customScript - custom script.
      * @param ?string $communityGuidelines - community guidelines.
      * @param ?bool $federationDisabled - federation disabled.
      * @param ?bool $replyEmail - reply-to email address.
@@ -94,6 +96,7 @@ class Repository extends AbstractRepository
         ?string $siteName = null,
         ?MultiTenantColorScheme $colorScheme = null,
         ?string $primaryColor = null,
+        ?string $customScript = null,
         ?bool $federationDisabled = null,
         ?string $replyEmail = null,
         ?bool $nsfwEnabled = null,
@@ -124,6 +127,11 @@ class Repository extends AbstractRepository
         if ($primaryColor !== null) {
             $rawValues['primary_color'] = new RawExp(':primary_color');
             $boundValues['primary_color'] = $primaryColor;
+        }
+
+        if ($customScript !== null) {
+            $rawValues['custom_script'] = new RawExp(':custom_script');
+            $boundValues['custom_script'] = htmlspecialchars(string: $customScript, double_encode: false);
         }
 
         if ($federationDisabled !== null) {

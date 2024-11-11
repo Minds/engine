@@ -6,6 +6,7 @@ namespace Minds\Core\MultiTenant\Configs;
 use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\MultiTenant\Configs\Controllers\CustomScriptPsrController;
 use Minds\Core\MultiTenant\Configs\Manager as MultiTenantConfigManager;
 use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
@@ -51,6 +52,11 @@ class Provider extends DiProvider
                 $di->get(Config::class),
                 $di->get(MultiTenantBootService::class),
                 $di->get(MultiTenantConfigManager::class)
+            );
+        });
+        $this->di->bind(CustomScriptPsrController::class, function ($di) {
+            return new CustomScriptPsrController(
+                $di->get(MultiTenantConfigManager::class),
             );
         });
     }
