@@ -2,7 +2,7 @@
 
 namespace Minds\Controllers\Cli;
 
-use Elasticsearch\Common\Exceptions\ServerErrorResponseException;
+use OpenSearch\Common\Exceptions\ServerErrorResponseException;
 use Minds\Cli;
 use Minds\Core;
 use Minds\Core\Di\Di;
