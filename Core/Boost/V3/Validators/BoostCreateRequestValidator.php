@@ -425,6 +425,15 @@ class BoostCreateRequestValidator implements ValidatorInterface
                 )
             );
         }
+
+        if (method_exists($boostedEntity, 'getTimeCreated') && $boostedEntity->getTimeCreated() > time()) {
+            $this->errors->add(
+                new ValidationError(
+                    'entity_guid',
+                    'Scheduled posts cannot be boosted'
+                )
+            );
+        }
     }
 
     /**
