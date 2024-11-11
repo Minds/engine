@@ -7,12 +7,14 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\ClusteredRecommendations;
 use Minds\Core\Feeds\Elastic\V2\Enums\MediaTypeEnum;
+use Minds\Core\Suggestions\DefaultTagMapping\Manager as DefaultTagMapping;
 use Minds\Core\Feeds\Elastic\V2\Enums\SeenEntitiesFilterStrategyEnum;
 use Minds\Core\Feeds\Seen\Manager as SeenManager;
 use Minds\Core\Groups\V2\Membership;
 use Minds\Core\Guid;
 use Minds\Core\Search\SortingAlgorithms\TopV2;
 use Minds\Core\Security\ACL;
+use Minds\Core\Suggestions\Suggestion;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -29,6 +31,7 @@ class Manager
         protected ACL $acl,
         private readonly ExperimentsManager $experimentsManager,
         private readonly Config $config,
+        private readonly DefaultTagMapping $defaultTags,
     ) {
     }
 
@@ -437,6 +440,124 @@ class Manager
 
             // Dont provide more than the limit (we request + 1 to do pagination)
             if (++$i > $limit) {
+                break;
+            }
+        }
+    }
+
+    public function getJustForYouByTags(
+        QueryOpts $queryOpts,
+        string &$loadAfter = null,
+        string &$loadBefore = null,
+        bool &$hasMore = null
+    ) {
+        $suggestedUsers = $this->defaultTags->getSuggestions($queryOpts->user, 'user');
+
+        $topAlgo = new TopV2();
+
+        $prepared = $this->prepareElastic($queryOpts);
+
+        $limit = $queryOpts->limit;
+        $must = $prepared['must'];
+        $mustNot = $prepared['mustNot'];
+        $should = $prepared['should'];
+        $functionScores = [...$topAlgo->getFunctionScores(), ...$prepared['functionScores']];
+
+        $must[] = [
+            'range' => [
+                '@timestamp' => [
+                    'gte' => "now-14d/d",
+                ]
+            ]
+        ];
+
+        $should[] = [
+            'terms' => [
+                'owner_guid' => array_map(fn (Suggestion $suggestion) => $suggestion->getEntityGuid(), $suggestedUsers)
+            ],
+        ];
+
+        if ($loadAfter && $loadBefore) {
+            throw new ServerErrorException("Two cursors, loadAfter and loadBefore were provided. Only one can be provided.");
+        }
+
+        $must[] = [
+            'bool' => [
+                'should' => $should,
+                'minimum_should_match' => 1
+            ]
+        ];
+
+        $body = [
+            '_source' => false,
+            'query' => [
+                'function_score' => [
+                    'score_mode' => 'multiply',
+                    'query' => [
+                        'bool' => [
+                            'must' => $must,
+                            'must_not' => $mustNot,
+                        ],
+                    ],
+                    'functions' => $functionScores,
+                ]
+            ],
+            'sort' => [
+                [
+                    '_score' => [
+                        'order' => $loadBefore ? 'asc' : 'desc', // Top/newer posts are queried in ascending order
+                    ],
+                    'guid' => $loadBefore ? 'asc' : 'desc', // Tie breaker
+                ]
+            ],
+        ];
+
+
+        if ($loadAfter || $loadBefore) {
+            $body['search_after'] = $this->decodeSort($loadAfter ?: $loadBefore);
+        }
+
+        $query = [
+            'index' => $this->getSearchIndexName(),
+            'body' => $body,
+            'size' => $limit + 1,
+        ];
+
+        $prepared = new ElasticSearch\Prepared\Search();
+        $prepared->query($query);
+
+        $response = $this->esClient->request($prepared);
+
+        // If paginating backwards (top/newer), reverse the array as we do an ascending sort
+        $hits = $loadBefore ? array_reverse($response['hits']['hits']) : $response['hits']['hits'];
+
+        // The 'load newer' will be first items sort key
+        // For the 'top' query, as score change, we will have no 'load before' on the first request
+
+        $loadBefore = isset($hits[0]) && $loadAfter ? $this->encodeSort($hits[0]['sort']) : null;
+
+        // We return +1 $limit, so if we have more than our limit returned, we know there is another pagr
+        if (count($response['hits']['hits']) > $limit) {
+            $hasMore = true;
+        } else {
+            $hasMore = false;
+        }
+
+        $i = 0;
+        foreach ($hits as $hit) {
+            $entity = $this->fetchActivity((int) $hit['_id']);
+
+            if (!$entity) {
+                continue;
+            }
+
+            // pass to reference before we yield to support with Cursor based pagination
+            $loadAfter = $this->encodeSort($hit['sort']);
+
+            yield $entity;
+
+            // Dont provide more than the limit (we request + 1 to do pagination)
+            if (++$i >= $limit) {
                 break;
             }
         }

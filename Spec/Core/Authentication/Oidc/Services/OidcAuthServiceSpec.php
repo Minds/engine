@@ -8,6 +8,7 @@ use Minds\Core\Authentication\Oidc\Models\OidcProvider;
 use Minds\Core\Authentication\Oidc\Services\OidcAuthService;
 use Minds\Core\Authentication\Oidc\Services\OidcUserService;
 use Minds\Core\Config\Config;
+use Minds\Core\Security\Vault\VaultTransitService;
 use Minds\Core\Sessions\Manager as SessionsManager;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -20,19 +21,22 @@ class OidcAuthServiceSpec extends ObjectBehavior
     private Collaborator $oidcUserServiceMock;
     private Collaborator $sessionsManagerMock;
     private Collaborator $configMock;
+    private Collaborator $vaultTransitServiceMock;
 
     public function let(
         Client $httpClientMock,
         OidcUserService $oidcUserServiceMock,
         SessionsManager $sessionsManagerMock,
         Config $configMock,
+        VaultTransitService $vaultTransitServiceMock,
     ) {
-        $this->beConstructedWith($httpClientMock, $oidcUserServiceMock, $sessionsManagerMock, $configMock);
+        $this->beConstructedWith($httpClientMock, $oidcUserServiceMock, $sessionsManagerMock, $configMock, $vaultTransitServiceMock);
     
         $this->httpClientMock = $httpClientMock;
         $this->oidcUserServiceMock = $oidcUserServiceMock;
         $this->sessionsManagerMock = $sessionsManagerMock;
         $this->configMock = $configMock;
+        $this->vaultTransitServiceMock = $vaultTransitServiceMock;
     }
 
     public function it_is_initializable()
@@ -94,6 +98,10 @@ class OidcAuthServiceSpec extends ObjectBehavior
 
         $provider = $this->buildOidcProvider();
 
+        $this->vaultTransitServiceMock->decrypt('vault:v1:HB23vDusaOjgwk1+wuhMGcVXKC34PDwtTsSmoyZFGzIjhDyqiV57')
+            ->shouldBeCalled()
+            ->willReturn('secret');
+
         $this->shouldUseOpenIdConfigMock();
 
         $this->httpClientMock->post('https://phpspec.local/oauth/v2/token', [
@@ -146,7 +154,7 @@ class OidcAuthServiceSpec extends ObjectBehavior
             name: 'phpspec oidc',
             issuer: 'https://phpspec.local/',
             clientId: 'phpspec',
-            clientSecret: 'secret'
+            clientSecretCipherText: 'vault:v1:HB23vDusaOjgwk1+wuhMGcVXKC34PDwtTsSmoyZFGzIjhDyqiV57'
         );
     }
 

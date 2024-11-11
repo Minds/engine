@@ -5,7 +5,12 @@ use Minds\Core\Authentication\Oidc\GqlTypes\OidcProviderPublic;
 use Minds\Core\Authentication\Oidc\Models\OidcProvider;
 use Minds\Core\Authentication\Oidc\Services\OidcProvidersService;
 use Minds\Core\Config\Config;
+use Minds\Entities\User;
+use TheCodingMachine\GraphQLite\Annotations\InjectUser;
+use TheCodingMachine\GraphQLite\Annotations\Logged;
+use TheCodingMachine\GraphQLite\Annotations\Mutation;
 use TheCodingMachine\GraphQLite\Annotations\Query;
+use TheCodingMachine\GraphQLite\Annotations\Security;
 
 class OidcGqlController
 {
@@ -29,4 +34,65 @@ class OidcGqlController
         }, $providers);
     }
 
+    /**
+     * Adds an oidc provider
+     */
+    #[Mutation]
+    #[Logged]
+    #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
+    public function addOidcProvider(
+        string $name,
+        string $issuer,
+        string $clientId,
+        string $clientSecret,
+        #[InjectUser] ?User $loggedInUser = null,
+    ): OidcProviderPublic {
+        $provider = $this->oidcProvidersService->addProvider(
+            name: $name,
+            issuer: $issuer,
+            clientId: $clientId,
+            clientSecret: $clientSecret
+        );
+
+        return new OidcProviderPublic($provider, $this->config);
+    }
+
+    
+    /**
+     * Update an oidc provider
+     */
+    #[Mutation]
+    #[Logged]
+    #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
+    public function updateOidcProvider(
+        int $id,
+        string $name = null,
+        string $issuer = null,
+        string $clientId = null,
+        string $clientSecret = null,
+        #[InjectUser] ?User $loggedInUser = null,
+    ): OidcProviderPublic {
+        $provider = $this->oidcProvidersService->updateProvider(
+            id: $id,
+            name: $name,
+            issuer: $issuer,
+            clientId: $clientId,
+            clientSecret: $clientSecret
+        );
+
+        return new OidcProviderPublic($provider, $this->config);
+    }
+
+    /**
+     * Delete Oidc Provider
+     */
+    #[Mutation]
+    #[Logged]
+    #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
+    public function deleteOidcProvider(
+        int $id,
+        #[InjectUser] ?User $loggedInUser = null,
+    ): bool {
+        return $this->oidcProvidersService->deleteProvider($id);
+    }
 }

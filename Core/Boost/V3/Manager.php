@@ -9,6 +9,7 @@ use Minds\Core\Analytics\Views\Manager as ViewsManager;
 use Minds\Core\Analytics\Views\View;
 use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
 use Minds\Core\Boost\Checksum;
+use Minds\Core\Boost\V3\Cache\BoostFeedCache;
 use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
@@ -78,6 +79,7 @@ class Manager
         private ?InAppPurchasesManager $inAppPurchasesManager = null,
         private ?Config              $config = null,
         private ?MultiTenantBootService $tenantBootService = null,
+        private ?BoostFeedCache $boostFeedCache = null,
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
         $this->paymentProcessor ??= new PaymentProcessor();
@@ -93,6 +95,7 @@ class Manager
         $this->inAppPurchasesManager ??= Di::_()->get(InAppPurchasesManager::class);
         $this->config ??= Di::_()->get('Config');
         $this->tenantBootService ??= Di::_()->get(MultiTenantBootService::class);
+        $this->boostFeedCache ??= Di::_()->get(BoostFeedCache::class);
     }
 
     /**
@@ -596,7 +599,8 @@ class Manager
             }
         }
 
-        $boosts = $this->repository->getBoosts(
+        // Get from cache.
+        $boostsArray = $this->boostFeedCache->get(
             limit: $limit,
             offset: $offset,
             targetStatus: $targetStatus,
@@ -605,11 +609,39 @@ class Manager
             orderByRanking: $orderByRanking,
             targetAudience: $targetAudience,
             targetLocation: $targetLocation,
-            loggedInUser: $this->user,
+            loggedInUserGuid: $this->user?->getGuid(),
             hasNext: $hasNext
         );
 
-        $boostsArray = iterator_to_array($boosts);
+        // If not in the cache, get from the database, and update the cache.
+        if (!$boostsArray) {
+            $boostsArray = iterator_to_array($this->repository->getBoosts(
+                limit: $limit,
+                offset: $offset,
+                targetStatus: $targetStatus,
+                forApprovalQueue: $forApprovalQueue,
+                targetUserGuid: $targetUserGuid,
+                orderByRanking: $orderByRanking,
+                targetAudience: $targetAudience,
+                targetLocation: $targetLocation,
+                loggedInUser: $this->user,
+                hasNext: $hasNext
+            ));
+
+            $this->boostFeedCache->set(
+                limit: $limit,
+                offset: $offset,
+                targetStatus: $targetStatus,
+                forApprovalQueue: $forApprovalQueue,
+                targetUserGuid: $targetUserGuid,
+                orderByRanking: $orderByRanking,
+                targetAudience: $targetAudience,
+                targetLocation: $targetLocation,
+                loggedInUserGuid: $this->user?->getGuid(),
+                boosts: $boostsArray,
+                hasNext: $hasNext
+            );
+        }
 
         foreach ($boostsArray as $i => $boost) {
             if (!$boost->getEntity() || !$this->acl->read($boost)) {

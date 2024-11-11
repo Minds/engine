@@ -8,7 +8,7 @@
 
 namespace Minds\Core\Data\ElasticSearch;
 
-use Elasticsearch;
+use OpenSearch;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\Interfaces;
 use Minds\Core\Di\Di;
@@ -27,17 +27,17 @@ class Client implements Interfaces\ClientInterface
         $esConfig = $config->get('elasticsearch');
         $hosts = $esConfig['hosts'];
      
-        $builder = Elasticsearch\ClientBuilder::create()
+        $builder = OpenSearch\ClientBuilder::create()
             ->setHosts($hosts)
             ->setBasicAuthentication($esConfig['username'] ?? '', $esConfig['password'] ?? '')
             ->setSSLVerification($esConfig['cert'] ?? false);
 
         // If live thread, use SimpleConnectionPool
-        $builder->setConnectionPool('\Elasticsearch\ConnectionPool\SimpleConnectionPool', []);
+        $builder->setConnectionPool('\OpenSearch\ConnectionPool\SimpleConnectionPool', []);
 
         // If cli, ping first
         if (php_sapi_name() === 'cli') {
-            $builder->setConnectionPool('\Elasticsearch\ConnectionPool\StaticConnectionPool', []);
+            $builder->setConnectionPool('\OpenSearch\ConnectionPool\StaticConnectionPool', []);
         }
 
         $this->elasticsearch = $builder->build();

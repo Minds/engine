@@ -34,6 +34,7 @@ class UpdateConfigDelegateSpec extends ObjectBehavior
             siteName: $siteName,
             colorScheme: $colorScheme,
             primaryColor: $primaryColor,
+            customScript: null,
             federationDisabled: null,
             replyEmail: null,
             nsfwEnabled: null,

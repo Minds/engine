@@ -231,7 +231,8 @@ class Exported
                 'walled_garden_enabled' => $tenant->config?->walledGardenEnabled ?? false,
                 'boost_enabled' => $tenant->config?->boostEnabled ?? false,
                 'logged_in_landing_page_id_web' => $tenant->config?->loggedInLandingPageIdWeb ?? null,
-                'logged_in_landing_page_id_mobile' => $tenant->config?->loggedInLandingPageIdMobile ?? null
+                'logged_in_landing_page_id_mobile' => $tenant->config?->loggedInLandingPageIdMobile ?? null,
+                'custom_script' => $tenant->config?->customScript ?? null,
             ];
 
             $exported['tenant']['max_memberships'] = $multiTenantConfig['plan_memberships'][$exported['tenant']['plan']] ?? 0;

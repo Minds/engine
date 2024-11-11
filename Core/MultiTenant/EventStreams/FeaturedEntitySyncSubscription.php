@@ -115,6 +115,11 @@ class FeaturedEntitySyncSubscription implements SubscriptionInterface
 
         foreach ($this->multiTenantUsersService->getUsers(tenantId: $tenantId) as $user) {
             try {
+                if ((int) $user->getGuid() === $featuredUser->entityGuid) {
+                    $this->logger->info('Skipping self-subscription for user: ' . $user->getGuid());
+                    continue;
+                }
+
                 $this->featuredEntityAutoSubscribeService->handleFeaturedUser($featuredUser, $user);
                 $this->logger->info('Handled user: ' . $user->getGuid() . ' for featured user: ' . $featuredUser->entityGuid);
             } catch(\Exception $e) {
