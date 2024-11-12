@@ -71,7 +71,6 @@ class Repository
             'update' => [
                 '_id' => (string) implode('-', [ $record->getEntityUrn(), $record->getResolution(), $record->getTimestamp() ]),
                 '_index' => $index,
-                '_type' => '_doc',
             ],
         ];
 
