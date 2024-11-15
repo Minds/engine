@@ -64,7 +64,7 @@ class comments implements Interfaces\Api
             $includeOffset = true;
         }
 
-        $comments = $manager->getList([
+        $opts = [
             'entity_guid' => $guid,
             'parent_path' => $parent_path,
             'limit' => (int) $limit,
@@ -73,7 +73,10 @@ class comments implements Interfaces\Api
             'token' => $loadPrevious ?: null,
             'descending' => $descending,
             'is_focused' => $focusedUrn && (strpos($focusedUrn, 'urn:') === 0),
-        ]);
+            'exclude_pinned' => true
+        ];
+
+        $comments = $manager->getList($opts);
 
         $token = (string) $comments->getPagingToken();
 
@@ -95,6 +98,11 @@ class comments implements Interfaces\Api
 
         if (!$loadNext && !$descending) {
             $offset = '';
+        }
+
+        // if no previous page, inject pinned comments.
+        if (!$loadPrevious && !$loadNext) {
+            $comments = $manager->injectPinnedComments($comments, $opts);
         }
 
         $response['comments'] = Exportable::_($comments);

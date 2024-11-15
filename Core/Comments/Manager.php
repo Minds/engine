@@ -20,6 +20,7 @@ use Minds\Exceptions\InvalidLuidException;
 use Minds\Common\Repository\Response;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\EventStreams\UndeliveredEventException;
+use Minds\Core\Log\Logger;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 
@@ -78,6 +79,7 @@ class Manager
         protected ?EventsDispatcher $eventsDispatcher = null,
         protected ?RelationalRepository $relationalRepository = null,
         protected ?RbacGatekeeperService $rbacGatekeeperService = null,
+        protected ?Logger $logger = null,
     ) {
         $this->repository = $repository ?: new Repository();
         $this->legacyRepository = $legacyRepository ?: new Legacy\Repository();
@@ -91,6 +93,7 @@ class Manager
         $this->eventsDispatcher ??= Di::_()->get('EventsDispatcher');
         $this->relationalRepository ??= Di::_()->get(RelationalRepository::class);
         $this->rbacGatekeeperService ??= Di::_()->get(RbacGatekeeperService::class);
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     public function get($entity_guid, $parent_path, $guid)
@@ -108,6 +111,8 @@ class Manager
             'offset' => null,
             'descending' => true,
             'is_focused' => false,
+            'exclude_pinned' => false,
+            'only_pinned' => false,
         ], $opts);
 
         if ($this->legacyRepository->isLegacy($opts['entity_guid'])) {
@@ -497,5 +502,34 @@ class Manager
             return $this->get($comment->getEntityGuid(), $comment->getParentPath(), $comment->getParentGuidL1());
         }
         return null;
+    }
+
+    /**
+     * Injects pinned comments to start of the given response array.
+     * @param Response $commentsResponse - response to inject into.
+     * @param array $opts - options to pass to getList.
+     * @return Response
+     */
+    public function injectPinnedComments(Response $commentsResponse, array $opts): Response
+    {
+        try {
+            $pinnedComments = $this->repository->getList([
+                ...$opts,
+                'limit' => null,
+                'exclude_pinned' => false,
+                'only_pinned' => true,
+            ]);
+
+            if ($pinnedComments?->count()) {
+                $commentsResponse->pushArray(
+                    $this->filterResponse($pinnedComments)?->toArray() ?? []
+                );
+            }
+        } catch (\Exception $e) {
+            // Fallback to non-pinned only on error.
+            $this->logger->error($e->getMessage());
+        }
+
+        return $commentsResponse;
     }
 }

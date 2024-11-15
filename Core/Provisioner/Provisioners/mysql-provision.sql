@@ -1208,3 +1208,7 @@ ALTER TABLE minds_tenant_mobile_configs
 ALTER TABLE `minds_tenant_configs`
     ADD custom_script MEDIUMTEXT DEFAULT NULL
     AFTER color_scheme;
+
+ALTER TABLE minds_comments
+    ADD pinned boolean DEFAULT false
+    AFTER access_id;
