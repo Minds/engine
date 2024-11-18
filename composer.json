@@ -6,7 +6,6 @@
         "ext-redis": "~5.1.1",
         "aws/aws-sdk-php": "^3.38",
         "datastax/php-driver": "^1.2.2",
-        "elasticsearch/elasticsearch": "^7.13",
         "firebase/php-jwt": "^6.9",
         "kramnorth/cinemr-php-sdk": "dev-master@dev",
         "kickbox/kickbox": "*",
@@ -69,7 +68,8 @@
         "nyholm/psr7": "^1.8",
         "posthog/posthog-php": "dev-chore/ff-fetch-optional",
         "zircote/swagger-php": "^4.9",
-        "openai-php/client": "^0.4.2"
+        "openai-php/client": "^0.4.2",
+        "opensearch-project/opensearch-php": "^2.3"
     },
     "repositories": [
         {

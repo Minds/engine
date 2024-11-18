@@ -2,8 +2,8 @@
 
 namespace Spec\Minds\Core\Channels\Delegates\Artifacts;
 
-use Elasticsearch\Client as ElasticsearchNativeClient;
-use Elasticsearch\Common\Exceptions\Missing404Exception;
+use OpenSearch\Client as ElasticsearchNativeClient;
+use OpenSearch\Common\Exceptions\Missing404Exception;
 use Minds\Core\Channels\Delegates\Artifacts\ElasticsearchDocumentsDelegate;
 use Minds\Core\Channels\Snapshots\Repository;
 use Minds\Core\Config;

@@ -1205,6 +1205,10 @@ ALTER TABLE minds_tenant_mobile_configs
     ADD COLUMN production_app_version varchar(48) COMMENT "Version of the app in production" DEFAULT NULL
     AFTER app_version;
 
+ALTER TABLE `minds_tenant_configs`
+    ADD custom_script MEDIUMTEXT DEFAULT NULL
+    AFTER color_scheme;
+
 CREATE TABLE IF NOT EXISTS minds_entities_audio  (
     tenant_id int NOT NULL,
     guid bigint NOT NULL,

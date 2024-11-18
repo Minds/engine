@@ -76,7 +76,6 @@ class SearchRepositorySpec extends ObjectBehavior
         // PreparedUpdate
         $query = [
             'index' => 'minds-comments',
-            'type' => '_doc',
             'id' => '1000',
             'body' => [
                 'doc_as_upsert' => true,
@@ -150,7 +149,6 @@ class SearchRepositorySpec extends ObjectBehavior
         // PreparedUpdate
         $query = [
             'index' => 'minds-comments',
-            'type' => '_doc',
             'id' => '1000',
             'body' => [
                 'doc_as_upsert' => true,
@@ -189,7 +187,6 @@ class SearchRepositorySpec extends ObjectBehavior
         // PreparedDelete
         $query = [
             'index' => 'minds-comments',
-            'type' => '_doc',
             'id' => '1000',
         ];
         $preparedDelete = new PreparedDelete();
@@ -207,7 +204,6 @@ class SearchRepositorySpec extends ObjectBehavior
         // PreparedDelete
         $query = [
             'index' => 'minds-comments',
-            'type' => '_doc',
             'id' => '1000',
         ];
         $preparedDelete = new PreparedDelete();
@@ -215,7 +211,7 @@ class SearchRepositorySpec extends ObjectBehavior
 
         $this->client->request($preparedDelete)
             ->shouldBeCalled()
-            ->willThrow(new \Elasticsearch\Common\Exceptions\Missing404Exception());
+            ->willThrow(new \OpenSearch\Common\Exceptions\Missing404Exception());
 
         $this->delete('1000')->shouldReturn(true);
     }

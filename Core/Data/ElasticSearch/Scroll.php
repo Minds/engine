@@ -7,7 +7,7 @@
 namespace Minds\Core\Data\ElasticSearch;
 
 use Minds\Core\Data\Interfaces\PreparedInterface;
-use Elasticsearch\Common\Exceptions\NoNodesAvailableException;
+use OpenSearch\Common\Exceptions\NoNodesAvailableException;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
 
