@@ -29,6 +29,7 @@ $CONFIG->cassandra = [
     'username' => 'cassandra',
     'password' => 'cassandra',
 ];
+$CONFIG->set('dataroot', '/data/');
 
 $CONFIG->set('development_mode', false);
 $CONFIG->set('system_user_guid', '100000000000000519');

@@ -7,6 +7,7 @@ use Minds\Core\Analytics;
 use Minds\Core\Di\Di;
 use Minds\Core\Feeds\Activity\Manager;
 use Minds\Core\Feeds\Activity\RemindIntent;
+use Minds\Core\Media\Audio\AudioEntity;
 use Minds\Core\Queue;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Core\Wire\Paywall\PaywallEntityTrait;
@@ -986,14 +987,26 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     {
         $attachments = [];
         foreach ($attachmentEntities as $attachmentEntity) {
-            $attachment = [
-                'guid' => $attachmentEntity->getGuid(),
-                'type' => $attachmentEntity->getSubtype(),
-                'width' => $attachmentEntity->width,
-                'height' => $attachmentEntity->height,
-                'blurhash' => $attachmentEntity->blurhash,
-                'gif' => $attachmentEntity->gif
-            ];
+
+            if ($attachmentEntity instanceof AudioEntity) {
+                $attachment = [
+                    'guid' => $attachmentEntity->getGuid(),
+                    'type' => $attachmentEntity->getType(),
+                    'width' => 0,
+                    'height' => 0,
+                    'blurhash' => null,
+                    'gif' => false,
+                ];
+            } else {
+                $attachment = [
+                    'guid' => $attachmentEntity->getGuid(),
+                    'type' => $attachmentEntity->getSubtype(),
+                    'width' => $attachmentEntity->width,
+                    'height' => $attachmentEntity->height,
+                    'blurhash' => $attachmentEntity->blurhash,
+                    'gif' => $attachmentEntity->gif
+                ];
+            }
 
             $attachments[] = $attachment;
         }
@@ -1092,7 +1105,11 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function getCustomType(): ?string
     {
         if ($this->hasAttachments()) {
-            return $this->attachments[0]['type'] === 'video' ? 'video' : 'batch';
+            return match($this->attachments[0]['type']) {
+                'video' => 'video',
+                'audio' => 'audio',
+                default => 'batch'
+            };
         }
 
         return $this->custom_type;

@@ -6,6 +6,8 @@ use Minds\Core\Media\ClientUpload\Manager;
 use Minds\Core\Media\ClientUpload\ClientUploadLease;
 use Minds\Core\Media\Video\Transcoder;
 use Minds\Core\GuidBuilder;
+use Minds\Core\Media\Audio\AudioService;
+use Minds\Core\Media\ClientUpload\MediaTypeEnum;
 use Minds\Core\Media\Video\Manager as VideoManager;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
@@ -29,9 +31,14 @@ class ManagerSpec extends ObjectBehavior
 
     private Collaborator $rbacGatekeeperServiceMock;
 
-    public function let(Transcoder\Manager $transcoderManager, VideoManager $videoManager, GuidBuilder $guid, RbacGatekeeperService $rbacGatekeeperServiceMock)
-    {
-        $this->beConstructedWith($transcoderManager, $videoManager, $guid, $rbacGatekeeperServiceMock);
+    public function let(
+        Transcoder\Manager $transcoderManager,
+        VideoManager $videoManager,
+        GuidBuilder $guid,
+        RbacGatekeeperService $rbacGatekeeperServiceMock,
+        AudioService $audioServiceMock,
+    ) {
+        $this->beConstructedWith($transcoderManager, $videoManager, $guid, $rbacGatekeeperServiceMock, $audioServiceMock);
         $this->transcoderManager = $transcoderManager;
         $this->videoManager = $videoManager;
         $this->guid = $guid;
@@ -54,26 +61,22 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('s3-url-here');
 
-        $lease = $this->prepare('video');
+        $lease = $this->prepare(MediaTypeEnum::VIDEO, new User());
 
-        $lease->getMediaType()
-            ->shouldBe('video');
-        $lease->getGuid()
-            ->shouldBe('123');
-        $lease->getPresignedUrl()
+        $lease->mediaType
+            ->shouldBe(MediaTypeEnum::VIDEO);
+        $lease->guid
+            ->shouldBe(123);
+        $lease->presignedUrl
             ->shouldBe('s3-url-here');
     }
 
-    public function it_should_complete_an_upload(ClientUploadLease $lease, User $user)
+    public function it_should_complete_an_upload(User $user)
     {
-        $lease->getMediaType()
-            ->willReturn('video');
-
-        $lease->getGuid()
-            ->willReturn(456);
-
-        $lease->getUser()
-            ->willReturn($user);
+        $lease = new ClientUploadLease(
+            guid: 456,
+            mediaType: MediaTypeEnum::VIDEO
+        );
 
         $user->isPro()
             ->willReturn(true);
@@ -87,7 +90,7 @@ class ManagerSpec extends ObjectBehavior
         }))
             ->shouldBeCalled();
 
-        $this->complete($lease)
+        $this->complete($lease, $user)
             ->shouldReturn(true);
     }
 }
