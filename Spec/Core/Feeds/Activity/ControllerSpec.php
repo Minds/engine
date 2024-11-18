@@ -9,6 +9,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Activity\Manager;
 use Minds\Core\Feeds\Activity\Controller;
 use Minds\Core\Feeds\Scheduled\EntityTimeCreated;
+use Minds\Core\Media\Audio\AudioService;
 use Minds\Core\Monetization\Demonetization\Validators\DemonetizedPlusValidator;
 use Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services\CreatePaywalledEntityService;
 use Minds\Core\Router\Exceptions\ForbiddenException;
@@ -53,6 +54,7 @@ class ControllerSpec extends ObjectBehavior
         DemonetizedPlusValidator $demonetizedPlusValidator,
         RbacGatekeeperService $rbacGatekeeperServiceMock,
         CreatePaywalledEntityService $createPaywalledEntityServiceMock,
+        AudioService $audioServiceMock,
     ) {
         $this->manager = $manager;
         $this->entitiesBuilder = $entitiesBuilder;
@@ -70,6 +72,8 @@ class ControllerSpec extends ObjectBehavior
             $demonetizedPlusValidator,
             $rbacGatekeeperServiceMock,
             $createPaywalledEntityServiceMock,
+            null,
+            $audioServiceMock,
         );
     }
 

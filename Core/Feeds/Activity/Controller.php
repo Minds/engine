@@ -12,6 +12,7 @@ use Minds\Core\Feeds\Activity\Exceptions\CreateActivityFailedException;
 use Minds\Core\Feeds\Scheduled\EntityTimeCreated;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
+use Minds\Core\Media\Audio\AudioService;
 use Minds\Core\Monetization\Demonetization\Validators\DemonetizedPlusValidator;
 use Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services\CreatePaywalledEntityService;
 use Minds\Core\Router\Exceptions\ForbiddenException;
@@ -45,7 +46,8 @@ class Controller
         protected ?DemonetizedPlusValidator $demonetizedPlusValidator = null,
         protected ?RbacGatekeeperService $rbacGatekeeperService = null,
         protected ?CreatePaywalledEntityService $createPaywalledEntityService = null,
-        protected ?Logger $logger = null
+        protected ?Logger $logger = null,
+        protected ?AudioService $audioService = null,
     ) {
         $this->manager ??= new Manager();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
@@ -55,6 +57,7 @@ class Controller
         $this->rbacGatekeeperService ??= Di::_()->get(RbacGatekeeperService::class);
         $this->createPaywalledEntityService ??= Di::_()->get(CreatePaywalledEntityService::class);
         $this->logger ??= Di::_()->get('Logger');
+        $this->audioService ??= Di::_()->get(AudioService::class);
     }
 
     /**
@@ -217,7 +220,7 @@ class Controller
             /**
              * Build out the attachment entities
              */
-            $attachmentEntities = $this->entitiesBuilder->get([ 'guids' => $payload['attachment_guids'] ]);
+            $attachmentEntities = $this->entitiesBuilder->get([ 'guids' => $payload['attachment_guids'] ]) ?: [];
 
             $imageCount = count(array_filter($attachmentEntities, function ($attachmentEntity) {
                 return $attachmentEntity instanceof Image;
@@ -227,14 +230,29 @@ class Controller
                 return $attachmentEntity instanceof Video;
             }));
 
-            // validate there is not a mix of videos and images
-            if ($imageCount >= 1 && $videoCount >= 1) {
+            // If neither, was this an audio upload?
+            if ($imageCount === 0 && $videoCount === 0) {
+                $attachmentEntities = [ $this->audioService->getByGuid($payload['attachment_guids'][0]) ];
+                $audioCount = count($attachmentEntities);
+            } else {
+                $audioCount = 0;
+            }
+
+            // validate there is not a mix of videos, images or audio
+            if ($imageCount >= 1 && ($videoCount >= 1 || $audioCount >= 1)) {
                 throw new UserErrorException("You may not have both image and videos at this time");
+            } elseif ($videoCount >=1 && $audioCount >=1) {
+                throw new UserErrorException("You may not have both audio and videos at this time");
             }
 
             // if videos, validate there is only 1 video
             if ($videoCount > 1) {
                 throw new UserErrorException("You can only upload one video at this time");
+            }
+
+            // ensure there is only one audio file
+            if ($audioCount > 1) {
+                throw new UserErrorException("You can only upload one audio file at this time");
             }
 
             // ensure there is a max of 4 images
@@ -247,6 +265,12 @@ class Controller
             if (isset($payload['title'])) { // Only attachment posts can have titles
                 $activity->setTitle($payload['title']);
             }
+
+            // If audio file and thumbnail blob provided, upload
+            if ($audioCount >=1 && $payload['audio_thumbnail']) {
+                $this->audioService->uploadThumbnailFromBlob($attachmentEntities[0], $payload['audio_thumbnail']);
+            }
+
         }
 
         /**

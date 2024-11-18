@@ -5,6 +5,7 @@ enum PermissionsEnum
 {
     case CAN_CREATE_POST;
     case CAN_UPLOAD_VIDEO;
+    case CAN_UPLOAD_AUDIO;
     case CAN_COMMENT;
     case CAN_INTERACT;
     case CAN_CREATE_GROUP;
