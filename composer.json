@@ -69,7 +69,8 @@
         "posthog/posthog-php": "dev-chore/ff-fetch-optional",
         "zircote/swagger-php": "^4.9",
         "openai-php/client": "^0.4.2",
-        "opensearch-project/opensearch-php": "^2.3"
+        "opensearch-project/opensearch-php": "^2.3",
+        "chillerlan/php-qrcode": "^5.0"
     },
     "repositories": [
         {
