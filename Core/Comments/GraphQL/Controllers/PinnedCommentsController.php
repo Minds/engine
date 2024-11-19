@@ -26,19 +26,19 @@ class PinnedCommentsController
 
     /**
      * Pins or unpins a comment.
-     * @param string $commentGuid - the guid of the comment to pin or unpin.
+     * @param string $commentUrn - the URN of the comment to pin or unpin.
      * @param bool $pinned - whether to pin or unpin the comment.
      * @return bool - true if the comment was pinned or unpinned, false otherwise.
      */
     #[Mutation]
     #[Logged]
     public function commentPinnedState(
-        string $commentGuid,
+        string $commentUrn,
         bool $pinned,
         #[InjectUser] ?User $loggedInUser = null,
     ): bool {
         try {
-            $comment = $this->manager->getByUrn($commentGuid);
+            $comment = $this->manager->getByUrn($commentUrn);
 
             if (!$comment) {
                 throw new GraphQLException('Comment not found');
