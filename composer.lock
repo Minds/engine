@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "60e71f92ffb92fb481998df46b786611",
+    "content-hash": "79b2e3bc917c7ad82fd1c3466099e0a3",
     "packages": [
         {
             "name": "Minds/Surge",
@@ -471,166 +471,6 @@
                 "source": "https://github.com/php-cache/tag-interop/tree/1.1.0"
             },
             "time": "2021-12-31T10:03:23+00:00"
-        },
-        {
-            "name": "chillerlan/php-qrcode",
-            "version": "5.0.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/chillerlan/php-qrcode.git",
-                "reference": "da5bdb82c8755f54de112b271b402aaa8df53269"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/chillerlan/php-qrcode/zipball/da5bdb82c8755f54de112b271b402aaa8df53269",
-                "reference": "da5bdb82c8755f54de112b271b402aaa8df53269",
-                "shasum": ""
-            },
-            "require": {
-                "chillerlan/php-settings-container": "^2.1.4 || ^3.1",
-                "ext-mbstring": "*",
-                "php": "^7.4 || ^8.0"
-            },
-            "require-dev": {
-                "chillerlan/php-authenticator": "^4.1 || ^5.1",
-                "phan/phan": "^5.4",
-                "phpmd/phpmd": "^2.15",
-                "phpunit/phpunit": "^9.6",
-                "setasign/fpdf": "^1.8.2",
-                "squizlabs/php_codesniffer": "^3.8"
-            },
-            "suggest": {
-                "chillerlan/php-authenticator": "Yet another Google authenticator! Also creates URIs for mobile apps.",
-                "setasign/fpdf": "Required to use the QR FPDF output.",
-                "simple-icons/simple-icons": "SVG icons that you can use to embed as logos in the QR Code"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "chillerlan\\QRCode\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT",
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "Kazuhiko Arase",
-                    "homepage": "https://github.com/kazuhikoarase/qrcode-generator"
-                },
-                {
-                    "name": "ZXing Authors",
-                    "homepage": "https://github.com/zxing/zxing"
-                },
-                {
-                    "name": "Ashot Khanamiryan",
-                    "homepage": "https://github.com/khanamiryan/php-qrcode-detector-decoder"
-                },
-                {
-                    "name": "Smiley",
-                    "email": "smiley@chillerlan.net",
-                    "homepage": "https://github.com/codemasher"
-                },
-                {
-                    "name": "Contributors",
-                    "homepage": "https://github.com/chillerlan/php-qrcode/graphs/contributors"
-                }
-            ],
-            "description": "A QR code generator and reader with a user friendly API. PHP 7.4+",
-            "homepage": "https://github.com/chillerlan/php-qrcode",
-            "keywords": [
-                "phpqrcode",
-                "qr",
-                "qr code",
-                "qr-reader",
-                "qrcode",
-                "qrcode-generator",
-                "qrcode-reader"
-            ],
-            "support": {
-                "docs": "https://php-qrcode.readthedocs.io",
-                "issues": "https://github.com/chillerlan/php-qrcode/issues",
-                "source": "https://github.com/chillerlan/php-qrcode"
-            },
-            "funding": [
-                {
-                    "url": "https://www.paypal.com/donate?hosted_button_id=WLYUNAT9ZTJZ4",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://ko-fi.com/codemasher",
-                    "type": "ko_fi"
-                }
-            ],
-            "time": "2024-02-27T14:37:26+00:00"
-        },
-        {
-            "name": "chillerlan/php-settings-container",
-            "version": "3.2.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/chillerlan/php-settings-container.git",
-                "reference": "95ed3e9676a1d47cab2e3174d19b43f5dbf52681"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/chillerlan/php-settings-container/zipball/95ed3e9676a1d47cab2e3174d19b43f5dbf52681",
-                "reference": "95ed3e9676a1d47cab2e3174d19b43f5dbf52681",
-                "shasum": ""
-            },
-            "require": {
-                "ext-json": "*",
-                "php": "^8.1"
-            },
-            "require-dev": {
-                "phpmd/phpmd": "^2.15",
-                "phpstan/phpstan": "^1.11",
-                "phpstan/phpstan-deprecation-rules": "^1.2",
-                "phpunit/phpunit": "^10.5",
-                "squizlabs/php_codesniffer": "^3.10"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "chillerlan\\Settings\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Smiley",
-                    "email": "smiley@chillerlan.net",
-                    "homepage": "https://github.com/codemasher"
-                }
-            ],
-            "description": "A container class for immutable settings objects. Not a DI container.",
-            "homepage": "https://github.com/chillerlan/php-settings-container",
-            "keywords": [
-                "Settings",
-                "configuration",
-                "container",
-                "helper"
-            ],
-            "support": {
-                "issues": "https://github.com/chillerlan/php-settings-container/issues",
-                "source": "https://github.com/chillerlan/php-settings-container"
-            },
-            "funding": [
-                {
-                    "url": "https://www.paypal.com/donate?hosted_button_id=WLYUNAT9ZTJZ4",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://ko-fi.com/codemasher",
-                    "type": "ko_fi"
-                }
-            ],
-            "time": "2024-07-16T11:13:48+00:00"
         },
         {
             "name": "clue/stream-filter",
@@ -4841,29 +4681,29 @@
         },
         {
             "name": "php-ffmpeg/php-ffmpeg",
-            "version": "v1.1.0",
+            "version": "v1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHP-FFMpeg/PHP-FFMpeg.git",
-                "reference": "eace6f174ff6d206ba648483ebe59760f7f6a0e1"
+                "reference": "5e7b15710a8607e8a3a2d9fbe2c150a99b924fa5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHP-FFMpeg/PHP-FFMpeg/zipball/eace6f174ff6d206ba648483ebe59760f7f6a0e1",
-                "reference": "eace6f174ff6d206ba648483ebe59760f7f6a0e1",
+                "url": "https://api.github.com/repos/PHP-FFMpeg/PHP-FFMpeg/zipball/5e7b15710a8607e8a3a2d9fbe2c150a99b924fa5",
+                "reference": "5e7b15710a8607e8a3a2d9fbe2c150a99b924fa5",
                 "shasum": ""
             },
             "require": {
                 "evenement/evenement": "^3.0",
-                "php": "^8.0 || ^8.1 || ^8.2",
+                "php": "^8.0 || ^8.1 || ^8.2 || ^8.3 || ^8.4",
                 "psr/log": "^1.0 || ^2.0 || ^3.0",
                 "spatie/temporary-directory": "^2.0",
-                "symfony/cache": "^5.4 || ^6.0",
-                "symfony/process": "^5.4 || ^6.0"
+                "symfony/cache": "^5.4 || ^6.0 || ^7.0",
+                "symfony/process": "^5.4 || ^6.0 || ^7.0"
             },
             "require-dev": {
                 "mockery/mockery": "^1.5",
-                "phpunit/phpunit": "^9.5.10"
+                "phpunit/phpunit": "^9.5.10 || ^10.0"
             },
             "suggest": {
                 "php-ffmpeg/extras": "A compilation of common audio & video drivers for PHP-FFMpeg"
@@ -4924,9 +4764,9 @@
             ],
             "support": {
                 "issues": "https://github.com/PHP-FFMpeg/PHP-FFMpeg/issues",
-                "source": "https://github.com/PHP-FFMpeg/PHP-FFMpeg/tree/v1.1.0"
+                "source": "https://github.com/PHP-FFMpeg/PHP-FFMpeg/tree/v1.3.0"
             },
-            "time": "2022-12-09T13:57:05+00:00"
+            "time": "2024-11-12T15:39:52+00:00"
         },
         {
             "name": "php-http/client-common",
@@ -12415,5 +12255,5 @@
         "ext-redis": "~5.1.1"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.3.0"
 }

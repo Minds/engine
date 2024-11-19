@@ -150,6 +150,8 @@ class MultiTenantBootService
             if ($tenantConfig->siteEmail || $tenantConfig->siteName) {
                 if ($tenantConfig->siteEmail) {
                     $emailConfig['sender']['email'] = $tenant->config->siteEmail;
+                } else {
+                    $emailConfig['sender']['email'] = 'no-reply@minds.com';
                 }
 
                 if ($tenantConfig->siteName) {

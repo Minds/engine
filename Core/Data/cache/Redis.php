@@ -207,7 +207,7 @@ class Redis extends abstractCacher implements CacheInterface
 
     public function delete($key)
     {
-        throw new NotImplementedException();
+        return $this->destroy($key);
     }
 
     public function clear()

@@ -142,6 +142,9 @@ class ActionEvent implements EventInterface
     public const ACTION_FEATURED_ENTITY_ADDED = "featured_entity_added";
 
     /** @var string */
+    public const ACTION_AUDIO_UPLOAD = 'audio_upload';
+
+    /** @var string */
     protected $action;
 
     /** @var string[] */
@@ -273,6 +276,8 @@ class ActionEvent implements EventInterface
                 break;
             case self::ACTION_FEATURED_ENTITY_ADDED:
                 $allowedKeys = [ 'featured_entity_data' ];
+                break;
+            case self::ACTION_AUDIO_UPLOAD:
                 break;
             default:
                 throw new \Exception("Invalid action set. Ensure allowedKeys are set in ActionEvent model");
