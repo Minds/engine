@@ -6,11 +6,16 @@
 namespace Minds\Core\Media;
 
 use Aws\S3\S3Client;
+use FFMpeg\FFMpeg;
+use FFMpeg\FFProbe;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\GuidBuilder;
+use Minds\Core\Media\Audio\AudioService;
 use Minds\Core\Media\Video\Manager;
+use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 use Minds\Core\Storage\Quotas\Manager as StorageQuotasManager;
 use Oracle\Oci\Common\Auth\UserAuthProvider;
 use Oracle\Oci\ObjectStorage\ObjectStorageClient;
@@ -87,8 +92,14 @@ class MediaProvider extends Provider
 
         // ClientUpload
 
-        $this->di->bind('Media\ClientUpload\Manager', function ($di) {
-            return new ClientUpload\Manager();
+        $this->di->bind(ClientUpload\Manager::class, function ($di) {
+            return new ClientUpload\Manager(
+                transcoderManager: $di->get('Media\Video\Transcoder\Manager'),
+                videoManager: $di->get('Media\Video\Manager'),
+                guid: new GuidBuilder(),
+                rbacGatekeeperService: $di->get(RbacGatekeeperService::class),
+                audioService: $di->get(AudioService::class),
+            );
         }, ['useFactory' => true]);
 
 
@@ -174,5 +185,10 @@ class MediaProvider extends Provider
                 new Save(),
             );
         });
+
+        $this->di->bind(FFMpeg::class, fn (Di $di) => FFMpeg::create([
+            'timeout'          => 3600, // 1 hour
+        ]));
+        $this->di->bind(FFProbe::class, fn (Di $di) => FFProbe::create());
     }
 }
