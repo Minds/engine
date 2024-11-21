@@ -7,15 +7,12 @@
  */
 namespace Minds\Controllers\api\v1;
 
-use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Interfaces;
 use Minds\Api\Factory;
-use Minds\Core\Email\V2\Campaigns\Recurring\ForgotPassword\ForgotPasswordEmailer;
 use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
-use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Security\ACL;
+use Minds\Core\Security\ForgotPassword\Services\ForgotPasswordService;
 use Zend\Diactoros\ServerRequestFactory;
 
 class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
@@ -25,12 +22,10 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
 
     public function __construct(
         private ?EntitiesBuilder $entitiesBuilder = null,
-        private ?Save $save = null,
-        private ?ForgotPasswordEmailer $forgotPasswordEmailer = null
+        private ?ForgotPasswordService $forgotPasswordService = null,
     ) {
         $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
-        $this->save ??= new Save();
-        $this->forgotPasswordEmailer ??= new ForgotPasswordEmailer();
+        $this->forgotPasswordService ??= Di::_()->get(ForgotPasswordService::class);
     }
 
     /**
@@ -81,11 +76,8 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
                     $response['message'] = "Could not find @" . $_POST['username'];
                     break;
                 }
-                $code = Core\Security\Password::reset($user);
 
-                $this->forgotPasswordEmailer->setUser($user)
-                    ->setCode($code)
-                    ->send();
+                $this->forgotPasswordService->request($user);
                 break;
             case "reset":
                 $user = $this->entitiesBuilder->getByUserByIndex(strtolower($_POST['username']));
@@ -130,32 +122,13 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
                     enableEmail: false
                 );
 
-                $ia = ACL::_()->setIgnore(true);
-
-                //$user->salt = Core\Security\Password::salt();
-                $user->password = Core\Security\Password::generate($user, $_POST['password']);
-                $user->password_reset_code = "";
-                $user->override_password = true;
-
-                $this->save
-                    ->setEntity($user)
-                    ->withMutatedAttributes([
-                        'password',
-                        'password_reset_code'
-                    ])
-                    ->save();
-
-                ACL::_()->setIgnore($ia);
-
-                (new \Minds\Core\Sessions\CommonSessions\Manager())->deleteAll($user);
-
-                $sessions = Core\Di\Di::_()->get('Sessions\Manager');
-                $sessions->setUser($user);
-                $sessions->createSession();
-                $sessions->save(); // save to db and cookie
+                $this->forgotPasswordService->reset(
+                    $user,
+                    $_POST['code'],
+                    $_POST['password']
+                );
 
                 $response['user'] = $user->export();
-
                 break;
             default:
                 $response = ['status'=>'error', 'message'=>'Unknown endpoint'];
