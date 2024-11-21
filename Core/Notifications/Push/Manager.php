@@ -108,7 +108,13 @@ class Manager
 
                 $this->getService($deviceSubscription->getService())->send($pushNotification);
             } catch (\Exception $e) {
-                $this->logger->error('Failed ' . $e->getMessage());
+                if ($e->getCode() === 410) {
+                    // Device is gone
+                    $this->getDeviceSubscriptionsManager()->delete($deviceSubscription);
+                    $this->logger->error('Failed as the device is gone. Cleaned up');
+                } else {
+                    $this->logger->error('Failed ' . $e->getMessage());
+                }
             }
         }
     }
