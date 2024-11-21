@@ -111,7 +111,7 @@ class Manager
                 if ($e->getCode() === 410) {
                     // Device is gone
                     $this->getDeviceSubscriptionsManager()->delete($deviceSubscription);
-                    $this->logger->error('Failed as the device is gone. Cleaned up');
+                    $this->logger->info('Failed as the device is gone. Cleaned up');
                 } else {
                     $this->logger->error('Failed ' . $e->getMessage());
                 }

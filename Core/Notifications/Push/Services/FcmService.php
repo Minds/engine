@@ -45,12 +45,8 @@ class FcmService extends AbstractService implements PushServiceInterface
             ],
         ];
 
-        try {
-            $this->request($body);
-        } catch (\Exception $e) {
-            error_log($e->getMessage());
-            return false;
-        }
+        $this->request($body);
+
         return true;
     }
 
