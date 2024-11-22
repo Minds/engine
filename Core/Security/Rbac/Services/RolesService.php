@@ -73,8 +73,15 @@ class RolesService
         } else {
             // Host site, all users will have the default role
             $allRoles = $this->getAllRoles();
+
             if ($user->isAdmin()) {
                 $roles[] = $allRoles[RolesEnum::ADMIN->value];
+            }
+
+            if ($user->isPlus()) {
+                $role = $allRoles[RolesEnum::DEFAULT->value];
+                $role->permissions[] = PermissionsEnum::CAN_UPLOAD_AUDIO;
+                $roles[] = $role;
             }
 
             // All users will have a default role
