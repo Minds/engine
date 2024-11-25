@@ -39,7 +39,7 @@ class RolesServiceSpec extends ObjectBehavior
         $this->repositoryMock->getRoles()->shouldNotBeCalled();
 
         $roles = $this->getAllRoles();
-        $roles->shouldHaveCount(5);
+        $roles->shouldHaveCount(6);
     }
 
     public function it_should_return_all_roles_for_multi_tenant()
@@ -142,7 +142,8 @@ class RolesServiceSpec extends ObjectBehavior
         $roles = $this->getRoles($subjectUser);
         $roles->shouldHaveCount(2);
 
-        $roles[0]->id->shouldBe(RolesEnum::DEFAULT->value);
+
+        $roles[0]->id->shouldBe(RolesEnum::PLUS->value);
         $roles[0]->permissions->shouldContain(PermissionsEnum::CAN_UPLOAD_AUDIO);
     }
 

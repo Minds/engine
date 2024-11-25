@@ -79,9 +79,7 @@ class RolesService
             }
 
             if ($user->isPlus()) {
-                $role = $allRoles[RolesEnum::DEFAULT->value];
-                $role->permissions[] = PermissionsEnum::CAN_UPLOAD_AUDIO;
-                $roles[] = $role;
+                $roles[] = $allRoles[RolesEnum::PLUS->value];
             }
 
             // All users will have a default role
@@ -339,6 +337,14 @@ class RolesService
 
                 return $this->buildRoles();
             }
+        } else {
+            $roles[RolesEnum::PLUS->value] = new Role(
+                RolesEnum::PLUS->value,
+                RolesEnum::PLUS->name,
+                [
+                    PermissionsEnum::CAN_UPLOAD_AUDIO,
+                ]
+            );
         }
 
         return $roles;
