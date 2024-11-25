@@ -200,7 +200,7 @@ class Repository extends AbstractRepository
 
 
         if ($orderByRanking) {
-            $query->join('boost_rankings', 'boosts.guid', Operator::EQ, 'boost_rankings.guid');
+            $query->joinRaw('boost_rankings', 'boosts.guid on boost_rankings.guid AND boosts.tenant_id = boost_rankings.tenant_id');
 
             $orderByRankingAudience = 'ranking_safe';
             if ($targetAudience === BoostTargetAudiences::CONTROVERSIAL) {
