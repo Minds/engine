@@ -10,18 +10,19 @@ use Minds\Core\Authentication\Oidc\Services\OidcUserService;
 use Minds\Core\Config\Config;
 use Minds\Core\Security\Vault\VaultTransitService;
 use Minds\Core\Sessions\Manager as SessionsManager;
+use Minds\Core\Events\EventsDispatcher;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
+use Prophecy\Argument;
 use Zend\Diactoros\Response\JsonResponse;
 
 class OidcAuthServiceSpec extends ObjectBehavior
 {
     private Collaborator $httpClientMock;
     private Collaborator $oidcUserServiceMock;
-    private Collaborator $sessionsManagerMock;
-    private Collaborator $configMock;
     private Collaborator $vaultTransitServiceMock;
+    private Collaborator $eventDispatcherMock;
 
     public function let(
         Client $httpClientMock,
@@ -29,14 +30,16 @@ class OidcAuthServiceSpec extends ObjectBehavior
         SessionsManager $sessionsManagerMock,
         Config $configMock,
         VaultTransitService $vaultTransitServiceMock,
+        EventsDispatcher $eventDispatcherMock,
     ) {
-        $this->beConstructedWith($httpClientMock, $oidcUserServiceMock, $sessionsManagerMock, $configMock, $vaultTransitServiceMock);
+        $this->beConstructedWith($httpClientMock, $oidcUserServiceMock, $sessionsManagerMock, $configMock, $vaultTransitServiceMock, $eventDispatcherMock);
     
         $this->httpClientMock = $httpClientMock;
         $this->oidcUserServiceMock = $oidcUserServiceMock;
         $this->sessionsManagerMock = $sessionsManagerMock;
         $this->configMock = $configMock;
         $this->vaultTransitServiceMock = $vaultTransitServiceMock;
+        $this->eventDispatcherMock = $eventDispatcherMock;
     }
 
     public function it_is_initializable()
@@ -145,6 +148,66 @@ class OidcAuthServiceSpec extends ObjectBehavior
         $this->performAuthentication($provider, 'auth-code', 'csrf-token');
     }
 
+    public function it_should_return_openid_configuration_from_event_hook()
+    {
+        $this->eventDispatcherMock->trigger('oidc:getOpenIdConfiguration', 'all', Argument::type('array'))
+            ->shouldBeCalled()
+            ->willReturn([
+                'issuer' => 'fake'
+            ]);
+        $config = $this->getOpenIdConfiguration($this->buildOidcProvider());
+        $config['issuer']->shouldBe('fake');
+    }
+
+    public function it_should_return_extended_scopes_from_event_hook()
+    {
+        $this->eventDispatcherMock->trigger('oidc:getOpenIdConfiguration', 'all', Argument::type('array'))
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->shouldUseOpenIdConfigMock();
+
+        $this->eventDispatcherMock->trigger('oidc:getScopes', 'all', Argument::type('array'), [])
+            ->shouldBeCalled()
+            ->willReturn([
+                'fake.scope'
+            ]);
+
+        $this->getAuthorizationUrl($this->buildOidcProvider(), '');
+    }
+
+    public function it_should_return_remote_user_from_event_hook()
+    {
+        $this->eventDispatcherMock->trigger('oidc:getOpenIdConfiguration', 'all', Argument::type('array'))
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->shouldUseOpenIdConfigMock();
+
+        $this->httpClientMock->post('https://phpspec.local/oauth/v2/token', Argument::type('array'))
+            ->shouldBeCalled()
+            ->willReturn(new JsonResponse([
+                'access_token' => "DKpn8Y8oPS7OZsa-jiGdsSIrgp9mHhjvoKGHFyC4v6xNx5iomtP_w-kJmKc2Wg-hi_TO3yA",
+                'token_type' => 'Bearer',
+                'expires_in' => 43199,
+            ]));
+
+        $this->eventDispatcherMock->trigger('oidc:getRemoteUser', 'all', Argument::type('array'))
+            ->shouldBeCalled()
+            ->willReturn((object) [
+                'sub' => 'id',
+                'preferred_username' => 'test',
+                'given_name' => 'test',
+                'email' => 'test@test.com'
+            ]);
+
+        $this->vaultTransitServiceMock->decrypt('vault:v1:HB23vDusaOjgwk1+wuhMGcVXKC34PDwtTsSmoyZFGzIjhDyqiV57')
+            ->shouldBeCalled()
+            ->willReturn('secret');
+
+        $this->performAuthentication($this->buildOidcProvider(), '', '');
+    }
+
     //
 
     private function buildOidcProvider(): OidcProvider
@@ -166,7 +229,12 @@ class OidcAuthServiceSpec extends ObjectBehavior
                 'issuer' => 'https://phpspec.local/',
                 'authorization_endpoint' => 'https://phpspec.local/oauth/v2/authorize',
                 'token_endpoint' => 'https://phpspec.local/oauth/v2/token',
-                'jwks_uri' => 'https://phpspec.local/oauth/v2/keys'
+                'jwks_uri' => 'https://phpspec.local/oauth/v2/keys',
+                'scopes_supported' => [
+                    'openid',
+                    'profile',
+                    'email'
+                ]
             ]));
     }
 }

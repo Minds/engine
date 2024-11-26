@@ -53,6 +53,7 @@ class Provider extends DiProvider
                 sessionsManager: $di->get('Sessions\Manager'),
                 config: $di->get(Config::class),
                 vaultTransitService: $di->get(VaultTransitService::class),
+                eventsDispatcher: $di->get('EventsDispatcher'),
             );
         });
 

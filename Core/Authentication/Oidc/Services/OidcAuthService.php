@@ -6,6 +6,7 @@ use Firebase\JWT\JWT;
 use GuzzleHttp\Client;
 use Minds\Core\Authentication\Oidc\Models\OidcProvider;
 use Minds\Core\Config\Config;
+use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Security\Vault\VaultTransitService;
 use Minds\Core\Security\XSRF;
 use Minds\Core\Session;
@@ -19,6 +20,7 @@ class OidcAuthService
         private SessionsManager $sessionsManager,
         private Config $config,
         private VaultTransitService $vaultTransitService,
+        private EventsDispatcher $eventsDispatcher,
     ) {
         
     }
@@ -28,6 +30,12 @@ class OidcAuthService
      */
     public function getOpenIdConfiguration(OidcProvider $provider): array
     {
+        if ($eventResponse = $this->eventsDispatcher->trigger('oidc:getOpenIdConfiguration', 'all', [
+            'provider' => $provider
+        ])) {
+            return $eventResponse;
+        }
+
         $wellKnownConfigUrl = rtrim($provider->issuer, '/') . '/.well-known/openid-configuration';
         $response = $this->httpClient->get($wellKnownConfigUrl);
 
@@ -43,10 +51,20 @@ class OidcAuthService
 
         $authUrl = $openIdConfiguration['authorization_endpoint'];
 
+        $scopes = array_intersect([
+            'openid',
+            'profile',
+            'email',
+            // Any additional scopes from the provider?
+            ... $this->eventsDispatcher->trigger('oidc:getScopes', 'all', [
+                'provider' => $provider
+            ], []) ?: []
+        ], $openIdConfiguration['scopes_supported']);
+
         $queryParams = http_build_query([
             'response_type' => 'code',
             'client_id' => $provider->clientId,
-            'scope' => 'openid profile email',
+            'scope' => implode(' ', $scopes),
             'state' => $csrfStateToken,
             'providerId' => $provider->id,
             'redirect_uri' =>  $this->getCallbackUrl(),
@@ -79,9 +97,19 @@ class OidcAuthService
 
         // Decode the id_token field
 
-        $jwkKeySet = $this->getJwkKeySet($openIdConfiguration);
+        // Tap into the OAuth integrations hook, if possible, instead of getting profile
+        // data from the id token
+        
+        if ($eventResponse = $this->eventsDispatcher->trigger('oidc:getRemoteUser', 'all', [
+            'provider' => $provider,
+            'oauth_token_response' => $data,
+        ])) {
+            $jwtDecoded = $eventResponse;
+        } else {
+            $jwkKeySet = $this->getJwkKeySet($openIdConfiguration);
 
-        $jwtDecoded = JWT::decode($data['id_token'], $jwkKeySet);
+            $jwtDecoded = JWT::decode($data['id_token'], $jwkKeySet);
+        }
 
         $sub = $jwtDecoded->sub;
 
