@@ -7,6 +7,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use Minds\Core\Notifications\Push\PushNotification;
 use Minds\Core\Notifications\Push\PushNotificationInterface;
 use Minds\Core\Notifications\Push\UndeliverableException;
+use Minds\Exceptions\NotFoundException;
 use Psr\Http\Message\ResponseInterface;
 
 class FcmService extends AbstractService implements PushServiceInterface
@@ -45,7 +46,13 @@ class FcmService extends AbstractService implements PushServiceInterface
             ],
         ];
 
-        $this->request($body);
+        $response = $this->request($body);
+        $body = json_decode($response->getBody()->getContents(), true);
+
+        if (isset($body['error']) && $body['error']['code'] === 404) {
+            // Device gone
+            throw new NotFoundException();
+        }
 
         return true;
     }
