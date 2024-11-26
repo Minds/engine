@@ -110,7 +110,7 @@ class ProcessActorService
                 }
 
                 $email = 'activitypub-imported@minds.com';
-                $password = openssl_random_pseudo_bytes(128);
+                $password = bin2hex(openssl_random_pseudo_bytes(128));
 
                 // Check for username collisions.
                 if (check_user_index_to_guid(strtolower($username))) {

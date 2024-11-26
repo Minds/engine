@@ -68,7 +68,7 @@ class OidcUserService
             return $this->register($sub, $providerId, $preferredUsername . '_' . rand(0, 999), $displayName, $email);
         }
 
-        $password = openssl_random_pseudo_bytes(128);
+        $password = bin2hex(openssl_random_pseudo_bytes(128));
         $user = register_user($preferredUsername, $password, $displayName, $email, validatePassword: false);
 
         // Link this user to the oidc map
