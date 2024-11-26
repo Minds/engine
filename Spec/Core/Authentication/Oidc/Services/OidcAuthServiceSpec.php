@@ -36,8 +36,6 @@ class OidcAuthServiceSpec extends ObjectBehavior
     
         $this->httpClientMock = $httpClientMock;
         $this->oidcUserServiceMock = $oidcUserServiceMock;
-        $this->sessionsManagerMock = $sessionsManagerMock;
-        $this->configMock = $configMock;
         $this->vaultTransitServiceMock = $vaultTransitServiceMock;
         $this->eventDispatcherMock = $eventDispatcherMock;
     }
