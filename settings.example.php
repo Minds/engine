@@ -960,7 +960,7 @@ $CONFIG->set('nostr', [
     'domain' => 'minds.io',
     'relays' => [
         'wss://nostr-relay.untethr.me',
-        'wss://nostr.bitcoiner.social',
+        'wss://offchain.pub',
         'wss://nostr-relay.wlvs.space',
         'wss://nostr-pub.wellorder.net'
     ]
