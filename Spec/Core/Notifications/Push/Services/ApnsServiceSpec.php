@@ -77,11 +77,11 @@ class ApnsServiceSpec extends ObjectBehavior
                 new PushNotificationConfig(
                     apnsTeamId: 'AAAAAAAAAA',
                     apnsKey: "-----BEGIN PRIVATE KEY-----
-                    AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-                    AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-                    AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-                    AAAAAAAA
-                    -----END PRIVATE KEY-----",
+MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQg/T6lLb143EDZgJN0
+w2v0NkkNSnk6H3RH9qmbG2AoCQugCgYIKoZIzj0DAQehRANCAATOqY0vcF4ovskJ
+ZZWlF2twsmzQG5AOYDBgVKRoCnQQ3Hm5XqbMM323q0NNFz6GeUOUHsM6HEzo/agb
+askPiChu
+-----END PRIVATE KEY-----",
                     apnsKeyId: 'BBBBBBBBBB',
                     apnsTopic: 'phpspec.app',
                 )
@@ -90,7 +90,7 @@ class ApnsServiceSpec extends ObjectBehavior
         $this->client->request('POST', 'https://api.push.apple.com/3/device/apple-device-token', Argument::that(function ($payload) {
             return $payload['headers']['apns-collapse-id'] === 'merge-key-will-be-here'
                 && $payload['headers']['apns-topic'] = 'phpspec.app'
-                && $payload['json']['aps']['alert']['body'] === 'This is the title line: This is the body line'
+                && $payload['json']['aps']['alert']['body'] === 'This is the body line'
                 && $payload['json']['uri'] === 'uri-here'
                 && $payload['json']['largeIcon'] === 'icon-here'
                 && $payload['json']['aps']['badge'] === 2;

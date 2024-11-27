@@ -63,12 +63,15 @@ class PushNotificationsEventStreamsSubscription implements SubscriptionInterface
             return false;
         }
 
+        $notification = $event->getNotification();
+
         if ($event->getTimestamp() < time() - 3600) {
             // Don't notify for event older than 1 hour, here
-            return true;
+            $this->logger->info("{$notification->getUrn()} too old to send. Manually debug this.", [
+                'notification' => $notification,
+            ]);
+            return false; // Keep the notification so we can debug
         }
-
-        $notification = $event->getNotification();
 
         if ($notification->getReadTimestamp()) {
             $this->logger->info("{$notification->getUrn()} already read");

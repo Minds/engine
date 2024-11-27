@@ -72,7 +72,7 @@ class WebPushService extends AbstractService implements PushServiceInterface
             // TODO: deviceToken is corrupt. Do something about it?
         }
 
-        if (!$pushSubscription) {
+        if (!$pushSubscription || !isset($pushSubscription['endpoint'])) {
             return null;
         }
 
