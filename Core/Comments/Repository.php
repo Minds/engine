@@ -142,11 +142,6 @@ class Repository
             $values[] = new Varint($opts['guid']);
         }
 
-        if ($opts['exclude_pinned']) {
-            $where[] = 'pinned = ?';
-            $values[] = false;
-        }
-
         if ($opts['only_pinned']) {
             $where[] = 'pinned = ?';
             $values[] = true;
@@ -203,6 +198,10 @@ class Repository
             foreach ($rows as $row) {
                 $row = Cql::toPrimitiveType($row);
 
+                if ($opts['exclude_pinned'] && $row['pinned'] === true) {
+                    continue;
+                }
+
                 $flags = $row['flags'] ?: [];
 
                 $comment = new Comment();
@@ -224,7 +223,7 @@ class Repository
                     ->setOwnerObj($row['owner_obj'])
                     ->setVotesUp($row['votes_up'] ?: [])
                     ->setVotesDown($row['votes_down'] ?: [])
-                    ->setPinned($row['pinned'] ?? false);
+                    ->setPinned($row['pinned'] ?? null);
 
                 if (isset($row['source'])) {
                     $comment->setSource(FederatedEntitySourcesEnum::from($row['source']));
