@@ -223,7 +223,7 @@ class Repository
                     ->setOwnerObj($row['owner_obj'])
                     ->setVotesUp($row['votes_up'] ?: [])
                     ->setVotesDown($row['votes_down'] ?: [])
-                    ->setPinned($row['pinned'] ?? null);
+                    ->setPinned($row['pinned'] ?? false);
 
                 if (isset($row['source'])) {
                     $comment->setSource(FederatedEntitySourcesEnum::from($row['source']));
