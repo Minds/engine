@@ -99,6 +99,7 @@ class Minds extends base
         Media\Audio\Module::class,
         // Integrations
         Integrations\Bloomerang\Module::class,
+        Integrations\MemberSpace\Module::class,
     ];
 
     /**

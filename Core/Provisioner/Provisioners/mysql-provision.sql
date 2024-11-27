@@ -1209,6 +1209,10 @@ ALTER TABLE `minds_tenant_configs`
     ADD custom_script MEDIUMTEXT DEFAULT NULL
     AFTER color_scheme;
 
+ALTER TABLE minds_comments
+    ADD pinned boolean DEFAULT false
+    AFTER access_id;
+
 CREATE TABLE IF NOT EXISTS minds_entities_audio  (
     tenant_id int NOT NULL,
     guid bigint NOT NULL,

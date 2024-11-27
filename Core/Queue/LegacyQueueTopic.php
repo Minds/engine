@@ -130,6 +130,8 @@ class LegacyQueueTopic extends AbstractTopic implements TopicInterface
 
                 if (call_user_func($callback, $event, $message) === true) {
                     $consumer->acknowledge($message);
+                } else {
+                    $consumer->negativeAcknowledge($message);
                 }
             } catch (\Exception $e) {
                 $this->logger->error("Topic(Consume): Uncaught error: " . $e->getMessage());
