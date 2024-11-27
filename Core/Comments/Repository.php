@@ -142,11 +142,6 @@ class Repository
             $values[] = new Varint($opts['guid']);
         }
 
-        if ($opts['exclude_pinned']) {
-            $where[] = 'pinned = ?';
-            $values[] = false;
-        }
-
         if ($opts['only_pinned']) {
             $where[] = 'pinned = ?';
             $values[] = true;
@@ -202,6 +197,10 @@ class Repository
 
             foreach ($rows as $row) {
                 $row = Cql::toPrimitiveType($row);
+
+                if ($opts['exclude_pinned'] && $row['pinned'] === true) {
+                    continue;
+                }
 
                 $flags = $row['flags'] ?: [];
 
@@ -501,7 +500,7 @@ class Repository
         }
 
         if (in_array('pinned', $attributes, true)) {
-            $fields['pinned'] = $comment->isPinned();
+            $fields['pinned'] = $comment->isPinned() ?: null;
         }
 
         if (!$fields) {
