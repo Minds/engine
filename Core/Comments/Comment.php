@@ -55,6 +55,8 @@ use Minds\Helpers\Unknown;
  * @method bool isEphemeral()
  * @method Comment setGroupConversation(bool $value)
  * @method bool isGroupConversation()
+ * @method Comment setPinned(bool $value)
+ * @method bool isPinned()
  */
 class Comment extends RepositoryEntity implements EntityInterface, FederatedEntityInterface
 {
@@ -129,6 +131,9 @@ class Comment extends RepositoryEntity implements EntityInterface, FederatedEnti
 
     /** @var bool */
     protected $ephemeral = true;
+
+    /** @var bool */
+    protected $pinned = false;
 
     private array $clientMeta = [];
 
@@ -458,6 +463,7 @@ class Comment extends RepositoryEntity implements EntityInterface, FederatedEnti
             'deleted',
             'canonicalUrl',
             'source',
+            'pinned',
             function ($export) {
                 return $this->_extendExport($export);
             }

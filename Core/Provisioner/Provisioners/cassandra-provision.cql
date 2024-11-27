@@ -1721,3 +1721,7 @@ ALTER TABLE comments ADD canonical_url text;
 ALTER TABLE comments ADD tenant_id int;
 
 ALTER TABLE notifications_mergeable ADD tenant_id int;
+
+ALTER TABLE comments ADD pinned boolean;
+
+CREATE INDEX ON comments (pinned);
