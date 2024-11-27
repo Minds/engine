@@ -19,6 +19,7 @@ use Minds\Core\Feeds\RSS\Exceptions\RssFeedFailedFetchException;
 use Minds\Core\Feeds\RSS\Repositories\RssImportsRepository;
 use Minds\Core\Feeds\RSS\Types\RssFeed;
 use Minds\Core\Log\Logger;
+use Minds\Core\Media\Audio\AudioService;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
@@ -31,6 +32,7 @@ class ProcessRssFeedService
         private readonly MetascraperService $metaScraperService,
         private readonly ActivityManager $activityManager,
         private readonly RssImportsRepository $rssImportsRepository,
+        private readonly AudioService $audioService,
         private readonly ACL $acl,
         private readonly Logger $logger
     ) {
@@ -93,11 +95,22 @@ class ProcessRssFeedService
                 return false;
             }
 
-            $activity
-                ->setLinkTitle($richEmbed['meta']['title'])
-                ->setBlurb($richEmbed['meta']['description'])
-                ->setURL($canonicalUrl)
-                ->setThumbnail($richEmbed['links']['thumbnail'][0]['href']);
+            if (str_starts_with($entry->getEnclosure()?->type ?? '', 'audio') && $entry->getEnclosure()?->ur) {
+                $audioEntity = $this->audioService->onRemoteFileUrlProvided(
+                    owner: $user,
+                    url: $entry->getEnclosure()->url
+                );
+                $activity->setEntityGuid($audioEntity->guid)
+                    ->setAttachments([ $audioEntity ])
+                    ->setTitle($richEmbed['meta']['title'])
+                    ->setMessage($richEmbed['meta']['description']);
+            } else {
+                $activity
+                    ->setLinkTitle($richEmbed['meta']['title'])
+                    ->setBlurb($richEmbed['meta']['description'])
+                    ->setURL($canonicalUrl)
+                    ->setThumbnail($richEmbed['links']['thumbnail'][0]['href']);
+            }
 
             $this->activityManager->add($activity);
 

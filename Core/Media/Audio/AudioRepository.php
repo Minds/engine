@@ -47,12 +47,14 @@ class AudioRepository extends AbstractRepository
             ->set([
                 'tenant_id' => $this->getTenantId(),
                 'guid' => new RawExp(':guid'),
+                'remote_file_url' => new RawExp(':remote_file_url'),
                 'created_at' => new RawExp(':created_at'),
             ])
             ->prepare();
         
         $success = $stmt->execute([
             'guid' => $audio->guid,
+            'remote_file_url' => $audio->remoteFileUrl,
             'created_at' => date('c'),
         ]);
         
@@ -95,6 +97,10 @@ class AudioRepository extends AbstractRepository
                 case 'durationSecs':
                     $set['duration_secs'] = new RawExp(':durationSecs');
                     $values[$field] = $audioEntity->durationSecs;
+                    break;
+                case 'remoteFileUrl':
+                    $set['remote_file_url'] = new RawExp(':remote_file_url');
+                    $values[$field] = $audioEntity->remoteFileUrl;
                     break;
             }
         }
@@ -154,6 +160,7 @@ class AudioRepository extends AbstractRepository
             ownerGuid: $row['owner_guid'],
             accessId: $row['access_id'],
             durationSecs: (float) $row['duration_secs'],
+            remoteFileUrl: $row['remote_file_url'],
             uploadedAt: isset($row['uploaded_at']) ? new DateTimeImmutable($row['uploaded_at']) : null,
         );
     }

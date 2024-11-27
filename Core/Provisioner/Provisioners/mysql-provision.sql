@@ -1219,3 +1219,7 @@ CREATE TABLE IF NOT EXISTS minds_entities_audio  (
     PRIMARY KEY (tenant_id, guid),
     FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
 );
+
+ALTER TABLE minds_entities_audio
+    ADD COLUMN remote_file_url text DEFAULT NULL
+    AFTER duration_secs;

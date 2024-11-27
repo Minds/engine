@@ -12,6 +12,7 @@ class AudioEntity implements EntityInterface
         public readonly int $ownerGuid,
         public int $accessId = Access::UNLISTED,
         public float $durationSecs = 0,
+        public ?string $remoteFileUrl = null,
         public ?DateTimeImmutable $uploadedAt = null,
         public ?DateTimeImmutable $processedAt = null,
     ) {

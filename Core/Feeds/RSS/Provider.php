@@ -15,6 +15,7 @@ use Minds\Core\Feeds\RSS\Services\ProcessRssFeedService;
 use Minds\Core\Feeds\RSS\Services\ReaderLibraryWrapper;
 use Minds\Core\Feeds\RSS\Services\Service;
 use Minds\Core\Feeds\RSS\Types\Factories\RssFeedInputFactory;
+use Minds\Core\Media\Audio\AudioService;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 
 class Provider extends DiProvider
@@ -67,6 +68,7 @@ class Provider extends DiProvider
                     metaScraperService: $di->get('Metascraper\Service'),
                     activityManager: $di->get('Feeds\Activity\Manager'),
                     rssImportsRepository: $di->get(RssImportsRepository::class),
+                    audioService: $di->get(AudioService::class),
                     acl: $di->get('Security\ACL'),
                     logger: $di->get('Logger')
                 );
