@@ -264,6 +264,10 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(1000);
 
+        $comment->isPinned()
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $comment->getSource()
             ->willReturn(FederatedEntitySourcesEnum::LOCAL);
 

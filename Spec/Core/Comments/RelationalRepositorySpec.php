@@ -96,7 +96,9 @@ class RelationalRepositorySpec extends ObjectBehavior
         $comment->getCanonicalUrl()
             ->shouldBeCalled()
             ->willReturn(null);
-
+        $comment->isPinned()
+            ->shouldBeCalled()
+            ->willReturn(false);
 
         $this->mysqlMasterMock->prepare(Argument::type('string'))->shouldBeCalled()->willReturn($statement);
         $this->mysqlMasterMock->quote(Argument::type('string'))->willReturn('');
