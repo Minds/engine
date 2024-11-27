@@ -500,7 +500,7 @@ class Repository
         }
 
         if (in_array('pinned', $attributes, true)) {
-            $fields['pinned'] = $comment->isPinned();
+            $fields['pinned'] = $comment->isPinned() ?: null;
         }
 
         if (!$fields) {
