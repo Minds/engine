@@ -74,7 +74,8 @@ class AudioActivityBuilder
      * @param EntryInterface $entry - The RSS entry.
      * @return AudioEntity - The audio entity.
      */
-    private function handleRemoteFileUrl(User $user, EntryInterface $entry): AudioEntity {
+    private function handleRemoteFileUrl(User $user, EntryInterface $entry): AudioEntity
+    {
         return $this->audioService->onRemoteFileUrlProvided(
             owner: $user,
             url: $entry->getEnclosure()->url
@@ -87,7 +88,8 @@ class AudioActivityBuilder
      * @param string $thumbnailUrl - The thumbnail URL.
      * @return void
      */
-    private function handleThumbnailUpload(AudioEntity $audioEntity, string $thumbnailUrl): void {
+    private function handleThumbnailUpload(AudioEntity $audioEntity, string $thumbnailUrl): void
+    {
         try {
             $thumbnailBlob = $this->getThumbnailBlob($thumbnailUrl);
 
@@ -114,4 +116,3 @@ class AudioActivityBuilder
         }
     }
 }
-
