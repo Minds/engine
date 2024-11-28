@@ -19,6 +19,7 @@ use Minds\Core\Feeds\RSS\Types\Factories\RssFeedInputFactory;
 use Minds\Core\Media\Audio\AudioService;
 use Minds\Core\Media\MediaDownloader\ImageDownloader;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
+use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 
 class Provider extends DiProvider
 {
@@ -72,6 +73,7 @@ class Provider extends DiProvider
                     rssImportsRepository: $di->get(RssImportsRepository::class),
                     audioActivityBuilder: $di->get(AudioActivityBuilder::class),
                     audioService: $di->get(AudioService::class),
+                    rbacGatekeeperService: $di->get(RbacGatekeeperService::class),
                     acl: $di->get('Security\ACL'),
                     logger: $di->get('Logger')
                 );

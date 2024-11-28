@@ -22,6 +22,8 @@ use Minds\Core\Feeds\RSS\Types\RssFeed;
 use Minds\Core\Log\Logger;
 use Minds\Core\Media\Audio\AudioService;
 use Minds\Core\Security\ACL;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
+use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 use Minds\Entities\Activity;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
@@ -35,6 +37,7 @@ class ProcessRssFeedService
         private readonly RssImportsRepository $rssImportsRepository,
         private readonly AudioActivityBuilder $audioActivityBuilder,
         private readonly AudioService $audioService,
+        private readonly RbacGatekeeperService $rbacGatekeeperService,
         private readonly ACL $acl,
         private readonly Logger $logger
     ) {
@@ -97,7 +100,11 @@ class ProcessRssFeedService
                 return false;
             }
 
-            if (str_starts_with($entry->getEnclosure()?->type ?? '', 'audio') && $entry->getEnclosure()?->url) {
+            if (
+                $entry->getEnclosure()?->url &&
+                str_starts_with($entry->getEnclosure()?->type ?? '', 'audio') &&
+                $this->rbacGatekeeperService->isAllowed(PermissionsEnum::CAN_UPLOAD_AUDIO, $user, false)
+            ) {
                 $activity = $this->audioActivityBuilder->build($activity, $entry, $user, $richEmbed);
             } else {
                 $activity
