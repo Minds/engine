@@ -8,6 +8,7 @@ use Laminas\Feed\Reader\Reader;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\Feeds\RSS\ActivityBuilders\AudioActivityBuilder;
 use Minds\Core\Feeds\RSS\Controllers\Controller;
 use Minds\Core\Feeds\RSS\Repositories\RssFeedsRepository;
 use Minds\Core\Feeds\RSS\Repositories\RssImportsRepository;
@@ -16,6 +17,7 @@ use Minds\Core\Feeds\RSS\Services\ReaderLibraryWrapper;
 use Minds\Core\Feeds\RSS\Services\Service;
 use Minds\Core\Feeds\RSS\Types\Factories\RssFeedInputFactory;
 use Minds\Core\Media\Audio\AudioService;
+use Minds\Core\Media\MediaDownloader\ImageDownloader;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 
 class Provider extends DiProvider
@@ -68,6 +70,7 @@ class Provider extends DiProvider
                     metaScraperService: $di->get('Metascraper\Service'),
                     activityManager: $di->get('Feeds\Activity\Manager'),
                     rssImportsRepository: $di->get(RssImportsRepository::class),
+                    audioActivityBuilder: $di->get(AudioActivityBuilder::class),
                     audioService: $di->get(AudioService::class),
                     acl: $di->get('Security\ACL'),
                     logger: $di->get('Logger')
@@ -91,6 +94,15 @@ class Provider extends DiProvider
         $this->di->bind(
             RssFeedInputFactory::class,
             fn (Di $di): RssFeedInputFactory => new RssFeedInputFactory()
+        );
+
+        $this->di->bind(
+            AudioActivityBuilder::class,
+            fn (Di $di): AudioActivityBuilder => new AudioActivityBuilder(
+                audioService: $di->get(AudioService::class),
+                imageDownloader: $di->get(ImageDownloader::class),
+                logger: $di->get('Logger'),
+            )
         );
     }
 }

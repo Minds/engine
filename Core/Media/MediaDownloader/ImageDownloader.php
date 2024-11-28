@@ -6,10 +6,10 @@ namespace Minds\Core\Media\MediaDownloader;
 use GuzzleHttp\Client;
 use Minds\Core\Log\Logger;
 
-class AudioDownloader implements MediaDownloaderInterface
+class ImageDownloader implements MediaDownloaderInterface
 {
     /** @var int timeout for request in seconds */
-    const REQUEST_TIMEOUT_SECONDS = 60;
+    const REQUEST_TIMEOUT_SECONDS = 20;
 
     public function __construct(
         private readonly Client $client,
@@ -28,19 +28,17 @@ class AudioDownloader implements MediaDownloaderInterface
             $response = $this->client->get($url, [
                 'timeout' => self::REQUEST_TIMEOUT_SECONDS,
                 'headers' => [
-                    'Accept' => 'audio/*'
-                ],
-                'allow_redirects' => [
-                    'max' => 10
+                    'Accept' => 'image/*',
                 ]
             ]);
 
             $contentType = $response->getHeader('Content-Type')[0] ?? '';
-            if (!str_starts_with($contentType, 'audio/')) {
+            if (!str_starts_with($contentType, 'image/')) {
                 throw new \Exception("Invalid content type: $contentType");
             }
 
-            return $response->getBody()->getContents();
+            $imageData = $response->getBody()->getContents();
+            return 'data:' . $contentType . ';base64,' . base64_encode($imageData);
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
             throw $e;

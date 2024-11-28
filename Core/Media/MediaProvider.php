@@ -16,6 +16,7 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Media\MediaDownloader\AudioDownloader;
 use Minds\Core\GuidBuilder;
 use Minds\Core\Media\Audio\AudioService;
+use Minds\Core\Media\MediaDownloader\ImageDownloader;
 use Minds\Core\Media\Video\Manager;
 use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 use Minds\Core\Storage\Quotas\Manager as StorageQuotasManager;
@@ -195,6 +196,13 @@ class MediaProvider extends Provider
 
         $this->di->bind(AudioDownloader::class, function (Di $di): AudioDownloader {
             return new AudioDownloader(
+                client: $di->get(GuzzleClient::class),
+                logger: $di->get('Logger'),
+            );
+        });
+
+        $this->di->bind(ImageDownloader::class, function (Di $di): ImageDownloader {
+            return new ImageDownloader(
                 client: $di->get(GuzzleClient::class),
                 logger: $di->get('Logger'),
             );
