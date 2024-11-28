@@ -35,6 +35,10 @@ class AudioActivityBuilder
         User $user,
         array $richEmbedData
     ): Activity {
+        $podcastImage = null;
+        $podcastSummary = null;
+        $podcastTitle = null;
+
         if ($podcast = $entry->getExtensions()['Podcast\Entry'] ?? false) {
             $podcastImage = $podcast->getItunesImage();
             $podcastSummary = $podcast->getSummary();
@@ -113,6 +117,7 @@ class AudioActivityBuilder
             return $this->imageDownloader->download($url);
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
+            return null;
         }
     }
 }
