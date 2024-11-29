@@ -23,8 +23,8 @@ class AudioActivityBuilder
     }
 
     /**
-     * Builds an activity for an audio RSS entry.
-     * @param Activity $activity - The activity to build.
+     * Builds an activity for an audio RSS entry from a base activity.
+     * @param Activity $activity - The base activity to build off of.
      * @param EntryInterface $entry - The RSS entry.
      * @param User $user - The user.
      * @param array $richEmbedData - The rich embed data.
