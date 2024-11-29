@@ -36,7 +36,6 @@ class AudioAssetStorageService
             while ($chunk = $imageStream->read(1024)) {
                 fwrite($tmpfile, $chunk);
             }
-
         } else {
             $this->ociS3->getObject([
                 'Bucket' => $this->getBucketName(),

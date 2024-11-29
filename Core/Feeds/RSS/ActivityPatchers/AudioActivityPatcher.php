@@ -13,7 +13,7 @@ use Minds\Core\Media\Audio\AudioEntity;
 use Minds\Core\Media\MediaDownloader\MediaDownloaderInterface;
 
 /**
- * Builds an activity for an audio RSS entry.
+ * Patches an activity for an audio RSS entry.
  */
 class AudioActivityPatcher implements RssActivityPatcherInterface
 {

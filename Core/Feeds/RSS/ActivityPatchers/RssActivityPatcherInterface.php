@@ -8,7 +8,8 @@ use Minds\Entities\Activity;
 use Minds\Entities\User;
 
 /**
- * Builds an activity for an audio RSS entry.
+ * Class that patches existing activities with data from RSS entries
+ * of specific types, e.g. Audio - where there are bespoke fields to set.
  */
 interface RssActivityPatcherInterface
 {
