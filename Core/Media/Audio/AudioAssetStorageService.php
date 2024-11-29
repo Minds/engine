@@ -31,8 +31,12 @@ class AudioAssetStorageService
         $tmpfilename = stream_get_meta_data($tmpfile)['uri'];
 
         if ($audioEntity->remoteFileUrl) {
-            $blob = $this->audioDownloader->download($audioEntity->remoteFileUrl);
-            file_put_contents($tmpfilename, $blob);
+            $imageResponse = $this->audioDownloader->download($audioEntity->remoteFileUrl);
+            $imageStream = $imageResponse->getBody();
+            while ($chunk = $imageStream->read(1024)) {
+                fwrite($tmpfile, $chunk);
+            }
+
         } else {
             $this->ociS3->getObject([
                 'Bucket' => $this->getBucketName(),

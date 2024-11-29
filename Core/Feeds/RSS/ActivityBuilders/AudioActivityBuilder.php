@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Feeds\RSS\ActivityBuilders;
 
+use Laminas\Feed\Reader\Entry\AbstractEntry;
 use Minds\Core\Media\Audio\AudioService;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
@@ -39,7 +40,10 @@ class AudioActivityBuilder
         $podcastSummary = null;
         $podcastTitle = null;
 
-        if ($podcast = $entry->getExtensions()['Podcast\Entry'] ?? false) {
+        if (
+            $entry instanceof AbstractEntry &&
+            $podcast = $entry->getExtensions()['Podcast\Entry'] ?? false
+        ) {
             $podcastImage = $podcast->getItunesImage();
             $podcastSummary = $podcast->getSummary();
             $podcastTitle = $podcast->getTitle();
@@ -114,7 +118,10 @@ class AudioActivityBuilder
     private function getThumbnailBlob(string $url): ?string
     {
         try {
-            return $this->imageDownloader->download($url);
+            $imageResponse = $this->imageDownloader->download($url);
+            $contentType = $imageResponse->getHeader('Content-Type')[0] ?? '';
+            $imageData = $imageResponse->getBody()->getContents();
+            return 'data:' . $contentType . ';base64,' . base64_encode($imageData);
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
             return null;

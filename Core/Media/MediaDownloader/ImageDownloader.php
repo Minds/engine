@@ -5,6 +5,7 @@ namespace Minds\Core\Media\MediaDownloader;
 
 use GuzzleHttp\Client;
 use Minds\Core\Log\Logger;
+use Psr\Http\Message\ResponseInterface;
 
 class ImageDownloader implements MediaDownloaderInterface
 {
@@ -20,9 +21,9 @@ class ImageDownloader implements MediaDownloaderInterface
     /**
      * Downloads audio from a URL.
      * @param string $url - The URL to download from
-     * @return string|null - audio file contents.
+     * @return ResponseInterface|null - audio file contents.
      */
-    public function download(string $url): ?string
+    public function download(string $url): ?ResponseInterface
     {
         try {
             $response = $this->client->get($url, [
@@ -37,8 +38,7 @@ class ImageDownloader implements MediaDownloaderInterface
                 throw new \Exception("Invalid content type: $contentType");
             }
 
-            $imageData = $response->getBody()->getContents();
-            return 'data:' . $contentType . ';base64,' . base64_encode($imageData);
+            return $response;
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
             throw $e;
