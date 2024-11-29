@@ -52,15 +52,13 @@ class AudioActivityPatcher implements RssActivityPatcherInterface
         }
 
         // Strip tags to avoid any HTML in the title or description.
-        $title = strip_tags($podcastTitle) ?:
-            strip_tags($entry->getTitle()) ?:
-            $richEmbedData['meta']['title'] ?:
-            'Untitled';
+        $title = strip_tags((string) $podcastTitle) ?:
+            strip_tags((string) $entry->getTitle()) ?:
+            ($richEmbedData['meta']['title'] ?? 'Untitled');
 
-        $description = strip_tags($podcastSummary) ?:
-            strip_tags($entry->getDescription()) ?:
-            $richEmbedData['meta']['description'] ?:
-            null;
+        $description = strip_tags((string) $podcastSummary) ?:
+            strip_tags((string) $entry->getDescription()) ?:
+            ($richEmbedData['meta']['description'] ?? null);
 
         $thumbnailUrl = $podcastImage ?: $richEmbedData['links']['thumbnail'][0]['href'] ?: null;
 
