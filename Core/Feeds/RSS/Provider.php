@@ -8,7 +8,7 @@ use Laminas\Feed\Reader\Reader;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
-use Minds\Core\Feeds\RSS\ActivityBuilders\AudioActivityPatcher;
+use Minds\Core\Feeds\RSS\ActivityPatchers\AudioActivityPatcher;
 use Minds\Core\Feeds\RSS\Controllers\Controller;
 use Minds\Core\Feeds\RSS\Repositories\RssFeedsRepository;
 use Minds\Core\Feeds\RSS\Repositories\RssImportsRepository;
