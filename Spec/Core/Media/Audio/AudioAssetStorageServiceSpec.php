@@ -104,7 +104,7 @@ class AudioAssetStorageServiceSpec extends ObjectBehavior
             return $streamMockReadCallCount === 1 ?
                     'test-content' :
                     null;
-            });
+        });
         
         $this->s3ClientMock->getObject(Argument::any())
             ->shouldNotBeCalled();
