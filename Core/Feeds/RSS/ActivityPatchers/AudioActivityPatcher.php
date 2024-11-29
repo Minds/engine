@@ -100,7 +100,9 @@ class AudioActivityPatcher implements RssActivityPatcherInterface
     private function handleThumbnailUpload(AudioEntity $audioEntity, string $thumbnailUrl): void
     {
         try {
-            $thumbnailBlob = $this->getThumbnailBlob($thumbnailUrl);
+            if (!($thumbnailBlob = $this->getThumbnailBlob($thumbnailUrl))) {
+                return;
+            }
 
             $this->audioService->uploadThumbnailFromBlob(
                 $audioEntity,
@@ -120,8 +122,13 @@ class AudioActivityPatcher implements RssActivityPatcherInterface
     {
         try {
             $imageResponse = $this->imageDownloader->download($url);
-            $contentType = $imageResponse->getHeader('Content-Type')[0] ?? '';
-            $imageData = $imageResponse->getBody()->getContents();
+            $imageData = $imageResponse?->getBody()?->getContents();
+
+            if (!$imageData) {
+                throw new \Exception('Failed to get image data');
+            }
+
+            $contentType = $imageResponse?->getHeader('Content-Type')[0] ?? '';
             return 'data:' . $contentType . ';base64,' . base64_encode($imageData);
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
