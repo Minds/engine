@@ -15,7 +15,6 @@ use Laminas\Feed\Writer\Renderer\Entry\Atom;
 use Minds\Common\Access;
 use Minds\Core\Feeds\Activity\Manager as ActivityManager;
 use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Service as MetascraperService;
-use Minds\Core\Feeds\RSS\ActivityPatchers\AudioActivityPatcher;
 use Minds\Core\Feeds\RSS\ActivityPatchers\RssActivityPatcherInterface;
 use Minds\Core\Feeds\RSS\Exceptions\RssFeedFailedFetchException;
 use Minds\Core\Feeds\RSS\Repositories\RssImportsRepository;
