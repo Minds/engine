@@ -40,6 +40,7 @@ class AudioActivityPatcher implements RssActivityPatcherInterface
     ): Activity {
         $podcastImage = null;
         $podcastSummary = null;
+        $podcastSubtitle = null;
         $podcastTitle = null;
 
         if (
@@ -49,16 +50,22 @@ class AudioActivityPatcher implements RssActivityPatcherInterface
             $podcastImage = $podcast->getItunesImage();
             $podcastSummary = $podcast->getSummary();
             $podcastTitle = $podcast->getTitle();
+            $podcastSubtitle = $podcast->getSubtitle();
         }
 
-        // Strip tags to avoid any HTML in the title or description.
-        $title = strip_tags((string) $podcastTitle) ?:
-            strip_tags((string) $entry->getTitle()) ?:
-            ($richEmbedData['meta']['title'] ?? 'Untitled');
+        $title = $this->selectSuitableValue([
+            $podcastTitle,
+            $entry->getTitle(),
+            $richEmbedData['meta']['title'] ?? null,
+            'Untitled'
+        ]);
 
-        $description = strip_tags((string) $podcastSummary) ?:
-            strip_tags((string) $entry->getDescription()) ?:
-            ($richEmbedData['meta']['description'] ?? null);
+        $description = $this->selectSuitableValue([
+            $podcastSubtitle,
+            $podcastSummary,
+            $entry->getDescription(),
+            $richEmbedData['meta']['description'] ?? ''
+        ]);
 
         $thumbnailUrl = $podcastImage ?: $richEmbedData['links']['thumbnail'][0]['href'] ?: null;
 
@@ -134,5 +141,31 @@ class AudioActivityPatcher implements RssActivityPatcherInterface
             $this->logger->error($e->getMessage());
             return null;
         }
+    }
+
+    /**
+     * Selects the most suitable value from an array of values. This exists because
+     * RSS fields may contain HTML. If it does, we cannot render it, so we need to
+     * try the next value. Array order will dictate order of preference.
+     * @param array<string> $values - Candidate values to select from.
+     * @return string|null - The selected value, trimmed.
+     */
+    private function selectSuitableValue(array $values): ?string
+    {
+        foreach ($values as $value) {
+            if (!is_string($value)) {
+                continue;
+            }
+
+            $value = strip_tags($value);
+
+            if (!$value || !trim($value)) {
+                continue;
+            }
+
+            return trim($value);
+        }
+
+        return null;
     }
 }

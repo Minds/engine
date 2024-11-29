@@ -91,8 +91,7 @@ class ProcessRssFeedService
         $ia = $this->acl->setIgnore(true);
         $activity = $this->prepareMindsActivity($user);
         try {
-            $richEmbed = $this->metaScraperService->scrape($link);
-
+            $richEmbed = $this->getRichEmbedData($link);
             $canonicalUrl = $richEmbed['meta']['canonical_url'] ?? $link;
 
             // Check to see if there has been an activity
@@ -112,6 +111,10 @@ class ProcessRssFeedService
                     richEmbedData: $richEmbed,
                 );
             } else {
+                if (!$richEmbed) {
+                    return false;
+                }
+
                 $activity
                     ->setLinkTitle($richEmbed['meta']['title'])
                     ->setBlurb($richEmbed['meta']['description'])
@@ -143,5 +146,20 @@ class ProcessRssFeedService
         $activity->ownerObj = $user->export();
 
         return $activity;
+    }
+
+    /**
+     * Gets rich embed data for a given link.
+     * @param string $link - The link to get rich embed data for.
+     * @return array|null - The rich embed data or null if an error occurs.
+     */
+    private function getRichEmbedData(string $link): ?array
+    {
+        try {
+            return $this->metaScraperService->scrape($link);
+        } catch (Exception $e) {
+            $this->logger->error($e->getMessage());
+            return null;
+        }
     }
 }

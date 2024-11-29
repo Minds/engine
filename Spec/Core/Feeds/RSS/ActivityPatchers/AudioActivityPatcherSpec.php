@@ -56,6 +56,7 @@ class AudioActivityPatcherSpec extends ObjectBehavior
         $podcastImage = 'https://example.minds.com/image.jpg';
         $podcastSummary = 'Podcast summary';
         $podcastTitle = 'Podcast title';
+        $podcastSubtitle = 'Podcast subtitle';
 
         $entryTitle = 'Entry title';
         $entryDescription = 'Entry description';
@@ -86,7 +87,7 @@ class AudioActivityPatcherSpec extends ObjectBehavior
         $podcastEntry->getItunesImage()->willReturn($podcastImage);
         $podcastEntry->getSummary()->willReturn($podcastSummary);
         $podcastEntry->getTitle()->willReturn($podcastTitle);
-
+        $podcastEntry->getSubtitle()->willReturn($podcastSubtitle);
         $entry->getTitle()->willReturn($entryTitle);
         $entry->getDescription()->willReturn($entryDescription);
         
@@ -118,7 +119,7 @@ class AudioActivityPatcherSpec extends ObjectBehavior
         $activity->setEntityGuid(Argument::any())->willReturn($activity);
         $activity->setAttachments([$audioEntity])->willReturn($activity);
         $activity->setTitle('Podcast title')->willReturn($activity);
-        $activity->setMessage('Podcast summary')->willReturn($activity);
+        $activity->setMessage('Podcast subtitle')->willReturn($activity);
 
         $this->patch($activity, $entry, $owner, $richEmbedData)->shouldReturn($activity);
     }
@@ -137,7 +138,7 @@ class AudioActivityPatcherSpec extends ObjectBehavior
         $podcastImage = null;
         $podcastSummary = null;
         $podcastTitle = null;
-
+        $podcastSubtitle = null;
         $entryTitle = 'Entry title';
         $entryDescription = 'Entry description';
 
@@ -167,6 +168,7 @@ class AudioActivityPatcherSpec extends ObjectBehavior
         $podcastEntry->getItunesImage()->willReturn($podcastImage);
         $podcastEntry->getSummary()->willReturn($podcastSummary);
         $podcastEntry->getTitle()->willReturn($podcastTitle);
+        $podcastEntry->getSubtitle()->willReturn($podcastSubtitle);
 
         $entry->getTitle()->willReturn($entryTitle);
         $entry->getDescription()->willReturn($entryDescription);
