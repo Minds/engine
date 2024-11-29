@@ -64,6 +64,7 @@ class Registered implements QueueRunner
         /** @var User $subscriber */
         $subscriber = $this->entitiesBuilder->single($userGuid);
         if (!$subscriber) {
+            echo "[registered]: ERROR - could not find $userGuid\n";
             return false;
         }
 
