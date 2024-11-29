@@ -1,5 +1,7 @@
 <?php
-namespace Minds\Core\Feeds\RSS\ActivityBuilders;
+declare(strict_types=1);
+
+namespace Minds\Core\Feeds\RSS\ActivityPatchers;
 
 use Laminas\Feed\Reader\Entry\AbstractEntry;
 use Minds\Core\Media\Audio\AudioService;
@@ -13,7 +15,7 @@ use Minds\Core\Media\MediaDownloader\MediaDownloaderInterface;
 /**
  * Builds an activity for an audio RSS entry.
  */
-class AudioActivityBuilder
+class AudioActivityPatcher implements RssActivityPatcherInterface
 {
     public function __construct(
         private readonly AudioService $audioService,
@@ -23,18 +25,18 @@ class AudioActivityBuilder
     }
 
     /**
-     * Builds an activity for an audio RSS entry from a base activity.
-     * @param Activity $activity - The base activity to build off of.
+     * Patch an activity for an audio RSS entry.
+     * @param Activity $activity - The base activity to patch.
      * @param EntryInterface $entry - The RSS entry.
      * @param User $user - The user.
      * @param array $richEmbedData - The rich embed data.
-     * @return Activity - The built activity.
+     * @return Activity - The patched activity.
      */
-    public function build(
+    public function patch(
         Activity $activity,
         EntryInterface $entry,
-        User $user,
-        array $richEmbedData
+        User $owner,
+        ?array $richEmbedData = null,
     ): Activity {
         $podcastImage = null;
         $podcastSummary = null;
@@ -62,13 +64,14 @@ class AudioActivityBuilder
 
         $thumbnailUrl = $podcastImage ?: $richEmbedData['links']['thumbnail'][0]['href'] ?: null;
 
-        $audioEntity = $this->handleRemoteFileUrl($user, $entry);
+        $audioEntity = $this->handleRemoteFileUrl($owner, $entry);
 
         if ($thumbnailUrl) {
             $this->handleThumbnailUpload($audioEntity, $thumbnailUrl);
         }
 
-        $activity->setEntityGuid($audioEntity->guid)
+        $activity
+            ->setEntityGuid($audioEntity->guid)
             ->setAttachments([ $audioEntity ])
             ->setTitle($title)
             ->setMessage($description);

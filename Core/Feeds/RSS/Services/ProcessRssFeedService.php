@@ -15,7 +15,8 @@ use Laminas\Feed\Writer\Renderer\Entry\Atom;
 use Minds\Common\Access;
 use Minds\Core\Feeds\Activity\Manager as ActivityManager;
 use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Service as MetascraperService;
-use Minds\Core\Feeds\RSS\ActivityBuilders\AudioActivityBuilder;
+use Minds\Core\Feeds\RSS\ActivityPatchers\AudioActivityPatcher;
+use Minds\Core\Feeds\RSS\ActivityPatchers\RssActivityPatcherInterface;
 use Minds\Core\Feeds\RSS\Exceptions\RssFeedFailedFetchException;
 use Minds\Core\Feeds\RSS\Repositories\RssImportsRepository;
 use Minds\Core\Feeds\RSS\Types\RssFeed;
@@ -35,7 +36,7 @@ class ProcessRssFeedService
         private readonly MetascraperService $metaScraperService,
         private readonly ActivityManager $activityManager,
         private readonly RssImportsRepository $rssImportsRepository,
-        private readonly AudioActivityBuilder $audioActivityBuilder,
+        private readonly RssActivityPatcherInterface $audioActivityPatcher,
         private readonly AudioService $audioService,
         private readonly RbacGatekeeperService $rbacGatekeeperService,
         private readonly ACL $acl,
@@ -105,7 +106,12 @@ class ProcessRssFeedService
                 str_starts_with($entry->getEnclosure()?->type ?? '', 'audio') &&
                 $this->rbacGatekeeperService->isAllowed(PermissionsEnum::CAN_UPLOAD_AUDIO, $user, false)
             ) {
-                $activity = $this->audioActivityBuilder->build($activity, $entry, $user, $richEmbed);
+                $activity = $this->audioActivityPatcher->patch(
+                    activity: $activity,
+                    entry: $entry,
+                    owner: $user,
+                    richEmbedData: $richEmbed,
+                );
             } else {
                 $activity
                     ->setLinkTitle($richEmbed['meta']['title'])
