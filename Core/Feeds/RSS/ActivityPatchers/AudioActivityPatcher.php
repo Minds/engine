@@ -53,14 +53,14 @@ class AudioActivityPatcher implements RssActivityPatcherInterface
             $podcastSubtitle = $podcast->getSubtitle();
         }
 
-        $title = $this->selectSuitableValue([
+        $title = $this->selectDisplayFriendlyString([
             $podcastTitle,
             $entry->getTitle(),
             $richEmbedData['meta']['title'] ?? null,
             'Untitled'
         ]);
 
-        $description = $this->selectSuitableValue([
+        $description = $this->selectDisplayFriendlyString([
             $podcastSubtitle,
             $podcastSummary,
             $entry->getDescription(),
@@ -150,7 +150,7 @@ class AudioActivityPatcher implements RssActivityPatcherInterface
      * @param array<string> $values - Candidate values to select from.
      * @return string|null - The selected value, trimmed.
      */
-    private function selectSuitableValue(array $values): ?string
+    private function selectDisplayFriendlyString(array $values): ?string
     {
         foreach ($values as $value) {
             if (!is_string($value)) {
