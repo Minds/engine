@@ -10,6 +10,7 @@ namespace Minds\Controllers\api\v1\minds;
 use Minds\Core;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Common\Cookie;
 
 class config implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
@@ -20,6 +21,15 @@ class config implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     public function get($pages)
     {
+
+        $cookie = new Cookie();
+        $cookie
+            ->setName('testing')
+            ->setValue('true')
+            ->setExpire(time() + (60 * 60 * 24 * 30 * 12))
+            ->setPath('/')
+            ->create();
+
         return Factory::response(
             Core\Di\Di::_()->get('Config\Exported')
                 ->export()
