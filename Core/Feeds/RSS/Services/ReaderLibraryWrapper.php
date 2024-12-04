@@ -16,6 +16,7 @@ class ReaderLibraryWrapper
      */
     public function import(string $url): FeedInterface
     {
+        $this->reader->registerExtension('Podcast');
         return $this->reader->import($url);
     }
 }

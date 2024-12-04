@@ -8,6 +8,7 @@ use FFMpeg\Format\Audio\Mp3;
 use Minds\Common\Access;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
+use Minds\Core\GuidBuilder;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Entities\User;
 use Psr\SimpleCache\CacheInterface;
@@ -25,6 +26,7 @@ class AudioService
         private FFProbe $fFProbe,
         private ActionEventsTopic $actionEventsTopic,
         private CacheInterface $cache,
+        private GuidBuilder $guid,
     ) {
         
     }
@@ -113,6 +115,27 @@ class AudioService
 
             $this->actionEventsTopic->send($event);
         }
+    }
+
+    /**
+     * Handles an audio file being provided via a URL.
+     * @param User $owner - The owner of the audio file.
+     * @param string $url - The URL to download the audio file from.
+     * @return AudioEntity - The audio entity that was created.
+     */
+    public function onRemoteFileUrlProvided(User $owner, string $url): AudioEntity
+    {
+        $audioEntity = new AudioEntity(
+            guid: (int) $this->guid->build(),
+            ownerGuid: (int) $owner->getGuid(),
+            accessId: Access::UNLISTED, // Hide until published.
+            remoteFileUrl: $url,
+        );
+
+        $this->audioRepository->add($audioEntity);
+        $this->onUploadCompleted($audioEntity, $owner);
+
+        return $audioEntity;
     }
 
     /**

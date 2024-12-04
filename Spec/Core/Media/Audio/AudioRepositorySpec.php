@@ -103,12 +103,14 @@ class AudioRepositorySpec extends ObjectBehavior
         $insertMock->set([
             'tenant_id' => -1,
             'guid' => new RawExp(':guid'),
+            'remote_file_url' => new RawExp(':remote_file_url'),
             'created_at' => new RawExp(':created_at'),
         ])->willReturn($insertMock);
         $insertMock->prepare()->willReturn($stmtMock);
 
         $stmtMock->execute([
             'guid' => 123,
+            'remote_file_url' => null,
             'created_at' => date('c')
         ])->shouldBeCalled()
             ->willReturn(true);
@@ -218,6 +220,7 @@ class AudioRepositorySpec extends ObjectBehavior
                 'access_id' => 0,
                 'duration_secs' => 12.5,
                 'uploaded_at' => null,
+                'remote_file_url' => null,
             ]
         ]);
 
@@ -250,6 +253,7 @@ class AudioRepositorySpec extends ObjectBehavior
                 'owner_guid' => 456,
                 'access_id' => 0,
                 'duration_secs' => 12.5,
+                'remote_file_url' => null,
                 'uploaded_at' => '2024-10-08T09:02:57+00:00',
             ]
         ]);

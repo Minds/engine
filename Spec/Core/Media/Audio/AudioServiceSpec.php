@@ -11,6 +11,7 @@ use FFMpeg\Media\AdvancedMedia;
 use FFMpeg\Media\Audio;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
+use Minds\Core\GuidBuilder;
 use Minds\Core\Media\Audio\AudioAssetStorageService;
 use Minds\Core\Media\Audio\AudioEntity;
 use Minds\Core\Media\Audio\AudioRepository;
@@ -32,6 +33,7 @@ class AudioServiceSpec extends ObjectBehavior
     private Collaborator $fFProbeMock;
     private Collaborator $actionEventsTopicMock;
     private Collaborator $cacheMock;
+    private Collaborator $guidMock;
 
     public function let(
         AudioAssetStorageService $audioAssetStorageServiceMock,
@@ -41,8 +43,9 @@ class AudioServiceSpec extends ObjectBehavior
         FFProbe $fFProbeMock,
         ActionEventsTopic $actionEventsTopicMock,
         CacheInterface $cacheMock,
+        GuidBuilder $guidMock
     ) {
-        $this->beConstructedWith($audioAssetStorageServiceMock, $audioRepositoryMock, $audioThumbnailServiceMock, $fFMpegMock, $fFProbeMock, $actionEventsTopicMock, $cacheMock);
+        $this->beConstructedWith($audioAssetStorageServiceMock, $audioRepositoryMock, $audioThumbnailServiceMock, $fFMpegMock, $fFProbeMock, $actionEventsTopicMock, $cacheMock, $guidMock);
         $this->audioAssetStorageServiceMock = $audioAssetStorageServiceMock;
         $this->audioRepositoryMock = $audioRepositoryMock;
         $this->audioThumbnailServiceMock = $audioThumbnailServiceMock;
@@ -50,6 +53,7 @@ class AudioServiceSpec extends ObjectBehavior
         $this->fFProbeMock = $fFProbeMock;
         $this->actionEventsTopicMock = $actionEventsTopicMock;
         $this->cacheMock = $cacheMock;
+        $this->guidMock = $guidMock;
     }
 
     public function it_is_initializable()
@@ -317,5 +321,32 @@ class AudioServiceSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this->uploadThumbnailFromBlob($audioEntity, 'image-blob');
+    }
+
+    public function it_should_create_an_audio_entity_from_remote_file_url(
+        User $userMock
+    ) {
+        $url = 'https://example.minds.com/123.mp3';
+        $ownerGuid = 456;
+
+        $this->guidMock->build()->willReturn(123);
+        $userMock->getGuid()->willReturn($ownerGuid);
+
+        $this->audioRepositoryMock->add(Argument::type(AudioEntity::class))
+            ->shouldBeCalled();
+
+        $this->audioRepositoryMock->update(Argument::type(AudioEntity::class), ['uploadedAt'])
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->cacheMock->delete('audio:entity:123')
+            ->shouldBeCalled();
+
+        $this->actionEventsTopicMock->send(Argument::type(ActionEvent::class))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+
+        $this->onRemoteFileUrlProvided($userMock, $url)->shouldBeAnInstanceOf(AudioEntity::class);
     }
 }

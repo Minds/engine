@@ -10,11 +10,15 @@ use Minds\Core\Di\Di;
 use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Service as MetascraperService;
 use Minds\Core\Feeds\RSS\Services\ProcessRssFeedService;
 use Minds\Core\Feeds\Activity\Manager as ActivityManager;
+use Minds\Core\Feeds\RSS\ActivityPatchers\RssActivityPatcherInterface;
 use Minds\Core\Feeds\RSS\Repositories\RssImportsRepository;
 use Minds\Core\Feeds\RSS\Services\ReaderLibraryWrapper;
 use Minds\Core\Feeds\RSS\Types\RssFeed;
 use Minds\Core\Guid;
+use Minds\Core\Media\Audio\AudioService;
 use Minds\Core\Security\ACL;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
+use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -28,6 +32,9 @@ class ProcessRssFeedServiceSpec extends ObjectBehavior
     private Collaborator $metascraperMock;
     private Collaborator $activityManagerMock;
     private Collaborator $rssImportsRepositoryMock;
+    private Collaborator $audioActivityPatcherMock;
+    private Collaborator $audioServiceMock;
+    private Collaborator $rbacGatekeeperServiceMock;
     private Collaborator $aclMock;
 
     public function let(
@@ -35,13 +42,19 @@ class ProcessRssFeedServiceSpec extends ObjectBehavior
         MetascraperService $metascraperMock,
         ActivityManager $activityManagerMock,
         RssImportsRepository $rssImportsRepositoryMock,
-        ACL $aclMock
+        RssActivityPatcherInterface $audioActivityPatcherMock,
+        AudioService $audioServiceMock,
+        RbacGatekeeperService $rbacGatekeeperServiceMock,
+        ACL $aclMock,
     ) {
         $this->beConstructedWith(
             $readerMock,
             $metascraperMock,
             $activityManagerMock,
             $rssImportsRepositoryMock,
+            $audioActivityPatcherMock,
+            $audioServiceMock,
+            $rbacGatekeeperServiceMock,
             $aclMock,
             Di::_()->get('Logger'),
         );
@@ -49,6 +62,9 @@ class ProcessRssFeedServiceSpec extends ObjectBehavior
         $this->metascraperMock = $metascraperMock;
         $this->activityManagerMock = $activityManagerMock;
         $this->rssImportsRepositoryMock = $rssImportsRepositoryMock;
+        $this->audioActivityPatcherMock = $audioActivityPatcherMock;
+        $this->audioServiceMock = $audioServiceMock;
+        $this->rbacGatekeeperServiceMock = $rbacGatekeeperServiceMock;
         $this->aclMock = $aclMock;
     }
 
@@ -105,6 +121,10 @@ class ProcessRssFeedServiceSpec extends ObjectBehavior
         $entry->getLink()
             ->shouldBeCalled()
             ->willReturn('https://php.spec/blog/post-1');
+
+        $entry->getEnclosure()
+            ->shouldBeCalled()
+            ->willReturn(null);
 
         $this->metascraperMock->scrape('https://php.spec/blog/post-1')
             ->shouldBeCalled()
@@ -291,5 +311,66 @@ class ProcessRssFeedServiceSpec extends ObjectBehavior
 
         $this->processActivity($entry, 1, $owner)
             ->shouldBe(false);
+    }
+
+    // Audio
+
+    public function it_should_process_activities_for_feed_using_enclosure_url_for_audio(
+        EntryInterface $entry,
+        User $owner,
+        Activity $activity
+    ) {
+        $entry->getLink()
+            ->shouldBeCalled()
+            ->willReturn('https://php.spec/blog/post-1');
+
+        $entry->getEnclosure()
+            ->shouldBeCalled()
+            ->willReturn((object) [
+                'url' => 'https://example.minds.com/audio.mp3',
+                'type' => 'audio/mp3'
+            ]);
+
+        $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_UPLOAD_AUDIO, $owner, false)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->metascraperMock->scrape('https://php.spec/blog/post-1')
+            ->shouldBeCalled()
+            ->willReturn([
+                'meta' => [
+                    'title' => 'A blog post (1)',
+                    'description' => 'I made a blog post for testing this function',
+                    'canonical_url' => 'https://php.spec/blog/post-1',
+                ],
+                'links' => [
+                    'thumbnail' => [
+                        [
+                            'href' => 'https://php.spec/assets/blog-1.png'
+                        ]
+                    ]
+                ]
+            ]);
+
+        $this->rssImportsRepositoryMock->hasMatch(1, 'https://php.spec/blog/post-1')
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->audioActivityPatcherMock->patch(Argument::any(), Argument::any(), Argument::any(), Argument::any())
+            ->shouldBeCalled()
+            ->willReturn($activity);
+
+        $this->activityManagerMock->add(Argument::any())
+            ->shouldBeCalled();
+
+        $this->rssImportsRepositoryMock->addEntry(
+            Argument::any(),
+            Argument::any(),
+            Argument::any()
+        )
+            ->shouldBeCalled();
+
+        $this->processActivity($entry, 1, $owner, $activity)
+            ->shouldBe(true);
     }
 }

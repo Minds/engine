@@ -9,6 +9,7 @@ use Minds\Core\Data\cache\SharedCache;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\Media\MediaDownloader\AudioDownloader;
 use Minds\Core\Media\Services\OciS3Client;
 use Oracle\Oci\ObjectStorage\ObjectStorageClient;
 
@@ -30,6 +31,7 @@ class Provider extends DiProvider
                 fFProbe: $di->get(FFProbe::class),
                 actionEventsTopic: $di->get('EventStreams\Topics\ActionEventsTopic'),
                 cache: $di->get(SharedCache::class),
+                guid: $di->get('Guid'),
             ));
 
         $this->di->bind(AudioRepository::class, fn (Di $di) =>
@@ -44,6 +46,7 @@ class Provider extends DiProvider
                 config: $di->get(Config::class),
                 ociS3: $di->get(OciS3Client::class),
                 osClient: $di->get(ObjectStorageClient::class),
+                audioDownloader: $di->get(AudioDownloader::class),
             ));
 
         $this->di->bind(AudioThumbnailService::class, fn (Di $di) =>
