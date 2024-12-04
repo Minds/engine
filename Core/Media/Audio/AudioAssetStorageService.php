@@ -4,7 +4,7 @@ namespace Minds\Core\Media\Audio;
 use Aws\S3\S3Client;
 use ElggFile;
 use Minds\Core\Config\Config;
-use Minds\Entities\User;
+use Minds\Core\Media\MediaDownloader\MediaDownloaderInterface;
 use Oracle\Oci\ObjectStorage\ObjectStorageClient;
 
 class AudioAssetStorageService
@@ -17,6 +17,7 @@ class AudioAssetStorageService
         protected readonly Config $config,
         protected readonly S3Client $ociS3,
         protected readonly ObjectStorageClient $osClient,
+        protected readonly MediaDownloaderInterface $audioDownloader,
     ) {
     }
 
@@ -29,11 +30,19 @@ class AudioAssetStorageService
         $tmpfile = tmpfile();
         $tmpfilename = stream_get_meta_data($tmpfile)['uri'];
 
-        $this->ociS3->getObject([
-            'Bucket' => $this->getBucketName(),
-            'Key' => $this->getFilepath($audioEntity) . '/' . $filename,
-            'SaveAs' => $tmpfilename,
-        ]);
+        if ($audioEntity->remoteFileUrl) {
+            $imageResponse = $this->audioDownloader->download($audioEntity->remoteFileUrl);
+            $imageStream = $imageResponse->getBody();
+            while ($chunk = $imageStream->read(1024)) {
+                fwrite($tmpfile, $chunk);
+            }
+        } else {
+            $this->ociS3->getObject([
+                'Bucket' => $this->getBucketName(),
+                'Key' => $this->getFilepath($audioEntity) . '/' . $filename,
+                'SaveAs' => $tmpfilename,
+            ]);
+        }
 
         return $tmpfile;
     }
