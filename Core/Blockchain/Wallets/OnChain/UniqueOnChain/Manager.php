@@ -123,9 +123,9 @@ class Manager
      * Gets all unique onchain addresses.
      * @return iterable<UniqueOnChainAddress>
      */
-    public function getAll(): iterable
+    public function getAll(int $asOf = null): iterable
     {
-        foreach ($this->onchainBalancesService->getAll() as $account) {
+        foreach ($this->onchainBalancesService->getAll(asOf: $asOf) as $account) {
             $uniqueOnchainAddress = $this->repository->get($account['id']);
             if ($uniqueOnchainAddress) {
                 $uniqueOnchainAddress->setTokenBalance($account['balances'][0]['amount']);

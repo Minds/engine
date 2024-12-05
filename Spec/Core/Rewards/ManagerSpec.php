@@ -150,7 +150,7 @@ class ManagerSpec extends ObjectBehavior
         $this->blockFinder->getBlockByTimestamp(Argument::any())
             ->willReturn(1);
 
-        $this->uniqueOnChainManager->getAll()
+        $this->uniqueOnChainManager->getAll(Argument::any())
             ->willReturn([
                 (new UniqueOnChainAddress)
                     ->setAddress('0xAddresss')
@@ -241,13 +241,14 @@ class ManagerSpec extends ObjectBehavior
         $address1->getUserGuid()->willReturn('123');
         $address1->getTokenBalance()->willReturn('10');
 
-        $this->uniqueOnChainManager->getAll()
+        $this->uniqueOnChainManager->getAll(Argument::any())
             ->willReturn([
                 $address1
             ]);
         
         $this->token->fromTokenUnit("10")
-            ->shouldNotBeCalled();
+            ->shouldBeCalled()
+            ->willReturn(10);
 
         $this->token->balanceOf('0xAddresss', 1)
             ->shouldNotBeCalled();
