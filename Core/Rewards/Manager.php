@@ -253,50 +253,47 @@ class Manager
         }
 
         // Holding rewards
-        // We only calculate these once per day as they are expensive
-        if ($opts->isRecalculate()) {
-            $blockNumber = $this->blockFinder->getBlockByTimestamp($opts->getDateTs());
-            foreach ($this->uniqueOnChainManager->getAll() as $i => $uniqueOnChain) {
-                /** @var User */
-                $user = $this->entitiesBuilder->single($uniqueOnChain->getUserGuid());
-                if (!$user || !$user instanceof User) {
-                    continue;
-                }
-
-                // Require phone number to be setup for uniqueness
-                if (!$user->getPhoneNumberHash()) {
-                    continue;
-                }
-
-                if (strtolower($uniqueOnChain->getAddress()) !== strtolower($user->getEthWallet())) {
-                    continue;
-                }
-
-                $tokenBalance = $this->getTokenBalance($uniqueOnChain, $blockNumber);
-
-                $rewardEntry = new RewardEntry();
-                $rewardEntry->setUserGuid($user->getGuid())
-                    ->setDateTs($opts->getDateTs())
-                    ->setRewardType(static::REWARD_TYPE_HOLDING);
-
-                $multiplier = BigDecimal::of(self::REWARD_MULTIPLIER);
-                $score = BigDecimal::of($tokenBalance)->multipliedBy($multiplier);
-
-                // Update our new RewardEntry
-                $rewardEntry
-                    ->setScore($score)
-                    ->setMultiplier($multiplier);
-
-                $this->add($rewardEntry);
-
-                $this->logger->info("[$i]: Holding score calculated as $score", [
-                    'userGuid' => $rewardEntry->getUserGuid(),
-                    'reward_type' => $rewardEntry->getRewardType(),
-                    'blockNumber' => $blockNumber,
-                    'tokenBalance' => $tokenBalance,
-                    'multiplier' => (string) $multiplier,
-                ]);
+        $blockNumber = $this->blockFinder->getBlockByTimestamp($opts->getDateTs());
+        foreach ($this->uniqueOnChainManager->getAll() as $i => $uniqueOnChain) {
+            /** @var User */
+            $user = $this->entitiesBuilder->single($uniqueOnChain->getUserGuid());
+            if (!$user || !$user instanceof User) {
+                continue;
             }
+
+            // Require phone number to be setup for uniqueness
+            if (!$user->getPhoneNumberHash()) {
+                continue;
+            }
+
+            if (strtolower($uniqueOnChain->getAddress()) !== strtolower($user->getEthWallet())) {
+                continue;
+            }
+
+            $tokenBalance = $this->getTokenBalance($uniqueOnChain, $blockNumber);
+
+            $rewardEntry = new RewardEntry();
+            $rewardEntry->setUserGuid($user->getGuid())
+                ->setDateTs($opts->getDateTs())
+                ->setRewardType(static::REWARD_TYPE_HOLDING);
+
+            $multiplier = BigDecimal::of(self::REWARD_MULTIPLIER);
+            $score = BigDecimal::of($tokenBalance)->multipliedBy($multiplier);
+
+            // Update our new RewardEntry
+            $rewardEntry
+                ->setScore($score)
+                ->setMultiplier($multiplier);
+
+            $this->add($rewardEntry);
+
+            $this->logger->info("[$i]: Holding score calculated as $score", [
+                'userGuid' => $rewardEntry->getUserGuid(),
+                'reward_type' => $rewardEntry->getRewardType(),
+                'blockNumber' => $blockNumber,
+                'tokenBalance' => $tokenBalance,
+                'multiplier' => (string) $multiplier,
+            ]);
         }
 
         //

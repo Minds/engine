@@ -5,7 +5,7 @@ use Minds\Core\Blockchain\Services\Ethereum;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
-use Minds\Core\Blockchain\BigQuery\HoldersQuery;
+use Minds\Core\Blockchain\OnchainBalances\OnchainBalancesService;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Rewards\Restrictions\Blockchain\Manager as RestrictionsManager;
 
@@ -23,12 +23,12 @@ class Manager
     public function __construct(
         Repository $repository = null,
         Ethereum $ethereum = null,
-        private ?HoldersQuery $holdersQuery = null,
+        private ?OnchainBalancesService $onchainBalancesService = null,
         private ?RestrictionsManager $restrictionsManager = null
     ) {
         $this->repository = $repository ?? new Repository();
         $this->ethereum = $ethereum ?? Di::_()->get('Blockchain\Services\Ethereum');
-        $this->holdersQuery ??= Di::_()->get('Blockchain\BigQuery\HoldersQuery');
+        $this->onchainBalancesService ??= Di::_()->get(OnchainBalancesService::class);
         $this->restrictionsManager ??= Di::_()->get('Rewards\Restrictions\Blockchain\Manager');
     }
 
@@ -121,30 +121,17 @@ class Manager
 
     /**
      * Gets all unique onchain addresses.
-     * Will use BigQuery if feature flag is active - which will
-     * return the same format but with balances set.
      * @return iterable<UniqueOnChainAddress>
      */
     public function getAll(): iterable
     {
-        $results = $this->getAllBigQuery();
-        return $results;
-    }
-
-    /**
-     * Gets all via BigQuery - checks addresses are in our DB and have a token balance.
-     * @return iterable<UniqueOnChainAddress> - iterable array of onchain addresses.
-     */
-    private function getAllBigQuery(): iterable
-    {
-        foreach ($this->holdersQuery->get() as $holder) {
-            if (
-                $holder['balance']->get() > 0 &&
-                $uniqueOnchainAddress = $this->repository->get($holder['addr'])
-            ) {
-                $uniqueOnchainAddress->setTokenBalance($holder['balance']->get());
+        foreach ($this->onchainBalancesService->getAll() as $account) {
+            $uniqueOnchainAddress = $this->repository->get($account['id']);
+            if ($uniqueOnchainAddress) {
+                $uniqueOnchainAddress->setTokenBalance($account['balances'][0]['amount']);
                 yield $uniqueOnchainAddress;
             }
-        };
+        }
     }
+
 }

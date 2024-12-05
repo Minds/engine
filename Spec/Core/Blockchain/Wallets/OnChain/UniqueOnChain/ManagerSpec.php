@@ -9,9 +9,11 @@ use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain\UniqueOnChainAddress;
 use Minds\Core\Rewards\Restrictions\Blockchain\Manager as RestrictionsManager;
 use Minds\Core\Blockchain\Services\Ethereum;
 use Minds\Core\Blockchain\BigQuery\HoldersQuery;
+use Minds\Core\Blockchain\OnchainBalances\OnchainBalancesService;
 use Minds\Entities\User;
 use PhpSpec\Exception\Example\FailureException;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -21,8 +23,7 @@ class ManagerSpec extends ObjectBehavior
     /** @var Ethereum */
     protected $ethereum;
 
-    /** @var HoldersQuery */
-    protected $holdersQuery;
+    protected Collaborator $onchainBalancesServiceMock;
 
     /** @var RestrictionsManager */
     protected $restrictionsManager;
@@ -30,18 +31,18 @@ class ManagerSpec extends ObjectBehavior
     public function let(
         Repository $repository,
         Ethereum $ethereum,
-        HoldersQuery $holdersQuery,
+        OnchainBalancesService $onchainBalancesServiceMock,
         RestrictionsManager $restrictionsManager
     ) {
         $this->beConstructedWith(
             $repository,
             $ethereum,
-            $holdersQuery,
+            $onchainBalancesServiceMock,
             $restrictionsManager
         );
         $this->repository = $repository;
         $this->ethereum = $ethereum;
-        $this->holdersQuery = $holdersQuery;
+        $this->onchainBalancesServiceMock = $onchainBalancesServiceMock;
         $this->restrictionsManager = $restrictionsManager;
     }
 
@@ -132,25 +133,37 @@ class ManagerSpec extends ObjectBehavior
         $this->getByAddress('0xADDR')->shouldBe($address);
     }
 
-    public function it_should_get_all_via_bigquery(
+    public function it_should_get_all_onchain_balances(
         UniqueOnChainAddress $address1,
         UniqueOnChainAddress $address2,
         UniqueOnChainAddress $address3
     ) {
-        $this->holdersQuery->get()
+        $this->onchainBalancesServiceMock->getAll()
             ->shouldBeCalled()
             ->willReturn([
                 [
-                    'addr' => '0x1',
-                    'balance' => new Numeric('0.1')
+                    'id' => '0x1',
+                    'balances' => [
+                        [
+                            'amount' => '100'
+                        ]
+                    ]
                 ],
                 [
-                    'addr' => '0x2',
-                    'balance' => new Numeric('0.2')
+                    'id' => '0x2',
+                    'balances' => [
+                        [
+                            'amount' => '200'
+                        ]
+                    ]
                 ],
                 [
-                    'addr' => '0x3',
-                    'balance' => new Numeric('0.3')
+                    'id' => '0x3',
+                    'balances' => [
+                        [
+                            'amount' => '300'
+                        ]
+                    ]
                 ]
             ]);
 
@@ -173,62 +186,37 @@ class ManagerSpec extends ObjectBehavior
         ]);
     }
 
-    public function it_should_get_all_via_bigquery_without_balanceless_addresses(
-        UniqueOnChainAddress $address1,
-        UniqueOnChainAddress $address3
-    ) {
-        $this->holdersQuery->get()
-            ->shouldBeCalled()
-            ->willReturn([
-                [
-                    'addr' => '0x1',
-                    'balance' => new Numeric('0.1')
-                ],
-                [
-                    'addr' => '0x2',
-                    'balance' => new Numeric('0.0')
-                ],
-                [
-                    'addr' => '0x3',
-                    'balance' => new Numeric('0.3')
-                ]
-            ]);
-
-        $this->repository->get('0x1')
-            ->shouldBeCalled()
-            ->willReturn($address1);
-
-        $this->repository->get('0x2')
-            ->shouldNotBeCalled();
-
-        $this->repository->get('0x3')
-            ->shouldBeCalled()
-            ->willReturn($address3);
-
-        $this->getAll()->shouldBeAGenerator([
-            $address1,
-            $address3
-        ]);
-    }
 
     public function it_should_get_all_via_bigquery_without_addresses_not_in_our_system(
         UniqueOnChainAddress $address1,
         UniqueOnChainAddress $address3
     ) {
-        $this->holdersQuery->get()
+        $this->onchainBalancesServiceMock->getAll()
             ->shouldBeCalled()
             ->willReturn([
                 [
-                    'addr' => '0x1',
-                    'balance' => new Numeric('0.1')
+                    'id' => '0x1',
+                    'balances' => [
+                        [
+                            'amount' => '100'
+                        ]
+                    ]
                 ],
                 [
-                    'addr' => '0x2',
-                    'balance' => new Numeric('0.2')
+                    'id' => '0x2',
+                    'balances' => [
+                        [
+                            'amount' => '200'
+                        ]
+                    ]
                 ],
                 [
-                    'addr' => '0x3',
-                    'balance' => new Numeric('0.3')
+                    'id' => '0x3',
+                    'balances' => [
+                        [
+                            'amount' => '300'
+                        ]
+                    ]
                 ]
             ]);
 

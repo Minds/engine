@@ -12,6 +12,7 @@ namespace Minds\Controllers\Cli;
 use Minds\Cli;
 use Minds\Core\Blockchain\EthPrice;
 use Minds\Core\Blockchain\Events\BoostEvent;
+use Minds\Core\Blockchain\OnchainBalances\OnchainBalancesService;
 use Minds\Core\Blockchain\Services;
 use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Config\Config;
@@ -249,6 +250,16 @@ class Blockchain extends Cli\Controller implements Interfaces\CliControllerInter
             $boostEvent->boostSent(null, $transaction);
         } else {
             $this->out('Unsupported event type - only `fail` and `resolve` are currently supported');
+        }
+    }
+
+    public function iterate_token_holders()
+    {
+        /** @var OnchainBalancesService */
+        $onchainBalancesService = Di::_()->get(OnchainBalancesService::class);
+
+        foreach ($onchainBalancesService->getAll() as $account) {
+            var_dump($account);
         }
     }
 }
