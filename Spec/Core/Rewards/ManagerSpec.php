@@ -239,7 +239,6 @@ class ManagerSpec extends ObjectBehavior
 
         $address1->getAddress()->willReturn('0xAddresss');
         $address1->getUserGuid()->willReturn('123');
-        $address1->getTokenBalance()->willReturn('10');
 
         $this->uniqueOnChainManager->getAll(Argument::any())
             ->willReturn([
@@ -251,7 +250,8 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(10);
 
         $this->token->balanceOf('0xAddresss', 1)
-            ->shouldNotBeCalled();
+            ->shouldBeCalled()
+            ->willReturn('10');
 
         $this->repository->add(Argument::that(function ($rewardEntry) {
             return $rewardEntry->getUserGuid() === '123'
