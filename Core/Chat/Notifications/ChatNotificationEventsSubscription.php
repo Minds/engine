@@ -22,6 +22,7 @@ use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\Topics\ChatNotificationsTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
+use Minds\Core\Log\Logger;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscriptionListOpts;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\Manager as DevicePushNotifSubscriptionManager;
@@ -53,7 +54,8 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
         ?NotificationFactory $notificationFactory = null,
         ?FcmService $androidNotificationService = null,
         ?ApnsService $appleNotificationService = null,
-        ?WebPushService $webPushNotificationService = null
+        ?WebPushService $webPushNotificationService = null,
+        private ?Logger $logger = null,
     ) {
         $this->entitiesResolver = $entitiesResolver ?? Di::_()->get(EntitiesResolver::class);
         $this->roomService = $roomService ?? Di::_()->get(RoomService::class);
@@ -63,6 +65,7 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
         $this->androidNotificationService = $androidNotificationService ?? Di::_()->get(FcmService::class);
         $this->appleNotificationService = $appleNotificationService ?? Di::_()->get(ApnsService::class);
         $this->webPushNotificationService = $webPushNotificationService ?? Di::_()->get(WebPushService::class);
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     public function getSubscriptionId(): string
@@ -121,6 +124,8 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
      */
     private function processChatMessage(ChatMessage $chatMessage): void
     {
+        $this->logger->info("Processing chat from {$chatMessage->getOwnerGuid()}");
+
         $sender = $this->entitiesBuilder->single($chatMessage->getOwnerGuid());
 
         if (!$sender instanceof User) {
@@ -174,6 +179,8 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
                 continue;
             }
 
+            $this->logger->info("... sending to {$roomMember->getNode()->getGuid()}");
+
             // Avoid having your own name in the list
             $notification->title = $this->roomService->getRoomName($chatRoom, $receiver, $roomMemberGuids);
 
@@ -185,9 +192,12 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
             );
 
             foreach ($deviceSubscriptions as $deviceSubscription) {
+                $this->logger->info("Delivering to device - {$deviceSubscription->getToken()}");
                 $notification->setDeviceSubscription($deviceSubscription);
                 $this->getNotificationHandler($deviceSubscription->getService())->send($notification);
             }
+
+            $this->logger->info("... completed sending to {$roomMember->getNode()->getGuid()}");
         }
     }
 

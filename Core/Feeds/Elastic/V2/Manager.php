@@ -46,6 +46,7 @@ class Manager
     ): int {
         $prepared = $this->prepareElastic($queryOpts);
         $must = $prepared['must'];
+        $mustNot = $prepared['mustNot'];
         $should = $prepared['should'];
 
         $hasMore = true;
@@ -68,6 +69,7 @@ class Manager
             'query' => [
                 'bool' => [
                     'must' => $must,
+                    'must_not' => $mustNot,
                     'should' => $should,
                     'minimum_should_match' => count($should) > 0 ? 1 : 0,
                 ],
