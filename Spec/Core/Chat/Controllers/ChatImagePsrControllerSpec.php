@@ -26,7 +26,6 @@ class ChatImagePsrControllerSpec extends ObjectBehavior
 {
     private $imageStorageServiceMock;
     private $messageServiceMock;
-    private $aclMock;
     private $loggerMock;
 
     public function let(
@@ -37,10 +36,9 @@ class ChatImagePsrControllerSpec extends ObjectBehavior
     ) {
         $this->imageStorageServiceMock = $imageStorageServiceMock;
         $this->messageServiceMock = $messageServiceMock;
-        $this->aclMock = $aclMock;
         $this->loggerMock = $loggerMock;
 
-        $this->beConstructedWith($imageStorageServiceMock, $messageServiceMock, $aclMock, $loggerMock);
+        $this->beConstructedWith($imageStorageServiceMock, $messageServiceMock, $loggerMock);
     }
 
     public function it_is_initializable()

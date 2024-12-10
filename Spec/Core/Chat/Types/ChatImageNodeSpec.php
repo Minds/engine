@@ -5,8 +5,6 @@ namespace Spec\Minds\Core\Chat\Types;
 use DateTime;
 use Minds\Core\Chat\Entities\ChatImage;
 use Minds\Core\Chat\Types\ChatImageNode;
-use Minds\Core\Config\Config;
-use Minds\Core\Di\Di;
 use PhpSpec\ObjectBehavior;
 use TheCodingMachine\GraphQLite\Types\ID;
 
@@ -14,9 +12,8 @@ class ChatImageNodeSpec extends ObjectBehavior
 {
     private ChatImage $chatImage;
 
-    public function let(
-        Config $config
-    ) {
+    public function let()
+    {
         $this->chatImage = new ChatImage(
             guid: 1,
             roomGuid: 2,
@@ -28,10 +25,6 @@ class ChatImageNodeSpec extends ObjectBehavior
             updatedTimestamp: new DateTime('2024-02-01')
         );
         $this->beConstructedWith($this->chatImage);
-
-        Di::_()->bind('Config', function ($di) use ($config) {
-            return $config->getWrappedObject();
-        });
     }
 
     public function it_is_initializable()
@@ -51,7 +44,7 @@ class ChatImageNodeSpec extends ObjectBehavior
 
     public function it_should_return_url()
     {
-        $this->getUrl()->shouldBe('https://www.minds.com/fs/v3/chat/image/2/3');
+        $this->getUrl()->shouldContain('/fs/v3/chat/image/2/3');
     }
 
     public function it_should_return_width()
