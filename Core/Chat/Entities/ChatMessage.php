@@ -21,6 +21,7 @@ class ChatMessage implements EntityInterface
         public readonly string $plainText,
         public readonly ChatMessageTypeEnum $messageType = ChatMessageTypeEnum::TEXT,
         public readonly ?ChatRichEmbed $richEmbed = null,
+        public readonly ?ChatImage $image = null,
         ?DateTimeInterface $createdAt = null
     ) {
         $this->createdAt = $createdAt ?? new DateTime();
@@ -91,7 +92,8 @@ class ChatMessage implements EntityInterface
             'sender' => $sender?->export(),
             'plainText' => Export::sanitizeString($this->plainText),
             'createdTimestampUnix' => $this->createdAt->getTimestamp(),
-            'richEmbed' => $this->richEmbed?->export()
+            'richEmbed' => $this->richEmbed?->export(),
+            'image' => $this->image?->export(),
         ];
     }
 }
