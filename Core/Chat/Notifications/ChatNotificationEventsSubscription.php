@@ -11,6 +11,7 @@ use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomNotificationStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Notifications\Events\ChatNotificationEvent;
+use Minds\Core\Chat\Notifications\Models\ImageMessageNotification;
 use Minds\Core\Chat\Notifications\Models\PlainTextMessageNotification;
 use Minds\Core\Chat\Notifications\Models\RichEmbedMessageNotification;
 use Minds\Core\Chat\Services\RoomService;
@@ -150,6 +151,11 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
             ),
             ChatMessageTypeEnum::RICH_EMBED => $this->notificationFactory->createNotification(
                 notificationClass: RichEmbedMessageNotification::class,
+                chatEntity: $chatMessage,
+                chatRoom: $chatRoom,
+            ),
+            ChatMessageTypeEnum::IMAGE => $this->notificationFactory->createNotification(
+                notificationClass: ImageMessageNotification::class,
                 chatEntity: $chatMessage,
                 chatRoom: $chatRoom,
             ),
