@@ -7,4 +7,5 @@ enum MediaTypeEnum
     case IMAGE;
     case VIDEO;
     case BLOG;
+    case AUDIO;
 }
