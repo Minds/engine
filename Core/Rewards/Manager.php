@@ -254,7 +254,7 @@ class Manager
 
         // Holding rewards
         $blockNumber = $this->blockFinder->getBlockByTimestamp($opts->getDateTs());
-        foreach ($this->uniqueOnChainManager->getAll(asOf: $opts->getDateTs()) as $i => $uniqueOnChain) {
+        foreach ($this->uniqueOnChainManager->getAll() as $i => $uniqueOnChain) {
             /** @var User */
             $user = $this->entitiesBuilder->single($uniqueOnChain->getUserGuid());
             if (!$user || !$user instanceof User) {
@@ -589,11 +589,6 @@ class Manager
      */
     private function getTokenBalance(UniqueOnChainAddress $uniqueOnChainAddress, int $blockNumber): string
     {
-        // if already set, just return the set value.
-        if ($tokenBalance = $uniqueOnChainAddress->getTokenBalance()) {
-            return $this->token->fromTokenUnit($tokenBalance);
-        }
-
         // else lookup the token balance via RPC.
         return $this->token->fromTokenUnit(
             $this->token->balanceOf($uniqueOnChainAddress->getAddress(), $blockNumber)

@@ -748,6 +748,13 @@ class Manager
                     ]
                 ];
                 break;
+            case MediaTypeEnum::AUDIO:
+                $must[] = [
+                    'term' => [
+                        'custom_type' => 'audio'
+                    ]
+                ];
+                break;
         }
 
         if ($queryOpts->seenEntitiesFilterStrategy !== SeenEntitiesFilterStrategyEnum::NOOP) {
