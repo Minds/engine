@@ -11,6 +11,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\InAppPurchases\Clients\InAppPurchasesClientFactory;
 use Minds\Core\Payments\InAppPurchases\Models\InAppPurchase;
 use Minds\Core\Payments\InAppPurchases\Manager;
+use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 
 class GoogleInAppPurchasesPubSub
@@ -21,6 +22,7 @@ class GoogleInAppPurchasesPubSub
         private ?GoogleInAppPurchasesClient $googleInAppPurchasesClient = null,
         private ?Manager $manager = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?ACL $acl = null,
     ) {
         $this->mindsConfig ??= Di::_()->get('Config');
         $this->pubSubClient ??= new Google\Cloud\PubSub\PubSubClient([
@@ -29,6 +31,7 @@ class GoogleInAppPurchasesPubSub
         $this->googleInAppPurchasesClient ??= Di::_()->get(InAppPurchasesClientFactory::class)->createClient(GoogleInAppPurchasesClient::class);
         $this->manager ??= Di::_()->get(Manager::class);
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
+        $this->acl ??= Di::_()->get('Security\ACL');
     }
 
     /**
@@ -36,6 +39,8 @@ class GoogleInAppPurchasesPubSub
      */
     public function receivePubSubMessages(): void
     {
+        $this->acl->setIgnore(true);
+
         $pubSubSubscription = $this->pubSubClient->subscription($this->mindsConfig->get('google')['iap']['pubsub']['subscription']);
 
         $messages = $pubSubSubscription->pull([ 'returnImmediately' => true ]);
@@ -49,7 +54,7 @@ class GoogleInAppPurchasesPubSub
             }
 
             // Construct the InAppPurchase model
-            $inAppPurchase = new InAppPurchase(GoogleInAppPurchasesClient::class, $data['subscriptionNotification']['subscriptionId'], $data['subscriptionNotification']['purchaseToken']);
+            $inAppPurchase = new InAppPurchase(GoogleInAppPurchasesClient::class, $data['subscriptionNotification']['purchaseToken'], $data['subscriptionNotification']['subscriptionId']);
 
             // Fetch the subscription so we know who the purchase user is
             $subscription = $this->googleInAppPurchasesClient->getSubscription($inAppPurchase);
