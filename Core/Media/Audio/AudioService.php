@@ -162,7 +162,7 @@ class AudioService
     
         // Get the stats
         $format = $this->fFProbe->format(stream_get_meta_data($audioSrc)['uri']);
-        $audioEntity->durationSecs = (int) $format->get('duration');
+        $audioEntity->durationSecs = (float) $format->get('duration');
 
         // Upload the asset to the filestore
         $this->audioAssetStorageService->upload($audioEntity, $resampledMp3Filename);
