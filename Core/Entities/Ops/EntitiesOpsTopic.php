@@ -56,6 +56,7 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
         $builder = new MessageBuilder();
         $message = $builder
             //->setPartitionKey(0)
+            ->setDeliverAfter($event->getDelaySecs())
             ->setEventTimestamp($event->getTimestamp() ?: time())
             ->setContent(json_encode($data))
             ->build();

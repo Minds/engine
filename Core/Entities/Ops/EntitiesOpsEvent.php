@@ -17,6 +17,7 @@ class EntitiesOpsEvent implements EventInterface
     protected string $op;
     protected int $timestamp = 0;
     protected string $entitySerialized;
+    protected int $delaySecs = 0;
 
     /**
      * Set the entity urn that is being modified
@@ -77,5 +78,22 @@ class EntitiesOpsEvent implements EventInterface
     public function getEntitySerialized(): ?string
     {
         return isset($this->entitySerialized) ? $this->entitySerialized : null;
+    }
+
+    /**
+     * Sets the seconds to delay the message by
+     */
+    public function setDelaySecs(int $secs): self
+    {
+        $this->delaySecs = $secs;
+        return $this;
+    }
+
+    /**
+     * The number of seconds to delay the delivery by
+     */
+    public function getDelaySecs(): int
+    {
+        return $this->delaySecs;
     }
 }

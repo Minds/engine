@@ -85,16 +85,22 @@ class PostSubscriptionsEventStreamsSubscription implements SubscriptionInterface
             return true;
         }
 
-        if ($event->getTimestamp() < time() - 3600) {
-            // Don't notify for event older than 1 hour, here
-            return true;
-        }
-
         $entity = $this->entitiesBuilder->getByUrn($event->getEntityUrn());
 
         if (!$entity instanceof Activity) {
             // We only care about activity posts
             return true;
+        }
+
+        if ($entity->time_created < time() - 3600) {
+            // Don't notify for posts that are older than 1 hour, here
+            return true;
+        }
+
+        // Is this a scheduled post? If so, resubmit with a delay
+        if ($entity->time_created > time()) {
+            $event->setDelaySecs($entity->time_created - time());
+            return $this->getTopic()->send($event);
         }
 
         $owner = $this->entitiesBuilder->single($entity->getOwnerGuid());
