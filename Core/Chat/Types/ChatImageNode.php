@@ -53,20 +53,20 @@ class ChatImageNode implements NodeInterface
 
     /**
      * The width of the image.
-     * @return int The width of the image.
+     * @return int|null The width of the image.
      */
     #[Field]
-    public function getWidth(): int
+    public function getWidth(): ?int
     {
         return $this->chatImage->width;
     }
 
     /**
      * The height of the image.
-     * @return int The height of the image.
+     * @return int|null The height of the image.
      */
     #[Field]
-    public function getHeight(): int
+    public function getHeight(): ?int
     {
         return $this->chatImage->height;
     }
