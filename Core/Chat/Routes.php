@@ -4,8 +4,10 @@ namespace Minds\Core\Chat;
 use Minds\Core\Chat\Controllers\ChatImagePsrController;
 use Minds\Core\Di\Ref;
 use Minds\Core\Router\Middleware\LoggedInMiddleware;
+use Minds\Core\Router\Middleware\PermissionsMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 
 /**
  * Routes
@@ -28,7 +30,13 @@ class Routes extends ModuleRoutes
 
         $this->route
             ->withPrefix('api/v3/chat/image')
-            ->withMiddleware([LoggedInMiddleware::class])
+            ->withMiddleware([
+                LoggedInMiddleware::class,
+                [
+                    'class' => PermissionsMiddleware::class,
+                    'args' => [ PermissionsEnum::CAN_UPLOAD_CHAT_MEDIA ]
+                ]
+            ])
             ->do(function (Route $route) {
                 $route->post(
                     'upload/:roomGuid',
