@@ -23,7 +23,7 @@ class GuidServer extends Cli\Controller implements Interfaces\CliControllerInter
     {
         $this->out('Running guid server');
 
-        $machine = rand(0, 1000);
+        $machine = getenv('MACHINE_ID') ?: rand(0, 1000);
         $port = 5599;
         $zks = 'localhost:2181';
         
