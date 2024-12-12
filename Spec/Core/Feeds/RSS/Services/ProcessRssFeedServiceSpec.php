@@ -10,7 +10,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Service as MetascraperService;
 use Minds\Core\Feeds\RSS\Services\ProcessRssFeedService;
 use Minds\Core\Feeds\Activity\Manager as ActivityManager;
-use Minds\Core\Feeds\RSS\ActivityPatchers\RssActivityPatcherInterface;
+use Minds\Core\Feeds\RSS\ActivityPatchers\AudioActivityPatcher;
 use Minds\Core\Feeds\RSS\Repositories\RssImportsRepository;
 use Minds\Core\Feeds\RSS\Services\ReaderLibraryWrapper;
 use Minds\Core\Feeds\RSS\Types\RssFeed;
@@ -42,7 +42,7 @@ class ProcessRssFeedServiceSpec extends ObjectBehavior
         MetascraperService $metascraperMock,
         ActivityManager $activityManagerMock,
         RssImportsRepository $rssImportsRepositoryMock,
-        RssActivityPatcherInterface $audioActivityPatcherMock,
+        AudioActivityPatcher  $audioActivityPatcherMock,
         AudioService $audioServiceMock,
         RbacGatekeeperService $rbacGatekeeperServiceMock,
         ACL $aclMock,
@@ -356,7 +356,7 @@ class ProcessRssFeedServiceSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->audioActivityPatcherMock->patch(Argument::any(), Argument::any(), Argument::any(), Argument::any())
+        $this->audioActivityPatcherMock->patch(Argument::any(), Argument::any(), Argument::any(), Argument::any(), Argument::any())
             ->shouldBeCalled()
             ->willReturn($activity);
 

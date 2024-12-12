@@ -15,6 +15,7 @@ use Laminas\Feed\Writer\Renderer\Entry\Atom;
 use Minds\Common\Access;
 use Minds\Core\Feeds\Activity\Manager as ActivityManager;
 use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Service as MetascraperService;
+use Minds\Core\Feeds\RSS\ActivityPatchers\AudioActivityPatcher;
 use Minds\Core\Feeds\RSS\ActivityPatchers\RssActivityPatcherInterface;
 use Minds\Core\Feeds\RSS\Exceptions\RssFeedFailedFetchException;
 use Minds\Core\Feeds\RSS\Repositories\RssImportsRepository;
@@ -35,7 +36,7 @@ class ProcessRssFeedService
         private readonly MetascraperService $metaScraperService,
         private readonly ActivityManager $activityManager,
         private readonly RssImportsRepository $rssImportsRepository,
-        private readonly RssActivityPatcherInterface $audioActivityPatcher,
+        private readonly AudioActivityPatcher $audioActivityPatcher,
         private readonly AudioService $audioService,
         private readonly RbacGatekeeperService $rbacGatekeeperService,
         private readonly ACL $acl,
@@ -99,6 +100,8 @@ class ProcessRssFeedService
                 return false;
             }
 
+            $audioEntity = null;
+
             if (
                 $entry->getEnclosure()?->url &&
                 str_starts_with($entry->getEnclosure()?->type ?? '', 'audio') &&
@@ -109,6 +112,7 @@ class ProcessRssFeedService
                     entry: $entry,
                     owner: $user,
                     richEmbedData: $richEmbed,
+                    audioEntity: $audioEntity, // pass by reference
                 );
             } else {
                 if (!$richEmbed) {
@@ -123,6 +127,10 @@ class ProcessRssFeedService
             }
 
             $this->activityManager->add($activity);
+
+            if ($audioEntity) {
+                $this->activityManager->patchAttachmentEntity($activity, $audioEntity);
+            }
 
             // Save this activity to our database so we don't import it again
             $this->rssImportsRepository->addEntry($feedId, $canonicalUrl, (int) $activity->getGuid());

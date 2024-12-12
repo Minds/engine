@@ -15,7 +15,7 @@ use Minds\Core\Media\MediaDownloader\MediaDownloaderInterface;
 /**
  * Patches an activity for an audio RSS entry.
  */
-class AudioActivityPatcher implements RssActivityPatcherInterface
+class AudioActivityPatcher
 {
     public function __construct(
         private readonly AudioService $audioService,
@@ -26,17 +26,13 @@ class AudioActivityPatcher implements RssActivityPatcherInterface
 
     /**
      * Patch an activity for an audio RSS entry.
-     * @param Activity $activity - The base activity to patch.
-     * @param EntryInterface $entry - The RSS entry.
-     * @param User $user - The user.
-     * @param array $richEmbedData - The rich embed data.
-     * @return Activity - The patched activity.
      */
     public function patch(
         Activity $activity,
         EntryInterface $entry,
         User $owner,
         ?array $richEmbedData = null,
+        ?AudioEntity &$audioEntity = null
     ): Activity {
         $podcastImage = null;
         $podcastSummary = null;
