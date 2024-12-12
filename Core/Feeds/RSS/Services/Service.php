@@ -213,6 +213,8 @@ class Service
     {
         $currentUser = null;
         foreach ($this->rssFeedsRepository->getFeeds() as $rssFeed) {
+            $this->multiTenantBootService->resetRootConfigs();
+
             if ($rssFeed->tenantId) {
                 $this->multiTenantBootService->bootFromTenantId($rssFeed->tenantId);
             }
@@ -226,10 +228,6 @@ class Service
             }
 
             $this->processRssFeed($rssFeed, $currentUser, $dryRun);
-
-            if ($rssFeed->tenantId) {
-                $this->multiTenantBootService->resetRootConfigs();
-            }
         }
     }
 }
