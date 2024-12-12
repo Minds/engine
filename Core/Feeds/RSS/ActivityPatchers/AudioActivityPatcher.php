@@ -76,7 +76,6 @@ class AudioActivityPatcher implements RssActivityPatcherInterface
         }
 
         $activity
-            ->setEntityGuid($audioEntity->guid)
             ->setAttachments([ $audioEntity ])
             ->setTitle($title)
             ->setMessage($description);
