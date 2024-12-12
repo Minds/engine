@@ -37,7 +37,7 @@ class AudioDownloaderSpec extends ObjectBehavior
         $this->clientMock->get($url, [
             'timeout' => AudioDownloader::REQUEST_TIMEOUT_SECONDS,
             'headers' => [
-                'Accept' => 'audio/*'
+                'Accept' => '*/*'
             ],
             'allow_redirects' => [
                 'max' => 10

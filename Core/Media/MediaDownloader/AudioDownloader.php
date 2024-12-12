@@ -29,7 +29,7 @@ class AudioDownloader implements MediaDownloaderInterface
             $response = $this->client->get($url, [
                 'timeout' => self::REQUEST_TIMEOUT_SECONDS,
                 'headers' => [
-                    'Accept' => 'audio/*'
+                    'Accept' => '*/*'
                 ],
                 'allow_redirects' => [
                     'max' => 10
