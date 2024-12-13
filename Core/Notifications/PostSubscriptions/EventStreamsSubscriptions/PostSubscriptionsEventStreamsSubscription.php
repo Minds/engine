@@ -97,11 +97,11 @@ class PostSubscriptionsEventStreamsSubscription implements SubscriptionInterface
             return true;
         }
 
-        // Is this a scheduled post? If so, resubmit with a delay
-        if ($entity->time_created > time()) {
-            $event->setDelaySecs($entity->time_created - time());
-            return $this->getTopic()->send($event);
-        }
+        // // Is this a scheduled post? If so, resubmit with a delay
+        // if ($entity->time_created > time()) {
+        //     $event->setDelaySecs($entity->time_created - time());
+        //     return $this->getTopic()->send($event);
+        // }
 
         $owner = $this->entitiesBuilder->single($entity->getOwnerGuid());
 
