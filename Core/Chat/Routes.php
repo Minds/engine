@@ -21,6 +21,9 @@ class Routes extends ModuleRoutes
     {
         $this->route
             ->withPrefix('fs/v3/chat/image')
+            ->withMiddleware([
+                LoggedInMiddleware::class,
+            ])
             ->do(function (Route $route) {
                 $route->get(
                     ':roomGuid/:messageGuid',
