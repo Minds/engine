@@ -75,7 +75,7 @@ class SearchIndexerSubscription implements SubscriptionInterface
         }
 
         if (!$entity) {
-            if ($event->getTimestamp() < time() - 300) {
+            if ($event->getTimestamp() > time() - 300) {
                 return false; // Neg ack. Retry, may be replication lag.
             }
             // Entity not found
