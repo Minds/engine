@@ -61,6 +61,8 @@ class AudioUploadEventStreamsSubscription implements SubscriptionInterface
             return false;
         }
 
+        return true;
+
         $this->logger->info('Action event type: ' . $event->getAction());
 
         $audioEntity = $event->getEntity();
