@@ -37,7 +37,7 @@ class AudioDownloader implements MediaDownloaderInterface
             ]);
 
             $contentType = $response->getHeader('Content-Type')[0] ?? '';
-            if (!str_starts_with($contentType, 'audio/')) {
+            if (!str_starts_with($contentType, 'audio/') && $contentType !== 'binary/octet-stream') {
                 throw new \Exception("Invalid content type: $contentType");
             }
 
