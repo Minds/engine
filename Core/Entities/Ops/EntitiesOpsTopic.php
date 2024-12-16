@@ -56,6 +56,7 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
         $builder = new MessageBuilder();
         $message = $builder
             //->setPartitionKey(0)
+            ->setDeliverAfter($event->getDelaySecs() * 1000)
             ->setEventTimestamp($event->getTimestamp() ?: time())
             ->setContent(json_encode($data))
             ->build();
@@ -124,6 +125,8 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
 
                 if (call_user_func($callback, $event, $message) === true) {
                     $consumer->acknowledge($message);
+                } else {
+                    $consumer->negativeAcknowledge($message);
                 }
             } catch (NotFoundException) {
                 // The entity no longer exists, skip

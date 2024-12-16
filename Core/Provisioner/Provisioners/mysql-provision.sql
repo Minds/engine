@@ -1208,3 +1208,26 @@ ALTER TABLE minds_tenant_mobile_configs
 ALTER TABLE `minds_tenant_configs`
     ADD members_only_mode_enabled boolean DEFAULT false
     AFTER is_non_profit;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD custom_script MEDIUMTEXT DEFAULT NULL
+    AFTER color_scheme;
+
+ALTER TABLE minds_comments
+    ADD pinned boolean DEFAULT false
+    AFTER access_id;
+
+CREATE TABLE IF NOT EXISTS minds_entities_audio  (
+    tenant_id int NOT NULL,
+    guid bigint NOT NULL,
+    created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+    uploaded_at timestamp,
+    processed_at timestamp,
+    duration_secs float,
+    PRIMARY KEY (tenant_id, guid),
+    FOREIGN KEY (tenant_id, guid) REFERENCES minds_entities(tenant_id, guid)
+);
+
+ALTER TABLE minds_entities_audio
+    ADD COLUMN remote_file_url text DEFAULT NULL
+    AFTER duration_secs;

@@ -45,12 +45,8 @@ class ApnsService extends AbstractService implements PushServiceInterface
             'apns-collapse-id' => $pushNotification->getMergeKey(),
         ];
 
-        try {
-            $this->request($pushNotification->getDeviceSubscription()->getToken(), $headers, $payload);
-        } catch (\Exception $e) {
-            error_log($e->getMessage());
-            return false;
-        }
+        $this->request($pushNotification->getDeviceSubscription()->getToken(), $headers, $payload);
+
         return true;
     }
 

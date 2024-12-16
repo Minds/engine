@@ -98,16 +98,16 @@ class entities implements Interfaces\Api
      */
     public function shouldRequireLogin(array $entities): bool
     {
-        $user = $entities[0] instanceof User ? $entities[0] : Di::_()->get('EntitiesBuilder')->single($entities[0]->owner_guid);
-
-        if (!$user) {
-            return false;
-        }
-
         $config = Di::_()->get(Config::class);
 
         if ($config->get('tenant_id')) {
             return !Session::isLoggedin() && $config->get('tenant')?->config?->walledGardenEnabled;
+        }
+
+        $user = $entities[0] instanceof User ? $entities[0] : Di::_()->get('EntitiesBuilder')->single($entities[0]->owner_guid);
+
+        if (!$user) {
+            return false;
         }
 
         return !Session::isLoggedin() &&

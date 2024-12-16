@@ -4,7 +4,7 @@ namespace Minds\Controllers\Cli;
 
 use Brick\Math\BigDecimal;
 use DateTime;
-use Elasticsearch\ClientBuilder;
+use OpenSearch\ClientBuilder;
 use Minds\Cli;
 use Minds\Core;
 use Minds\Core\Di\Di;

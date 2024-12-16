@@ -35,6 +35,7 @@ class comments implements Interfaces\Api
         $guid = $pages[0];
 
         $parent_path = $pages[2] ?? "0:0:0";
+        $isRootLevelParent = $parent_path === '0:0:0';
 
         if (isset($pages[1]) && $pages[1] != 0) {
             $manager = new Core\Comments\Manager();
@@ -64,7 +65,7 @@ class comments implements Interfaces\Api
             $includeOffset = true;
         }
 
-        $comments = $manager->getList([
+        $opts = [
             'entity_guid' => $guid,
             'parent_path' => $parent_path,
             'limit' => (int) $limit,
@@ -73,7 +74,10 @@ class comments implements Interfaces\Api
             'token' => $loadPrevious ?: null,
             'descending' => $descending,
             'is_focused' => $focusedUrn && (strpos($focusedUrn, 'urn:') === 0),
-        ]);
+            'exclude_pinned' => $isRootLevelParent
+        ];
+
+        $comments = $manager->getList($opts);
 
         $token = (string) $comments->getPagingToken();
 
@@ -95,6 +99,11 @@ class comments implements Interfaces\Api
 
         if (!$loadNext && !$descending) {
             $offset = '';
+        }
+
+        // if no previous page, inject pinned comments.
+        if ($isRootLevelParent && !$loadPrevious && !$loadNext) {
+            $comments = $manager->injectPinnedComments($comments, $opts);
         }
 
         $response['comments'] = Exportable::_($comments);

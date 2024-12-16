@@ -39,7 +39,7 @@ class RolesServiceSpec extends ObjectBehavior
         $this->repositoryMock->getRoles()->shouldNotBeCalled();
 
         $roles = $this->getAllRoles();
-        $roles->shouldHaveCount(5);
+        $roles->shouldHaveCount(6);
     }
 
     public function it_should_return_all_roles_for_multi_tenant()
@@ -73,7 +73,8 @@ class RolesServiceSpec extends ObjectBehavior
             PermissionsEnum::CAN_MODERATE_CONTENT,
             PermissionsEnum::CAN_CREATE_PAYWALL,
             PermissionsEnum::CAN_CREATE_CHAT_ROOM,
-            PermissionsEnum::CAN_UPLOAD_CHAT_MEDIA
+            PermissionsEnum::CAN_UPLOAD_CHAT_MEDIA,
+            PermissionsEnum::CAN_UPLOAD_AUDIO,
         ]);
 
         $roles[RolesEnum::DEFAULT->value]->permissions->shouldBe([
@@ -124,6 +125,7 @@ class RolesServiceSpec extends ObjectBehavior
     public function it_should_return_roles_for_non_multi_tenant_admin(User $subjectUser)
     {
         $subjectUser->isAdmin()->willReturn(true);
+        $subjectUser->isPlus()->willReturn(false);
 
         $roles = $this->getRoles($subjectUser);
         $roles->shouldHaveCount(2);
@@ -131,6 +133,20 @@ class RolesServiceSpec extends ObjectBehavior
         $roles[0]->id->shouldBe(RolesEnum::ADMIN->value);
         $roles[1]->id->shouldBe(RolesEnum::DEFAULT->value);
     }
+
+    public function it_should_return_roles_for_plus_user(User $subjectUser)
+    {
+        $subjectUser->isAdmin()->willReturn(false);
+        $subjectUser->isPlus()->willReturn(true);
+
+        $roles = $this->getRoles($subjectUser);
+        $roles->shouldHaveCount(2);
+
+
+        $roles[0]->id->shouldBe(RolesEnum::PLUS->value);
+        $roles[0]->permissions->shouldContain(PermissionsEnum::CAN_UPLOAD_AUDIO);
+    }
+
 
     public function it_should_return_user_permissions_for_multi_tenant_user()
     {

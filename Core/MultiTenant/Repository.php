@@ -81,6 +81,7 @@ class Repository extends AbstractRepository
                 'site_email',
                 'primary_color',
                 'color_scheme',
+                'custom_script',
                 'federation_disabled',
                 'boost_enabled',
                 'reply_email',
@@ -113,6 +114,7 @@ class Repository extends AbstractRepository
         $siteEmail = $row['site_email'] ?? null;
         $primaryColor = $row['primary_color'] ?? '#1b85d6';
         $colorScheme = $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : MultiTenantColorScheme::LIGHT;
+        $customScript = isset($row['custom_script']) ? htmlspecialchars_decode($row['custom_script']): null;
         $federationDisabled = (bool) $row['federation_disabled'] ?? false;
         $boostEnabled = $row['boost_enabled'] ?? false;
         $replyEmail = $row['reply_email'] ?? null;
@@ -143,6 +145,7 @@ class Repository extends AbstractRepository
                 siteEmail: $siteEmail,
                 colorScheme: $colorScheme,
                 primaryColor: $primaryColor,
+                customScript: $customScript,
                 federationDisabled: $federationDisabled,
                 boostEnabled: $boostEnabled,
                 replyEmail: $replyEmail,

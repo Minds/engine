@@ -38,7 +38,7 @@ class SearchRepository
             return true;
         } catch (Exception $e) {
             // If the comment was already deleted, we ack the delete
-            if ($e instanceof \Elasticsearch\Common\Exceptions\Missing404Exception) {
+            if ($e instanceof \OpenSearch\Common\Exceptions\Missing404Exception) {
                 $this->logger->info("Elasticsearch returned a 404, comment already deleted.");
                 return true;
             }
@@ -90,7 +90,6 @@ class SearchRepository
     {
         $query = [
             'index' => 'minds-comments',
-            'type' => '_doc',
             'id' => $guid,
         ];
         $delete = new PreparedDelete();
@@ -116,7 +115,6 @@ class SearchRepository
     ): PreparedUpdate {
         $query = [
             'index' => 'minds-comments',
-            'type' => '_doc',
             'id' => $comment->getGuid(),
             'body' => [
                 'doc' => [

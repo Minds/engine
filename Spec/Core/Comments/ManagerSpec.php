@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Comments;
 
+use Minds\Common\Repository\Response;
 use Minds\Core\Comments\Comment;
 use Minds\Core\Comments\Delegates\CountCache;
 use Minds\Core\Comments\Delegates\CreateEventDispatcher;
@@ -11,6 +12,7 @@ use Minds\Core\Comments\RelationalRepository;
 use Minds\Core\Comments\Repository;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\EventsDispatcher;
+use Minds\Core\Log\Logger;
 use Minds\Core\Luid;
 use Minds\Core\Security\ACL;
 use Minds\Core\Security\RateLimits\KeyValueLimiter;
@@ -55,6 +57,8 @@ class ManagerSpec extends ObjectBehavior
     protected $kvLimiter;
 
     private Collaborator $rbacGatekeeperServiceMock;
+
+    private Collaborator $loggerMock;
     
     public function let(
         Repository $repository,
@@ -69,6 +73,7 @@ class ManagerSpec extends ObjectBehavior
         EventsDispatcher $eventsDispatcher,
         RelationalRepository $relationalRepository,
         RbacGatekeeperService $rbacGatekeeperServiceMock,
+        Logger $loggerMock
     ) {
         $this->beConstructedWith(
             $repository,
@@ -83,6 +88,7 @@ class ManagerSpec extends ObjectBehavior
             $eventsDispatcher,
             $relationalRepository,
             $rbacGatekeeperServiceMock,
+            $loggerMock
         );
 
         $this->repository = $repository;
@@ -95,6 +101,7 @@ class ManagerSpec extends ObjectBehavior
         $this->spam = $spam;
         $this->kvLimiter = $kvLimiter;
         $this->rbacGatekeeperServiceMock = $rbacGatekeeperServiceMock;
+        $this->loggerMock = $loggerMock;
     }
 
     public function it_is_initializable()
@@ -566,6 +573,101 @@ class ManagerSpec extends ObjectBehavior
 
         $this->getDirectParent($paramComment)
             ->shouldBe(null);
+    }
+
+    public function it_should_inject_pinned_comments(
+        Response $commentsResponse,
+        Response $pinnedCommentsResponse,
+        Response $resultResponse,
+        Comment $pinnedComment,
+        User $pinnedCommentOwner,
+        Entity $pinnedCommentEntity
+    ) {
+        $pinnedCommentEntityGuid = '123';
+        $pinnedCommentOwnerGuid = '456';
+
+        $opts = [
+            'limit' => 12,
+            'offset' => 0
+        ];
+
+        $pinnedComment->getEntityGuid()
+            ->shouldBeCalled()
+            ->willReturn($pinnedCommentEntityGuid);
+
+        $pinnedComment->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn($pinnedCommentOwnerGuid);
+
+        $pinnedCommentsResponse->count()
+            ->shouldBeCalled()
+            ->willReturn(1);
+
+        $pinnedCommentsResponse->isLastPage()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $pinnedCommentsResponse->getPagingToken()
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $pinnedCommentsResponse->rewind()
+            ->shouldBeCalled();
+
+        $pinnedCommentsResponse->next()
+            ->shouldBeCalled();
+
+        $pinnedCommentsResponseValidCallCount = 0;
+        $pinnedCommentsResponse->valid()
+            ->shouldBeCalled()
+            ->will(function () use (&$pinnedCommentsResponseValidCallCount) {
+                $pinnedCommentsResponseValidCallCount++;
+                return $pinnedCommentsResponseValidCallCount === 1;
+            });
+
+        $pinnedCommentsResponseCurrentCallCount = 0;
+        $pinnedCommentsResponse->current()
+            ->shouldBeCalled()
+            ->will(function () use (&$pinnedCommentsResponseCurrentCallCount, $pinnedComment) {
+                $pinnedCommentsResponseCurrentCallCount++;
+                return $pinnedCommentsResponseCurrentCallCount === 1 ?
+                        $pinnedComment :
+                        null;
+            });
+
+            
+        $this->repository->getList([
+            'limit' => null,
+            'exclude_pinned' => false,
+            'only_pinned' => true,
+            'offset' => 0
+        ])
+            ->shouldBeCalled()
+            ->willReturn($pinnedCommentsResponse);
+
+        $this->entitiesBuilder->single($pinnedCommentEntityGuid)
+            ->shouldBeCalled()
+            ->willReturn($pinnedCommentEntity);
+
+        
+        $this->entitiesBuilder->single($pinnedCommentOwnerGuid)
+            ->shouldBeCalled()
+            ->willReturn($pinnedCommentOwner);
+
+        $this->acl->read($pinnedComment)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->acl->interact($pinnedCommentEntity, $pinnedCommentOwner)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $commentsResponse->pushArray([$pinnedComment])
+            ->shouldBeCalled()
+            ->willReturn($resultResponse);
+
+        $this->injectPinnedComments($commentsResponse, $opts)
+            ->shouldReturn($commentsResponse);
     }
 
     private function kvLimiterMock()

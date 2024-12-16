@@ -58,13 +58,17 @@ class LegacyClient implements QueueClient
                     return true;
                 }
 
+                $return = true;
+
                 // If multi tenant, load its configs
                 if ($tenantId = $event->tenantId) {
                     $this->getMultiTenantBootService()->bootFromTenantId($tenantId);
                 }
 
                 try {
-                    $callback($event);
+                    if ($callback($event) === false) {
+                        $return = false; // Negative awknowledge
+                    }
                 } catch (\Exception $e) {
                     $this->logger->error($e->getMessage());
                 }
@@ -74,7 +78,7 @@ class LegacyClient implements QueueClient
                     $this->getMultiTenantBootService()->resetRootConfigs();
                 }
 
-                return true;
+                return $return;
             },
             topicRegex: $this->queueName
         );

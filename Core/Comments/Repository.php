@@ -53,7 +53,8 @@ class Repository
         'deleted',
         'ownerObj',
         'source',
-        'canonicalUrl'
+        'canonicalUrl',
+        'pinned'
     ];
 
     /**
@@ -92,6 +93,8 @@ class Repository
             'include_offset' => false,
             'token' => null,
             'descending' => true,
+            'exclude_pinned' => false,
+            'only_pinned' => false,
         ], $opts);
 
         $parent_guids = explode(':', $opts['parent_path']);
@@ -137,6 +140,11 @@ class Repository
         if ($opts['guid']) {
             $where[] = 'guid = ?';
             $values[] = new Varint($opts['guid']);
+        }
+
+        if ($opts['only_pinned']) {
+            $where[] = 'pinned = ?';
+            $values[] = true;
         }
 
         if ($opts['offset']) {
@@ -190,6 +198,10 @@ class Repository
             foreach ($rows as $row) {
                 $row = Cql::toPrimitiveType($row);
 
+                if ($opts['exclude_pinned'] && $row['pinned'] === true) {
+                    continue;
+                }
+
                 $flags = $row['flags'] ?: [];
 
                 $comment = new Comment();
@@ -210,7 +222,8 @@ class Repository
                     ->setDeleted(isset($flags['deleted']) && $flags['deleted'])
                     ->setOwnerObj($row['owner_obj'])
                     ->setVotesUp($row['votes_up'] ?: [])
-                    ->setVotesDown($row['votes_down'] ?: []);
+                    ->setVotesDown($row['votes_down'] ?: [])
+                    ->setPinned($row['pinned'] ?? false);
 
                 if (isset($row['source'])) {
                     $comment->setSource(FederatedEntitySourcesEnum::from($row['source']));
@@ -484,6 +497,10 @@ class Repository
 
         if (in_array('canonicalUrl', $attributes, true)) {
             $fields['canonical_url'] = $comment->getCanonicalUrl();
+        }
+
+        if (in_array('pinned', $attributes, true)) {
+            $fields['pinned'] = $comment->isPinned() ?: null;
         }
 
         if (!$fields) {

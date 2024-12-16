@@ -53,6 +53,7 @@ class Provider extends DiProvider
                 sessionsManager: $di->get('Sessions\Manager'),
                 config: $di->get(Config::class),
                 vaultTransitService: $di->get(VaultTransitService::class),
+                eventsDispatcher: $di->get('EventsDispatcher'),
             );
         });
 
@@ -61,7 +62,7 @@ class Provider extends DiProvider
                 oidcUserRepository: $di->get(OidcUserRepository::class),
                 entitiesBuilder: $di->get(EntitiesBuilder::class),
                 acl: $di->get('Security\ACL'),
-                registerQueue: Queue\Client::build()->setQueue('Registered'),
+                registerQueue: (clone Queue\Client::build())->setQueue('Registered'),
                 tenantUserWelcomeEmailer: $di->get(TenantUserWelcomeEmailer::class),
                 config: $di->get(Config::class),
                 logger: $di->get('Logger'),

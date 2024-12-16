@@ -775,7 +775,9 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     $mapToUnix = ['time_created', 'time_updated', 'icon_time', 'banner'];
 
                     break;
-
+                case EntityTypeEnum::AUDIO:
+                    continue 2; // Audio is handled from Core/Media/Audio/AudioRepository.php
+                    break;
             }
 
             // Remap fields

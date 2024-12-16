@@ -624,6 +624,10 @@ class Manager
                 $type = 'activity';
                 $customType = 'video';
                 break;
+            case 'audio':
+                $type = 'activity';
+                $customType = 'audio';
+                break;
             default:
                 $type = 'activity';
                 break;

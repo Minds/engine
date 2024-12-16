@@ -52,6 +52,7 @@ class Manager
      * @param ?string $siteName - site name to set.
      * @param ?MultiTenantColorScheme $colorScheme - color scheme to set.
      * @param ?string $primaryColor - primary color to set.
+     * @param ?string $customScript - custom script to set.
      * @param ?bool $federationDisabled - federation disabled.
      * @param ?string $replyEmail - reply-to email address.
      * @param ?bool $nsfwEnabled - whether nfsw reporting tools are enabled.
@@ -72,6 +73,7 @@ class Manager
         ?string $siteName = null,
         ?MultiTenantColorScheme $colorScheme = null,
         ?string $primaryColor = null,
+        ?string $customScript = null,
         ?bool $federationDisabled = null,
         ?string $replyEmail = null,
         ?bool $nsfwEnabled = null,
@@ -94,6 +96,7 @@ class Manager
             siteName: $siteName,
             colorScheme: $colorScheme,
             primaryColor: $primaryColor,
+            customScript: $customScript,
             federationDisabled: $federationDisabled,
             replyEmail: $replyEmail,
             nsfwEnabled: $nsfwEnabled,

@@ -70,7 +70,7 @@ try {
     $minds = new Minds\Core\Minds();
     $minds->loadLegacy();
     //loading events will instantiate all of the dependencies which won't be configured yet if we're installing
-    if ($argv[0] !== 'install') {
+    if ($argv[0] !== 'install' && $argv[0] !== 'GuidServer') {
         $minds->loadEvents();
     }
 

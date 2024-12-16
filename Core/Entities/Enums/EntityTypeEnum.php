@@ -7,4 +7,5 @@ enum EntityTypeEnum: string
     case ACTIVITY = 'activity';
     case OBJECT = 'object';
     case GROUP = 'group';
+    case AUDIO = 'audio';
 }

@@ -58,6 +58,7 @@ class RepositorySpec extends ObjectBehavior
         $siteEmail = 'noreply@minds.com';
         $colorSchemeValue = MultiTenantColorScheme::DARK->value;
         $primaryColor = '#fff000';
+        $customScript = '<script></script>';
         $federationDisabled = true;
         $replyEmail = 'some@email.com';
         $nsfwEnabled = 1;
@@ -91,6 +92,7 @@ class RepositorySpec extends ObjectBehavior
                 'site_email' => $siteEmail,
                 'color_scheme' => $colorSchemeValue,
                 'primary_color' => $primaryColor,
+                'custom_script' => $customScript,
                 'federation_disabled' => $federationDisabled,
                 'reply_email' => $replyEmail,
                 'nsfw_enabled' => $nsfwEnabled,
@@ -112,6 +114,7 @@ class RepositorySpec extends ObjectBehavior
             siteEmail: $siteEmail,
             colorScheme: MultiTenantColorScheme::tryFrom($colorSchemeValue),
             primaryColor: $primaryColor,
+            customScript: $customScript,
             federationDisabled: $federationDisabled,
             replyEmail: $replyEmail,
             nsfwEnabled: $nsfwEnabled,
@@ -159,6 +162,7 @@ class RepositorySpec extends ObjectBehavior
         $siteName = 'Test site';
         $colorScheme = MultiTenantColorScheme::DARK;
         $primaryColor = '#fff000';
+        $customScript = '<script></script>';
         $federationDisabled = true;
         $replyEmail = 'some@email.com';
         $nsfwEnabled = true;
@@ -179,6 +183,7 @@ class RepositorySpec extends ObjectBehavior
             'site_name' => $siteName,
             'color_scheme' => $colorScheme->value,
             'primary_color' => $primaryColor,
+            'custom_script' => htmlspecialchars($customScript),
             'federation_disabled' => $federationDisabled,
             'reply_email' => $replyEmail,
             'nsfw_enabled' => $nsfwEnabled,
@@ -202,6 +207,7 @@ class RepositorySpec extends ObjectBehavior
             siteName: $siteName,
             colorScheme: $colorScheme,
             primaryColor: $primaryColor,
+            customScript: $customScript,
             federationDisabled: $federationDisabled,
             replyEmail: $replyEmail,
             nsfwEnabled: $nsfwEnabled ? 1 : 0,

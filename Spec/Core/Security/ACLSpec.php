@@ -82,7 +82,7 @@ class ACLSpec extends ObjectBehavior
         $entity->getOwnerGUID()->wilLReturn(123);
         $entity->get('type')->willReturn('activity');
 
-        $this->config->get('is_tenant')->shouldBeCalled()->willReturn(false);
+        $this->config->get('tenant')->shouldBeCalled()->willReturn(null);
 
         $this->read($entity)->shouldReturn(true);
     }
@@ -118,7 +118,6 @@ class ACLSpec extends ObjectBehavior
         $entity->getOwnerGUID()->wilLReturn(123);
         $entity->get('type')->willReturn('activity');
 
-        $this->config->get('is_tenant')->shouldBeCalled()->willReturn(true);
         $this->config->get('tenant')->shouldBeCalled()->willReturn($tenantMock);
 
         $this->read($entity)->shouldReturn(true);
@@ -153,7 +152,6 @@ class ACLSpec extends ObjectBehavior
         $entity->getOwnerGUID()->wilLReturn(123);
         $entity->get('type')->willReturn('activity');
 
-        $this->config->get('is_tenant')->shouldBeCalled()->willReturn(true);
         $this->config->get('tenant')->shouldBeCalled()->willReturn($tenantMock);
 
         $this->read($entity)->shouldReturn(false);
@@ -214,7 +212,7 @@ class ACLSpec extends ObjectBehavior
         $entity->getOwnerGUID()->wilLReturn(123);
         $entity->get('type')->willReturn('activity');
 
-        $this->config->get('is_tenant')->shouldBeCalled()->willReturn(false);
+        $this->config->get('tenant')->shouldBeCalled()->willReturn(null);
 
         $this->read($entity)->shouldReturn(false);
     }

@@ -13,6 +13,7 @@ enum SearchMediaTypeEnum
     case IMAGE;
     case VIDEO;
     case BLOG;
+    case AUDIO;
 
     /**
      * Helper function to map the enum to its respective MediaTypeEnum
@@ -24,6 +25,7 @@ enum SearchMediaTypeEnum
             SearchMediaTypeEnum::BLOG => MediaTypeEnum::BLOG,
             SearchMediaTypeEnum::VIDEO => MediaTypeEnum::VIDEO,
             SearchMediaTypeEnum::IMAGE => MediaTypeEnum::IMAGE,
+            SearchMediaTypeEnum::AUDIO => MediaTypeEnum::AUDIO,
         };
     }
 }

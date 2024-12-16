@@ -14,10 +14,6 @@ class Routes extends ModuleRoutes
         $this->route
             ->withPrefix('api/graphql')
             ->do(function (Route $route): void {
-                $route->get(
-                    '',
-                    Ref::_(Controller::class, 'exec')
-                );
                 $route->post(
                     '',
                     Ref::_(Controller::class, 'exec')

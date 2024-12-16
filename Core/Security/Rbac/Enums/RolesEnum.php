@@ -8,4 +8,5 @@ enum RolesEnum: int
     case MODERATOR = 2;
     case VERIFIED = 3;
     case DEFAULT = 4;
+    case PLUS = 5;
 }

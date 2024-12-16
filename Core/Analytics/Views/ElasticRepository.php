@@ -76,7 +76,6 @@ class ElasticRepository
             'update' => [
                 '_id' => (string) $view->getUuid(),
                 '_index' => $index,
-                '_type' => '_doc',
             ],
         ];
 

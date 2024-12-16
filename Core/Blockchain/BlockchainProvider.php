@@ -8,6 +8,9 @@
 
 namespace Minds\Core\Blockchain;
 
+use Minds\Core\Blockchain\OnchainBalances\OnchainBalancesService;
+use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider;
 
 class BlockchainProvider extends Provider
@@ -118,10 +121,6 @@ class BlockchainProvider extends Provider
             return new Uniswap\Client();
         });
 
-        $this->di->bind('Blockchain\BigQuery\HoldersQuery', function () {
-            return new BigQuery\HoldersQuery();
-        });
-
         $this->di->bind('Blockchain\Skale\Transaction\Manager', function () {
             return new Skale\Transaction\Manager();
         });
@@ -132,6 +131,14 @@ class BlockchainProvider extends Provider
 
         $this->di->bind('Blockchain\Skale\Keys', function () {
             return new Skale\Keys();
+        });
+
+        $this->di->bind(OnchainBalancesService::class, function (Di $di) {
+            return new OnchainBalancesService(
+                http: $di->get('Http\Json'),
+                config: $di->get(Config::class),
+                blockFinder: $di->get('Blockchain\Services\BlockFinder'),
+            );
         });
     }
 }

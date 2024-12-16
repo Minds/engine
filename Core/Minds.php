@@ -96,8 +96,10 @@ class Minds extends base
         Chat\Module::class,
         SEO\Robots\Module::class,
         DeepLink\Module::class,
+        Media\Audio\Module::class,
         // Integrations
         Integrations\Bloomerang\Module::class,
+        Integrations\MemberSpace\Module::class,
     ];
 
     /**

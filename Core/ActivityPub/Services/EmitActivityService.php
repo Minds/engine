@@ -37,7 +37,8 @@ class EmitActivityService
     public function emitActivity(ActivityType $activity, User $actor): void
     {
         // Find a list of all our followers inboxes
-        foreach ($this->manager->getInboxesForFollowers($actor->getGuid()) as $inboxUrl) {
+        $inboxUrls = array_unique(iterator_to_array($this->manager->getInboxesForFollowers($actor->getGuid())));
+        foreach ($inboxUrls as $inboxUrl) {
             $this->postRequest($inboxUrl, $activity, $actor);
         }
 

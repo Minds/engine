@@ -77,6 +77,7 @@ class RelationalRepository extends AbstractRepository
             'time_updated' => new RawExp(':time_updated'),
             'source' => new RawExp(':source'),
             'canonical_url' => new RawExp(':canonical_url'),
+            'pinned' => new RawExp(':pinned'),
         ])
         ->onDuplicateKeyUpdate([
             'body' => new RawExp(':body'),
@@ -87,6 +88,7 @@ class RelationalRepository extends AbstractRepository
             'deleted' => new RawExp(':deleted'),
             'enabled' => new RawExp(':is_enabled'),
             'access_id' => new RawExp(':access_id'),
+            'pinned' => new RawExp(':pinned'),
             'time_updated' => $timeUpdated
         ])
         ->prepare();
@@ -110,6 +112,7 @@ class RelationalRepository extends AbstractRepository
             'time_updated' => $timeUpdated,
             'source' => $comment->getSource()->value,
             'canonical_url' => $comment->getCanonicalUrl(),
+            'pinned' => (bool) $comment->isPinned(),
         ];
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
@@ -147,7 +150,8 @@ class RelationalRepository extends AbstractRepository
                 'group_conversation',
                 'access_id',
                 'time_created',
-                'time_updated'
+                'time_updated',
+                'pinned',
             ])
             ->from('minds_comments')
             ->where('guid', Operator::EQ, new RawExp(':guid'));
@@ -180,6 +184,7 @@ class RelationalRepository extends AbstractRepository
             ->setSpam(!!$row['spam'])
             ->setDeleted(!!$row['deleted'])
             ->setEphemeral(false)
+            ->setPinned(!!$row['pinned'])
             ->markAllAsPristine();
 
         // TODO: get reply counts in!
