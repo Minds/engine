@@ -222,7 +222,7 @@ class RolesServiceSpec extends ObjectBehavior
         $subjectUser = new User();
 
         $permissions = $this->getUserPermissions($subjectUser);
-        $permissions->shouldHaveCount(8);
+        $permissions->shouldHaveCount(7);
         $permissions->shouldBe([
             PermissionsEnum::CAN_CREATE_POST,
             PermissionsEnum::CAN_COMMENT,
@@ -231,7 +231,6 @@ class RolesServiceSpec extends ObjectBehavior
             PermissionsEnum::CAN_INTERACT,
             PermissionsEnum::CAN_BOOST,
             PermissionsEnum::CAN_CREATE_CHAT_ROOM,
-            PermissionsEnum::CAN_UPLOAD_CHAT_MEDIA
         ]);
     }
 
