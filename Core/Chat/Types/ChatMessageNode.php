@@ -66,6 +66,18 @@ class ChatMessageNode implements NodeInterface
     }
 
     /**
+     * Gets image node if the message has an image.
+     * @return ChatImageNode|null - the image node.
+     */
+    #[Field]
+    public function getImage(): ?ChatImageNode
+    {
+        return $this->chatMessage->image ?
+            new ChatImageNode($this->chatMessage->image) :
+            null;
+    }
+
+    /**
      * The type of message.
      * @return ChatMessageTypeEnum The type of message.
      */

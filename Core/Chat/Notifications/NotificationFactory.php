@@ -6,6 +6,7 @@ namespace Minds\Core\Chat\Notifications;
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Notifications\Models\AbstractChatNotification;
+use Minds\Core\Chat\Notifications\Models\ImageMessageNotification;
 use Minds\Core\Chat\Notifications\Models\PlainTextMessageNotification;
 use Minds\Core\Chat\Notifications\Models\RichEmbedMessageNotification;
 use Minds\Core\EntitiesBuilder;
@@ -40,6 +41,11 @@ class NotificationFactory
                 chatMessage: $chatEntity,
                 chatRoom: $chatRoom,
                 sender: $sender
+            ),
+            ImageMessageNotification::class => (new ImageMessageNotification())->fromEntity(
+                chatMessage: $chatEntity,
+                chatRoom: $chatRoom,
+                sender: $sender,
             ),
             default => throw new \InvalidArgumentException('Invalid notification class'),
         };

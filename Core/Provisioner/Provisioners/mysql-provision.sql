@@ -1227,3 +1227,19 @@ CREATE TABLE IF NOT EXISTS minds_entities_audio  (
 ALTER TABLE minds_entities_audio
     ADD COLUMN remote_file_url text DEFAULT NULL
     AFTER duration_secs;
+
+CREATE TABLE IF NOT EXISTS minds_chat_images(
+    tenant_id int,
+    room_guid bigint,
+    message_guid bigint,
+    image_guid bigint DEFAULT NULL,
+    width int,
+    height int,
+    blurhash text,
+    created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP,
+    updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (tenant_id, room_guid, message_guid),
+    FOREIGN KEY (tenant_id, room_guid, message_guid) REFERENCES minds_chat_messages (tenant_id, room_guid, guid),
+    INDEX (tenant_id, room_guid),
+    INDEX (tenant_id, message_guid)
+);

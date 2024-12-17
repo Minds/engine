@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Spec\Minds\Core\Chat\Repositories;
 
 use DateTime;
+use Minds\Core\Chat\Entities\ChatImage;
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Entities\ChatRichEmbed;
 use Minds\Core\Chat\Enums\ChatMessageTypeEnum;
@@ -15,6 +16,7 @@ use PDO;
 use PDOStatement;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
+use Prophecy\Argument;
 use Selective\Database\Connection;
 use Selective\Database\DeleteQuery;
 use Selective\Database\InsertQuery;
@@ -154,7 +156,13 @@ class MessageRepositorySpec extends ObjectBehavior
             new RawExp('re.author as rich_embed_author'),
             new RawExp('re.thumbnail_src as rich_embed_thumbnail_src'),
             new RawExp('re.created_timestamp as rich_embed_created_timestamp'),
-            new RawExp('re.updated_timestamp as rich_embed_updated_timestamp')
+            new RawExp('re.updated_timestamp as rich_embed_updated_timestamp'),
+            new RawExp('i.image_guid as image_guid'),
+            new RawExp('i.created_timestamp as image_created_timestamp'),
+            new RawExp('i.updated_timestamp as image_updated_timestamp'),
+            new RawExp('i.width as image_width'),
+            new RawExp('i.height as image_height'),
+            new RawExp('i.blurhash as image_blurhash')
         ])
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
@@ -170,6 +178,13 @@ class MessageRepositorySpec extends ObjectBehavior
         $selectQueryMock->leftJoinRaw(
             new RawExp(MessageRepository::RICH_EMBED_TABLE_NAME.' as re'),
             're.tenant_id = m.tenant_id AND re.room_guid = m.room_guid AND re.message_guid = m.guid'
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+        
+        $selectQueryMock->leftJoinRaw(
+            new RawExp(MessageRepository::IMAGE_TABLE_NAME.' as i'),
+            'i.tenant_id = m.tenant_id AND i.room_guid = m.room_guid AND i.message_guid = m.guid'
         )
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
@@ -240,7 +255,13 @@ class MessageRepositorySpec extends ObjectBehavior
             new RawExp('re.author as rich_embed_author'),
             new RawExp('re.thumbnail_src as rich_embed_thumbnail_src'),
             new RawExp('re.created_timestamp as rich_embed_created_timestamp'),
-            new RawExp('re.updated_timestamp as rich_embed_updated_timestamp')
+            new RawExp('re.updated_timestamp as rich_embed_updated_timestamp'),
+            new RawExp('i.image_guid as image_guid'),
+            new RawExp('i.created_timestamp as image_created_timestamp'),
+            new RawExp('i.updated_timestamp as image_updated_timestamp'),
+            new RawExp('i.width as image_width'),
+            new RawExp('i.height as image_height'),
+            new RawExp('i.blurhash as image_blurhash')
         ])
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
@@ -256,6 +277,13 @@ class MessageRepositorySpec extends ObjectBehavior
         $selectQueryMock->leftJoinRaw(
             new RawExp(MessageRepository::RICH_EMBED_TABLE_NAME.' as re'),
             're.tenant_id = m.tenant_id AND re.room_guid = m.room_guid AND re.message_guid = m.guid'
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->leftJoinRaw(
+            new RawExp(MessageRepository::IMAGE_TABLE_NAME.' as i'),
+            'i.tenant_id = m.tenant_id AND i.room_guid = m.room_guid AND i.message_guid = m.guid'
         )
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
@@ -429,6 +457,99 @@ class MessageRepositorySpec extends ObjectBehavior
             $roomGuid,
             $messageGuid
         )
+            ->shouldEqual(true);
+    }
+
+    // add image
+
+    public function it_should_add_image(
+        InsertQuery $insertQueryMock,
+        PDOStatement $pdoStatementMock,
+    ): void {
+        $image = new ChatImage(
+            guid: 1,
+            roomGuid: 2,
+            messageGuid: 3,
+            width: 100,
+            height: 100,
+            blurhash: 'blurhash',
+            createdTimestamp: new DateTime('2024-01-01'),
+            updatedTimestamp: new DateTime('2024-02-01')
+        );
+
+        $pdoStatementMock->execute()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $insertQueryMock->into(MessageRepository::IMAGE_TABLE_NAME)
+            ->shouldBeCalledOnce()
+            ->willReturn($insertQueryMock);
+
+        $insertQueryMock->set(Argument::that(function ($args) {
+            return $args['tenant_id'] === -1 &&
+                   $args['room_guid'] === 2 &&
+                   $args['message_guid'] === 3 &&
+                   $args['image_guid'] === 1 &&
+                   $args['width'] === 100 &&
+                   $args['height'] === 100 &&
+                   $args['blurhash'] === 'blurhash';
+        }))
+            ->shouldBeCalledOnce()
+            ->willReturn($insertQueryMock);
+
+        $insertQueryMock->prepare()
+            ->shouldBeCalledOnce()
+            ->willReturn($pdoStatementMock);
+
+        $this->mysqlClientWriterHandlerMock->insert()
+            ->shouldBeCalledOnce()
+            ->willReturn($insertQueryMock);
+
+        $this->addImage($image)
+            ->shouldEqual(true);
+    }
+
+    // delete image
+
+    public function it_should_delete_image(
+        DeleteQuery $deleteQueryMock,
+        PDOStatement $pdoStatementMock,
+    ): void {
+        $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
+
+        $pdoStatementMock->execute([
+            'tenant_id' => 1,
+            'room_guid' => 123,
+            'message_guid' => 456
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $deleteQueryMock->from(MessageRepository::IMAGE_TABLE_NAME)
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteQueryMock);
+
+        $deleteQueryMock->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteQueryMock);
+
+        $deleteQueryMock->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteQueryMock);
+
+        $deleteQueryMock->where('message_guid', Operator::EQ, new RawExp(':message_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteQueryMock);
+
+        $deleteQueryMock->prepare()
+            ->shouldBeCalledOnce()
+            ->willReturn($pdoStatementMock);
+
+        $this->mysqlClientWriterHandlerMock->delete()
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteQueryMock);
+
+        $this->deleteImage(123, 456)
             ->shouldEqual(true);
     }
 
