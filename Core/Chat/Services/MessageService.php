@@ -36,6 +36,8 @@ class MessageService
     public function __construct(
         private readonly MessageRepository $messageRepository,
         private readonly RoomRepository $roomRepository,
+        private readonly ChatImageStorageService $imageStorageService,
+        private readonly ChatImageProcessorService $imageProcessorService,
         private readonly ReceiptService $receiptService,
         private readonly EntitiesBuilder $entitiesBuilder,
         private readonly SocketEvents $socketEvents,
@@ -50,7 +52,8 @@ class MessageService
     /**
      * @param int $roomGuid
      * @param User $user
-     * @param string $message
+     * @param string|null $message
+     * @param string|null $imageBlob
      * @return ChatMessageEdge
      * @throws GraphQLException
      * @throws ServerErrorException
@@ -58,11 +61,12 @@ class MessageService
     public function addMessage(
         int $roomGuid,
         User $user,
-        string $message
+        ?string $message = null,
+        ?string $imageBlob = null
     ): ChatMessageEdge {
-        $plainText = trim($message); // TODO: strengthen message validation to avoid multiple new lines
+        $plainText = $message ? trim($message) : ''; // TODO: strengthen message validation to avoid multiple new lines
 
-        if (empty($plainText)) {
+        if (empty($plainText) && !$imageBlob) {
             throw new GraphQLException(message: "Message cannot be empty", code: 400);
         }
 
@@ -72,18 +76,30 @@ class MessageService
             throw new GraphQLException(message: "You cannot add a message to this room", code: 403);
         }
 
+        $messageGuid = (int) Guid::build();
         $messageType = ChatMessageTypeEnum::TEXT;
+        $richEmbed = null;
+        $image = null;
 
-        if ($richEmbed = $this->chatRichEmbedService->parseFromText($plainText) ?? null) {
+        if ($imageBlob) {
+            $messageType = ChatMessageTypeEnum::IMAGE;
+            $image = $this->imageProcessorService->process(
+                user: $user,
+                imageBlob: $imageBlob,
+                roomGuid: $roomGuid,
+                messageGuid: $messageGuid
+            );
+        } elseif ($richEmbed = $this->chatRichEmbedService->parseFromText($plainText) ?? null) {
             $messageType = ChatMessageTypeEnum::RICH_EMBED;
         }
 
         $chatMessage = new ChatMessage(
             roomGuid: $roomGuid,
-            guid: (int) Guid::build(),
+            guid: $messageGuid,
             senderGuid: (int) $user->getGuid(),
             plainText: $plainText,
             richEmbed: $richEmbed,
+            image: $image,
             messageType: $messageType
         );
 
@@ -101,6 +117,10 @@ class MessageService
                     messageGuid: $chatMessage->guid,
                     chatRichEmbed: $chatMessage->richEmbed
                 );
+            }
+
+            if ($chatMessage->image) {
+                $this->messageRepository->addImage($chatMessage->image);
             }
 
             // Add the receipt to ourself
@@ -293,6 +313,18 @@ class MessageService
                 if (!$this->messageRepository->deleteRichEmbed($roomGuid, $messageGuid)) {
                     $this->messageRepository->rollbackTransaction();
                     throw new ServerErrorException(message: 'Failed to delete rich embed data for message', code: 500);
+                }
+            }
+
+            if ($message->messageType === ChatMessageTypeEnum::IMAGE) {
+                $this->imageStorageService->delete(
+                    imageGuid: (string) $message->image->guid,
+                    ownerGuid: $message->getOwnerGuid()
+                );
+
+                if (!$this->messageRepository->deleteImage($roomGuid, $messageGuid)) {
+                    $this->messageRepository->rollbackTransaction();
+                    throw new ServerErrorException(message: 'Failed to delete image for message', code: 500);
                 }
             }
 

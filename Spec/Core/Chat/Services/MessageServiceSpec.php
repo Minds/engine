@@ -6,6 +6,7 @@ use DateTime;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Minds\Core\Chat\Delegates\AnalyticsDelegate;
+use Minds\Core\Chat\Entities\ChatImage;
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Entities\ChatRichEmbed;
 use Minds\Core\Chat\Entities\ChatRoom;
@@ -18,6 +19,8 @@ use Minds\Core\Chat\Events\Sockets\Enums\ChatEventTypeEnum;
 use Minds\Core\Chat\Notifications\Events\ChatNotificationEvent;
 use Minds\Core\Chat\Repositories\MessageRepository;
 use Minds\Core\Chat\Repositories\RoomRepository;
+use Minds\Core\Chat\Services\ChatImageProcessorService;
+use Minds\Core\Chat\Services\ChatImageStorageService;
 use Minds\Core\Chat\Services\MessageService;
 use Minds\Core\Chat\Services\ReceiptService;
 use Minds\Core\Chat\Services\RichEmbedService;
@@ -39,6 +42,8 @@ class MessageServiceSpec extends ObjectBehavior
 {
     private Collaborator $messageRepositoryMock;
     private Collaborator $roomRepositoryMock;
+    private Collaborator $imageStorageServiceMock;
+    private Collaborator $imageProcessorServiceMock;
     private Collaborator $receiptServiceMock;
     private Collaborator $entitiesBuilderMock;
     private Collaborator $socketEventsMock;
@@ -52,10 +57,13 @@ class MessageServiceSpec extends ObjectBehavior
     private ReflectionClass $chatRichEmbedFactoryMock;
     private ReflectionClass $chatRoomFactoryMock;
     private ReflectionClass $chatRoomListItemFactoryMock;
+    private ReflectionClass $chatImageFactoryMock;
 
     public function let(
         MessageRepository $messageRepositoryMock,
         RoomRepository $roomRepositoryMock,
+        ChatImageStorageService $imageStorageServiceMock,
+        ChatImageProcessorService $imageProcessorServiceMock,
         ReceiptService $receiptServiceMock,
         EntitiesBuilder $entitiesBuilderMock,
         SocketEvents $socketEvents,
@@ -65,9 +73,11 @@ class MessageServiceSpec extends ObjectBehavior
         ACL $acl,
         Logger $logger
     ) {
-        $this->beConstructedWith($messageRepositoryMock, $roomRepositoryMock, $receiptServiceMock, $entitiesBuilderMock, $socketEvents, $chatNotificationsTopic, $chatRichEmbedService, $analyticsDelegate, $acl, $logger);
+        $this->beConstructedWith($messageRepositoryMock, $roomRepositoryMock, $imageStorageServiceMock, $imageProcessorServiceMock, $receiptServiceMock, $entitiesBuilderMock, $socketEvents, $chatNotificationsTopic, $chatRichEmbedService, $analyticsDelegate, $acl, $logger);
         $this->messageRepositoryMock = $messageRepositoryMock;
         $this->roomRepositoryMock  = $roomRepositoryMock;
+        $this->imageStorageServiceMock = $imageStorageServiceMock;
+        $this->imageProcessorServiceMock = $imageProcessorServiceMock;
         $this->receiptServiceMock = $receiptServiceMock;
         $this->entitiesBuilderMock = $entitiesBuilderMock;
         $this->socketEventsMock = $socketEvents;
@@ -81,6 +91,7 @@ class MessageServiceSpec extends ObjectBehavior
         $this->chatRichEmbedFactoryMock = new ReflectionClass(ChatRichEmbed::class);
         $this->chatRoomFactoryMock = new ReflectionClass(ChatRoom::class);
         $this->chatRoomListItemFactoryMock = new ReflectionClass(ChatRoomListItem::class);
+        $this->chatImageFactoryMock = new ReflectionClass(ChatImage::class);
     }
 
     public function it_is_initializable()
@@ -272,6 +283,120 @@ class MessageServiceSpec extends ObjectBehavior
             123,
             $userMock,
             $plainText
+        )->shouldBeAnInstanceOf(ChatMessageEdge::class);
+    }
+
+    public function it_should_add_a_message_with_an_image(
+        User $userMock,
+        ChatImage $chatImageMock,
+    ): void {
+        $plainText = 'just for testing www.minds.com';
+        $imageBlob = 'imageBlob';
+        $chatRoom = $this->generateChatRoomMock(guid: 123);
+        $listItemMock = $this->generateChatRoomListItemMock(
+            $chatRoom
+        );
+        $chatImageMock = $this->generateChatImageMock(
+            guid: 123,
+            roomGuid: 123,
+            messageGuid: 123
+        );
+
+        $userMock->getGuid()
+            ->willReturn('123');
+
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            1,
+            null,
+            null,
+            123
+        )->shouldBeCalled()->willReturn([
+            'chatRooms' => [ $listItemMock ]
+        ]);
+
+        $this->imageProcessorServiceMock->process(
+            user: $userMock,
+            imageBlob: $imageBlob,
+            roomGuid: 123,
+            messageGuid: Argument::type('int')
+        )->shouldBeCalled()->willReturn($chatImageMock);
+
+        $this->aclMock->write(Argument::any(), $userMock)
+            ->shouldBeCalled()
+            ->willReturn(true);
+    
+        $this->messageRepositoryMock->beginTransaction()
+            ->shouldBeCalled();
+
+        $this->messageRepositoryMock->addMessage(Argument::type(ChatMessage::class))
+            ->shouldBeCalled();
+
+        $this->messageRepositoryMock->addImage($chatImageMock)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->receiptServiceMock->updateReceipt(Argument::type(ChatMessage::class), $userMock)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->messageRepositoryMock->commitTransaction()
+            ->shouldBeCalled();
+
+        $this->socketEventsMock->setRoom('chat:123')
+            ->shouldBeCalledOnce()
+            ->willReturn($this->socketEventsMock);
+
+        $this->socketEventsMock->emit(
+            "chat:123",
+            json_encode(new ChatEvent(
+                type: ChatEventTypeEnum::NEW_MESSAGE,
+                metadata: [
+                    'senderGuid' => "123",
+                ],
+            ))
+        )
+            ->shouldBeCalledOnce();
+
+        $this->chatNotificationsTopicMock->send(Argument::type(ChatNotificationEvent::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $chatRoom = $this->generateChatRoomMock();
+
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            1,
+            null,
+            null,
+            123
+        )->shouldBeCalled()->willReturn([
+            'chatRooms' => [
+                $this->generateChatRoomListItemMock(
+                    $chatRoom
+                )
+            ]
+        ]);
+
+        $this->analyticsDelegateMock->onMessageSend(
+            actor: $userMock,
+            message: Argument::type(ChatMessage::class),
+            chatRoom: $chatRoom
+        )->shouldBeCalled();
+
+        $this->addMessage(
+            123,
+            $userMock,
+            $plainText,
+            $imageBlob
         )->shouldBeAnInstanceOf(ChatMessageEdge::class);
     }
 
@@ -1075,16 +1200,123 @@ class MessageServiceSpec extends ObjectBehavior
         )->shouldEqual(true);
     }
 
+    public function it_should_delete_message_with_an_image(
+        User $userMock
+    ): void {
+        $chatRoom = $this->generateChatRoomMock(roomType: ChatRoomTypeEnum::ONE_TO_ONE);
+        $chatRoomListItemMock = $this->generateChatRoomListItemMock($chatRoom);
+
+        $this->roomRepositoryMock->isUserMemberOfRoom(
+            123,
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ]
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $chatImageMock = $this->generateChatImageMock(123, 123, 1);
+
+        $this->messageRepositoryMock->getMessageByGuid(123, 1)
+            ->shouldBeCalledOnce()
+            ->willReturn($this->generateChatMessageMock(1, 123, ChatMessageTypeEnum::IMAGE, $chatImageMock));
+
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            1,
+            null,
+            null,
+            123
+        )
+            ->shouldBeCalled()
+            ->willReturn(['chatRooms' => [$chatRoomListItemMock]]);
+
+        $this->roomRepositoryMock->isUserRoomOwner(
+            roomGuid: 123,
+            user: $userMock
+        )
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $userMock->isAdmin()
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
+        $userMock->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $this->messageRepositoryMock->beginTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->receiptServiceMock->deleteAllMessageReadReceipts(
+            123,
+            1
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->imageStorageServiceMock->delete(
+            imageGuid: (string) $chatImageMock->guid,
+            ownerGuid: $chatImageMock->roomGuid
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->messageRepositoryMock->deleteImage(123, 1)
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->messageRepositoryMock->deleteChatMessage(
+            123,
+            1
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->messageRepositoryMock->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->socketEventsMock->setRoom("chat:123")
+            ->shouldBeCalledOnce()
+            ->willReturn($this->socketEventsMock);
+
+        $this->socketEventsMock->emit(
+            "chat:123",
+            json_encode(new ChatEvent(
+                type: ChatEventTypeEnum::MESSAGE_DELETED,
+                metadata: [
+                    'messageGuid' => "1",
+                ],
+            ))
+        )
+            ->shouldBeCalledOnce();
+
+        $this->deleteMessage(
+            123,
+            1,
+            $userMock
+        )->shouldEqual(true);
+    }
+
     private function generateChatMessageMock(
         int $messageGuid,
         int $senderGuid,
-        ChatMessageTypeEnum $messageType = ChatMessageTypeEnum::TEXT
+        ChatMessageTypeEnum $messageType = ChatMessageTypeEnum::TEXT,
+        ChatImage $chatImageMock = null
     ): ChatMessage {
         $chatMessageMock = $this->chatMessageFactoryMock->newInstanceWithoutConstructor();
         $this->chatMessageFactoryMock->getProperty('guid')->setValue($chatMessageMock, $messageGuid);
         $this->chatMessageFactoryMock->getProperty('senderGuid')->setValue($chatMessageMock, $senderGuid);
         $this->chatMessageFactoryMock->getProperty('createdAt')->setValue($chatMessageMock, new DateTimeImmutable());
         $this->chatMessageFactoryMock->getProperty('messageType')->setValue($chatMessageMock, $messageType);
+        $this->chatMessageFactoryMock->getProperty('image')->setValue($chatMessageMock, $chatImageMock);
 
         return $chatMessageMock;
     }
@@ -1131,5 +1363,25 @@ class MessageServiceSpec extends ObjectBehavior
         $this->chatRoomFactoryMock->getProperty('roomType')->setValue($chatRoom, $roomType);
 
         return $chatRoom;
+    }
+
+    private function generateChatImageMock(
+        int $guid,
+        int $roomGuid,
+        int $messageGuid,
+        int $width = 100,
+        int $height = 100,
+        string $blurhash = 'blurhash',
+    ): ChatImage {
+        $chatImageMock = $this->chatImageFactoryMock->newInstanceWithoutConstructor();
+
+        $this->chatImageFactoryMock->getProperty('guid')->setValue($chatImageMock, $guid);
+        $this->chatImageFactoryMock->getProperty('roomGuid')->setValue($chatImageMock, $roomGuid);
+        $this->chatImageFactoryMock->getProperty('messageGuid')->setValue($chatImageMock, $messageGuid);
+        $this->chatImageFactoryMock->getProperty('width')->setValue($chatImageMock, $width);
+        $this->chatImageFactoryMock->getProperty('height')->setValue($chatImageMock, $height);
+        $this->chatImageFactoryMock->getProperty('blurhash')->setValue($chatImageMock, $blurhash);
+
+        return $chatImageMock;
     }
 }
