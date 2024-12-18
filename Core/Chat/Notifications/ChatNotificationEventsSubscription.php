@@ -200,7 +200,17 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
             foreach ($deviceSubscriptions as $deviceSubscription) {
                 $this->logger->info("Delivering to device - {$deviceSubscription->getToken()}");
                 $notification->setDeviceSubscription($deviceSubscription);
-                $this->getNotificationHandler($deviceSubscription->getService())->send($notification);
+                try {
+                    $this->getNotificationHandler($deviceSubscription->getService())->send($notification);
+                } catch (\Exception $e) {
+                    if ($e->getCode() === 410 || $e->getCode() === 404) {
+                        // Device is gone
+                        $this->devicePushNotifSubscriptionManager->delete($deviceSubscription);
+                        $this->logger->info('Failed as the device is gone. Cleaned up');
+                    } else {
+                        $this->logger->error('Failed ' . $e->getMessage());
+                    }
+                }
             }
 
             $this->logger->info("... completed sending to {$roomMember->getNode()->getGuid()}");
