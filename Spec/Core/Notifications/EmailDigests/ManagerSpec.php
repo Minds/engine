@@ -6,6 +6,7 @@ use Minds\Core\Notifications\EmailDigests\Manager;
 use Minds\Core\Notifications\EmailDigests\Repository;
 use Minds\Core\Email;
 use Minds\Core\Email\V2\Campaigns\Recurring\UnreadNotifications\UnreadNotifications;
+use Minds\Core\Email\V2\Delegates\DigestSender;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Notifications\Notification;
 use PhpSpec\ObjectBehavior;
@@ -19,8 +20,8 @@ class ManagerSpec extends ObjectBehavior
     /** @var Email\Repository */
     protected $emailRepository;
 
-    /** @var UnreadNotifications */
-    protected $unreadNotificationsEmail;
+    /** @var DigestSender */
+    protected $digestSender;
 
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
@@ -28,13 +29,13 @@ class ManagerSpec extends ObjectBehavior
     public function let(
         Repository $repository,
         Email\Repository $emailRepository,
-        UnreadNotifications $unreadNotificationsEmail,
+        DigestSender $digestSender,
         EntitiesBuilder $entitiesBuilder
     ) {
-        $this->beConstructedWith($repository, $emailRepository, $unreadNotificationsEmail, $entitiesBuilder);
+        $this->beConstructedWith($repository, $emailRepository, $digestSender, $entitiesBuilder);
         $this->repository = $repository;
         $this->emailRepository = $emailRepository;
-        $this->unreadNotificationsEmail = $unreadNotificationsEmail;
+        $this->digestSender = $digestSender;
         $this->entitiesBuilder = $entitiesBuilder;
     }
 

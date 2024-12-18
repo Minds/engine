@@ -20,8 +20,12 @@ use Minds\Core\Email\V2\Common\TenantTemplateVariableInjector;
 use Minds\Core\Email\V2\Partials\ActionButtonV2\ActionButtonV2;
 use Minds\Core\Email\V2\Partials\UnreadMessages\UnreadMessages;
 use Minds\Core\Email\V2\Partials\UnreadMessages\UnreadMessagesPartial;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Elastic\V2\QueryOpts;
 use Minds\Core\Search\SortingAlgorithms;
+use Minds\Entities\Activity;
+use Minds\Entities\User;
+use Minds\Helpers\Text;
 
 class Digest extends EmailCampaign
 {
@@ -50,6 +54,7 @@ class Digest extends EmailCampaign
         protected ?Config $config = null,
         protected ?TenantTemplateVariableInjector $tenantTemplateVariableInjector= null,
         protected ?UnreadMessagesPartial $unreadMessagesPartial = null,
+        protected ?EntitiesBuilder $entitiesBuilder = null,
     ) {
         $this->template = $template ?: new Template();
         $this->mailer = $mailer ?: new Mailer();
@@ -61,6 +66,7 @@ class Digest extends EmailCampaign
         $this->unreadMessagesPartial ??= Di::_()->get(UnreadMessagesPartial::class);
         $this->campaign = 'with';
         $this->topic = 'posts_missed_since_login';
+        $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
     }
 
     public function build(): ?Message
@@ -124,6 +130,7 @@ class Digest extends EmailCampaign
 
         // Get trends (highlights) from discovery
         try {
+            /** @var Activity[] */
             $activities = iterator_to_array($this->elasticFeedManager->getTop(
                 new QueryOpts(
                     user: $this->user,
@@ -169,6 +176,19 @@ class Digest extends EmailCampaign
 
         if ($unreadMessagesPartial) {
             $this->template->set('unreadMessagesPartial', $unreadMessagesPartial);
+        }
+
+        foreach ($activities as $activity) {
+            if ($subjectCandidate = $activity->getMessage() ?: $activity->getTitle()) {
+                $owner = $this->entitiesBuilder->single($activity->getOwnerGuid());
+                if (!$owner instanceof User) {
+                    continue;
+                }
+                $this->template->set('preheader', "@{$owner->getUsername()} - $subjectCandidate");
+                $subjectCandidate = Text::truncate($subjectCandidate, 40);
+                $subject = "\"$subjectCandidate\"";
+                break;
+            }
         }
 
         $message = new Message();

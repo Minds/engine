@@ -11,6 +11,7 @@ use Minds\Core\Notifications\Notification;
 use Minds\Core\Email;
 use Minds\Core\Email\EmailSubscription;
 use Minds\Core\Email\V2\Campaigns\Recurring\UnreadNotifications\UnreadNotifications;
+use Minds\Core\Email\V2\Delegates\DigestSender;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
 
@@ -22,8 +23,8 @@ class Manager
     /** @var Email\Repository */
     protected $emailRepository;
 
-    /** @var UnreadNotifications */
-    protected $unreadNotificationsEmail;
+    /** @var DigestSender */
+    protected $digestSender;
 
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
@@ -31,12 +32,12 @@ class Manager
     public function __construct(
         Repository $repository = null,
         Email\Repository $emailRepository = null,
-        UnreadNotifications $unreadNotificationsEmail = null,
+        DigestSender $digestSender = null,
         EntitiesBuilder $entitiesBuilder = null
     ) {
         $this->repository = $repository ?? new Repository();
         $this->emailRepository = $emailRepository ?? Di::_()->get('Email\Repository');
-        $this->unreadNotificationsEmail = $unreadNotificationsEmail ?? new UnreadNotifications();
+        $this->digestSender = $digestSender ?? new DigestSender();
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
     }
 
@@ -49,9 +50,8 @@ class Manager
         /** @var User */
         $toUser = $this->entitiesBuilder->single($marker->getToGuid());
 
-        $this->unreadNotificationsEmail
-            ->setUser($toUser)
-            ->send();
+        $this->digestSender
+            ->send($toUser);
     }
 
     /**
