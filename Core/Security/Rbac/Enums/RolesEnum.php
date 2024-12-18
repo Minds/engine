@@ -11,4 +11,3 @@ enum RolesEnum: int
     case PLUS = 5;
     case PRO = 6;
 }
-
