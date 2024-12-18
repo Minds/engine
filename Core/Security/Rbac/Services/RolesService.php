@@ -82,6 +82,10 @@ class RolesService
                 $roles[] = $allRoles[RolesEnum::PLUS->value];
             }
 
+            if ($user->isPro()) {
+                $roles[] = $allRoles[RolesEnum::PRO->value];
+            }
+
             // All users will have a default role
             $roles[] = $allRoles[RolesEnum::DEFAULT->value];
         }
@@ -343,6 +347,13 @@ class RolesService
                 [
                     PermissionsEnum::CAN_UPLOAD_AUDIO,
                     PermissionsEnum::CAN_UPLOAD_CHAT_MEDIA,
+                ]
+            );
+            $roles[RolesEnum::PRO->value] = new Role(
+                RolesEnum::PRO->value,
+                RolesEnum::PRO->name,
+                [
+                    PermissionsEnum::CAN_USE_RSS_SYNC,
                 ]
             );
         }

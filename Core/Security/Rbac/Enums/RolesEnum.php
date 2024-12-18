@@ -9,4 +9,6 @@ enum RolesEnum: int
     case VERIFIED = 3;
     case DEFAULT = 4;
     case PLUS = 5;
+    case PRO = 6;
 }
+
