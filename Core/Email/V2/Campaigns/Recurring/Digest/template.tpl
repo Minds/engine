@@ -96,7 +96,7 @@
                                                             $length = 140;
                                                             $activity['title'] = substr($activity['message'], 0, $length) . (strlen($activity['message']) > 140 ? '...' : '');
                                                         }
-                                                        if (!$activity['title'] && $activity['link_title']) {
+                                                        if (!$activity['title'] && $activity['link_title'] ?? null) {
                                                             $activity['title'] = $activity['link_title'];
                                                         }
                                                     ?>
@@ -157,7 +157,7 @@
 
 <?php } ?>
 
-<?php if ($vars['unreadMessagesPartial']) { ?>
+<?php if ($vars['unreadMessagesPartial'] ?? null) { ?>
     <div <?= $emailStyles->getStyles('m-spacer--medium'); ?>></div>
     <?= $vars['unreadMessagesPartial']; ?>
 <?php } ?>

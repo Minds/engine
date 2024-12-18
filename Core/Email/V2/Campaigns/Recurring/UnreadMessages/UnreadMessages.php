@@ -87,7 +87,7 @@ class UnreadMessages extends EmailCampaign
             $siteName = 'Minds';
         }
     
-        $subject = "Here's what you missed on $siteName";
+        $subject = "You have unread messages on $siteName";
 
         $this->template->setTemplate('default.v2.tpl');
         $this->template->setBody('./template.tpl');

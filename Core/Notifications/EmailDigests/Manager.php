@@ -50,6 +50,10 @@ class Manager
         /** @var User */
         $toUser = $this->entitiesBuilder->single($marker->getToGuid());
 
+        if (!$toUser instanceof User) {
+            return;
+        }
+
         $this->digestSender
             ->send($toUser);
     }

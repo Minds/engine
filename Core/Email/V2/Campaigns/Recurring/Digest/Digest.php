@@ -185,7 +185,7 @@ class Digest extends EmailCampaign
                     continue;
                 }
                 $this->template->set('preheader', "@{$owner->getUsername()} - $subjectCandidate");
-                $subjectCandidate = Text::truncate($subjectCandidate, 40);
+                $subjectCandidate = Text::truncate($subjectCandidate, 50);
                 $subject = "\"$subjectCandidate\"";
                 break;
             }
