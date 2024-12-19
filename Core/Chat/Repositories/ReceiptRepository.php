@@ -76,7 +76,7 @@ class ReceiptRepository extends AbstractRepository
             ->where('msg.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->where('m.status', Operator::EQ, new RawExp(':member_status'))
             ->where('m.member_guid', Operator::EQ, new RawExp(':member_guid'))
-            ->where(new RawExp('COALESCE(rct.message_guid, 0) < msg.guid'));
+            ->where(new RawExp('COALESCE(rct.last_read_timestamp, 0) < msg.created_timestamp'));
 
         $stmt = $query->prepare();
         $stmt->execute([
