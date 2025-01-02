@@ -21,6 +21,7 @@ RUN apk add --virtual build-deps \
     icu-libs \
     libpng \
     libjpeg \
+    libwebp-dev \
     nodejs \
     linux-headers \
     # Install FFMpeg
@@ -28,7 +29,7 @@ RUN apk add --virtual build-deps \
     # Install PHP extension
     && docker-php-ext-install -j$(nproc) bcmath \
     && docker-php-ext-install -j$(nproc) zip \
-    && docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/include/ \
+    && docker-php-ext-configure gd --with-freetype=/usr/include/ --with-webp=/usr/include/ --with-jpeg=/usr/include/ \
     && docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-install -j$(nproc) exif \
     && docker-php-ext-install -j$(nproc) sockets \

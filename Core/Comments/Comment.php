@@ -516,6 +516,9 @@ class Comment extends RepositoryEntity implements EntityInterface, FederatedEnti
             default_return: []
         ));
 
+        // Patch
+        $output['link_title'] = $output['title'] ?? '';
+
         if (!Flags::shouldDiscloseStatus($this)) {
             unset($output['spam']);
             unset($output['deleted']);
