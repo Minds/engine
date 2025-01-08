@@ -25,6 +25,7 @@ class Manager
         Lists\MembershipTierOwnerList::class,
         Lists\Active30DayList::class,
         Lists\TenantsList::class,
+        Lists\MatrixList::class,
         // Takes too long
         // Lists\SubscribersList::class,
     ];
