@@ -26,7 +26,7 @@ class MatrixList implements SendGridListInterface
     public function getContacts(): iterable
     {
         foreach ($this->matrixManager->getAccounts() as $matrixAccount) {
-            $user = $this->entitiesBuilder->getByUserByIndex($matrixAccount->getId());
+            $user = $this->entitiesBuilder->getByUserByIndex($matrixAccount->getUserGuid());
 
             if (!$user instanceof User) {
                 continue;
