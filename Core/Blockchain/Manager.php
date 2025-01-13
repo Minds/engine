@@ -42,10 +42,6 @@ class Manager
         if (isset($blockchainConfig['contracts']['withdraw']) && $blockchainConfig['contracts']['withdraw']['contract_address']) {
             $this->contracts['withdraw'] = Contracts\MindsWithdraw::at($blockchainConfig['contracts']['withdraw']['contract_address']);
         }
-
-        if ($blockchainConfig['token_distribution_event_address'] ?? null) {
-            $this->contracts['token_distribution_event'] = Contracts\MindsTokenSaleEvent::at($blockchainConfig['contracts']['token_sale_event']['contract_address']);
-        }
     }
 
     public function getContract($contract)
@@ -65,7 +61,6 @@ class Manager
             'client_network' => $blockchainConfig['client_network'],
             'wallet_address' => $blockchainConfig['wallet_address'] ?? null,
             'boost_wallet_address' => $blockchainConfig['contracts']['boost']['wallet_address'],
-            'token_distribution_event_address' => $blockchainConfig['contracts']['token_sale_event']['contract_address'],
             'rate' => $blockchainConfig['eth_rate'],
             'plus_address' => $blockchainConfig['contracts']['wire']['plus_address'],
             'default_gas_price' => $blockchainConfig['default_gas_price'],
@@ -93,7 +88,6 @@ class Manager
                 'client_network' => $blockchainConfig['client_network'],
                 'wallet_address' => $blockchainConfig['wallet_address'] ?? null,
                 'boost_wallet_address' => $blockchainConfig['contracts']['boost']['wallet_address'],
-                'token_distribution_event_address' => $blockchainConfig['contracts']['token_sale_event']['contract_address'],
                 'plus_address' => $blockchainConfig['contracts']['wire']['plus_address'],
                 'default_gas_price' => $blockchainConfig['default_gas_price'],
             ];

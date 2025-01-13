@@ -451,13 +451,6 @@ $CONFIG->set('blockchain', [
 
     'token_address' => '0xb26631c6dda06ad89b93c71400d25692de89c068',
     'contracts' => [
-        'token_sale_event' => [
-            'contract_address' => '0xf3c9dbb9598c21fe64a67d0586adb5d6eb66bc63',
-            'wallet_address' => '0x1820fFAD63fD64d7077Da4355e9641dfFf4DAD0d',
-            'wallet_pkey' => '',
-            'eth_rate' => 2000, //1 ETH = 2,000 TOKENS
-            'auto_issue_cap' => '120000000000000000000000', //60ETH (120,000 tokens) $30,000 USD
-        ],
         'withdraw' => [
             'contract_address' => '0xdd10ccb3100980ecfdcbb1175033f0c8fa40548c',
             'wallet_address' => '0x14E421986C5ff2951979987Cdd82Fa3C0637D569',

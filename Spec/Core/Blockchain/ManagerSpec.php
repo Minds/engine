@@ -28,12 +28,9 @@ class ManagerSpec extends ObjectBehavior
                         'plus_guid' => 123,
                     ],
                     'withdraw' => ['contract_address' => '0x789', 'limit' => 1],
-                    'token_sale_event' => ['contract_address' => '0x987'],
                     'boost' => ['contract_address' => '0x002', 'wallet_address' => '0x003']
                 ],
                 'boost_address' => '0x654',
-                'token_distribution_event_address' => '0x321',
-
                 'network_address' => 'https://rinkeby.infura.io/',
                 'client_network' => '1337',
                 'wallet_address' => '0x132',
@@ -92,7 +89,6 @@ class ManagerSpec extends ObjectBehavior
                     'client_network' => "1338",
                     'wallet_address' => "0x132",
                     'boost_wallet_address' => "0x003",
-                    'token_distribution_event_address' => "0x987",
                     'plus_address' => '0xPLUS',
                     'default_gas_price' => 1,
                 ]

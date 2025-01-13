@@ -36,11 +36,8 @@ class ConfigSpec extends ObjectBehavior
                         'plus_guid' => 123,
                     ],
                     'withdraw' => ['contract_address' => '0x789'],
-                    'token_sale_event' => ['contract_address' => '0x987']
                 ],
                 'boost_address' => '0x654',
-                'token_distribution_event_address' => '0x321',
-
                 'network_address' => 'https://rinkeby.infura.io/',
                 'client_network' => '1337',
                 'wallet_address' => '0x132',
@@ -71,13 +68,8 @@ class ConfigSpec extends ObjectBehavior
 
                         'contract_address' => '0x789'
                     ],
-                    'token_sale_event' => [
-
-                        'contract_address' => '0x987'
-                    ],
                 ],
                 'boost_address' => '0x654',
-                'token_distribution_event_address' => '0x321',
                 'network_address' => 'https://rinkeby.infura.io/',
                 'client_network' => '1338',
                 'wallet_address' => '0x132',

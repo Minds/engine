@@ -16,8 +16,6 @@ use Minds\Core\Blockchain\Reports\Manager;
 
 class reports implements Interfaces\Api, Interfaces\ApiAdminPam
 {
-    /** @var string */
-    private $token_sale_event_wallet;
 
     /**
      * Contructor
@@ -28,8 +26,6 @@ class reports implements Interfaces\Api, Interfaces\ApiAdminPam
         $config = $config ?: Di::_()->get('Config');
 
         $blockchainConfig = $config->get('blockchain');
-
-        $this->token_sale_event_wallet = $blockchainConfig['contracts']['token_sale_event']['wallet_address'];
     }
 
     /**
