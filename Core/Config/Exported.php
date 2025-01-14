@@ -233,8 +233,8 @@ class Exported
                 'logged_in_landing_page_id_web' => $tenant->config?->loggedInLandingPageIdWeb ?? null,
                 'logged_in_landing_page_id_mobile' => $tenant->config?->loggedInLandingPageIdMobile ?? null,
                 'custom_script' => $tenant->config?->customScript ?? null,
-                'disable_account_discalimer' => $tenant->config?->disableAccountDislcaimer,
-                'delete_account_discalimer' => $tenant->config?->deleteAccountDislcaimer,
+                'disable_account_disclaimer' => $tenant->config?->disableAccountDisclaimer,
+                'delete_account_disclaimer' => $tenant->config?->deleteAccountDisclaimer,
             ];
 
             $exported['tenant']['max_memberships'] = $multiTenantConfig['plan_memberships'][$exported['tenant']['plan']] ?? 0;

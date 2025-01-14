@@ -97,6 +97,8 @@ class Repository extends AbstractRepository
                 'updated_timestamp',
                 'nsfw_enabled',
                 'bloomerang_api_key',
+                'disable_account_disclaimer',
+                'delete_account_disclaimer',
             ])
             ->where('deleted_timestamp', Operator::IS, null);
     }
@@ -132,6 +134,8 @@ class Repository extends AbstractRepository
         $suspendedTimestamp = $row['suspended_timestamp'] ?? null;
         $deletedTimestamp = $row['deleted_timestamp'] ?? null;
         $bloomerangApiKey = $row['bloomerang_api_key'] ?? null;
+        $disableAccountDisclaimer = $row['disable_account_disclaimer'] ?? '';
+        $deleteAccountDisclaimer = $row['delete_account_disclaimer'] ?? '';
 
         return new Tenant(
             id: $tenantId,
@@ -159,6 +163,8 @@ class Repository extends AbstractRepository
                 updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null,
                 lastCacheTimestamp: $lastCacheTimestamp ? strtotime($lastCacheTimestamp) : null,
                 bloomerangApiKey: $bloomerangApiKey,
+                disableAccountDisclaimer: $disableAccountDisclaimer,
+                deleteAccountDisclaimer: $deleteAccountDisclaimer,
             ),
             plan: TenantPlanEnum::fromString($plan),
             trialStartTimestamp: $trialStartTimestamp ? strtotime($trialStartTimestamp) : null,
