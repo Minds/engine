@@ -63,6 +63,8 @@ class Repository extends AbstractRepository
             loggedInLandingPageIdMobile: $row['logged_in_landing_page_id_mobile'] ?? null,
             isNonProfit: (bool) $row['is_non_profit'] ?? false,
             bloomerangApiKey: $row['bloomerang_api_key'] ?? null,
+            disableAccountDislcaimer: $row['disable_account_disclaimer'] ?? '',
+            deleteAccountDislcaimer: $row['delete_account_disclaimer'] ?? '',
             lastCacheTimestamp: isset($row['last_cache_timestamp']) ? strtotime($row['last_cache_timestamp']) : null,
             updatedTimestamp: isset($row['updated_timestamp']) ? strtotime($row['updated_timestamp']) : null
         );
