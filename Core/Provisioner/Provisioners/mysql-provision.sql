@@ -1243,3 +1243,11 @@ CREATE TABLE IF NOT EXISTS minds_chat_images(
     INDEX (tenant_id, room_guid),
     INDEX (tenant_id, message_guid)
 );
+
+ALTER TABLE `minds_tenant_configs`
+    ADD disable_account_disclaimer MEDIUMTEXT DEFAULT NULL
+    AFTER custom_script;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD delete_account_disclaimer MEDIUMTEXT DEFAULT NULL
+    AFTER disable_account_disclaimer;
