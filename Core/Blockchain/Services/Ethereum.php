@@ -189,6 +189,8 @@ class Ethereum
     {
         $config = $this->config->get();
 
+        $transaction['chainId'] = $config['client_network'];
+
         if (!isset($transaction['from']) || !isset($transaction['gasLimit'])) {
             throw new \Exception('Transaction must have `from` and `gasLimit`');
         }
