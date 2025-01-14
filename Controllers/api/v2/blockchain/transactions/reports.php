@@ -16,7 +16,6 @@ use Minds\Core\Blockchain\Reports\Manager;
 
 class reports implements Interfaces\Api, Interfaces\ApiAdminPam
 {
-
     /**
      * Contructor
      * @param Core\Config\Config $config
