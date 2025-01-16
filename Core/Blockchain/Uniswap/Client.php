@@ -70,7 +70,7 @@ class Client
                       reserveUSD
                     }
                 }
-                burns(where: { to: $id}) {
+                burns(where: { sender: $id}) {
                     id
                     to
                     amount0

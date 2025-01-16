@@ -239,7 +239,7 @@ class Manager
                         $liquidityScores[$liquiditySummary->getUserGuid()] = BigDecimal::of(0);
                     }
 
-                    $liquidityScores[$liquiditySummary->getUserGuid()] = $liquidityScores[$liquiditySummary->getUserGuid()]->plus($liquiditySummary->getProvidedLiquidity()->getUsd());
+                    $liquidityScores[$liquiditySummary->getUserGuid()] = $liquidityScores[$liquiditySummary->getUserGuid()]->plus($liquiditySummary->getLpPosition());
                 }
             }
 

@@ -96,11 +96,13 @@ class ManagerSpec extends ObjectBehavior
         // so we calculate a 100% yield
         $uniswapUser->setMints([
             (new UniswapMintEntity()) // 20% of pool
+                ->setLiquidity(BigDecimal::of(0.5))
                 ->setAmount0(BigDecimal::of(0.25))
                 ->setAmount1(BigDecimal::of(0.5))
                 ->setAmountUSD(BigDecimal::of(0.5))
                 ->setPair($pairs[0]),
             (new UniswapMintEntity()) // 5% of pool
+                ->setLiquidity(BigDecimal::of(0.5))
                 ->setAmount0(BigDecimal::of(0.125)) // 50% of 0.5 (the pair2 amount)
                 ->setAmount1(BigDecimal::of(0.25))
                 ->setAmountUSD(BigDecimal::of(0.25))
@@ -110,6 +112,7 @@ class ManagerSpec extends ObjectBehavior
         // We burn 5% of our initially provided supply, giving us 20% in total
         $uniswapUser->setBurns([
             (new UniswapBurnEntity()) // 5% of pool
+                ->setLiquidity(BigDecimal::of(0.5))
                 ->setAmount0(BigDecimal::of(0.125)) // 50% of 0.5 (the pair2 amount)
                 ->setAmount1(BigDecimal::of(0.25))
                 ->setAmountUSD(BigDecimal::of(0.25))

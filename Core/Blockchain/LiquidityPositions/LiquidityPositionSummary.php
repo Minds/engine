@@ -24,6 +24,8 @@ use Brick\Math\BigDecimal;
  * @method self setLiquiditySpotOptOut(bool $optOut)
  * @method bool getLiquiditySpotOptOut()
  * @method bool isLiquiditySpotOptOut()
+ * @method self setLpPosition(BigDecimal $lpPosition)
+ * @method BigDecimal getLpPosition()
  */
 class LiquidityPositionSummary
 {
@@ -52,6 +54,8 @@ class LiquidityPositionSummary
 
     /** @var LiquidityCurrencyValues */
     protected $shareOfLiquidity;
+    
+    protected BigDecimal $lpPosition;
 
     /** @var bool */
     protected $liquiditySpotOptOut = false;

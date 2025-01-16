@@ -148,6 +148,8 @@ class Manager
 
         $tokenSharePct = $providedLiquidityMINDS->dividedBy($totalLiquidityTokens, null, RoundingMode::FLOOR);
 
+        $mintsToLPPosition = BigDecimal::sum(...(array_map([$this, 'uniswapMintsToLPPosition'], $approvedMints) ?: [0]));
+        $burnsToLPPosition = BigDecimal::sum(...(array_map([$this, 'uniswapMintsToLPPosition'], $approvedBurns) ?: [0]));
 
         //
         // Total liquidity
@@ -164,6 +166,9 @@ class Manager
         //
         // Share of liquidity
         //
+
+        // This is the number of LP tokens a user holders. We use this for rewards.
+        $lpPosition = $mintsToLPPosition->minus($burnsToLPPosition);
 
         $shareOfLiquidityMINDS = $providedLiquidityMINDS->dividedBy($totalLiquidityMINDS, null, RoundingMode::FLOOR);
         $shareOfLiquidityUSD = $providedLiquidityUSD->dividedBy($totalLiquidityUSD, null, RoundingMode::FLOOR);
@@ -187,6 +192,7 @@ class Manager
                     ->setUsd($shareOfLiquidityUSD)
                     ->setMinds($shareOfLiquidityMINDS)
             )
+            ->setLpPosition($lpPosition)
             ->setLiquiditySpotOptOut($this->user->isLiquiditySpotOptOut() || count($this->user->getNsfw()));
 
         // How to calculate a multiplier
@@ -298,5 +304,15 @@ class Manager
         // However, for now all of our approved pairs do maintain this order
         // Verifying ->getPair()->getToken0()->getId() should be able to do this?
         return $uniswapMint->getAmount0();
+    }
+
+    /**
+     * To be used by PHP array_map as callback
+     * @param UniswapMintEntity $uniswapMint
+     * @return BigDecimal
+     */
+    private function uniswapMintsToLPPosition(UniswapMintEntity $uniswapMint): BigDecimal
+    {
+        return $uniswapMint->getLiquidity();
     }
 }

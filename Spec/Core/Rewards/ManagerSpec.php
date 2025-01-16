@@ -144,10 +144,8 @@ class ManagerSpec extends ObjectBehavior
                 ->willReturn([
                     (new LiquidityPositionSummary())
                         ->setUserGuid('123')
-                        ->setProvidedLiquidity(
-                            (new LiquidityCurrencyValues())
-                                ->setUsd(BigDecimal::of(10))
-                                ->setMinds(BigDecimal::of(10))
+                        ->setLpPosition(
+                            BigDecimal::of(10)
                         ),
                 ]);
 
@@ -240,10 +238,8 @@ class ManagerSpec extends ObjectBehavior
                 ->willReturn([
                     (new LiquidityPositionSummary())
                         ->setUserGuid('123')
-                        ->setProvidedLiquidity(
-                            (new LiquidityCurrencyValues())
-                                ->setUsd(BigDecimal::of(10))
-                                ->setMinds(BigDecimal::of(10))
+                        ->setLpPosition(
+                            BigDecimal::of(10)
                         ),
                 ]);
 

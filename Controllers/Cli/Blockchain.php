@@ -153,7 +153,7 @@ class Blockchain extends Cli\Controller implements Interfaces\CliControllerInter
         $username = $this->getOpt('username');
         $user = new \Minds\Entities\User($username);
         //$address = '0x177fd9efd24535e73b81e99e7f838cdef265e6cb';
-        $address = strtolower('0x1c4830fD39a9C7B72f0F745Bb16026225744E966');
+        $address = strtolower('0x678e47Ad94eF3bBBc306374f6418fD6193B179D4');
 
         $uniswap = Di::_()->get('Blockchain\Uniswap\Client');
         $response = $uniswap->getUser($address);
@@ -174,7 +174,7 @@ class Blockchain extends Cli\Controller implements Interfaces\CliControllerInter
     public function liquidity_share()
     {
         $username = $this->getOpt('username');
-        $user = new \Minds\Entities\User($username);
+        $user = Di::_()->get('EntitiesBuilder')->getByUserByIndex($username);
 
         $liquidityManager = Di::_()->get('Blockchain\LiquidityPositions\Manager')
             ->setUser($user);
@@ -182,10 +182,22 @@ class Blockchain extends Cli\Controller implements Interfaces\CliControllerInter
         var_dump($liquidityManager->getLiquidityTokenShare());
     }
 
+    public function liquidity_summary()
+    {
+        $username = $this->getOpt('username');
+        $user = Di::_()->get('EntitiesBuilder')->getByUserByIndex($username);
+
+        $liquidityManager = Di::_()->get('Blockchain\LiquidityPositions\Manager')
+            ->setUser($user)
+            ->setChainId(Util::ETHEREUM_CHAIN_ID);
+
+        var_dump($liquidityManager->getSummary());
+    }
+
     public function liquidity_providers_summaries()
     {
         $liquidityManager = Di::_()->get('Blockchain\LiquidityPositions\Manager');
-        $summaries = $liquidityManager->getAllProvidersSummaries();
+        $summaries = $liquidityManager->setChainId(Util::ETHEREUM_CHAIN_ID)->getAllProvidersSummaries();
         var_dump($summaries);
     }
 
