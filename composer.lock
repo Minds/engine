@@ -3677,7 +3677,7 @@
             "source": {
                 "type": "git",
                 "url": "https://0544aedfc74db62dcd39301588cd672b2b91e060@github.com/minds/mw3.git",
-                "reference": "6e043c5940f056f9ca643be8ddebbb7f5a595456"
+                "reference": "464a3c9b8146362acdeea183b8ab1ca17d71eba8"
             },
             "require": {
                 "composer-plugin-api": "^2.0"
@@ -3696,7 +3696,7 @@
                 }
             },
             "description": "Minds PHP Web3",
-            "time": "2021-09-17T18:05:28+00:00"
+            "time": "2025-01-14T14:12:23+00:00"
         },
         {
             "name": "minds/mysql-fluent-interface",
