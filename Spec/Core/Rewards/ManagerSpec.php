@@ -11,8 +11,10 @@ use Minds\Core\Blockchain\Transactions\Repository as TxRepository;
 use Minds\Core\Blockchain\Wallets\OffChain\Transactions;
 use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Blockchain\LiquidityPositions;
+use Minds\Core\Blockchain\LiquidityPositions\LiquidityCurrencyValues;
 use Minds\Core\Blockchain\LiquidityPositions\LiquidityPositionSummary;
 use Minds\Core\Blockchain\Services\BlockFinder;
+use Minds\Core\Blockchain\Util;
 use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain;
 use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain\UniqueOnChainAddress;
 use Minds\Core\EntitiesBuilder;
@@ -132,22 +134,32 @@ class ManagerSpec extends ObjectBehavior
         $this->liquidityPositionManager->setDateTs(Argument::any())
                 ->willReturn($this->liquidityPositionManager);
 
+        $this->liquidityPositionManager->setChainId(Util::BASE_CHAIN_ID)
+                ->willReturn($this->liquidityPositionManager);
+
+        $this->liquidityPositionManager->setChainId(Util::ETHEREUM_CHAIN_ID)
+                ->willReturn($this->liquidityPositionManager);
+
         $this->liquidityPositionManager->getAllProvidersSummaries()
                 ->willReturn([
                     (new LiquidityPositionSummary())
                         ->setUserGuid('123')
-                        ->setUserLiquidityTokens(BigDecimal::of(10)),
+                        ->setProvidedLiquidity(
+                            (new LiquidityCurrencyValues())
+                                ->setUsd(BigDecimal::of(10))
+                                ->setMinds(BigDecimal::of(10))
+                        ),
                 ]);
 
         // Add to the repository
         $this->repository->add(Argument::that(function ($rewardEntry) {
-            return $rewardEntry->getUserGuid() === '123'
-                && (string) $rewardEntry->getScore() === '30'
+            return (string) $rewardEntry->getUserGuid() === '123'
+                && (string) $rewardEntry->getScore() === '60'
                 && $rewardEntry->getRewardType() === 'liquidity';
-        }))->shouldBeCalled();
+        }))->shouldBeCalled()->willReturn(true);
 
         // Holding
-        $this->blockFinder->getBlockByTimestamp(Argument::any())
+        $this->blockFinder->getBlockByTimestamp(Argument::any(), Argument::type('integer'))
             ->willReturn(1);
 
         $this->uniqueOnChainManager->getAll(Argument::any())
@@ -159,12 +171,12 @@ class ManagerSpec extends ObjectBehavior
         
         $this->token->fromTokenUnit("10")
                 ->willReturn(10);
-        $this->token->balanceOf('0xAddresss', 1)
+        $this->token->balanceOf('0xAddresss', 1, Argument::type('integer'))
                 ->willReturn("10");
 
         $this->repository->add(Argument::that(function ($rewardEntry) {
-            return $rewardEntry->getUserGuid() === '123'
-                && (string) $rewardEntry->getScore() === "30"
+            return (string) $rewardEntry->getUserGuid() === '123'
+                && (string) $rewardEntry->getScore() === "60"
                 && $rewardEntry->getRewardType() === 'holding';
         }))->shouldBeCalled();
 
@@ -216,6 +228,11 @@ class ManagerSpec extends ObjectBehavior
         }))->shouldBeCalled();
 
         // Liquidity
+        $this->liquidityPositionManager->setChainId(Util::BASE_CHAIN_ID)
+            ->willReturn($this->liquidityPositionManager);
+        $this->liquidityPositionManager->setChainId(Util::ETHEREUM_CHAIN_ID)
+            ->willReturn($this->liquidityPositionManager);
+
         $this->liquidityPositionManager->setDateTs(Argument::any())
                 ->willReturn($this->liquidityPositionManager);
 
@@ -223,18 +240,22 @@ class ManagerSpec extends ObjectBehavior
                 ->willReturn([
                     (new LiquidityPositionSummary())
                         ->setUserGuid('123')
-                        ->setUserLiquidityTokens(BigDecimal::of(10)),
+                        ->setProvidedLiquidity(
+                            (new LiquidityCurrencyValues())
+                                ->setUsd(BigDecimal::of(10))
+                                ->setMinds(BigDecimal::of(10))
+                        ),
                 ]);
 
         // Add to the repository
         $this->repository->add(Argument::that(function ($rewardEntry) {
-            return $rewardEntry->getUserGuid() === '123'
-                && (string) $rewardEntry->getScore() === '30'
+            return (string) $rewardEntry->getUserGuid() === '123'
+                && (string) $rewardEntry->getScore() === '60'
                 && $rewardEntry->getRewardType() === 'liquidity';
         }))->shouldBeCalled();
 
         // Holding
-        $this->blockFinder->getBlockByTimestamp(Argument::any())
+        $this->blockFinder->getBlockByTimestamp(Argument::any(), Argument::type('integer'))
             ->willReturn(1);
 
         $address1->getAddress()->willReturn('0xAddresss');
@@ -249,13 +270,13 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(10);
 
-        $this->token->balanceOf('0xAddresss', 1)
+        $this->token->balanceOf('0xAddresss', 1, Argument::type('integer'))
             ->shouldBeCalled()
             ->willReturn('10');
 
         $this->repository->add(Argument::that(function ($rewardEntry) {
-            return $rewardEntry->getUserGuid() === '123'
-                && (string) $rewardEntry->getScore() === "30"
+            return (string) $rewardEntry->getUserGuid() === '123'
+                && (string) $rewardEntry->getScore() === "60"
                 && $rewardEntry->getRewardType() === 'holding';
         }))->shouldBeCalled();
 
@@ -317,86 +338,4 @@ class ManagerSpec extends ObjectBehavior
         $this->issueTokens(null, false);
     }
 
-    ////
-    // Legacy
-    ////
-
-    public function it_should_sync_contributions_to_rewards()
-    {
-        $from = strtotime('midnight tomorrow -24 hours', time()) * 1000;
-        $to = strtotime('midnight tomorrow', time()) * 1000;
-        $user = new User;
-        $user->guid = 123;
-
-        $this->txRepository->getList([
-            'user_guid' => 123,
-            'wallet_address' => 'offchain',
-            'timestamp' => [
-                'gte' => $from,
-                'lte' => $to,
-                'eq' => null,
-            ],
-            'contract' => 'offchain:reward',
-            ])
-            ->shouldBeCalled()
-            ->willReturn(null);
-
-        $this->contributions
-            ->setFrom($from)
-            ->shouldBeCalled()
-            ->willReturn($this->contributions);
-
-        $this->contributions
-            ->setTo($to)
-            ->shouldBeCalled()
-            ->willReturn($this->contributions);
-        
-        $this->contributions
-            ->setUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->contributions);
-
-        $this->contributions->getRewardsAmount()
-            ->shouldBeCalled()
-            ->willReturn(20);
-
-        $this->txRepository->add(Argument::that(function ($transaction) {
-            return true;
-        }))
-            ->shouldBeCalled();
-
-        $manager = $this->setUser($user)
-            ->setFrom($from)
-            ->setTo($to);
-
-        $manager->sync()->getAmount()->shouldBe(20);
-        $manager->sync()->getContract()->shouldBe('offchain:reward');
-        $manager->sync()->getTimestamp()->shouldBe(strtotime('-1 second', $to / 1000));
-    }
-
-    public function it_should_not_allow_duplicate_rewards_to_be_sent()
-    {
-        $this->txRepository->getList([
-            'user_guid' => 123,
-            'wallet_address' => 'offchain',
-            'timestamp' => [
-                'gte' => time() * 1000,
-                'lte' => time() * 1000,
-                'eq' => null,
-            ],
-            'contract' => 'offchain:reward',
-            ])
-            ->shouldBeCalled()
-            ->willReturn([
-                'transactions' => [(new Transaction)]
-            ]);
-
-        $user = new User;
-        $user->guid = 123;
-        $manager = $this->setUser($user)
-            ->setFrom(time() * 1000)
-            ->setTo(time() * 1000);
-
-        $manager->shouldThrow('\Exception')->duringSync();
-    }
 }

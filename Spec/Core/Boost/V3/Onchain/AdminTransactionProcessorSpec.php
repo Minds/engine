@@ -63,7 +63,7 @@ class AdminTransactionProcessorSpec extends ObjectBehavior
                 'status' => '0x1',
                 'logs' => [
                     0 => ['data' => "0x000000000000000000000000000000000000000000000007ce66c50e28400000"],
-                    1 => [],
+                    1 => ['data' => "0x000000000000000000000000000000000000000000000007ce66c50e28400000"],
                     2 => [],
                     3 => ['data' => BigNumber::_($boostGuid)->toHex() ]
                 ]
@@ -134,7 +134,7 @@ class AdminTransactionProcessorSpec extends ObjectBehavior
                 'status' => '0x1',
                 'logs' => [
                     0 => ['data' => "0x000000000000000000000000000000000000000000000007ce66c50e28400000"],
-                    1 => [],
+                    1 => ['data' => "0x000000000000000000000000000000000000000000000007ce66c50e28400000"],
                     2 => [],
                     3 => ['data' => BigNumber::_($boostGuid)->toHex() ]
                 ]
@@ -221,7 +221,7 @@ class AdminTransactionProcessorSpec extends ObjectBehavior
                 'status' => '0x1',
                 'logs' => [
                     0 => ['data' => "0x000000000000000000000000000000000000000000000007ce66c50e28400000"],
-                    1 => [],
+                    1 => ['data' => "0x000000000000000000000000000000000000000000000007ce66c50e28400000"],
                     2 => [],
                     3 => ['data' => BigNumber::_('999999')->toHex() ]
                 ]
@@ -255,7 +255,7 @@ class AdminTransactionProcessorSpec extends ObjectBehavior
                 'status' => '0x1',
                 'logs' => [
                     0 => ['data' => "0x123"],
-                    1 => [],
+                    1 => ['data' => "0x123"],
                     2 => [],
                     3 => ['data' => BigNumber::_($boostGuid)->toHex() ]
                 ]

@@ -471,4 +471,9 @@ class Manager
     {
         return $this->token->fromTokenUnit($this->token->balanceOf($uniqueOnChainAddress->getAddress(), $blockNumber, $chainId));
     }
+
+    public function setFrom($argument1)
+    {
+        // TODO: write logic here
+    }
 }

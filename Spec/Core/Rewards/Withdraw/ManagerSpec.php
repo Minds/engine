@@ -4,7 +4,6 @@ namespace Spec\Minds\Core\Rewards\Withdraw;
 use Exception;
 use Minds\Common\Repository\Response;
 use Minds\Core\Blockchain\Services\Ethereum;
-use Minds\Core\Blockchain\Services\Web3Services\MindsWeb3Service;
 use Minds\Core\Blockchain\Transactions\Manager as TransactionsManager;
 use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Blockchain\Wallets\OffChain\Balance as OffchainBalance;
@@ -22,6 +21,7 @@ use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Minds\Core\Security\TwoFactor\Manager as TwoFactorManager;
+use Minds\Core\Blockchain\Services\Ethereum as EthereumService;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -61,8 +61,8 @@ class ManagerSpec extends ObjectBehavior
     /** @var EntitiesBuilder $entitiesBuilder */
     private $entitiesBuilder;
 
-    /** @var MindsWeb3Service */
-    protected $mindsWeb3Service;
+    /** @var Collaborator */
+    protected $ethereumService;
 
     public function let(
         TransactionsManager $txManager,
@@ -77,7 +77,7 @@ class ManagerSpec extends ObjectBehavior
         TwoFactorManager $twoFactorManager,
         EntitiesBuilder $entitiesBuilder,
         DeferredSecrets $deferredSecrets,
-        MindsWeb3Service $mindsWeb3Service = null
+        EthereumService $ethereumService = null
     ) {
         $this->beConstructedWith(
             $txManager,
@@ -92,7 +92,7 @@ class ManagerSpec extends ObjectBehavior
             $twoFactorManager,
             $entitiesBuilder,
             $deferredSecrets,
-            $mindsWeb3Service
+            $ethereumService
         );
 
         $this->txManager = $txManager;
@@ -107,7 +107,7 @@ class ManagerSpec extends ObjectBehavior
         $this->twoFactorManager = $twoFactorManager;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->deferredSecrets = $deferredSecrets;
-        $this->mindsWeb3Service = $mindsWeb3Service;
+        $this->ethereumService = $ethereumService;
     }
 
     public function it_is_initializable()
@@ -874,25 +874,19 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(BigNumber::toPlain(1, 18));
 
-        $this->mindsWeb3Service
-            ->setWalletPrivateKey('0x0000000000000000000000000000000000000000')
-            ->shouldBeCalled()
-            ->willReturn($this->mindsWeb3Service);
-
-        $this->mindsWeb3Service
-            ->setWalletPublicKey('0x000000000000000000000000000000000000dead')
-            ->shouldBeCalled()
-            ->willReturn($this->mindsWeb3Service);
-
-        $this->mindsWeb3Service
-            ->withdraw(
-                '0x303456',
-                1000,
-                BigNumber::toPlain(1, 18),
-                BigNumber::toPlain(10, 18)
+        $this->ethereumService
+            ->sendRawTransaction(
+                '0x0000000000000000000000000000000000000000',
+                Argument::any()
             )
             ->shouldBeCalled()
             ->willReturn('0x0000000000000000000000000000000000000001');
+
+        $this->ethereumService->encodeContractMethod(
+            "complete(address,uint256,uint256,uint256)",
+            ["0x303456", "0x3e8", "0xde0b6b3a7640000", "0x8ac7230489e80000"]
+        )
+        ->shouldBeCalled()->willReturn("0x0000000000000000000000000000000000000001");
 
         $request->setStatus('approved')
             ->shouldBeCalled()

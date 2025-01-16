@@ -486,7 +486,7 @@ class Manager
     public function deferAuthentication(User $user): string
     {
         // trigger 2fa gatekeeper
-        // $this->twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
+        $this->twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
 
         // if no exception thrown
         return $this->deferredSecrets->generate($user);

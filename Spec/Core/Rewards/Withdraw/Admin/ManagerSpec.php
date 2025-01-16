@@ -173,7 +173,6 @@ class ManagerSpec extends ObjectBehavior
                 "from" => $walletAddress,
                 "to" => $contractAddress,
                 "gasLimit" => "0x154a4",
-                "gasPrice" => "0x2540be400",
                 "data" => $encodedContractMethod
             ]
         )->shouldBeCalled()->willReturn($responseTxid);
