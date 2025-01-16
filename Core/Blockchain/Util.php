@@ -12,6 +12,8 @@ class Util
 {
     const ADDRESS = 1;
     const NUMBER = 2;
+    const ETHEREUM_CHAIN_ID = 1;
+    const BASE_CHAIN_ID = 8453;
 
     /**
      * Parses 256-bit hexadecimal data onto 0x-prefixed decimal strings

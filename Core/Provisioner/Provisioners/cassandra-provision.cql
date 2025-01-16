@@ -1725,3 +1725,12 @@ ALTER TABLE notifications_mergeable ADD tenant_id int;
 ALTER TABLE comments ADD pinned boolean;
 
 CREATE INDEX ON comments (pinned);
+
+DROP TABLE minds.eth_blocks;
+CREATE TABLE minds.eth_blocks (
+    chain_id int,
+    date date,
+    timestamp timestamp,
+    block_number int,
+    PRIMARY KEY (chain_id, date, timestamp)
+) WITH CLUSTERING ORDER BY (date DESC, timestamp DESC);

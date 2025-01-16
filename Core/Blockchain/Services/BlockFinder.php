@@ -30,18 +30,17 @@ class BlockFinder
 
     /**
      * Returns the closest block number to the provided timestamp
-     * @param int $unixTimestamp
      * @return int
      */
-    public function getBlockByTimestamp(int $unixTimestamp, $useCache = true): int
+    public function getBlockByTimestamp(int $unixTimestamp, int $chainId = 1, $useCache = true): int
     {
-        if ($useCache && $blockNumber = $this->getFromCache($unixTimestamp)) {
+        if ($useCache && $blockNumber = $this->getFromCache($unixTimestamp, $chainId)) {
             return (int) $blockNumber;
         }
 
-        $blockNumber = $this->etherscan->getBlockNumberByTimestamp($unixTimestamp);
+        $blockNumber = $this->etherscan->getBlockNumberByTimestamp($unixTimestamp, $chainId);
 
-        $this->addToCache($unixTimestamp, $blockNumber);
+        $this->addToCache($unixTimestamp, $blockNumber, $chainId);
 
         return (int) $blockNumber;
     }
@@ -51,16 +50,18 @@ class BlockFinder
      * @param int $unixTimestamp
      * @return int
      */
-    private function getFromCache(int $unixTimestamp): ?int
+    private function getFromCache(int $unixTimestamp, int $chainId): ?int
     {
         $statement = "SELECT * FROM eth_blocks 
             WHERE date = ?
+            AND chain_id = ?
             AND timestamp <= ?
             AND timestamp > ?
             LIMIT 1";
 
         $values = [
             new Cassandra\Date($unixTimestamp),
+            $chainId,
             new Cassandra\Timestamp($unixTimestamp, 0),
             new Cassandra\Timestamp($unixTimestamp - 300, 0), // Only allow to deviate 5 minutes from block
         ];
@@ -83,10 +84,11 @@ class BlockFinder
      * @param int $blockNumber
      * @return void
      */
-    private function addToCache(int $unixTimestamp, int $blockNumber): void
+    private function addToCache(int $unixTimestamp, int $blockNumber, int $chainId): void
     {
-        $statement = "INSERT INTO eth_blocks (date, timestamp, block_number) VALUES (?,?,?)";
+        $statement = "INSERT INTO eth_blocks (chain_id, date, timestamp, block_number) VALUES (?,?,?,?)";
         $values = [
+            $chainId,
             new Cassandra\Date($unixTimestamp),
             new Cassandra\Timestamp($unixTimestamp, 0),
             $blockNumber,

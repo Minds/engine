@@ -1,5 +1,7 @@
 <?php
 
+use Minds\Core\Blockchain\Util;
+
 $CONFIG = Minds\Core\Di\Di::_()->get('Config');
 
 $CONFIG->minds_debug = true;
@@ -437,19 +439,23 @@ $CONFIG->set('blockchain', [
     'testnet' => false,
 
     'rpc_endpoints' => [
-        'https://mainnet.infura.io/v3/708b51690a43476092936f9818f8c4fa',
+        Util::ETHEREUM_CHAIN_ID => 'https://mainnet.infura.io/v3/708b51690a43476092936f9818f8c4fa',
+        Util::BASE_CHAIN_ID => 'https://mainnet.base.org',
     ],
 
-    //'network_address' => 'https://rinkeby.infura.io/',
     'proxy_rpc_endpoint' => 'https://mainnet.infura.io/v3/708b51690a43476092936f9818f8c4fa',
 
-    'client_network' => 1, // 1 = main ethereum network; 4 = test rinkeby; 1337 coin repo's testserver.sh
+    'chain_id' => Util::BASE_CHAIN_ID,
 
-    'default_gas_price' => 40,
-    'server_gas_price' => 40,
+    'default_gas_price' => 0.1,
+    'server_gas_price' => 0.1,
     'token_symbol' => 'status',
 
-    'token_address' => '0xb26631c6dda06ad89b93c71400d25692de89c068',
+    'token_addresses' => [
+        Util::BASE_CHAIN_ID => '0x686015EbF044a1B8A4bE750346be00293a996071',
+        Util::ETHEREUM_CHAIN_ID => '0xb26631c6dda06ad89b93c71400d25692de89c068'
+    ],
+
     'contracts' => [
         'withdraw' => [
             'contract_address' => '0xdd10ccb3100980ecfdcbb1175033f0c8fa40548c',
@@ -476,8 +482,6 @@ $CONFIG->set('blockchain', [
         ],
     ],
 
-    'eth_rate' => 2000, //1 ETH = 2,000 TOKENS
-
     'disable_creditcards' => true,
 
     'offchain' => [
@@ -491,17 +495,7 @@ $CONFIG->set('blockchain', [
         ]
     ],
 
-    'transak' => [
-        'api_key' => '',
-        'environment' => 'staging',
-    ],
-
     'mw3' => '/usr/bin/env node ' . __MINDS_ROOT__ . '/../mw3/index.js',
-
-    'web3_service' => [
-        'wallet_encryption_key' => '',
-        'base_url' => 'http://192.168.0.16:3333/'
-    ],
 ]);
 
 $CONFIG->set('blockchain_override', []);

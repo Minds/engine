@@ -53,10 +53,6 @@ class BlockchainProvider extends Provider
             return new Services\BlockFinder();
         }, [ 'useFactory' => true ]);
 
-        $this->di->bind('Blockchain\Services\MindsWeb3', function () {
-            return new Services\Web3Services\MindsWeb3Service();
-        }, [ 'useFactory' => true ]);
-
         $this->di->bind('Blockchain\Wallets\Balance', function () {
             return new Wallets\Balance();
         });
@@ -95,10 +91,6 @@ class BlockchainProvider extends Provider
 
         $this->di->bind('Blockchain\Rates', function () {
             return new Services\CoinMarketCap();
-        });
-
-        $this->di->bind('Blockchain\GasPrice', function () {
-            return new GasPrice();
         });
 
         $this->di->bind('Blockchain\Wallets\Ether\Balance', function () {

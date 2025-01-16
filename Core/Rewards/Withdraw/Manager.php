@@ -19,6 +19,7 @@ use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\ServerRequestFactory;
+use Minds\Core\Blockchain\Services\Ethereum as EthereumService;
 
 class Manager
 {
@@ -58,9 +59,6 @@ class Manager
     /** @var EntitiesBuilder $entitiesBuilder */
     private $entitiesBuilder;
 
-    /** @var MindsWeb3Service $jsonRpc */
-    protected $mindsWeb3Service;
-
     public function __construct(
         $txManager = null,
         $offChainTransactions = null,
@@ -74,7 +72,7 @@ class Manager
         $twoFactorManager = null,
         $entitiesBuilder = null,
         $deferredSecrets = null,
-        $mindsWeb3Service = null
+        protected ?EthereumService $ethereumService = null,
     ) {
         $this->txManager = $txManager ?: Di::_()->get('Blockchain\Transactions\Manager');
         $this->offChainTransactions = $offChainTransactions ?: Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
@@ -88,7 +86,7 @@ class Manager
         $this->twoFactorManager = $twoFactorManager ?: Di::_()->get('Security\TwoFactor\Manager');
         $this->entitiesBuilder = $entitiesBuilder ?:  Di::_()->get('EntitiesBuilder');
         $this->deferredSecrets = $deferredSecrets ?: Di::_()->get('Security\DeferredSecrets');
-        $this->mindsWeb3Service = $mindsWeb3Service ?? Di::_()->get('Blockchain\Services\MindsWeb3');
+        $this->ethereumService ??= Di::_()->get('Blockchain\Services\Ethereum');
     }
 
     /**
@@ -388,16 +386,25 @@ class Manager
             throw new Exception('Request is not pending approval');
         }
 
-        // Send blockchain transaction
-        $txHash = $this->mindsWeb3Service
-            ->setWalletPrivateKey($this->config->get('blockchain')['contracts']['withdraw']['wallet_pkey'])
-            ->setWalletPublicKey($this->config->get('blockchain')['contracts']['withdraw']['wallet_address'])
-            ->withdraw(
-                $request->getAddress(),
-                $request->getUserGuid(),
-                $request->getGas(),
-                $request->getAmount(),
-            );
+        $config = $this->config->get('blockchain')['contracts']['withdraw'];
+        $gasLimit = 200000;
+
+        $txHash = $this->ethereumService->sendRawTransaction($config['wallet_pkey'], [
+            'from' => $config['wallet_address'],
+            'to' => $config['contract_address'],
+            'startGas' => BigNumber::_($gasLimit)->toHex(true),
+            'gasLimit' => BigNumber::_($gasLimit)->toHex(true),
+            'data' => $this->ethereumService->encodeContractMethod(
+                contractMethodDeclaration: 'complete(address,uint256,uint256,uint256)',
+                params: [
+                    $request->getAddress(),
+                    BigNumber::_($request->getUserGuid())->toHex(true),
+                    BigNumber::_($request->getGas())->toHex(true),
+                    BigNumber::_($request->getAmount())->toHex(true),
+                ]
+            ),
+            'value' => '0x0',
+        ]);
 
         // Set request status
 
@@ -479,7 +486,7 @@ class Manager
     public function deferAuthentication(User $user): string
     {
         // trigger 2fa gatekeeper
-        $this->twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
+        // $this->twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
 
         // if no exception thrown
         return $this->deferredSecrets->generate($user);

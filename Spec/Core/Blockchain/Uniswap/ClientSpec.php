@@ -6,6 +6,7 @@ use Brick\Math\BigDecimal;
 use Minds\Core\Config;
 use Minds\Core\Blockchain\Uniswap\Client;
 use Minds\Core\Blockchain\Services\BlockFinder;
+use Minds\Core\Blockchain\Util;
 use Minds\Core\Http;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -37,7 +38,7 @@ class ClientSpec extends ObjectBehavior
     public function it_should_return_user()
     {
         $this->config->get('uniswap')
-            ->willReturn(['url' => 'http://localhost:80']);
+            ->willReturn(['graph_urls' => [Util::BASE_CHAIN_ID => 'http://localhost:80']]);
 
         $this->http->post(
             Argument::type('string'),
@@ -53,56 +54,25 @@ class ClientSpec extends ObjectBehavior
                 'user' => [
                     'id' => '0xuser',
                     'usdSwaped' => "0",
-                    'liquidityPositions' => [
-                        [
-                            'id' => '0xuser-0xpair',
-                            'liquidityTokenBalance' => '1.25',
-                            'pair' => [
-                                'id' => '0xpair',
-                                'totalSupply' => '12.50',
-                                'reserve0' => '100.12',
-                                'reserve1' => '50.6',
-                                'reserveUSD' => '50.6',
-                            ]
-                        ]
-                    ]
                 ],
                 'mints' => [],
                 'burns' => [],
             ],
         ]);
 
-        $this->blockFinder->getBlockByTimestamp(Argument::any())
+        $this->blockFinder->getBlockByTimestamp(Argument::any(), Argument::type('integer'))
             ->willReturn(1);
         
         $uniswapUser = $this->getUser('0xUser');
 
         $uniswapUser->getId()
             ->shouldBe('0xuser');
-        $uniswapUser->getLiquidityPositions()
-            ->shouldHaveCount(1);
-        $uniswapUser->getLiquidityPositions()[0]
-            ->getId()
-            ->shouldBe('0xuser-0xpair');
-        $uniswapUser->getLiquidityPositions()[0]
-            ->getLiquidityTokenBalance()
-            ->toFloat()
-            ->shouldBe(1.25);
-        $uniswapUser->getLiquidityPositions()[0]
-            ->getPair()
-            ->getId()
-            ->shouldBe('0xpair');
-        $uniswapUser->getLiquidityPositions()[0]
-            ->getPair()
-            ->getTotalSupply()
-            ->toFloat()
-            ->shouldBe(12.5);
     }
 
     public function it_should_return_pairs()
     {
         $this->config->get('uniswap')
-            ->willReturn(['url' => 'http://localhost:80']);
+            ->willReturn(['graph_urls' => [Util::BASE_CHAIN_ID => 'http://localhost:80']]);
 
         $this->http->post(
             Argument::type('string'),
@@ -134,7 +104,7 @@ class ClientSpec extends ObjectBehavior
             ],
         ]);
 
-        $this->blockFinder->getBlockByTimestamp(Argument::any())
+        $this->blockFinder->getBlockByTimestamp(Argument::any(), Argument::type('integer'))
             ->willReturn(1);
 
         $pairs = $this->getPairs(['0xPair1', '0xPair2']);

@@ -5,6 +5,7 @@ use Brick\Math\BigDecimal;
 use Minds\Core\Di\Di;
 use Minds\Core\Http;
 use Minds\Core\Blockchain\Services\BlockFinder;
+use Minds\Core\Blockchain\Util;
 use Minds\Core\Config\Config;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Exceptions\ServerErrorException;
@@ -20,11 +21,20 @@ class Client
     /** @var Config */
     protected $config;
 
+    protected int $chainId = Util::BASE_CHAIN_ID;
+
     public function __construct($http = null, BlockFinder $blockFinder = null, ?Config $config = null)
     {
         $this->http = $http ?: Di::_()->get('Http\Json');
         $this->blockFinder = $blockFinder ?? Di::_()->get('Blockchain\Services\BlockFinder');
         $this->config = $config ?? Di::_()->get('Config');
+    }
+
+    public function withChainId(int $chainId): Client
+    {
+        $instance = clone $this;
+        $instance->chainId = $chainId;
+        return $instance;
     }
 
     /**
@@ -43,17 +53,6 @@ class Client
             query($id: String!, $blockNumber: Int!) {
                 user(id: $id, block: { number: $blockNumber }) {
                     id
-                    liquidityPositions {
-                        id
-                        liquidityTokenBalance
-                        pair {
-                            id
-                            totalSupply
-                            reserve0
-                            reserve1
-                            reserveUSD
-                        }
-                    }
                     usdSwapped
                 }
                 mints(where: { to: $id}) {
@@ -90,7 +89,7 @@ class Client
         ';
         $variables = [
             'id' => strtolower($id),
-            'blockNumber' => $this->blockFinder->getBlockByTimestamp($asOf),
+            'blockNumber' => $this->blockFinder->getBlockByTimestamp($asOf, $this->chainId),
         ];
 
         $response = $this->request($query, $variables);
@@ -98,12 +97,6 @@ class Client
         $uniswapUser = new UniswapUserEntity();
         $uniswapUser->setId($response['user']['id'])
             ->setUsdSwapped($response['user']['usdSwaped'] ?? 0);
-
-        // Liquidity Positions
-
-        $uniswapUser->setLiquidityPositions(array_map(function ($liquidityPosition) {
-            return UniswapLiquidityPositionEntity::build($liquidityPosition);
-        }, $response['user']['liquidityPositions'] ?? []));
 
         // Mints
 
@@ -150,7 +143,7 @@ class Client
             'ids' => array_map(function ($id) {
                 return strtolower($id);
             }, $ids),
-            'blockNumber' => $this->blockFinder->getBlockByTimestamp($asOf),
+            'blockNumber' => $this->blockFinder->getBlockByTimestamp($asOf, $this->chainId),
         ];
 
         $response = $this->request($query, $variables);
@@ -271,7 +264,7 @@ class Client
 
         \Sentry\captureMessage("Uniswap Client was called");
 
-        $graphqlEndpoint = $this->config->get('uniswap')['url'];
+        $graphqlEndpoint = $this->config->get('uniswap')['graph_urls'][$this->chainId];
 
         $response = $this->http->post(
             $graphqlEndpoint,

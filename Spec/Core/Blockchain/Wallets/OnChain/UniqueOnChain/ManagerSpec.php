@@ -10,10 +10,12 @@ use Minds\Core\Rewards\Restrictions\Blockchain\Manager as RestrictionsManager;
 use Minds\Core\Blockchain\Services\Ethereum;
 use Minds\Core\Blockchain\BigQuery\HoldersQuery;
 use Minds\Core\Blockchain\OnchainBalances\OnchainBalancesService;
+use Minds\Core\Blockchain\Util;
 use Minds\Entities\User;
 use PhpSpec\Exception\Example\FailureException;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
+use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -138,7 +140,7 @@ class ManagerSpec extends ObjectBehavior
         UniqueOnChainAddress $address2,
         UniqueOnChainAddress $address3
     ) {
-        $this->onchainBalancesServiceMock->getAll(null)
+        $this->onchainBalancesServiceMock->getAll(null, Argument::type('integer'))
             ->shouldBeCalled()
             ->willReturn([
                 [
@@ -187,11 +189,11 @@ class ManagerSpec extends ObjectBehavior
     }
 
 
-    public function it_should_get_all_via_bigquery_without_addresses_not_in_our_system(
+    public function it_should_get_all_without_addresses_not_in_our_system(
         UniqueOnChainAddress $address1,
         UniqueOnChainAddress $address3
     ) {
-        $this->onchainBalancesServiceMock->getAll(null)
+        $this->onchainBalancesServiceMock->getAll(null, Argument::type('integer'))
             ->shouldBeCalled()
             ->willReturn([
                 [

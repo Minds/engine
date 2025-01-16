@@ -81,9 +81,9 @@ class Etherscan
      * @return float
      * @throws \Exception
      */
-    public function getAccountBalance()
+    public function getAccountBalance(int $chainId = 1)
     {
-        $balance = $this->request("module=account&action=balance&address={$this->address}&tag=latest&apikey={$this->apiKey}");
+        $balance = $this->request("module=account&chainid=$chainId&action=balance&address={$this->address}&tag=latest&apikey={$this->apiKey}");
         return $balance['result'];
     }
 
@@ -92,9 +92,9 @@ class Etherscan
      * @return float
      * @throws \Exception
      */
-    public function getContractTotalSupply()
+    public function getContractTotalSupply(int $chainId = 1)
     {
-        $balance = $this->request("module=stats&action=tokenSupply&contractaddress={$this->contractAddress}&apikey={$this->apiKey}");
+        $balance = $this->request("module=stats&chainid=$chainId&action=tokenSupply&contractaddress={$this->contractAddress}&apikey={$this->apiKey}");
         return $balance;
     }
 
@@ -103,9 +103,9 @@ class Etherscan
      * @return float
      * @throws \Exception
      */
-    public function getTotalSupply()
+    public function getTotalSupply(int $chainId = 1)
     {
-        $balance = $this->request("module=stats&action=tokenSupply&tokenname=MINDS&apikey={$this->apiKey}");
+        $balance = $this->request("module=stats&chainid=$chainId&action=tokenSupply&tokenname=MINDS&apikey={$this->apiKey}");
         return $balance;
     }
 
@@ -114,9 +114,9 @@ class Etherscan
      * @return float
      * @throws \Exception
      */
-    public function getTransactionsCount()
+    public function getTransactionsCount(int $chainId = 1)
     {
-        $balance = $this->request("module=proxy&action=eth_getTransactionCount&tag=latest&address={$this->address}&apikey={$this->apiKey}");
+        $balance = $this->request("module=proxy&chainid=$chainId&action=eth_getTransactionCount&tag=latest&address={$this->address}&apikey={$this->apiKey}");
         return $balance;
     }
 
@@ -130,9 +130,9 @@ class Etherscan
      * @param integer $count
      * @return array
      */
-    public function getTransactions($from, $to, $page=null, $count=100)
+    public function getTransactions($from, $to, $page=null, $count=100, int $chainId = 1)
     {
-        $endpoint = "module=account&action=txlist&address={$this->address}&startblock={$from}&endblock={$to}&sort=desc".($page ? "&page=$page&offset=$count" : '');
+        $endpoint = "module=account&chainid=$chainId&action=txlist&address={$this->address}&startblock={$from}&endblock={$to}&sort=desc".($page ? "&page=$page&offset=$count" : '');
         $endpoint .= "&apikey={$this->apiKey}";
 
         $transactions = $this->request($endpoint);
@@ -149,9 +149,9 @@ class Etherscan
      * @param integer $count
      * @return array
      */
-    public function getInternalTransactions($from, $to, $page=null, $count=100)
+    public function getInternalTransactions($from, $to, $page=null, $count=100, int $chainId = 1)
     {
-        $endpoint = "module=account&action=txlistinternal&address={$this->address}&startblock={$from}&endblock={$to}&sort=desc".($page ? "&page=$page&offset=$count" : '');
+        $endpoint = "module=account&chainid=$chainId&action=txlistinternal&address={$this->address}&startblock={$from}&endblock={$to}&sort=desc".($page ? "&page=$page&offset=$count" : '');
         $endpoint .= "&apikey={$this->apiKey}";
 
         $transactions = $this->request($endpoint);
@@ -168,9 +168,9 @@ class Etherscan
      * @param integer $count
      * @return array
      */
-    public function getTokenTransactions($from, $to, $page=null, $count=100)
+    public function getTokenTransactions($from, $to, $page=null, $count=100, int $chainId = 1)
     {
-        $endpoint = "module=account&action=tokentx&address={$this->address}&startblock={$from}&endblock={$to}&sort=desc".($page ? "&page=$page&offset=$count" : '');
+        $endpoint = "module=account&chainid=$chainId&action=tokentx&address={$this->address}&startblock={$from}&endblock={$to}&sort=desc".($page ? "&page=$page&offset=$count" : '');
         $endpoint .= "&apikey={$this->apiKey}";
 
         $transactions = $this->request($endpoint);
@@ -184,9 +184,9 @@ class Etherscan
      * @param string $hash
      * @return array
      */
-    public function getTransaction($hash)
+    public function getTransaction($hash, int $chainId = 1)
     {
-        $result = $this->request("module=proxy&action=eth_getTransactionReceipt&txhash={$hash}&apikey={$this->apiKey}");
+        $result = $this->request("module=proxy&chainid=$chainId&action=eth_getTransactionReceipt&txhash={$hash}&apikey={$this->apiKey}");
         return $result['result'];
     }
 
@@ -195,9 +195,9 @@ class Etherscan
      *
      * @return integer
      */
-    public function getLastBlockNumber()
+    public function getLastBlockNumber(int $chainId = 1)
     {
-        $result = $this->request("module=proxy&action=eth_blockNumber&apikey={$this->apiKey}");
+        $result = $this->request("module=proxy&chainid=$chainId&action=eth_blockNumber&apikey={$this->apiKey}");
         return hexdec($result['result']);
     }
 
@@ -206,11 +206,11 @@ class Etherscan
      *
      * @return int
      */
-    public function getLastBlock()
+    public function getLastBlock(int $chainId = 1)
     {
-        $number = $this->getLastBlockNumber();
+        $number = $this->getLastBlockNumber($chainId);
         if ($number) {
-            return $this->getBlock($number);
+            return $this->getBlock($number, $chainId);
         } else {
             return 0;
         }
@@ -222,9 +222,9 @@ class Etherscan
      * @param integer $number
      * @return int
      */
-    public function getBlock($number)
+    public function getBlock(int $number, int $chainId = 1)
     {
-        $result = $this->request("module=block&action=getblockreward&blockno={$number}&apikey={$this->apiKey}");
+        $result = $this->request("module=block&chainid=$chainId&action=getblockreward&blockno={$number}&apikey={$this->apiKey}");
         return $result['result'];
     }
 
@@ -233,9 +233,9 @@ class Etherscan
      * @param int $unixTimestamp
      * @return int
      */
-    public function getBlockNumberByTimestamp(int $unixTimestamp): int
+    public function getBlockNumberByTimestamp(int $unixTimestamp, int $chainId = 1): int
     {
-        $result = $this->request("module=block&action=getblocknobytime&timestamp=$unixTimestamp&closest=before&apikey={$this->apiKey}");
+        $result = $this->request("module=block&chainid=$chainId&action=getblocknobytime&timestamp=$unixTimestamp&closest=before&apikey={$this->apiKey}");
         return (int) $result['result'];
     }
 
@@ -246,7 +246,7 @@ class Etherscan
      */
     protected function request($endpoint)
     {
-        $response = $this->http->get("https://api.etherscan.io/api?{$endpoint}");
+        $response = $this->http->get("https://api.etherscan.io/v2/api?{$endpoint}");
 
         if (!is_array($response)) {
             throw new \Exception('Invalid response');

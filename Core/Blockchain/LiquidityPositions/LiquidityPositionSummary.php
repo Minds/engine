@@ -15,8 +15,6 @@ use Brick\Math\BigDecimal;
  * @method BigDecimal getUserLiquidityTokens()
  * @method self setProvidedLiquidity(LiquidityCurrencyValues $liquidity)
  * @method LiquidityCurrencyValues getProvidedLiquidity()
- * @method self setCurrentLiquidity(LiquidityCurrencyValues $liquidity)
- * @method LiquidityCurrencyValues getCurrentLiquidity()
  * @method self setYieldLiquidity(LiquidityCurrencyValues $liquidity)
  * @method LiquidityCurrencyValues getYieldLiquidity()
  * @method self setTotalLiquidity(LiquidityCurrencyValues $liquidity)
@@ -47,9 +45,6 @@ class LiquidityPositionSummary
     protected $providedLiquidity;
 
     /** @var LiquidityCurrencyValues */
-    protected $currentLiquidity;
-
-    /** @var LiquidityCurrencyValues */
     protected $yieldLiquidity;
 
     /** @var LiquidityCurrencyValues */
@@ -74,7 +69,6 @@ class LiquidityPositionSummary
             'total_liquidity_tokens' => $this->totalLiquidityTokens,
             'user_liquidity_tokens' => $this->userLiquidityTokens,
             'provided_liquidity' => $this->providedLiquidity->export(),
-            'current_liquidity' => $this->currentLiquidity->export(),
             'yield_liquidity' => $this->yieldLiquidity->export(),
             'total_liquidity' => $this->totalLiquidity->export(),
             'shareOf_liquidity' => $this->shareOfLiquidity->export(),

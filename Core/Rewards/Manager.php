@@ -14,6 +14,7 @@ use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Blockchain\LiquidityPositions;
 use Minds\Core\Blockchain\Services\BlockFinder;
 use Minds\Core\Blockchain\Token;
+use Minds\Core\Blockchain\Util;
 use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain;
 use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain\UniqueOnChainAddress;
 use Minds\Core\Di\Di;
@@ -224,16 +225,35 @@ class Manager
 
         // Liquidity rewards
 
+        $liquidityScores = [];
         try {
-            foreach ($this->liquidityPositionsManager->setDateTs($opts->getDateTs())->getAllProvidersSummaries() as $i => $liquiditySummary) {
+            foreach ([Util::BASE_CHAIN_ID, Util::ETHEREUM_CHAIN_ID] as $chainId) {
+                foreach ($this->liquidityPositionsManager
+                            ->setDateTs($opts->getDateTs())
+                            ->setChainId($chainId)
+                            ->getAllProvidersSummaries()
+                        as $i => $liquiditySummary
+                ) {
+                    
+                    if (!isset($liquidityScores[$liquiditySummary->getUserGuid()])) {
+                        $liquidityScores[$liquiditySummary->getUserGuid()] = BigDecimal::of(0);
+                    }
+
+                    $liquidityScores[$liquiditySummary->getUserGuid()] = $liquidityScores[$liquiditySummary->getUserGuid()]->plus($liquiditySummary->getProvidedLiquidity()->getUsd());
+                }
+            }
+
+            $i = 0;
+            foreach ($liquidityScores as $userGuid => $score) {
+                ++$i;
                 $rewardEntry = new RewardEntry();
-                $rewardEntry->setUserGuid($liquiditySummary->getUserGuid())
+                $rewardEntry->setUserGuid($userGuid)
                     ->setDateTs($opts->getDateTs())
                     ->setRewardType(static::REWARD_TYPE_LIQUIDITY);
     
                 $multiplier = BigDecimal::of(self::REWARD_MULTIPLIER);
                 
-                $score = $liquiditySummary->getUserLiquidityTokens()->multipliedBy($multiplier);
+                $score = $score->multipliedBy($multiplier);
                 
                 // Update our new RewardEntry
                 $rewardEntry
@@ -253,7 +273,7 @@ class Manager
         }
 
         // Holding rewards
-        $blockNumber = $this->blockFinder->getBlockByTimestamp($opts->getDateTs());
+
         foreach ($this->uniqueOnChainManager->getAll() as $i => $uniqueOnChain) {
             /** @var User */
             $user = $this->entitiesBuilder->single($uniqueOnChain->getUserGuid());
@@ -270,7 +290,12 @@ class Manager
                 continue;
             }
 
-            $tokenBalance = $this->getTokenBalance($uniqueOnChain, $blockNumber);
+            // Return combined chains token balance
+            $tokenBalance = BigDecimal::of(0);
+            foreach ([Util::BASE_CHAIN_ID, Util::ETHEREUM_CHAIN_ID] as $chainId) {
+                $blockNumber = $this->blockFinder->getBlockByTimestamp($opts->getDateTs(), $chainId);
+                $tokenBalance = $tokenBalance->plus($this->getTokenBalance($uniqueOnChain, $blockNumber, $chainId));
+            }
 
             $rewardEntry = new RewardEntry();
             $rewardEntry->setUserGuid($user->getGuid())
@@ -295,6 +320,7 @@ class Manager
                 'multiplier' => (string) $multiplier,
             ]);
         }
+        
 
         //
 
@@ -434,164 +460,15 @@ class Manager
         }
     }
 
-    ////
-    // Legacy
-    ////
-
-    /**
-     * Will return a previous days RewardEntry
-     * @param RewardEntry $rewardEntry
-     * @param int $daysAgo
-     * @return RewardEntry
-     */
-    private function getPreviousRewardEntry(RewardEntry $rewardEntry, int $daysAgo = 1): ?RewardEntry
-    {
-        $opts = new RewardsQueryOpts();
-        $opts->setUserGuid($rewardEntry->getUserGuid())
-            ->setDateTs($rewardEntry->getDateTs() - (86400 * $daysAgo));
-
-        foreach ($this->getList($opts) as $previousRewardEntry) {
-            if ($previousRewardEntry->getRewardType() === $rewardEntry->getRewardType()) {
-                return $previousRewardEntry;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Sets if to dry run or not. A dry run will return the data but will save
-     * to the database
-     * @param bool $dryRun
-     * @return $this
-     */
-    public function setDryRun($dryRun)
-    {
-        $this->dryRun = $dryRun;
-        return $this;
-    }
-
-    public function setFrom($from)
-    {
-        $this->from = $from;
-        return $this;
-    }
-
-    public function setTo($to)
-    {
-        $this->to = $to;
-        return $this;
-    }
-
-    public function sync()
-    {
-        //First double check that we have not already credited them any
-        //rewards for this timeperiod
-        $transactions = $this->txRepository->getList([
-            'user_guid' => $this->user->guid,
-            'wallet_address' => 'offchain', //removed because of allow filtering issues.
-            'timestamp' => [
-                'gte' => $this->from,
-                'lte' => $this->to,
-                'eq' => null,
-            ],
-            'contract' => 'offchain:reward',
-        ]);
-
-        if (count($transactions['transactions'] ?? []) > 0) {
-            throw new \Exception("Already issued rewards to this user");
-        }
-
-        $this->contributions
-            ->setFrom($this->from)
-            ->setTo($this->to)
-            ->setUser($this->user);
-
-        if ($this->user) {
-            $this->contributions->setUser($this->user);
-        }
-
-        $amount = $this->contributions->getRewardsAmount();
-
-        $transaction = new Transaction();
-        $transaction
-            ->setUserGuid($this->user->guid)
-            ->setWalletAddress('offchain')
-            ->setTimestamp(strtotime("+24 hours - 1 second", $this->from / 1000))
-            ->setTx('oc:' . Guid::build())
-            ->setAmount($amount)
-            ->setContract('offchain:reward')
-            ->setCompleted(true);
-
-        if ($this->dryRun) {
-            return $transaction;
-        }
-
-        $this->txRepository->add($transaction);
-
-        try {
-            $this->bonus();
-        } catch (\Exception $e) {
-        }
-
-        //$this->txRepository->delete($this->user->guid, strtotime("+24 hours - 1 second", $this->from / 1000), 'offchain');
-        return $transaction;
-    }
-
-    public function bonus()
-    {
-        $this->contributions
-            ->setFrom($this->from)
-            ->setTo($this->to)
-            ->setUser($this->user);
-
-        if (!$this->user || !$this->user->eth_wallet) {
-            return;
-        }
-
-        $amount = $this->contributions->getRewardsAmount();
-
-        if ($amount <= 0) {
-            return;
-        }
-
-        $res = $this->eth->sendRawTransaction($this->config->get('blockchain')['contracts']['bonus']['wallet_pkey'], [
-            'from' => $this->config->get('blockchain')['contracts']['bonus']['wallet_address'],
-            'to' => $this->config->get('blockchain')['token_address'],
-            'gasLimit' => BigNumber::_(4612388)->toHex(true),
-            'gasPrice' => BigNumber::_(10000000000)->toHex(true),
-            //'nonce' => (int) microtime(true),
-            'data' => $this->eth->encodeContractMethod('transfer(address,uint256)', [
-                $this->user->eth_wallet,
-                BigNumber::_($amount)->mul(0.25)->toHex(true),
-            ])
-        ]);
-
-        $transaction = new Transaction();
-        $transaction
-            ->setUserGuid($this->user->guid)
-            ->setWalletAddress($this->user->eth_wallet)
-            ->setTimestamp(time())
-            ->setTx($res)
-            ->setAmount((string) BigNumber::_($amount)->mul(0.25))
-            ->setContract('bonus')
-            ->setCompleted(true);
-
-        $this->txRepository->add($transaction);
-        return $transaction;
-    }
-
     /**
      * Gets token balance if one is not already set.
      * @param UniqueOnChainAddress $uniqueOnChainAddress - unique onchain address object.
      * @param integer $blockNumber - block number to check for.
+     * @param integer $chainId - the chain to get the balance from
      * @return string - balance as string.
      */
-    private function getTokenBalance(UniqueOnChainAddress $uniqueOnChainAddress, int $blockNumber): string
+    private function getTokenBalance(UniqueOnChainAddress $uniqueOnChainAddress, int $blockNumber, int $chainId): string
     {
-        // else lookup the token balance via RPC.
-        return $this->token->fromTokenUnit(
-            $this->token->balanceOf($uniqueOnChainAddress->getAddress(), $blockNumber)
-        );
+        return $this->token->fromTokenUnit($this->token->balanceOf($uniqueOnChainAddress->getAddress(), $blockNumber, $chainId));
     }
 }

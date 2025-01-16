@@ -11,6 +11,7 @@ use Brick\Math\Exception\DivisionByZeroException;
 use Minds\Core\Blockchain\Uniswap\UniswapEntityHasPairInterface;
 use Minds\Core\Blockchain\Uniswap\UniswapEntityInterface;
 use Minds\Core\Blockchain\Uniswap\UniswapMintEntity;
+use Minds\Core\Blockchain\Util;
 use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain;
 use Minds\Core\EntitiesBuilder;
 use Minds\Exceptions\UserErrorException;
@@ -34,6 +35,8 @@ class Manager
 
     /** @var int */
     protected $dateTs;
+
+    protected int $chainId = Util::BASE_CHAIN_ID;
 
     public function __construct(
         Uniswap\Client $uniswapClient = null,
@@ -71,6 +74,13 @@ class Manager
         return $manager;
     }
 
+    public function setChainId(int $chainId): Manager
+    {
+        $manager = clone $this;
+        $manager->chainId = $chainId;
+        return $manager;
+    }
+
     /**
      * Returns the summary of a users liquidity position (includes share)
      * @return LiquidityPositionSummary
@@ -88,9 +98,9 @@ class Manager
 
         // The latest possible time
         $asOf = min(time() - 300, strtotime('tomorrow', $this->dateTs ?: time()) - 1);
-        $uniswapUser = $this->uniswapClient->getUser($address, $asOf);
+        $uniswapUser = $this->uniswapClient->withChainId($this->chainId)->getUser($address, $asOf);
 
-        $pairs = $this->uniswapClient->getPairs($this->getApprorvedLiquidityPairIds());
+        $pairs = $this->uniswapClient->withChainId($this->chainId)->getPairs($this->getApprorvedLiquidityPairIds());
 
         if ($pairs) {
             $totalLiquidityTokens = BigDecimal::sum(...array_map(function ($uniswapPair) {
@@ -100,23 +110,23 @@ class Manager
             $totalLiquidityTokens = BigDecimal::of(0);
         }
 
-        $approvedUserLiquidityPositions = array_filter($uniswapUser->getLiquidityPositions(), [$this, 'uniswapApprovedPairsFilterFn']);
+        // $approvedUserLiquidityPositions = array_filter($uniswapUser->getLiquidityPositions(), [$this, 'uniswapApprovedPairsFilterFn']);
 
-        try {
-            $userLiquidityTokens = BigDecimal::sum(
-                ...array_map(function ($uniswapLiquidityPosition) {
-                    return $uniswapLiquidityPosition->getLiquidityTokenBalance();
-                }, $approvedUserLiquidityPositions)
-            );
-            $userLiquidityTokensTotalSupply = BigDecimal::sum(
-                ...array_map(function ($uniswapLiquidityPosition) {
-                    return $uniswapLiquidityPosition->getPair()->getTotalSupply();
-                }, $approvedUserLiquidityPositions)
-            );
-        } catch (\InvalidArgumentException $e) {
-            $userLiquidityTokens = BigDecimal::of(0);
-            $userLiquidityTokensTotalSupply = BigDecimal::of(0);
-        }
+        // try {
+        //     $userLiquidityTokens = BigDecimal::sum(
+        //         ...array_map(function ($uniswapLiquidityPosition) {
+        //             return $uniswapLiquidityPosition->getLiquidityTokenBalance();
+        //         }, $approvedUserLiquidityPositions)
+        //     );
+        //     $userLiquidityTokensTotalSupply = BigDecimal::sum(
+        //         ...array_map(function ($uniswapLiquidityPosition) {
+        //             return $uniswapLiquidityPosition->getPair()->getTotalSupply();
+        //         }, $approvedUserLiquidityPositions)
+        //     );
+        // } catch (\InvalidArgumentException $e) {
+        //     $userLiquidityTokens = BigDecimal::of(0);
+        //     $userLiquidityTokensTotalSupply = BigDecimal::of(0);
+        // }
 
         //
         // Provided liquidity
@@ -136,36 +146,9 @@ class Manager
         $providedLiquidityUSD = $approvedMintsUSD->minus($approvedBurnsUSD);
         $providedLiquidityMINDS = $approvedMintsMINDS->minus($approvedBurnsMINDS);
 
-        //
-        // Current liquidity
-        //
+        $tokenSharePct = $providedLiquidityMINDS->dividedBy($totalLiquidityTokens, null, RoundingMode::FLOOR);
 
-        $tokenSharePct = $userLiquidityTokens->dividedBy($totalLiquidityTokens, null, RoundingMode::FLOOR);
-        try {
-            $userRelativeSharePct = $userLiquidityTokens->dividedBy($userLiquidityTokensTotalSupply, null, RoundingMode::FLOOR);
-        } catch (DivisionByZeroException $e) {
-            $userRelativeSharePct = BigDecimal::of(0);
-        }
 
-        // Multiply our liquidity position pairs reserve0 (we assume this is MINDS tokens... see note on uniswapMintsToMINDS below)
-        // by our tokenSharePct
-        // NOTE: we don't use our global share as LP tokens differ between pool
-
-        $currentLiquidityMINDS = $approvedUserLiquidityPositions ? BigDecimal::sum(...array_map(function ($liquidityPosition) {
-            return $liquidityPosition->getPair()->getReserve0();
-        }, $approvedUserLiquidityPositions))->multipliedBy($userRelativeSharePct) : BigDecimal::of(0);
-
-        $currentLiquidityUSD = $approvedUserLiquidityPositions ? BigDecimal::sum(...array_map(function ($liquidityPosition) {
-            return $liquidityPosition->getPair()->getReserveUSD();
-        }, $approvedUserLiquidityPositions))->multipliedBy($userRelativeSharePct) : BigDecimal::of(0);
-
-        //
-        // Yield liquidity (gains/loss account)
-        //
-        $yieldLiquidityMINDS = $currentLiquidityMINDS->minus($providedLiquidityMINDS);
-        $yieldLiquidityUSD = $currentLiquidityUSD->minus($providedLiquidityUSD);
-
-        
         //
         // Total liquidity
         //
@@ -182,28 +165,17 @@ class Manager
         // Share of liquidity
         //
 
-        $shareOfLiquidityMINDS = $currentLiquidityMINDS->dividedBy($totalLiquidityMINDS, null, RoundingMode::FLOOR);
-        $shareOfLiquidityUSD = $currentLiquidityUSD->dividedBy($totalLiquidityUSD, null, RoundingMode::FLOOR);
+        $shareOfLiquidityMINDS = $providedLiquidityMINDS->dividedBy($totalLiquidityMINDS, null, RoundingMode::FLOOR);
+        $shareOfLiquidityUSD = $providedLiquidityUSD->dividedBy($totalLiquidityUSD, null, RoundingMode::FLOOR);
 
         $summary = new LiquidityPositionSummary();
         $summary->setUserGuid((string) $this->user->getGuid())
             ->setTokenSharePct($tokenSharePct->toFloat())
             ->setTotalLiquidityTokens($totalLiquidityTokens)
-            ->setUserLiquidityTokens($userLiquidityTokens)
             ->setProvidedLiquidity(
                 (new LiquidityCurrencyValues())
                     ->setUsd($providedLiquidityUSD)
                     ->setMinds($providedLiquidityMINDS)
-            )
-            ->setCurrentLiquidity(
-                (new LiquidityCurrencyValues())
-                    ->setUsd($currentLiquidityUSD)
-                    ->setMinds($currentLiquidityMINDS)
-            )
-            ->setYieldLiquidity(
-                (new LiquidityCurrencyValues())
-                    ->setUsd($yieldLiquidityUSD)
-                    ->setMinds($yieldLiquidityMINDS)
             )
             ->setTotalLiquidity(
                 (new LiquidityCurrencyValues())
@@ -251,7 +223,7 @@ class Manager
      */
     public function getProviderUsers(): iterable
     {
-        $uniswapMints = $this->uniswapClient->getMintsByPairIds($this->getApprorvedLiquidityPairIds());
+        $uniswapMints = $this->uniswapClient->withChainId($this->chainId)->getMintsByPairIds($this->getApprorvedLiquidityPairIds());
 
         // Map to 'to' and reduce to unique
         $liquidityProviderIds = array_unique(array_map(function ($uniswapMint) {
@@ -281,7 +253,7 @@ class Manager
      */
     public function getPairs(): array
     {
-        $uniswapSwaps = $this->uniswapClient->getPairs($this->getApprorvedLiquidityPairIds(), $this->dateTs);
+        $uniswapSwaps = $this->uniswapClient->withChainId($this->chainId)->getPairs($this->getApprorvedLiquidityPairIds(), $this->dateTs);
         return $uniswapSwaps;
     }
 

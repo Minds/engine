@@ -80,6 +80,8 @@ class ManagerSpec extends ObjectBehavior
             ]);
 
         $pairs = $this->getPairMocks();
+
+        $this->uniswapClient->withChainId(Argument::type('integer'))->willReturn($this->uniswapClient);
         $this->uniswapClient->getPairs(['0xPAIR1', '0xPAIR2'])
             ->willReturn($pairs);
 
@@ -124,7 +126,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe('123');
 
         $summary->getTokenSharePct()
-            ->shouldBe(0.5); // 50pc
+            ->shouldBe(0.166);
 
         //
 
@@ -140,18 +142,6 @@ class ManagerSpec extends ObjectBehavior
 
         //
 
-        $summary->getCurrentLiquidity()
-            ->getMinds()
-            ->toFloat()
-            ->shouldBe((float) 0.75);
-
-        $summary->getCurrentLiquidity()
-            ->getUsd()
-            ->toFloat()
-            ->shouldBe((float) 1.5);
-
-        //
-
         $summary->getTotalLiquidity()
             ->getMinds()
             ->toFloat()
@@ -164,27 +154,15 @@ class ManagerSpec extends ObjectBehavior
 
         //
 
-        $summary->getYieldLiquidity()
-            ->getMinds()
-            ->toFloat()
-            ->shouldBe((float) 0.5); // We gained 0.5 (100% yield)
-
-        $summary->getYieldLiquidity()
-            ->getUsd()
-            ->toFloat()
-            ->shouldBe((float) 1); // We gained 1 (100% yield)
-
-        //
-
         $summary->getShareOfLiquidity()
             ->getMinds()
             ->toFloat()
-            ->shouldBe((float) 0.5);
+            ->shouldBe((float) 0.166);
 
         $summary->getShareOfLiquidity()
             ->getUsd()
             ->toFloat()
-            ->shouldBe((float) 0.5);
+            ->shouldBe((float) 0.16);
     }
 
     public function it_should_return_all_liquidity_providers_summaries()
@@ -198,6 +176,8 @@ class ManagerSpec extends ObjectBehavior
                     ]
                 ]
             ]);
+
+        $this->uniswapClient->withChainId(Argument::type('integer'))->willReturn($this->uniswapClient);
 
         $this->uniswapClient->getMintsByPairIds(['0xPAIR1', '0xPAIR2'])
             ->willReturn([

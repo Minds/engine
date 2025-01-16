@@ -6,6 +6,7 @@ use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
 use Minds\Core\Blockchain\OnchainBalances\OnchainBalancesService;
+use Minds\Core\Blockchain\Util;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Rewards\Restrictions\Blockchain\Manager as RestrictionsManager;
 
@@ -125,11 +126,21 @@ class Manager
      */
     public function getAll(int $asOf = null): iterable
     {
-        foreach ($this->onchainBalancesService->getAll(asOf: $asOf) as $account) {
-            $uniqueOnchainAddress = $this->repository->get($account['id']);
-            if ($uniqueOnchainAddress) {
-                $uniqueOnchainAddress->setTokenBalance($account['balances'][0]['amount']);
-                yield $uniqueOnchainAddress;
+        $emittedAddresses = [];
+
+        foreach ([Util::BASE_CHAIN_ID, Util::ETHEREUM_CHAIN_ID] as $chainId) {
+            foreach ($this->onchainBalancesService->getAll(asOf: $asOf, chainId: $chainId) as $account) {
+                if (isset($emittedAddresses[$account['id']])) {
+                    continue;
+                } else {
+                    $emittedAddresses[$account['id']] = true;
+                }
+                
+                $uniqueOnchainAddress = $this->repository->get($account['id']);
+                if ($uniqueOnchainAddress) {
+                    $uniqueOnchainAddress->setTokenBalance($account['balances'][0]['amount']);
+                    yield $uniqueOnchainAddress;
+                }
             }
         }
     }

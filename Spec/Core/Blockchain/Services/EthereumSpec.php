@@ -5,6 +5,7 @@ namespace Spec\Minds\Core\Blockchain\Services;
 use kornrunner\Keccak;
 use Minds\Core\Blockchain\Config;
 use Minds\Core\Blockchain\GasPrice;
+use Minds\Core\Blockchain\Util;
 use Minds\Core\Http\Curl\JsonRpc\Client as JsonRpc;
 use Minds\Core\Util\BigNumber;
 use MW3\Sha3;
@@ -18,17 +19,15 @@ class EthereumSpec extends ObjectBehavior
     private $_jsonRpc;
     private $_sign;
     private $_sha3;
-    private $_gasPrice;
 
-    public function let(Config $config, JsonRpc $jsonRpc, Sign $sign, Sha3 $sha, GasPrice $gasPrice)
+    public function let(Config $config, JsonRpc $jsonRpc, Sign $sign, Sha3 $sha)
     {
         $this->_config = $config;
         $this->_jsonRpc = $jsonRpc;
         $this->_sign = $sign;
         $this->_sha3 = $sha;
-        $this->_gasPrice = $gasPrice;
 
-        $this->beConstructedWith($config, $jsonRpc, $sign, $sha, $gasPrice);
+        $this->beConstructedWith($config, $jsonRpc, $sign, $sha);
     }
 
     public function it_is_initializable()
@@ -39,7 +38,7 @@ class EthereumSpec extends ObjectBehavior
     public function it_should_request_to_ethereum()
     {
         $this->_config->get()->willReturn([
-            'rpc_endpoints' => ['127.0.0.1'],
+            'rpc_endpoints' => [Util::BASE_CHAIN_ID => '127.0.0.1'],
             'mw3' => '/dev/null'
         ]);
 
@@ -54,7 +53,7 @@ class EthereumSpec extends ObjectBehavior
     public function it_should_throw_exception_on_error_request()
     {
         $this->_config->get()->willReturn([
-            'rpc_endpoints' => ['127.0.0.1'],
+            'rpc_endpoints' => [Util::BASE_CHAIN_ID => '127.0.0.1'],
             'mw3' => '/dev/null'
         ]);
 
@@ -74,7 +73,7 @@ class EthereumSpec extends ObjectBehavior
     public function it_should_throw_exception_when_there_is_no_request()
     {
         $this->_config->get()->willReturn([
-            'rpc_endpoints' => ['127.0.0.1'],
+            'rpc_endpoints' => [Util::BASE_CHAIN_ID => '127.0.0.1'],
             'mw3' => '/dev/null'
         ]);
 
@@ -89,7 +88,7 @@ class EthereumSpec extends ObjectBehavior
     public function it_should_return_sha3_from_string()
     {
         $this->_config->get()->willReturn([
-            'rpc_endpoints' => ['127.0.0.1'],
+            'rpc_endpoints' => [Util::BASE_CHAIN_ID => '127.0.0.1'],
             'mw3' => '/dev/null'
         ]);
 
@@ -125,7 +124,7 @@ class EthereumSpec extends ObjectBehavior
     public function it_should_run_a_raw_method_unsigned_call()
     {
         $this->_config->get()->willReturn([
-            'rpc_endpoints' => ['127.0.0.1'],
+            'rpc_endpoints' => [Util::BASE_CHAIN_ID => '127.0.0.1'],
             'mw3' => '/dev/null'
         ]);
 
@@ -169,12 +168,13 @@ class EthereumSpec extends ObjectBehavior
             'nonce' => 'nonce'
         ];
 
-        $this->_gasPrice->getLatestGasPrice(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn('0x2540be400');
+        $this->_jsonRpc->post(Argument::type('string'), [
+            'method' => 'eth_gasPrice',
+            'params' => []
+        ])->willReturn(['result' => '0x2540be400']);
 
         $this->_config->get()->willReturn([
-            'rpc_endpoints' => ['127.0.0.1'],
+            'rpc_endpoints' => [Util::BASE_CHAIN_ID => '127.0.0.1'],
             'mw3' => '/dev/null',
             'server_gas_price' => 100,
         ]);
@@ -183,7 +183,7 @@ class EthereumSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->_sign);
 
-        $this->_sign->setTx(json_encode(array_merge($transaction, ['gasPrice' => '0x2540be400'])))
+        $this->_sign->setTx(json_encode(array_merge($transaction, ['chainId' => Util::BASE_CHAIN_ID, 'gasPrice' => '0x2540be400'])))
             ->shouldBeCalled()
             ->willReturn($this->_sign);
 
@@ -207,7 +207,9 @@ class EthereumSpec extends ObjectBehavior
         ];
 
         $this->_config->get()->willReturn([
-            'rpc_endpoints' => ['127.0.0.1'],
+            'rpc_endpoints' => [
+                Util::BASE_CHAIN_ID => '127.0.0.1'
+            ],
             'mw3' => '/dev/null',
             'server_gas_price' => 100,
         ]);
@@ -226,7 +228,9 @@ class EthereumSpec extends ObjectBehavior
         ];
 
         $this->_config->get()->willReturn([
-            'rpc_endpoints' => ['127.0.0.1'],
+            'rpc_endpoints' => [
+                Util::BASE_CHAIN_ID => '127.0.0.1'
+            ],
             'mw3' => '/dev/null',
             'server_gas_price' => 100,
         ]);
@@ -246,7 +250,9 @@ class EthereumSpec extends ObjectBehavior
         ];
 
         $this->_config->get()->willReturn([
-            'rpc_endpoints' => ['127.0.0.1'],
+            'rpc_endpoints' => [
+                Util::BASE_CHAIN_ID => '127.0.0.1'
+            ],
             'mw3' => '/dev/null',
             'server_gas_price' => 100,
         ]);
@@ -255,11 +261,12 @@ class EthereumSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->_sign);
 
-        $this->_gasPrice->getLatestGasPrice(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn('0x2540be400');
+        $this->_jsonRpc->post(Argument::type('string'), [
+            'method' => 'eth_gasPrice',
+            'params' => []
+        ])->willReturn(['result' => '0x2540be400']);
 
-        $this->_sign->setTx(json_encode(array_merge($transaction, ['gasPrice' => '0x2540be400'])))
+        $this->_sign->setTx(json_encode(array_merge($transaction, ['chainId' => Util::BASE_CHAIN_ID, 'gasPrice' => '0x2540be400'])))
             ->shouldBeCalled()
             ->willReturn($this->_sign);
 
@@ -276,7 +283,9 @@ class EthereumSpec extends ObjectBehavior
     public function it_should_request_gas_price_via_rpc()
     {
         $this->_config->get()->willReturn([
-            'rpc_endpoints' => ['127.0.0.1'],
+            'rpc_endpoints' => [
+                Util::BASE_CHAIN_ID => '127.0.0.1'
+            ],
             'mw3' => '/dev/null'
         ]);
 

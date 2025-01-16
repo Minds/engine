@@ -27,8 +27,8 @@ class Manager
     {
         $blockchainConfig = $this->config->get('blockchain');
 
-        if ($blockchainConfig['token_address'] ?? null) {
-            $this->contracts['token'] = Contracts\MindsToken::at($blockchainConfig['token_address']);
+        if ($blockchainConfig['token_addresses'] ?? null) {
+            $this->contracts['token'] = Contracts\MindsToken::at($blockchainConfig['token_addresses'][$blockchainConfig['chain_id']]);
         }
 
         if (isset($blockchainConfig['contracts']['wire']) && isset($blockchainConfig['contracts']['wire']['contract_address'])) {
@@ -57,18 +57,12 @@ class Manager
         $blockchainConfig = $this->config->get('blockchain') ?: [];
 
         return array_merge([
-            'network_address' => $this->config->get('site_url') . self::$infuraProxyEndpoint,
-            'client_network' => $blockchainConfig['client_network'],
+            'chain_id' => $blockchainConfig['chain_id'] ?? Util::BASE_CHAIN_ID,
             'wallet_address' => $blockchainConfig['wallet_address'] ?? null,
             'boost_wallet_address' => $blockchainConfig['contracts']['boost']['wallet_address'],
-            'rate' => $blockchainConfig['eth_rate'],
             'plus_address' => $blockchainConfig['contracts']['wire']['plus_address'],
             'default_gas_price' => $blockchainConfig['default_gas_price'],
             'server_gas_price' => $blockchainConfig['server_gas_price'],
-            'transak' => $blockchainConfig['transak'] ?? [
-                'api_key' => '',
-                'environment' => 'STAGING',
-            ],
             'overrides' => $this->getOverrides(),
             'withdraw_limit' => $blockchainConfig['contracts']['withdraw']['limit'] ?? 1,
         ], $this->contracts);
@@ -84,8 +78,6 @@ class Manager
             $blockchainConfig = array_merge($baseConfig, $override);
 
             $result[$key] = [
-                'network_address' => $blockchainConfig['network_address'] ?? null,
-                'client_network' => $blockchainConfig['client_network'],
                 'wallet_address' => $blockchainConfig['wallet_address'] ?? null,
                 'boost_wallet_address' => $blockchainConfig['contracts']['boost']['wallet_address'],
                 'plus_address' => $blockchainConfig['contracts']['wire']['plus_address'],

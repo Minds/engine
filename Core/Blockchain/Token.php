@@ -8,39 +8,32 @@
 
 namespace Minds\Core\Blockchain;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Util\BigNumber;
 
 class Token
 {
-    /** @var Manager */
-    protected $manager;
-
-    /** @var Services\Ethereum */
-    protected $client;
-
-    /** @var string */
-    protected $tokenAddress;
-
     /** @var int */
-    protected $tokenDecimals;
+    protected $tokenDecimals = 18;
 
     /**
      * Token constructor.
      * @param null $config
      * @throws \Exception
      */
-    public function __construct($manager = null, $client = null)
-    {
+    public function __construct(
+        protected ?Manager $manager = null,
+        protected ?Services\Ethereum $client = null,
+        protected ?Config $config = null,
+    ) {
         $this->manager = $manager ?: Di::_()->get('Blockchain\Manager');
         $this->client = $client ?: Di::_()->get('Blockchain\Services\Ethereum');
+        $this->config ??= Di::_()->get(Config::class);
 
-        if (!$contract = $this->manager->getContract('token')) {
+        if (!$this->manager->getContract('token')) {
             throw new \Exception('No token set');
         }
-
-        $this->tokenAddress = $contract->getAddress();
-        $this->tokenDecimals = $contract->getExtra()['decimals'] ?: 18;
     }
 
     /**
@@ -50,10 +43,10 @@ class Token
      * @return string
      * @throws \Exception
      */
-    public function balanceOf(string $account, int $blockNumber = null)
+    public function balanceOf(string $account, int $blockNumber = null, int $chainId = Util::BASE_CHAIN_ID)
     {
         try {
-            $result = $this->client->call($this->tokenAddress, 'balanceOf(address)', [$account], $blockNumber);
+            $result = $this->client->call($this->getTokenAddress($chainId), 'balanceOf(address)', [$account], $blockNumber, $chainId);
 
             return (string) BigNumber::fromHex($result);
         } catch (\Exception $e) {
@@ -66,10 +59,10 @@ class Token
      * @param $account - address
      * @return string - balance cast as string.
      */
-    public function etherBalanceOf(string $account): string
+    public function etherBalanceOf(string $account, int $chainId = Util::BASE_CHAIN_ID): string
     {
         try {
-            $result = $this->client->request('eth_getBalance', [$account, "latest"]);
+            $result = $this->client->request('eth_getBalance', [$account, "latest"], $chainId);
             return (string) BigNumber::fromHex($result);
         } catch (\Exception $e) {
             return "0";
@@ -81,9 +74,9 @@ class Token
      * @param int $blockNumber
      * @return double
      */
-    public function totalSupply(int $blockNumber = null)
+    public function totalSupply(int $blockNumber = null, int $chainId = Util::BASE_CHAIN_ID)
     {
-        $result = $this->client->call($this->tokenAddress, 'totalSupply()', [], $blockNumber);
+        $result = $this->client->call($this->getTokenAddress($chainId), 'totalSupply()', [], $blockNumber, $chainId);
 
         return $this->fromTokenUnit(BigNumber::fromHex($result));
     }
@@ -114,5 +107,10 @@ class Token
     public function getDecimals(): int
     {
         return $this->tokenDecimals;
+    }
+
+    private function getTokenAddress(int $chainId = Util::BASE_CHAIN_ID): string
+    {
+        return $this->config?->get('blockchain')['token_addresses'][$chainId];
     }
 }

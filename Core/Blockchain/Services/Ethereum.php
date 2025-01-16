@@ -11,6 +11,7 @@ namespace Minds\Core\Blockchain\Services;
 use kornrunner\Keccak;
 use Minds\Core\Blockchain\Config;
 use Minds\Core\Blockchain\GasPrice;
+use Minds\Core\Blockchain\Util;
 use Minds\Core\Di\Di;
 use Minds\Core\Http\Curl\JsonRpc;
 use Minds\Core\Util\BigNumber;
@@ -33,9 +34,6 @@ class Ethereum
     /** @var MW3\Sha3 $sha3 */
     protected $sha3;
 
-    /** @var GasPrice */
-    protected $gasPrice;
-
     /** @var array $nonces */
     private $nonces = [];
 
@@ -45,14 +43,13 @@ class Ethereum
      * @param null|mixed $jsonRpc
      * @throws \Exception
      */
-    public function __construct($config = null, $jsonRpc = null, $sign = null, $sha3 = null, $gasPrice = null)
+    public function __construct($config = null, $jsonRpc = null, $sign = null, $sha3 = null)
     {
         $this->config = $config ?: new Config();
         $this->jsonRpc = $jsonRpc ?: Di::_()->get('Http\JsonRpc');
 
         $this->sign = $sign ?: new MW3\Sign;
         $this->sha3 = $sha3 ?: new MW3\Sha3;
-        $this->gasPrice = $gasPrice ?: Di::_()->get('Blockchain\GasPrice');
     }
 
     /**
@@ -73,9 +70,9 @@ class Ethereum
      * @return mixed
      * @throws \Exception
      */
-    public function request($method, array $params = [])
+    public function request($method, array $params = [], int $chainId = Util::BASE_CHAIN_ID)
     {
-        $response = $this->jsonRpc->post($this->getBestEndpoint(), [
+        $response = $this->jsonRpc->post($this->getRpcEndpoint($chainId), [
             'method' => $method,
             'params' => $params
         ]);
@@ -136,12 +133,12 @@ class Ethereum
      * @return mixed
      * @throws \Exception
      */
-    public function call($contract, $contractMethodDeclaration, array $params, int $blockNumber = null)
+    public function call($contract, $contractMethodDeclaration, array $params, int $blockNumber = null, int $chainId = Util::BASE_CHAIN_ID)
     {
         return $this->request('eth_call', [[
             'to' => $contract,
             'data' =>  $this->encodeContractMethod($contractMethodDeclaration, $params)
-        ],  $blockNumber ? '0x' . dechex($blockNumber) : 'latest' ]);
+        ],  $blockNumber ? '0x' . dechex($blockNumber) : 'latest' ], $chainId);
     }
 
     /**
@@ -185,18 +182,16 @@ class Ethereum
      * @return mixed
      * @throws \Exception
      */
-    public function sendRawTransaction($privateKey, array $transaction)
+    public function sendRawTransaction($privateKey, array $transaction, int $chainId = Util::BASE_CHAIN_ID)
     {
-        $config = $this->config->get();
-
-        $transaction['chainId'] = $config['client_network'];
+        $transaction['chainId'] = $chainId;
 
         if (!isset($transaction['from']) || !isset($transaction['gasLimit'])) {
             throw new \Exception('Transaction must have `from` and `gasLimit`');
         }
 
         if (!isset($transaction['gasPrice'])) {
-            $transaction['gasPrice'] = $this->gasPrice->getLatestGasPrice($config['server_gas_price'] ?: 1);
+            $transaction['gasPrice'] = $this->getLatestGasPrice($chainId);
         }
 
         if (!isset($transaction['nonce'])) {
@@ -216,7 +211,7 @@ class Ethereum
         }
 
 
-        return $this->request('eth_sendRawTransaction', [ $signedTx ]);
+        return $this->request('eth_sendRawTransaction', [ $signedTx ], $chainId);
     }
 
     /**
@@ -230,17 +225,36 @@ class Ethereum
     }
 
     /**
-     * Returns the next available RPC endpoint
+     * Returns the latest gas price
+     */
+    private function getLatestGasPrice(int $chainId): string
+    {
+        $config = $this->config->get();
+        $defaultGasPrice = $config['server_gas_price'] ?: 1;
+
+        $response = $this->request('eth_gasPrice', [], $chainId);
+
+        if (!$response) {
+            error_log('Core\Blockchain\GasPrice: Invalid eth_gasPrice response');
+            return BigNumber::_($defaultGasPrice * 1000000000)->toHex(true);
+        }
+
+        return $response;
+    }
+
+    /**
+     * Returns the relevant rpc endpoint
      * @return string
      * @throws \Exception
      */
-    protected function getBestEndpoint()
+    protected function getRpcEndpoint(int $chainId)
     {
         $config = $this->config->get();
 
         if (!$config['rpc_endpoints']) {
             throw new \Exception('No RPC endpoints available');
         }
-        return $config['rpc_endpoints'][0];
+
+        return $config['rpc_endpoints'][$chainId];
     }
 }

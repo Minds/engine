@@ -4,6 +4,7 @@ namespace Spec\Minds\Core\Blockchain;
 
 use Minds\Core\Blockchain\Contracts\ExportableContract;
 use Minds\Core\Blockchain\Manager;
+use Minds\Core\Blockchain\Util;
 use Minds\Core\Config;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -20,7 +21,10 @@ class ManagerSpec extends ObjectBehavior
         $this->config->get(Argument::is('blockchain'))
             ->shouldBeCalled()
             ->willReturn([
-                'token_address' => '0x123',
+                'chain_id' => Util::BASE_CHAIN_ID,
+                'token_addresses' => [
+                    Util::BASE_CHAIN_ID => '0x123',
+                ],
                 'contracts' => [
                     'wire' => [
                         'contract_address' => '0x456',
@@ -60,10 +64,6 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_get_public_settings()
     {
-        $this->config->get('site_url')
-            ->shouldBeCalled()
-            ->willReturn('www.minds.com/');
-
         $this->config->get('blockchain_override')
             ->shouldBeCalled()
             ->willReturn(null);
@@ -78,15 +78,13 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([
                 'production' => [
-                    'client_network' => '1338',
+                    'client_id' => '1338',
                 ]
             ]);
 
         $this->getOverrides()
             ->shouldReturn([
                 'production' => [
-                    'network_address' => "https://rinkeby.infura.io/",
-                    'client_network' => "1338",
                     'wallet_address' => "0x132",
                     'boost_wallet_address' => "0x003",
                     'plus_address' => '0xPLUS',

@@ -15,6 +15,7 @@ use Minds\Core\Blockchain\Events\BoostEvent;
 use Minds\Core\Blockchain\OnchainBalances\OnchainBalancesService;
 use Minds\Core\Blockchain\Services;
 use Minds\Core\Blockchain\Transactions\Transaction;
+use Minds\Core\Blockchain\Util;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
@@ -151,7 +152,8 @@ class Blockchain extends Cli\Controller implements Interfaces\CliControllerInter
     {
         $username = $this->getOpt('username');
         $user = new \Minds\Entities\User($username);
-        $address = '0x177fd9efd24535e73b81e99e7f838cdef265e6cb';
+        //$address = '0x177fd9efd24535e73b81e99e7f838cdef265e6cb';
+        $address = strtolower('0x1c4830fD39a9C7B72f0F745Bb16026225744E966');
 
         $uniswap = Di::_()->get('Blockchain\Uniswap\Client');
         $response = $uniswap->getUser($address);
@@ -166,7 +168,7 @@ class Blockchain extends Cli\Controller implements Interfaces\CliControllerInter
         $uniswap = Di::_()->get('Blockchain\Uniswap\Client');
         $response = $uniswap->getMintsByPairIds($pairIds);
     
-        var_dump($response);
+        var_dump(count($response));
     }
 
     public function liquidity_share()
@@ -258,8 +260,13 @@ class Blockchain extends Cli\Controller implements Interfaces\CliControllerInter
         /** @var OnchainBalancesService */
         $onchainBalancesService = Di::_()->get(OnchainBalancesService::class);
 
-        foreach ($onchainBalancesService->getAll() as $account) {
-            var_dump($account);
+        $i = 0;
+        foreach ($onchainBalancesService->getAll(chainId: Util::BASE_CHAIN_ID) as $account) {
+            $this->out(++$i . ' ' . $account['id']);
+        }
+
+        foreach ($onchainBalancesService->getAll(chainId: Util::ETHEREUM_CHAIN_ID) as $account) {
+            $this->out(++$i . ' ' . $account['id']);
         }
     }
 }

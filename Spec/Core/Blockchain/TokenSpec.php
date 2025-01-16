@@ -5,7 +5,11 @@ namespace Spec\Minds\Core\Blockchain;
 use Minds\Core\Blockchain\Contracts\MindsToken;
 use Minds\Core\Blockchain\Manager;
 use Minds\Core\Blockchain\Services\Ethereum;
+use Minds\Core\Blockchain\Util;
+use Minds\Core\Config\Config;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
+use Prophecy\Argument;
 
 class TokenSpec extends ObjectBehavior
 {
@@ -14,17 +18,23 @@ class TokenSpec extends ObjectBehavior
     /** @var Ethereum */
     private $client;
 
-    public function let(Manager $manager, Ethereum $client, MindsToken $contract)
+    private Collaborator $configMock;
+
+    public function let(Manager $manager, Ethereum $client, MindsToken $contract, Config $configMock)
     {
         $this->manager = $manager;
         $this->client = $client;
+        $this->configMock = $configMock;
 
-        $contract->getAddress()->willReturn('minds_token_addr');
-        $contract->getExtra()->willReturn(['decimals' => 18]);
+        $configMock->get('blockchain')->willReturn([
+                'token_addresses' => [
+                    Util::BASE_CHAIN_ID => 'minds_token_addr'
+                ]
+        ]);
 
         $this->manager->getContract('token')->willReturn($contract);
 
-        $this->beConstructedWith($manager, $client);
+        $this->beConstructedWith($manager, $client, $configMock);
     }
 
     public function it_is_initializable()
@@ -34,7 +44,7 @@ class TokenSpec extends ObjectBehavior
 
     public function it_should_return_the_balance()
     {
-        $this->client->call('minds_token_addr', 'balanceOf(address)', ['foo'], null)
+        $this->client->call('minds_token_addr', 'balanceOf(address)', ['foo'], null, Argument::type('integer'))
             ->shouldBeCalled()
             ->willReturn('0x2B5E3AF16B1880000');
 
@@ -43,7 +53,7 @@ class TokenSpec extends ObjectBehavior
 
     public function it_should_return_the_total_supply()
     {
-        $this->client->call('minds_token_addr', 'totalSupply()', [], null)
+        $this->client->call('minds_token_addr', 'totalSupply()', [], null, Argument::type('integer'))
             ->shouldBeCalled()
             ->willReturn('0xDE0B6B3A7640000');
 

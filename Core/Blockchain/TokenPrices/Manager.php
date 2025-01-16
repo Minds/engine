@@ -2,6 +2,7 @@
 namespace Minds\Core\Blockchain\TokenPrices;
 
 use Minds\Core\Blockchain\Uniswap;
+use Minds\Core\Blockchain\Util;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 
@@ -25,7 +26,7 @@ class Manager
      */
     public function getPrices(): array
     {
-        $tokenAddress = $this->config->get('blockchain')['token_address'];
+        $tokenAddress = $this->config->get('blockchain')['token_addresses'][Util::BASE_CHAIN_ID];
 
         $cacheKey = "blockchain::token-balance::$tokenAddress";
 

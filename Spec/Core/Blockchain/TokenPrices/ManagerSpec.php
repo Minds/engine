@@ -4,6 +4,7 @@ namespace Spec\Minds\Core\Blockchain\TokenPrices;
 
 use Minds\Core\Blockchain\TokenPrices\Manager;
 use Minds\Core\Blockchain\Uniswap;
+use Minds\Core\Blockchain\Util;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\cache\PsrWrapper;
 use PhpSpec\ObjectBehavior;
@@ -31,7 +32,9 @@ class ManagerSpec extends ObjectBehavior
     {
         $this->config->get('blockchain')
             ->willReturn([
-                'token_address' => '0x...',
+                'token_addresses' => [
+                    Util::BASE_CHAIN_ID => '0x...',
+                ]
             ]);
         $this->uniswapClient->getTokenUsdPrices('0x...')
             ->willReturn([
@@ -58,8 +61,11 @@ class ManagerSpec extends ObjectBehavior
     {
         $this->config->get('blockchain')
             ->willReturn([
-                'token_address' => '0x...',
+                'token_addresses' => [
+                    Util::BASE_CHAIN_ID => '0x...',
+                ]
             ]);
+
         $this->uniswapClient->getTokenUsdPrices('0x...')
             ->shouldNotBeCalled();
         
