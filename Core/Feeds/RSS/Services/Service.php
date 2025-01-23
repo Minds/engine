@@ -158,8 +158,12 @@ class Service
 
         $status = RssFeedLastFetchStatusEnum::SUCCESS;
 
+        $i = 0;
         try {
             foreach ($this->processRssFeedService->fetchFeed(rssFeed: $rssFeed) as $entry) {
+
+                $isFirstImport = !$rssFeed->lastFetchAtTimestamp && $i === 0;
+
                 $entryTimestamp = $entry->getDateModified()?->getTimestamp() ?? $entry->getDateCreated()?->getTimestamp();
 
                 if (!$entryTimestamp) {
@@ -167,7 +171,7 @@ class Service
                     continue;
                 }
 
-                if ($entryTimestamp < strtotime('-1 hour')) {
+                if ($entryTimestamp < strtotime('-1 hour') && !$isFirstImport) { // Allow older than 24 hours on first import
                     $this->logger->info("Skipping entry {$entry->getTitle()} as it is older than 1 hour");
                     continue;
                 }
@@ -176,6 +180,7 @@ class Service
                     continue;
                 }
 
+                ++$i;
                 $this->processRssFeedService->processActivity(
                     entry: $entry,
                     feedId: $rssFeed->feedId,

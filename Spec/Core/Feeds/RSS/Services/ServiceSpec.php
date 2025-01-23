@@ -259,8 +259,6 @@ class ServiceSpec extends ObjectBehavior
             ->during('removeRssFeed', [0, $userMock]);
     }
 
-
-
     public function it_should_refresh_rss_feed(
         User              $userMock,
         RssEntry          $rssEntryMock
@@ -298,6 +296,63 @@ class ServiceSpec extends ObjectBehavior
 
         $this->processRssFeedServiceMock->fetchFeed($rssFeedMock)
             ->willReturn([$rssEntryMock->getWrappedObject()]);
+
+        $this->processRssFeedServiceMock->processActivity(
+            $rssEntryMock,
+            0,
+            $userMock
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->mySQLRepositoryMock->updateRssFeed(
+            Argument::that(fn (int $feedId): bool => $feedId === 0),
+            null,
+            RssFeedLastFetchStatusEnum::SUCCESS
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->refreshRssFeed(0, $userMock);
+    }
+
+    public function it_should_import_only_one_post_if_never_fetch_before(
+        User              $userMock,
+        RssEntry          $rssEntryMock
+    ): void {
+        $userMock->getGuid()
+            ->willReturn('123');
+
+        $entryTimestamp = time() - 3601;
+
+        $rssFeedMock = new RssFeed(
+            feedId: 0,
+            userGuid: 123,
+            title: 'Test',
+            url: 'https://test.com'
+        );
+
+        $rssEntryMock->getDateModified()
+            ->willReturn(DateTimeImmutable::createFromFormat('U', (string) $entryTimestamp));
+
+        $rssEntryMock->getTitle()
+            ->willReturn('Test 1');
+        $rssEntryMock->getLink()
+            ->willReturn('https://test.com');
+
+        $this->mySQLRepositoryMock->getFeed(0)
+            ->shouldBeCalledTimes(2)
+            ->willReturn($rssFeedMock);
+
+        $this->mySQLRepositoryMock->updateRssFeedStatus(
+            0,
+            RssFeedLastFetchStatusEnum::FETCH_IN_PROGRESS
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->processRssFeedServiceMock->fetchFeed($rssFeedMock)
+            ->willReturn([$rssEntryMock->getWrappedObject(), $rssEntryMock->getWrappedObject()]);
 
         $this->processRssFeedServiceMock->processActivity(
             $rssEntryMock,
