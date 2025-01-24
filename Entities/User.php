@@ -697,7 +697,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
      */
     public function setPinnedPosts($pinned)
     {
-        $maxPinnedPosts = $this->isPro() ? 12 : 3;
+        $maxPinnedPosts = $this->isPro() ? 12 : ($this->isPlus() ? 3 : 1);
 
         $this->pinned_posts = array_slice($pinned, -$maxPinnedPosts, null, false);
 
