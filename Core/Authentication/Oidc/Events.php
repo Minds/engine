@@ -33,7 +33,7 @@ class Events
 
         switch ($providerUrl) {
             case "https://facebook.com":
-            case "https:/www.facebook.com":
+            case "https://www.facebook.com":
                 $event->setResponse([
                     'token_endpoint' => 'https://graph.facebook.com/v11.0/oauth/access_token',
                     'authorization_endpoint' => 'https://facebook.com/dialog/oauth/',
