@@ -25,6 +25,17 @@ class Provider extends DiProvider
     public function register(): void
     {
         /**
+         * Root
+         */
+
+        $this->di->bind(Events::class, function (Di $di): Events {
+            return new Events(
+                eventsDispatcher: $di->get('EventsDispatcher'),
+                config: $di->get(Config::class),
+            );
+        });
+
+        /**
          * Controllers
          */
 

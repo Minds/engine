@@ -59,7 +59,7 @@ class OidcAuthService
             ... $this->eventsDispatcher->trigger('oidc:getScopes', 'all', [
                 'provider' => $provider
             ], []) ?: []
-        ], $openIdConfiguration['scopes_supported']);
+        ], $openIdConfiguration['scopes_supported'] ?? []);
 
         $queryParams = http_build_query([
             'response_type' => 'code',
@@ -113,6 +113,8 @@ class OidcAuthService
 
         $sub = $jwtDecoded->sub;
 
+        $preferredUsername = $jwtDecoded->preferred_username ?? (str_replace(' ', '', $jwtDecoded->name));
+
         // Check the 'sub' to see if this account is already linked
         $user = $this->oidcUserService->getUserFromSub($sub, $provider->id);
 
@@ -122,8 +124,8 @@ class OidcAuthService
             $user = $this->oidcUserService->register(
                 sub: $sub,
                 providerId: $provider->id,
-                preferredUsername: $jwtDecoded->preferred_username,
-                displayName: $jwtDecoded->given_name ?: $jwtDecoded->preferred_username,
+                preferredUsername: $preferredUsername,
+                displayName: $jwtDecoded->given_name ?: $preferredUsername,
                 email: $jwtDecoded->email,
             );
         }
