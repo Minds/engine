@@ -10,6 +10,7 @@ use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Entities;
+use Minds\Exceptions\NotFoundException;
 use Minds\Helpers\File;
 use Minds\Interfaces;
 
@@ -80,6 +81,7 @@ class thumbnail extends Core\page implements Interfaces\page
             }
 
             if (!$contents) {
+                throw new NotFoundException();
                 // Could not load image
                 exit;
             }
