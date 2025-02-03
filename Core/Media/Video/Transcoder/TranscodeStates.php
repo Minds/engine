@@ -90,7 +90,10 @@ class TranscodeStates
         $ia = $this->acl->setIgnore(true);
         $this->save
             ->setEntity($video)
-            ->save();
+            ->withMutatedAttributes([
+                'transcoding_status',
+            ])
+            ->save(true);
         $this->acl->setIgnore($ia);
 
         return $transcodeStatus->getState();
