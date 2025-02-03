@@ -65,7 +65,10 @@ class OidcPsr7Controller
 
         $authUrl = $this->oidcAuthService->getAuthorizationUrl($provider, $csrfStateToken);
 
-        return new RedirectResponse($authUrl);
+        return new RedirectResponse($authUrl, 302, [
+            'Cache-Control' => 'no-cache',
+            'X-No-Cache' => 1,
+        ]);
     }
 
     /**
