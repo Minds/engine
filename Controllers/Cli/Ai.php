@@ -34,8 +34,8 @@ class Ai extends Cli\Controller implements Interfaces\CliControllerInterface
             )
         ];
 
-
-        $client = new OllamaClient(Di::_()->get(\GuzzleHttp\Client::class));
+        /** @var OllamaClient */
+        $client = Di::_()->get(OllamaClient::class);
         $response = $client->chat($messages);
         var_dump($response->getBody()->getContents());
     }
