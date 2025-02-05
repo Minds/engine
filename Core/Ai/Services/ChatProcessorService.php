@@ -48,7 +48,7 @@ class ChatProcessorService
             user: $botUser,
         );
 
-        if (count($chatHistoryEdges) > 10 && !$senderUser->isPlus() && !$this->config->get('tenant_id')) {
+        if (count($chatHistoryEdges['edges']) > 10 && !$senderUser->isPlus() && !$this->config->get('tenant_id')) {
             $this->chatMessageService->addMessage(
                 roomGuid: $message->roomGuid,
                 user: $botUser,
