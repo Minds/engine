@@ -148,6 +148,7 @@ class MessageService
                 ))
                 ->setTimestamp($chatMessage->createdAt->getTimestamp())
             );
+            
         } catch (PDOException $e) {
             $this->messageRepository->rollbackTransaction();
         }
@@ -175,8 +176,8 @@ class MessageService
      * @param int $first
      * @param string|null $after
      * @param string|null $before
-     * @param bool $hasMore
-     * @return array<ChatMessageNode>
+     * @param bool $hasMores
+     * @return array<{edges: ChatMessageEdge[], hasMore: bool}>
      * @throws GraphQLException
      * @throws ServerErrorException
      */

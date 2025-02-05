@@ -96,6 +96,11 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
             return false;
         }
 
+        if ($event->getTimestamp() > time() - 10) {
+            // If the message is less than 10 seconds old, redeliver
+            return false;
+        }
+
         if ($event->getTimestamp() < time() - self::EVENT_DATE_THRESHOLD_IN_SECONDS) {
             // skip old events via acknowledgement
             return true;

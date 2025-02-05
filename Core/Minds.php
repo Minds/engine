@@ -97,6 +97,7 @@ class Minds extends base
         SEO\Robots\Module::class,
         DeepLink\Module::class,
         Media\Audio\Module::class,
+        Ai\Module::class,
         // Integrations
         Integrations\Bloomerang\Module::class,
         Integrations\MemberSpace\Module::class,

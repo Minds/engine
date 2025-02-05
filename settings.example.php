@@ -20,6 +20,10 @@ $CONFIG->set('multi_tenant', [
     ]
 ]);
 
+$CONFIG->set('ai', [
+    'api_url' => 'http://host.docker.internal:11434',
+]);
+
 /*
  * Cassandra configuration
  */

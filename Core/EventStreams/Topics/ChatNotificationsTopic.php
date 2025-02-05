@@ -16,7 +16,7 @@ use Pulsar\SchemaType;
 
 class ChatNotificationsTopic extends AbstractTopic implements TopicInterface
 {
-    private const DELAY_MS = 10; // 10 second delay
+    private const DELAY_MS = 0; // No delay, the consumer should reject
     private const TOPIC = "chat-event-notifications";
 
     private ?Producer $producer = null;
@@ -114,6 +114,7 @@ class ChatNotificationsTopic extends AbstractTopic implements TopicInterface
                 $subscriptionId,
                 (new ConsumerConfiguration())
                     ->setConsumerType(Consumer::ConsumerShared)
+                    ->setUnAckedMessagesTimeoutMs(10000) // Redeliver after 10 seconds
                     ->setSchema(SchemaType::AVRO, "chat_notification", $this->getSchema(), [])
             );
     }

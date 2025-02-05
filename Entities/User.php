@@ -78,6 +78,7 @@ use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
  * @property string $source
  * @property string $canonical_url
  * @property int $opt_out_analytics;
+ * @property int $bot
  */
 class User extends \ElggUser implements DemonetizableEntityInterface, FederatedEntityInterface
 {
@@ -156,6 +157,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
         $this->attributes['source'] = FederatedEntitySourcesEnum::LOCAL->value;
         $this->attributes['canonical_url'] = null;
         $this->attributes['opt_out_analtytics'] = 0;
+        $this->attributes['bot'] = 0;
 
         parent::initializeAttributes();
     }
@@ -1160,6 +1162,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
 
         $export['source'] = $this->getSource();
         $export['canonical_url'] = $this->getCanonicalUrl();
+        $export['bot'] = $this->isBot();
 
         return $export;
     }
@@ -1962,6 +1965,11 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
     public function isOptOutAnalytics(): bool
     {
         return (bool) $this->opt_out_analytics;
+    }
+
+    public function isBot(): bool
+    {
+        return (bool) $this->bot;
     }
 
     /**

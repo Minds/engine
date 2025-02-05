@@ -410,7 +410,7 @@ class RoomService
             'edges' => array_values(array_filter(array_map(
                 function (array $member): ?ChatRoomMemberEdge {
                     $user = $this->entitiesBuilder->single($member['member_guid']);
-                    if (!$user) {
+                    if (!$user instanceof User) {
                         return null;
                     }
 
@@ -1021,7 +1021,11 @@ class RoomService
                 return 'Unknown User';
             }
 
-            return $member->getName();
+            $name = $member->getName();
+            if ($member->isBot()) {
+                $name .= ' 🤖';
+            }
+            return $name;
         }, array_slice($memberGuids, 0, 3));
 
         $namesCount = count($names);

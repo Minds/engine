@@ -106,6 +106,9 @@ class RoomServiceSpec extends ObjectBehavior
         $memberMock->getName()
             ->willReturn('Other user');
 
+        $memberMock->isBot()
+            ->willReturn(false);
+
         $this->roomRepositoryMock->beginTransaction()
             ->shouldBeCalledOnce();
 
@@ -204,6 +207,8 @@ class RoomServiceSpec extends ObjectBehavior
 
         $memberMock->getName()
             ->willReturn('Other user');
+        $memberMock->isBot()
+            ->willReturn(false);
 
         $this->roomRepositoryMock->beginTransaction()
             ->shouldBeCalledOnce();
@@ -299,6 +304,8 @@ class RoomServiceSpec extends ObjectBehavior
 
         $memberMock->getName()
             ->willReturn('Other user');
+        $memberMock->isBot()
+            ->willReturn(false);
 
         $this->roomRepositoryMock->beginTransaction()
             ->shouldBeCalledOnce();
@@ -501,6 +508,8 @@ class RoomServiceSpec extends ObjectBehavior
 
         $memberMock1->getName()
             ->willReturn('Member1');
+        $memberMock1->isBot()
+            ->willReturn(false);
 
         $this->entitiesBuilderMock->single(789)
             ->shouldBeCalledTimes(2)
@@ -508,6 +517,8 @@ class RoomServiceSpec extends ObjectBehavior
 
         $memberMock2->getName()
             ->willReturn('Member2');
+        $memberMock2->isBot()
+            ->willReturn(false);
 
         $this->roomRepositoryMock->beginTransaction()
             ->shouldBeCalledOnce();
