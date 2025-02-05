@@ -48,6 +48,15 @@ class ChatProcessorService
             user: $botUser,
         );
 
+        if (count($chatHistoryEdges) > 10 && !$senderUser->isPlus() && !$this->config->get('tenant_id')) {
+            $this->chatMessageService->addMessage(
+                roomGuid: $message->roomGuid,
+                user: $botUser,
+                message: "Hey... please can you upgrade to Plus in order to continue chatting with me? https://www.minds.com/plus.",
+            );
+            return true; // User is not plus
+        }
+
         $images = [];
 
         if ($message->image) {
@@ -65,7 +74,7 @@ class ChatProcessorService
             // The system message informs the bot how to behave
             new OllamaMessage(
                 role: OllamaRoleEnum::SYSTEM,
-                content: "You an open source bot who is chatting with a user on the social media site " . $this->config->get('site_url') . ". Give short an concise answers where appropriate.",
+                content: "You are an open source bot who is chatting with a user on the social media site " . $this->config->get('site_url') . ". Give short and concise answers where appropriate.",
             ),
             // Get the last X messages so the assistant has context as to their chat
             ... array_filter(array_map(function (ChatMessageEdge $edge) use ($botUser) {
