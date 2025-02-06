@@ -46,6 +46,7 @@ class Provider extends DiProvider
                 entitiesBuilder: $di->get(EntitiesBuilder::class),
                 taggedUsersService: $di->get(TaggedUsersService::class),
                 logger: $di->get('Logger'),
+                acl: $di->get('Security\ACL'),
             )
         );
 

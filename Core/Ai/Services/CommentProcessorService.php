@@ -16,6 +16,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Entities\TaggedUsersService;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
+use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 
@@ -28,6 +29,7 @@ class CommentProcessorService
         private readonly EntitiesBuilder $entitiesBuilder,
         private readonly TaggedUsersService $taggedUsersService,
         private readonly Logger $logger,
+        private readonly ACL $acl,
     ) {
         
     }
@@ -37,6 +39,8 @@ class CommentProcessorService
      */
     public function onComment(Comment $comment): bool
     {
+        $this->acl->setIgnore(true);
+
         $entity = $this->entitiesBuilder->single($comment->getEntityGuid());
         $entityOwner = $this->entitiesBuilder->single($entity->getOwnerGuid());
         
