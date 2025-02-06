@@ -13,6 +13,7 @@ use Minds\Core\Entities\Repositories\CassandraRepository;
 use Minds\Core\Entities\Repositories\EntitiesRepositoryFactory;
 use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
 use Minds\Core\Entities\Repositories\MySQLRepository;
+use Minds\Core\EntitiesBuilder;
 
 class Provider extends \Minds\Core\Di\Provider
 {
@@ -78,6 +79,15 @@ class Provider extends \Minds\Core\Di\Provider
                 chatMessageService: $di->get(ChatMessageService::class)
             ),
             [ 'useFactory' => true]
+        );
+
+        // Tagged users service
+        $this->di->bind(
+            TaggedUsersService::class,
+            fn (Di $di): TaggedUsersService => new TaggedUsersService(
+                entitiesBuilder: $di->get(EntitiesBuilder::class),
+                acl: $di->get('Security\ACL'),
+            )
         );
     }
 }

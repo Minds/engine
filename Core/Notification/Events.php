@@ -11,6 +11,7 @@ use Minds\Core\Session;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\TaggedUsersService;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
@@ -49,24 +50,9 @@ class Events
                 $message .= $entity->title;
             }
 
-            if (preg_match_all(Regex::AT, $message, $matches)) {
-                $usernames = $matches[1];
-                $toGuids = [];
-                $to = [];
+            $to = Di::_()->get(TaggedUsersService::class)->getUsersFromText($message, Core\Session::getLoggedinUser());
 
-                foreach ($usernames as $username) {
-                    $user = Di::_()->get(EntitiesBuilder::class)->getByUserByIndex(strtolower($username));
-
-                    if ($user->guid && Core\Security\ACL::_()->interact($user, Core\Session::getLoggedinUser())) {
-                        $to[] = $user;
-                        $toGuids[] = $user->guid;
-                    }
-
-                    //limit of tags notifications: 5
-                    if (count($to) >= 5) {
-                        break;
-                    }
-                }
+            if ($to) {
 
                 $params = [
                     'title' => $message,
