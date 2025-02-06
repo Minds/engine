@@ -19,6 +19,7 @@ use Minds\Core\Security\Block\BlockEntry;
 
 use Minds\Helpers;
 use Minds\Core\Sockets;
+use Minds\Entities\User;
 
 class Events
 {
@@ -50,7 +51,13 @@ class Events
                 $message .= $entity->title;
             }
 
-            $to = Di::_()->get(TaggedUsersService::class)->getUsersFromText($message, Core\Session::getLoggedinUser());
+            $entityOwner = Di::_()->get(EntitiesBuilder::class)->single($entity->getOwnerGuid());
+
+            if (!$entityOwner instanceof User) {
+                return;
+            }
+
+            $to = Di::_()->get(TaggedUsersService::class)->getUsersFromText($message, $entityOwner);
 
             if ($to) {
 
@@ -70,7 +77,7 @@ class Events
                         if ($taggedUser->getGuid() !== $entity->getOwnerGuid()) {
                             $actionEvent = new ActionEvent();
                             $actionEvent->setAction(ActionEvent::ACTION_TAG)
-                            ->setUser(Core\Session::getLoggedinUser()) // Who is tagging
+                            ->setUser($entityOwner) // Who is tagging
                             ->setEntity($taggedUser) // The tagged person
                             ->setActionData([
                                 'tag_in_entity_urn' => $entity->getUrn(),
