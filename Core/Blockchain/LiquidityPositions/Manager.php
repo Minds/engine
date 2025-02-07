@@ -42,7 +42,7 @@ class Manager
         Uniswap\Client $uniswapClient = null,
         Config $config = null,
         UniqueOnChain\Manager $uniqueOnchain = null,
-        EntitiesBuilder $entitiesBuilder = null
+        EntitiesBuilder $entitiesBuilder = null,
     ) {
         $this->uniswapClient = $uniswapClient ?? Di::_()->get('Blockchain\Uniswap\Client');
         $this->config = $config ?? Di::_()->get('Config');
@@ -169,6 +169,10 @@ class Manager
 
         // This is the number of LP tokens a user holders. We use this for rewards.
         $lpPosition = $mintsToLPPosition->minus($burnsToLPPosition);
+
+        if ($this->chainId === Util::ETHEREUM_CHAIN_ID) {
+            $lpPosition = $lpPosition->dividedBy(20000, 8, RoundingMode::FLOOR); // Factor of difference between the ETH and USD pools
+        }
 
         $shareOfLiquidityMINDS = $providedLiquidityMINDS->dividedBy($totalLiquidityMINDS, null, RoundingMode::FLOOR);
         $shareOfLiquidityUSD = $providedLiquidityUSD->dividedBy($totalLiquidityUSD, null, RoundingMode::FLOOR);
