@@ -111,7 +111,7 @@ class CommentProcessorService
             $botComment->setParentGuidL1($parentGuids[0]);
             $botComment->setParentGuidL2($parentGuids[1]);
 
-            $botComment->setBody(ltrim($this->getBotAnswer($messages), ' '));
+            $botComment->setBody($this->getBotAnswer($messages));
             $botComment->setOwnerGuid($botUser->getGuid());
             $botComment->setTimeCreated(time());
 
@@ -196,7 +196,7 @@ class CommentProcessorService
             $botComment->setParentGuidL1($parentGuids[0]);
             $botComment->setParentGuidL2($parentGuids[1]);
 
-            $botComment->setBody('@' . $commentOwner->getUsername() . ' ' . ltrim($this->getBotAnswer($messages), ' '));
+            $botComment->setBody('@' . $commentOwner->getUsername() . ' ' . $this->getBotAnswer($messages));
             $botComment->setOwnerGuid($botUser->getGuid());
             $botComment->setTimeCreated(time());
 
@@ -211,13 +211,66 @@ class CommentProcessorService
         return false;
     }
 
+    /**
+     * When a post is made, check if a bot has been tagged in it, and reply
+     */
+    public function onActivityTag(Activity $activity, User $taggedUser): bool
+    {
+        if (!$taggedUser->isBot()) {
+            $this->logger->info("The tagged user was not a bot. Skipping.", [
+                'entity_urn' => $activity->getUrn(),
+            ]);
+            return true;
+        }
+    
+        $activityOwner = $this->entitiesBuilder->single($activity->getOwnerGuid());
+
+        if (!$activityOwner instanceof User) {
+            $this->logger->info("Bad post owner. Skipping.", [
+                'entity_urn' => $activity->getUrn(),
+            ]);
+            return true; // Bad user
+        }
+
+        $messages = [
+            new OllamaMessage(
+                role: OllamaRoleEnum::SYSTEM,
+                content: "
+                You have have been tagged in a social media post and will reply to the post.
+                Your username is @{$taggedUser->getUsername()} and you are replying to @{$activityOwner->getUsername()}, but you don't need to mention them
+                in your reply.
+                "
+            ),
+            new OllamaMessage(
+                role: OllamaRoleEnum::USER,
+                content: "{$activity->getTitle()} {$activity->getMessage()}",
+            )
+        ];
+
+        $botComment = new Comment();
+        $botComment->setEntityGuid($activity->getGuid());
+        $botComment->setParentGuidL1(0);
+        $botComment->setParentGuidL2(0);
+
+        $botComment->setBody($this->getBotAnswer($messages));
+        $botComment->setOwnerGuid($taggedUser->getGuid());
+        $botComment->setTimeCreated(time());
+
+        $this->logger->info("Processed.", [
+            'entity_urn' => $activity->getUrn(),
+        ]);
+
+        // Leave a new comment
+        return $this->commentsManager->add($botComment);
+    }
+
     private function getBotAnswer(array $messages): string
     {
         $response = $this->ollamaClient->chat($messages);
 
         $result = json_decode($response->getBody()->getContents(), true);
 
-        return $result['message']['content'];
+        return ltrim($result['message']['content']);
     }
 
 }

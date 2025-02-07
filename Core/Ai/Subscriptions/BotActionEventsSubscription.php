@@ -14,6 +14,8 @@ use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
+use Minds\Entities\Activity;
+use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use NotImplementedException;
 
@@ -63,7 +65,19 @@ class BotActionEventsSubscription implements SubscriptionInterface
 
         switch ($event->getAction()) {
             case ActionEvent::ACTION_TAG:
-                return true; // TODO
+                $taggedUser = $event->getEntity();
+                
+                if (!$taggedUser instanceof User) {
+                    return true; // Bad user found
+                }
+
+                $activity = $this->entitiesResolver->single($event->getActionData()['tag_in_entity_urn']);
+
+                if (!$activity instanceof Activity) {
+                    return true; // Bad activity found
+                }
+
+                return $this->commentProcessorService->onActivityTag($activity, $taggedUser);
                 break;
             case ActionEvent::ACTION_COMMENT:
 
