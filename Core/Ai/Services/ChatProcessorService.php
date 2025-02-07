@@ -91,7 +91,7 @@ class ChatProcessorService
                 role: OllamaRoleEnum::USER,
                 content: $images ? 'What is this image?' : $message->plainText,
                 images: $images,
-            )
+            ),
         ]);
 
         $result = json_decode($response->getBody()->getContents(), true);
@@ -99,7 +99,7 @@ class ChatProcessorService
         return !!$this->chatMessageService->addMessage(
             roomGuid: $message->roomGuid,
             user: $botUser,
-            message: $result['message']['content']
+            message: ltrim($result['message']['content'], ' '),
         );
     }
 

@@ -111,7 +111,7 @@ class CommentProcessorService
             $botComment->setParentGuidL1($parentGuids[0]);
             $botComment->setParentGuidL2($parentGuids[1]);
 
-            $botComment->setBody($this->getBotAnswer($messages));
+            $botComment->setBody(ltrim($this->getBotAnswer($messages), ' '));
             $botComment->setOwnerGuid($botUser->getGuid());
             $botComment->setTimeCreated(time());
 
@@ -196,7 +196,7 @@ class CommentProcessorService
             $botComment->setParentGuidL1($parentGuids[0]);
             $botComment->setParentGuidL2($parentGuids[1]);
 
-            $botComment->setBody('@' . $commentOwner->getUsername() . ' ' . $this->getBotAnswer($messages));
+            $botComment->setBody('@' . $commentOwner->getUsername() . ' ' . ltrim($this->getBotAnswer($messages), ' '));
             $botComment->setOwnerGuid($botUser->getGuid());
             $botComment->setTimeCreated(time());
 
