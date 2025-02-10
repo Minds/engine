@@ -4,11 +4,6 @@ namespace Minds\Core\Ai\Services;
 use Minds\Core\Ai\Ollama\OllamaClient;
 use Minds\Core\Ai\Ollama\OllamaMessage;
 use Minds\Core\Ai\Ollama\OllamaRoleEnum;
-use Minds\Core\Chat\Entities\ChatMessage;
-use Minds\Core\Chat\Services\ChatImageStorageService;
-use Minds\Core\Chat\Services\MessageService;
-use Minds\Core\Chat\Services\RoomService;
-use Minds\Core\Chat\Types\ChatMessageEdge;
 use Minds\Core\Comments\Manager as CommentManager;
 
 use Minds\Core\Comments\Comment;
@@ -212,9 +207,32 @@ class CommentProcessorService
     }
 
     /**
+     * On an activity post, check for tags
+     */
+    public function onActivity(Activity $activity): bool
+    {
+        $activityOwner = $this->entitiesBuilder->single($activity->getOwnerGuid());
+
+        if (!$activityOwner instanceof User) {
+            return true; // Bad user, do not try to reprocess
+        }
+
+        $taggedUsers = $this->taggedUsersService->getUsersFromText($activity->getTitle() . ' ' . $activity->getMessage(), $activityOwner);
+
+        foreach ($taggedUsers as $taggedUser) {
+            if (!$this->onActivityTag($activity, $taggedUser)) {
+                $this->logger->error("Failure: {$activity->getUrn()}. Could not save comment.");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * When a post is made, check if a bot has been tagged in it, and reply
      */
-    public function onActivityTag(Activity $activity, User $taggedUser): bool
+    protected function onActivityTag(Activity $activity, User $taggedUser): bool
     {
         if (!$taggedUser->isBot()) {
             $this->logger->info("The tagged user was not a bot. Skipping.", [

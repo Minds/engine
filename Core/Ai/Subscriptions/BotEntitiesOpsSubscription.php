@@ -7,22 +7,21 @@ use Minds\Core\Ai\Services\CommentProcessorService;
 use Minds\Core\Comments\Manager as CommentManager;
 use Minds\Core\Comments\Comment;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Ops\EntitiesOpsEvent;
+use Minds\Core\Entities\Ops\EntitiesOpsTopic;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
-use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\SubscriptionInterface;
-use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
 use Minds\Entities\Activity;
-use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use NotImplementedException;
 
 /**
- * Test: php engine/cli.php EventStreams --subscription=Core\\Ai\\Subscriptions\\BotActionEventsSubscription
+ * Test: php engine/cli.php EventStreams --subscription=Core\\Ai\\Subscriptions\\BotEntitiesOpsSubscription
  */
-class BotActionEventsSubscription implements SubscriptionInterface
+class BotEntitiesOpsSubscription implements SubscriptionInterface
 {
     public function __construct(
         private ?CommentManager $commentManager = null,
@@ -43,12 +42,12 @@ class BotActionEventsSubscription implements SubscriptionInterface
 
     public function getTopic(): TopicInterface
     {
-        return new ActionEventsTopic();
+        return new EntitiesOpsTopic();
     }
 
     public function getTopicRegex(): string
     {
-        return '(comment|tag)';
+        return '.*';
     }
 
     /**
@@ -59,39 +58,33 @@ class BotActionEventsSubscription implements SubscriptionInterface
      */
     public function consume(EventInterface $event): bool
     {
-        if (!$event instanceof ActionEvent) {
+        if (!$event instanceof EntitiesOpsEvent) {
             return false;
         }
 
-        switch ($event->getAction()) {
-            case ActionEvent::ACTION_TAG:
-                $taggedUser = $event->getEntity();
-                
-                if (!$taggedUser instanceof User) {
-                    return true; // Bad user found
-                }
+        if ($event->getOp() !== EntitiesOpsEvent::OP_CREATE) {
+            return true; // We only work with create events
+        }
 
-                $activity = $this->entitiesResolver->single($event->getActionData()['tag_in_entity_urn']);
+        $entity = $this->entitiesResolver->single($event->getEntityUrn());
+        
+        if (!$entity) {
+            if ($event->getTimestamp() > time() - 300) {
+                return false; // Neg ack. Retry, may be replication lag.
+            }
+            // Entity not found
+            return true; // Awknowledge as its likely this entity has been deleted
+        }
 
-                if (!$activity instanceof Activity) {
-                    return true; // Bad activity found
-                }
-
-                return $this->commentProcessorService->onActivityTag($activity, $taggedUser);
+        switch (get_class($entity)) {
+            case Activity::class:
+                return $this->commentProcessorService->onActivity($entity);
                 break;
-            case ActionEvent::ACTION_COMMENT:
-
-                $comment = $this->commentManager->getByUrn($event->getActionData()['comment_urn']);
-
-                if (!$comment instanceof Comment) {
-                    return false; // Bad comment found
-                }
-
-                return $this->commentProcessorService->onComment($comment);
-                
+            case Comment::class:
+                return $this->commentProcessorService->onComment($entity);
                 break;
         }
 
-        return false; // TODO: change to true
+        return true;
     }
 }
