@@ -184,7 +184,7 @@ class RoomService
 
                 // Check if user exists in minds|tenant
                 $member = $this->entitiesBuilder->single($memberGuid);
-                if (!$member) {
+                if (!$member instanceof User) {
                     throw new GraphQLException(message: "One or more of the members you have selected was not found", code: 404);
                 }
 
@@ -197,7 +197,7 @@ class RoomService
                 $this->roomRepository->addRoomMember(
                     roomGuid: $chatRoom->guid,
                     memberGuid: (int)$memberGuid,
-                    status: $isSubscribed ? ChatRoomMemberStatusEnum::ACTIVE : ChatRoomMemberStatusEnum::INVITE_PENDING,
+                    status: $isSubscribed || $member->isBot() ? ChatRoomMemberStatusEnum::ACTIVE : ChatRoomMemberStatusEnum::INVITE_PENDING,
                     role: $roomType === ChatRoomTypeEnum::ONE_TO_ONE ? ChatRoomRoleEnum::OWNER : ChatRoomRoleEnum::MEMBER,
                 );
 
