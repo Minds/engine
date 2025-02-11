@@ -48,14 +48,14 @@ class ChatProcessorService
             user: $botUser,
         );
 
-        if (count($chatHistoryEdges['edges']) > 10 && !$senderUser->isPlus() && !$this->config->get('tenant_id')) {
-            $this->chatMessageService->addMessage(
-                roomGuid: $message->roomGuid,
-                user: $botUser,
-                message: "Hey... please can you upgrade to Plus in order to continue chatting with me? https://www.minds.com/plus.",
-            );
-            return true; // User is not plus
-        }
+        // if (count($chatHistoryEdges['edges']) > 10 && !$senderUser->isPlus() && !$this->config->get('tenant_id')) {
+        //     $this->chatMessageService->addMessage(
+        //         roomGuid: $message->roomGuid,
+        //         user: $botUser,
+        //         message: "Hey... please can you upgrade to Plus in order to continue chatting with me? https://www.minds.com/plus.",
+        //     );
+        //     return true; // User is not plus
+        // }
 
         $images = [];
 
