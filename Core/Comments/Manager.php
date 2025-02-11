@@ -257,6 +257,26 @@ class Manager
                 // Rethrow
                 throw $e;
             }
+
+            try {
+                (new \Minds\Core\Sockets\Events())
+                ->setRoom("comments:{$comment->getEntityGuid()}:{$comment->getParentPath()}")
+                ->emit(
+                    'comment',
+                    (string) $comment->getEntityGuid(),
+                    (string) $comment->getOwnerGuid(),
+                    (string) $comment->getGuid()
+                );
+                // Emit to parent
+                (new \Minds\Core\Sockets\Events())
+                ->setRoom("comments:{$comment->getEntityGuid()}:{$comment->getParentPath()}")
+                ->emit(
+                    'reply',
+                    (string) ($comment->getParentGuidL2() ?: $comment->getParentGuidL1())
+                );
+            } catch (\Exception $e) {
+                var_dump($e);
+            }
         }
 
         return $success;

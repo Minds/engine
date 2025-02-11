@@ -133,6 +133,12 @@ class ManagerSpec extends ObjectBehavior
         $comment->getUrn()
             ->willReturn('urn:comment:fake');
 
+        $comment->getGuid()
+            ->willReturn('123');
+
+        $comment->getParentPath()
+            ->willReturn('0:0:0');
+
         $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_COMMENT)->willReturn(true);
 
         $this->entitiesBuilder->single(5000)

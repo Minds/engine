@@ -41,7 +41,6 @@ class comments implements Interfaces\Api
 
         $response = [];
         $error = false;
-        $emitToSocket = false;
 
         $request = ServerRequestFactory::fromGlobals();
 
@@ -180,7 +179,6 @@ class comments implements Interfaces\Api
                     if ($saved) {
                         // Defer emitting after processing attachments
                         $comment->setEphemeral(false);
-                        $emitToSocket = true;
                         $response['comment'] = $comment->export();
                     } else {
                         throw new \Exception('The comment couldn\'t be saved');
@@ -300,28 +298,6 @@ class comments implements Interfaces\Api
         if ($modified) {
             $manager->update($comment);
             $response['comment'] = $comment->export();
-        }
-
-        // Emit at the end because of attachment processing
-        if ($emitToSocket) {
-            try {
-                (new Sockets\Events())
-                ->setRoom("comments:{$comment->getEntityGuid()}:{$comment->getParentPath()}")
-                ->emit(
-                    'comment',
-                    (string) $comment->getEntityGuid(),
-                    (string) $comment->getOwnerGuid(),
-                    (string) $comment->getGuid()
-                );
-                // Emit to parent
-                (new Sockets\Events())
-                ->setRoom("comments:{$comment->getEntityGuid()}:{$comment->getParentPath()}")
-                ->emit(
-                    'reply',
-                    (string) ($comment->getParentGuidL2() ?: $comment->getParentGuidL1())
-                );
-            } catch (\Exception $e) {
-            }
         }
 
         return Factory::response($response);
