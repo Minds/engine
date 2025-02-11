@@ -22,6 +22,7 @@ $CONFIG->set('multi_tenant', [
 
 $CONFIG->set('ai', [
     'api_url' => 'http://host.docker.internal:11434',
+    'default_chat_user_guid' => '1626968097397149706',
 ]);
 
 /*

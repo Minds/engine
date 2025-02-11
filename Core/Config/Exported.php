@@ -93,6 +93,9 @@ class Exported
         $exported = [
             'LoggedIn' => Session::isLoggedIn() ? true : false,
             'Admin' => Session::isAdmin() ? true : false,
+            'ai' => [
+                'default_chat_user_guid' => $this->config->get('ai')['default_chat_user_guid'] ?? null,
+            ],
             'cdn_url' => $this->config->get('cdn_url'),
             'cdn_assets_url' => $this->config->get('cdn_assets_url'),
             'site_url' => $this->config->get('site_url'),
