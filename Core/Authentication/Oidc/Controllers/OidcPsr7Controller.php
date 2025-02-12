@@ -126,7 +126,7 @@ HTML
     public function suspendUser(ServerRequest $request): Response
     {
         $sub = $request->getAttribute('parameters')['sub'];
-        $providerId = $request->getAttribute('parameters')['provider_id'];
+        $providerId = $request->getAttribute('parameters')['providerId'];
 
         $this->oidcUserService->suspendUserFromSub($sub, $providerId);
 

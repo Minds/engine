@@ -118,7 +118,7 @@ class OidcPsr7ControllerSpec extends ObjectBehavior
     {
         $requestMock->getAttribute('parameters')->willReturn([
             'sub' => 'sub',
-            'provider_id' => 1,
+            'providerId' => 1,
         ]);
 
         $this->oidcUserServiceMock->suspendUserFromSub('sub', 1)
