@@ -200,6 +200,8 @@ class RoomServiceSpec extends ObjectBehavior
         $user->getGuid()
             ->shouldBeCalled()
             ->willReturn('123');
+        $user->isBot()
+            ->willReturn(false);
 
         $this->entitiesBuilderMock->single(456)
             ->shouldBeCalledTimes(2)
@@ -297,6 +299,8 @@ class RoomServiceSpec extends ObjectBehavior
         $user->getGuid()
             ->shouldBeCalled()
             ->willReturn('123');
+        $user->isBot()
+            ->willReturn(false);
 
         $this->entitiesBuilderMock->single(456)
             ->shouldBeCalledTimes(2)
