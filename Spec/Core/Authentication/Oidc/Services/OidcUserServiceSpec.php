@@ -4,6 +4,7 @@ namespace Spec\Minds\Core\Authentication\Oidc\Services;
 
 use Minds\Core\Authentication\Oidc\Repositories\OidcUserRepository;
 use Minds\Core\Authentication\Oidc\Services\OidcUserService;
+use Minds\Core\Channels\Ban as ChannelBanService;
 use Minds\Core\Config\Config;
 use Minds\Core\Email\V2\Campaigns\Recurring\TenantUserWelcome\TenantUserWelcomeEmailer;
 use Minds\Core\EntitiesBuilder;
@@ -22,6 +23,7 @@ class OidcUserServiceSpec extends ObjectBehavior
     private Collaborator $tenantUserWelcomeEmailer;
     private Collaborator $config;
     private Collaborator $logger;
+    private Collaborator $channelBanService;
 
     public function let(
         OidcUserRepository $oidcUserRepositoryMock,
@@ -29,7 +31,8 @@ class OidcUserServiceSpec extends ObjectBehavior
         LegacyClient $registerQueueMock,
         TenantUserWelcomeEmailer $tenantUserWelcomeEmailer,
         Config $config,
-        Logger $logger
+        Logger $logger,
+        ChannelBanService $channelBanService,
     ) {
         $this->beConstructedWith(
             $oidcUserRepositoryMock,
@@ -38,7 +41,8 @@ class OidcUserServiceSpec extends ObjectBehavior
             $registerQueueMock,
             $tenantUserWelcomeEmailer,
             $config,
-            $logger
+            $logger,
+            $channelBanService,
         );
 
         $this->oidcUserRepositoryMock = $oidcUserRepositoryMock;
@@ -47,6 +51,7 @@ class OidcUserServiceSpec extends ObjectBehavior
         $this->tenantUserWelcomeEmailer = $tenantUserWelcomeEmailer;
         $this->config = $config;
         $this->logger = $logger;
+        $this->channelBanService = $channelBanService;
     }
 
     public function it_is_initializable()
@@ -65,5 +70,26 @@ class OidcUserServiceSpec extends ObjectBehavior
             
         $this->getUserFromSub('my-oidc-profile-sub-field', 1)
             ->shouldBeAnInstanceOf(User::class);
+    }
+
+    public function it_should_ban_user_from_their_sub()
+    {
+        $this->oidcUserRepositoryMock->getUserGuidFromSub('abc1', 1)
+        ->shouldBeCalled()
+        ->willReturn(123);
+
+        $user = new User();
+        $this->entitiesBuilderMock->single(123)
+            ->willReturn($user);
+
+        $this->channelBanService->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->channelBanService);
+        $this->channelBanService->ban()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->suspendUserFromSub('abc1', 1)
+            ->shouldBe(true);
     }
 }

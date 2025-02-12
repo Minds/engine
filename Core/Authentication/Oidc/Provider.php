@@ -43,6 +43,7 @@ class Provider extends DiProvider
             return new OidcPsr7Controller(
                 oidcAuthService: $di->get(OidcAuthService::class),
                 oidcProvidersService: $di->get(OidcProvidersService::class),
+                oidcUserService: $di->get(OidcUserService::class),
             );
         });
 
@@ -77,6 +78,7 @@ class Provider extends DiProvider
                 tenantUserWelcomeEmailer: $di->get(TenantUserWelcomeEmailer::class),
                 config: $di->get(Config::class),
                 logger: $di->get('Logger'),
+                channelBanService: $di->get('Channels\Ban'),
             );
         });
 

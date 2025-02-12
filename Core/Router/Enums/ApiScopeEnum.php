@@ -11,4 +11,7 @@ enum ApiScopeEnum
 
     /** The route will allow creation of a tenant (trial) - (Minds only) */
     case TENANT_CREATE_TRIAL;
+
+    /** The route will allow an admin to manage oidc user */
+    case OIDC_MANAGE_USERS;
 }

@@ -6,11 +6,13 @@ use Minds\Core\Authentication\Oidc\Controllers\OidcPsr7Controller;
 use Minds\Core\Authentication\Oidc\Models\OidcProvider;
 use Minds\Core\Authentication\Oidc\Services\OidcAuthService;
 use Minds\Core\Authentication\Oidc\Services\OidcProvidersService;
+use Minds\Core\Authentication\Oidc\Services\OidcUserService;
 use Minds\Exceptions\UserErrorException;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 use Zend\Diactoros\Response\HtmlResponse;
+use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\Response\RedirectResponse;
 use Zend\Diactoros\ServerRequest;
 
@@ -18,13 +20,15 @@ class OidcPsr7ControllerSpec extends ObjectBehavior
 {
     private Collaborator $oidcAuthServiceMock;
     private Collaborator $oidcProvidersServiceMock;
+    private Collaborator $oidcUserServiceMock;
 
-    public function let(OidcAuthService $oidcAuthServiceMock, OidcProvidersService $oidcProvidersServiceMock)
+    public function let(OidcAuthService $oidcAuthServiceMock, OidcProvidersService $oidcProvidersServiceMock, OidcUserService $oidcUserServiceMock)
     {
-        $this->beConstructedWith($oidcAuthServiceMock, $oidcProvidersServiceMock);
+        $this->beConstructedWith($oidcAuthServiceMock, $oidcProvidersServiceMock, $oidcUserServiceMock);
 
         $this->oidcAuthServiceMock = $oidcAuthServiceMock;
         $this->oidcProvidersServiceMock = $oidcProvidersServiceMock;
+        $this->oidcUserServiceMock = $oidcUserServiceMock;
     }
 
     public function it_is_initializable()
@@ -108,5 +112,20 @@ class OidcPsr7ControllerSpec extends ObjectBehavior
             ->shouldNotBeCalled();
 
         $this->shouldThrow(UserErrorException::class)->duringOidcCallback($requestMock);
+    }
+
+    public function it_should_ban_user_when_called(ServerRequest $requestMock)
+    {
+        $requestMock->getAttribute('parameters')->willReturn([
+            'sub' => 'sub',
+            'provider_id' => 1,
+        ]);
+
+        $this->oidcUserServiceMock->suspendUserFromSub('sub', 1)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $response = $this->suspendUser($requestMock);
+        $response->shouldBeAnInstanceOf(JsonResponse::class);
     }
 }

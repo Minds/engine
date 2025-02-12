@@ -8,7 +8,9 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
 use Minds\Core\Queue\LegacyClient;
 use Minds\Core\Security\ACL;
+use Minds\Core\Channels\Ban as ChannelBanService;
 use Minds\Entities\User;
+use Minds\Exceptions\NotFoundException;
 use RegistrationException;
 
 class OidcUserService
@@ -18,9 +20,10 @@ class OidcUserService
         private EntitiesBuilder $entitiesBuilder,
         private ACL $acl,
         private LegacyClient $registerQueue,
-        private ?TenantUserWelcomeEmailer $tenantUserWelcomeEmailer = null,
-        private ?Config $config = null,
-        private ?Logger $logger = null
+        private TenantUserWelcomeEmailer $tenantUserWelcomeEmailer,
+        private Config $config,
+        private Logger $logger,
+        private ChannelBanService $channelBanService,
     ) {
         
     }
@@ -90,5 +93,19 @@ class OidcUserService
         ]);
 
         return $user;
+    }
+
+    /**
+     * Suspends a user from their oidc id
+     */
+    public function suspendUserFromSub(string $sub, int $providerId): bool
+    {
+        $user = $this->getUserFromSub($sub, $providerId);
+
+        if (!$user instanceof User) {
+            throw new NotFoundException();
+        }
+
+        return $this->channelBanService->setUser($user)->ban();
     }
 }

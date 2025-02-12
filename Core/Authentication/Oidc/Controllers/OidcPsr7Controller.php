@@ -7,9 +7,11 @@ namespace Minds\Core\Authentication\Oidc\Controllers;
 use Minds\Common\Cookie;
 use Minds\Core\Authentication\Oidc\Services\OidcAuthService;
 use Minds\Core\Authentication\Oidc\Services\OidcProvidersService;
+use Minds\Core\Authentication\Oidc\Services\OidcUserService;
 use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response;
 use Zend\Diactoros\Response\HtmlResponse;
+use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\Response\RedirectResponse;
 use Zend\Diactoros\ServerRequest;
 
@@ -18,6 +20,7 @@ class OidcPsr7Controller
     public function __construct(
         private OidcAuthService $oidcAuthService,
         private OidcProvidersService $oidcProvidersService,
+        private OidcUserService $oidcUserService,
     ) {
     }
 
@@ -68,6 +71,7 @@ class OidcPsr7Controller
         return new RedirectResponse($authUrl, 302, [
             'Cache-Control' => 'no-cache',
             'X-No-Cache' => 1,
+            'X-MINDS-TEST' => 2,
         ]);
     }
 
@@ -114,6 +118,19 @@ class OidcPsr7Controller
 <p>Please close this window/tab.</p>
 HTML
         );
+    }
+
+    /**
+     * Will disable a user
+     */
+    public function suspendUser(ServerRequest $request): Response
+    {
+        $sub = $request->getAttribute('parameters')['sub'];
+        $providerId = $request->getAttribute('parameters')['provider_id'];
+
+        $this->oidcUserService->suspendUserFromSub($sub, $providerId);
+
+        return new JsonResponse([]);
     }
 
 }
