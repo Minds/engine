@@ -37,16 +37,24 @@ class Provider extends DiProvider
             );
         });
 
-        $this->di->bind(PostHogPersonService::class, function (Di $di): PostHogPersonService {
+        $this->di->bind('PostHogHttpClient', function (Di $di): GuzzleClient {
             /** @var PostHogConfig */
             $postHogConfig = $di->get(PostHogConfig::class);
             
-            $httpClient = new GuzzleClient([
+            return new GuzzleClient([
                 'base_uri' => "https://{$postHogConfig->getHost()}/",
                 'headers' => [
                     'Authorization' => 'Bearer ' . $postHogConfig->getPersonalApiKey(),
                 ],
             ]);
+        });
+
+        $this->di->bind(PostHogPersonService::class, function (Di $di): PostHogPersonService {
+            /** @var PostHogConfig */
+            $postHogConfig = $di->get(PostHogConfig::class);
+            
+            /** @var GuzzleClient */
+            $httpClient = $di->get('PostHogHttpClient');
 
             return new PostHogPersonService(
                 postHogConfig: $postHogConfig,

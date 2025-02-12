@@ -197,7 +197,7 @@ class RoomService
                 $this->roomRepository->addRoomMember(
                     roomGuid: $chatRoom->guid,
                     memberGuid: (int)$memberGuid,
-                    status: $isSubscribed || $member->isBot() ? ChatRoomMemberStatusEnum::ACTIVE : ChatRoomMemberStatusEnum::INVITE_PENDING,
+                    status: $isSubscribed || $member->isBot() || $user->isBot() ? ChatRoomMemberStatusEnum::ACTIVE : ChatRoomMemberStatusEnum::INVITE_PENDING,
                     role: $roomType === ChatRoomTypeEnum::ONE_TO_ONE ? ChatRoomRoleEnum::OWNER : ChatRoomRoleEnum::MEMBER,
                 );
 
