@@ -36,7 +36,7 @@ class Routes extends \Minds\Core\Router\ModuleRoutes
                     ])
                     ->withScope(ApiScopeEnum::OIDC_MANAGE_USERS)
                     ->post(
-                        'suspend/:sub',
+                        'suspend/:provider_id/:sub',
                         Ref::_(OidcPsr7Controller::class, 'suspendUser')
                     );
             });
