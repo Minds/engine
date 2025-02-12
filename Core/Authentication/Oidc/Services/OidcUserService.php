@@ -106,6 +106,10 @@ class OidcUserService
             throw new NotFoundException();
         }
 
-        return $this->channelBanService->setUser($user)->ban();
+        $ia = $this->acl->setIgnore(true);
+        $success =  $this->channelBanService->setUser($user)->ban();
+        $this->acl->setIgnore($ia);
+
+        return $success;
     }
 }
