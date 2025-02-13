@@ -157,6 +157,7 @@ class MessageService
             
         } catch (PDOException $e) {
             $this->messageRepository->rollbackTransaction();
+            $this->logger->error($e);
         }
 
         $this->handleSendMessageAnalyticsEvent(

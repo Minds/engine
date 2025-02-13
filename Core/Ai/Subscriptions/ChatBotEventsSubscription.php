@@ -62,8 +62,10 @@ class ChatBotEventsSubscription implements SubscriptionInterface
 
         if (!$chatMessage instanceof ChatMessage) {
             if ($event->getTimestamp() > time() - 300) {
+                $this->logger->info("Could not find chat message. Retrying later.", [ 'urn' => $event->entityUrn ]);
                 return false; // Neg ack. Retry, may be replication lag.
             }
+            $this->logger->info("Could not find chat message. Will not retry again.", [ 'urn' => $event->entityUrn ]);
             // Entity not found
             return true; // Awknowledge as its likely this message has been deleted
         }

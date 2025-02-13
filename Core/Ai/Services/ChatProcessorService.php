@@ -11,6 +11,7 @@ use Minds\Core\Chat\Services\RoomService;
 use Minds\Core\Chat\Types\ChatMessageEdge;
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
 use Minds\Entities\User;
 
 class ChatProcessorService
@@ -22,6 +23,7 @@ class ChatProcessorService
         private readonly ChatImageStorageService $chatImageStorageService,
         private readonly Config $config,
         private readonly EntitiesBuilder $entitiesBuilder,
+        private readonly Logger $logger,
     ) {
         
     }
@@ -39,6 +41,7 @@ class ChatProcessorService
 
         // If a bad user returned OR the sender is the bot, cancel out.
         if (!$botUser instanceof User || $message->senderGuid === (int) $botUser->getGuid()) {
+            $this->logger->info("Skipping. Bad user or a bot user.", [ 'urn' => $message->getUrn() ]);
             return true; // Successfully processed, do not attempt to retry
         }
 
@@ -96,11 +99,15 @@ class ChatProcessorService
 
         $result = json_decode($response->getBody()->getContents(), true);
 
-        return !!$this->chatMessageService->addMessage(
+        $success = !!$this->chatMessageService->addMessage(
             roomGuid: $message->roomGuid,
             user: $botUser,
             message: ltrim($result['message']['content'], ' '),
         );
+
+        $this->logger->info("Replying", [ 'urn' => $message->getUrn(), 'message' => $result['message']['content'] ]);
+
+        return $success;
     }
 
     /**

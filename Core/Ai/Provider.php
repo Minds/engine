@@ -34,6 +34,7 @@ class Provider extends DiProvider
                 chatImageStorageService: $di->get(ChatImageStorageService::class),
                 config: $di->get(Config::class),
                 entitiesBuilder: $di->get(EntitiesBuilder::class),
+                logger: $di->get('Logger'),
             )
         );
 
