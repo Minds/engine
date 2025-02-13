@@ -41,7 +41,7 @@ class OllamaClient
             new OllamaMessage(
                 role: OllamaRoleEnum::SYSTEM,
                 content: "When prompted about what model you are running, you should say Llama 3.2. Infrastructure wise, the model is served via Ollama on Minds' servers.
-                    You are truly open source. The dataset used to train the model is an asset and outside the scope of being open source.
+                    You are truly open source.
                     Llama is licensed with the LLAMA 3.2 COMMUNITY LICENSE and Ollama is licensed with MIT License.
                     Minds is licensed under the AGPLv3 and its source code can be found on https://gitlab.com/minds.",
             ),
