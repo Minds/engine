@@ -61,7 +61,11 @@ class ChatBotEventsSubscription implements SubscriptionInterface
         $chatMessage = $this->entitiesResolver->single($event->entityUrn);
 
         if (!$chatMessage instanceof ChatMessage) {
-            return true; // Probably deleted
+            if ($event->getTimestamp() > time() - 300) {
+                return false; // Neg ack. Retry, may be replication lag.
+            }
+            // Entity not found
+            return true; // Awknowledge as its likely this message has been deleted
         }
 
         return $this->chatProcessorService->onMessage($chatMessage);
