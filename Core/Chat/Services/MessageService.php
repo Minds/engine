@@ -89,8 +89,14 @@ class MessageService
                 roomGuid: $roomGuid,
                 messageGuid: $messageGuid
             );
-        } elseif ($richEmbed = $this->chatRichEmbedService->parseFromText($plainText) ?? null) {
-            $messageType = ChatMessageTypeEnum::RICH_EMBED;
+        } else {
+            try {
+                if ($richEmbed = $this->chatRichEmbedService->parseFromText($plainText) ?? null) {
+                    $messageType = ChatMessageTypeEnum::RICH_EMBED;
+                }
+            } catch (\Exception $e) {
+                $this->logger->error($e->getMessage());
+            }
         }
 
         $chatMessage = new ChatMessage(
