@@ -2,7 +2,6 @@
 
 namespace Spec\Minds\Core\Votes;
 
-use Minds\Core\Captcha\FriendlyCaptcha\Manager as FriendlyCaptchaManager;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
@@ -32,7 +31,6 @@ class ManagerSpec extends ObjectBehavior
     /** @var EventsDispatcher */
     protected $dispatcher;
 
-    private $friendlyCaptchaManager;
     private $experimentsManager;
 
     /** @var MySqlRepository */
@@ -45,7 +43,6 @@ class ManagerSpec extends ObjectBehavior
         Counters $counters,
         Indexes $indexes,
         EventsDispatcher $dispatcher,
-        FriendlyCaptchaManager $friendlyCaptchaManager,
         ExperimentsManager $experimentsManager,
         MySqlRepository $mySqlRepositoryMock,
         RbacGatekeeperService $rbacGatekeeperServiceMock,
@@ -54,12 +51,11 @@ class ManagerSpec extends ObjectBehavior
         $this->counters = $counters;
         $this->indexes = $indexes;
         $this->dispatcher = $dispatcher;
-        $this->friendlyCaptchaManager = $friendlyCaptchaManager;
         $this->experimentsManager = $experimentsManager;
         $this->mySqlRepositoryMock = $mySqlRepositoryMock;
         $this->rbacGatekeeperServiceMock = $rbacGatekeeperServiceMock;
 
-        $this->beConstructedWith($counters, $indexes, $acl, $dispatcher, $this->friendlyCaptchaManager, $this->experimentsManager, $this->mySqlRepositoryMock, null, $rbacGatekeeperServiceMock);
+        $this->beConstructedWith($counters, $indexes, $acl, $dispatcher, $this->experimentsManager, $this->mySqlRepositoryMock, null, $rbacGatekeeperServiceMock);
     }
 
     public function it_is_initializable()
@@ -82,10 +78,6 @@ class ManagerSpec extends ObjectBehavior
 
         $this->experimentsManager->setUser($user)
             ->willReturn($this->experimentsManager);
-
-        $this->experimentsManager->isOn(Argument::type("string"))
-            ->shouldBeCalledOnce()
-            ->willReturn(false);
 
         $this->acl->interact($entity, $user, 'voteup')
             ->shouldBeCalled()
@@ -124,10 +116,6 @@ class ManagerSpec extends ObjectBehavior
 
         $this->experimentsManager->setUser($user)
             ->willReturn($this->experimentsManager);
-
-        $this->experimentsManager->isOn(Argument::type("string"))
-            ->shouldBeCalledOnce()
-            ->willReturn(false);
 
         $this->acl->interact($entity, $user, 'voteup')
             ->shouldBeCalled()
@@ -329,10 +317,6 @@ class ManagerSpec extends ObjectBehavior
 
         $this->experimentsManager->setUser($user)
             ->willReturn($this->experimentsManager);
-
-        $this->experimentsManager->isOn(Argument::type("string"))
-            ->shouldBeCalledOnce()
-            ->willReturn(false);
 
         $this->acl->interact($entity, $user, 'voteup')
             ->shouldBeCalled()

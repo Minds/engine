@@ -11,8 +11,6 @@ namespace Minds\Controllers\api\v1;
 use Minds\Api\Factory;
 use Minds\Common\PseudonymousIdentifier;
 use Minds\Core;
-use Minds\Core\Captcha\FriendlyCaptcha\Classes\DifficultyScalingType;
-use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\InvalidSolutionException;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Security\ACL;
@@ -199,19 +197,15 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
      * Check CAPTCHA code is valid.
      * @param string $captcha - captcha to check.
      * @return bool - true if captcha is valid. Will throw if invalid.
-     * @throws InvalidSolutionException - If solution is invalid.
-     * @throws SolutionAlreadySeenException - If FriendlyCaptcha is enabled and individual solution has already been seen.
-     * @throws PuzzleReusedException - If FriendlyCaptcha is enabled and if proposed puzzle solution has been reused.
      */
     private function checkCaptcha(string $captcha): bool
     {
-        $friendlyCaptchaManager = Di::_()->get('FriendlyCaptcha\Manager');
-        $difficultyScalingType = !isset($_SERVER['HTTP_APP_VERSION']) ?
-            DifficultyScalingType::DIFFICULTY_SCALING_REGISTRATION
-            : null;
-        if (!$friendlyCaptchaManager->verify($captcha, $difficultyScalingType)) {
-            throw new InvalidSolutionException('Captcha failed');
+        $captchaManager = Core\Di\Di::_()->get('Captcha\Manager');
+            
+        if (!$captchaManager->verifyFromClientJson($captcha)) {
+            throw new \Exception('Captcha failed');
         }
+
         return true;
     }
 }

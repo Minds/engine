@@ -65,7 +65,6 @@ class Minds extends base
         SocialCompass\Module::class,
         AccountQuality\Module::class,
         Recommendations\Module::class,
-        Captcha\FriendlyCaptcha\Module::class,
         DID\Module::class,
         Nostr\Module::class,
         Entities\Ops\Module::class,

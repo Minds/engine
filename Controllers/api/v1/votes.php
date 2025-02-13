@@ -9,7 +9,6 @@ namespace Minds\Controllers\api\v1;
 
 use Exception;
 use Minds\Api\Factory;
-use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\InvalidSolutionException;
 use Minds\Core\Di\Di;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
@@ -109,25 +108,12 @@ class votes implements Interfaces\Api
         $request = ServerRequestFactory::fromGlobals();
         $requestBody = json_decode($request->getBody()->getContents(), true);
 
-        $experimentsManager = (new ExperimentsManager())
-            ->setUser($loggedInUser);
-
-        if ($experimentsManager->isOn("minds-3119-captcha-for-engagement") && !$manager->has($vote)) {
-            $puzzleSolution = $requestBody['puzzle_solution'] ?? '';
-            $options['puzzleSolution'] = $puzzleSolution;
-        }
-
         $options->clientMeta = $requestBody['client_meta'] ?? [];
 
         try {
             $manager->toggle($vote, $options);
         } catch (UnverifiedEmailException $e) {
             throw $e;
-        } catch (InvalidSolutionException $e) {
-            // return Factory::response([
-            //     'status' => 'error',
-            //     'message' => "This engagement looks like spam",
-            // ]);
         } catch (Exception $e) {
             return Factory::response([
                 'status' => 'error',

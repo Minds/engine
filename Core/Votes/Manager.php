@@ -9,13 +9,6 @@
 namespace Minds\Core\Votes;
 
 use Minds\Common\Repository\IterableEntity;
-use Minds\Core\Captcha\FriendlyCaptcha\Classes\DifficultyScalingType;
-use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\InvalidSolutionException;
-use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\PuzzleExpiredException;
-use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\PuzzleReusedException;
-use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\SignatureMismatchException;
-use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\SolutionAlreadySeenException;
-use Minds\Core\Captcha\FriendlyCaptcha\Manager as FriendlyCaptchaManager;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
@@ -53,7 +46,6 @@ class Manager
         $indexes = null,
         $acl = null,
         $eventsDispatcher = null,
-        private ?FriendlyCaptchaManager $friendlyCaptchaManager = null,
         private ?ExperimentsManager $experimentsManager = null,
         private ?MySqlRepository $mySqlRepository = null,
         private ?Config $config = null,
@@ -63,7 +55,6 @@ class Manager
         $this->indexes = $indexes ?: Di::_()->get('Votes\Indexes');
         $this->acl = $acl ?: ACL::_();
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
-        $this->friendlyCaptchaManager ??= Di::_()->get('FriendlyCaptcha\Manager');
         $this->experimentsManager ??= new ExperimentsManager();
         $this->config ??= Di::_()->get(Config::class);
         $this->rbacGatekeeperService ??= Di::_()->get(RbacGatekeeperService::class);
@@ -119,30 +110,10 @@ class Manager
             'vote' => $vote
         ];
 
-        /**
-         * @deprecated To be removed as FF has been inactive for 4 months
-         */
-        if ($vote->getDirection() === "up" && $this->experimentsManager->isOn("minds-3119-captcha-for-engagement")) {
-            $isPuzzleValid = false;
-            try {
-                $isPuzzleValid = $this->friendlyCaptchaManager->verify(
-                    $options['puzzleSolution'],
-                    DifficultyScalingType::DIFFICULTY_SCALING_VOTE_UP
-                );
-            } catch (InvalidSolutionException $e) {
-            }
-
-            $eventOptions['isFriendlyCaptchaPuzzleValid'] = $isPuzzleValid;
-        }
-
         $eventOptions['client_meta'] = $options->clientMeta;
 
         if ($done && $options->events) {
             $this->eventsDispatcher->trigger('vote', $vote->getDirection(), $eventOptions);
-
-            if (isset($eventOptions['isFriendlyCaptchaPuzzleValid']) && !$eventOptions['isFriendlyCaptchaPuzzleValid']) {
-                throw new InvalidSolutionException();
-            }
         }
 
         return $done;

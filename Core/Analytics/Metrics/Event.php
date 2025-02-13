@@ -38,7 +38,6 @@ use Minds\Entities\User;
  * @method Event setReferrerGuid($referrerGuid)
  * @method Event setProReferrer(bool $proReferrer)
  * @method Event setIsRemind(bool $isRemind)
- * @method Event setProofOfWork(bool $proofOfWork)
  * @method Event setClientMeta(array $clientMeta)
  */
 class Event

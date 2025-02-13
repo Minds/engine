@@ -105,7 +105,6 @@ class Events
             $direction = $event->getNamespace();
 
             $vote = $params['vote'];
-            $proofOfWork = $params['isFriendlyCaptchaPuzzleValid'] ?? false;
             $clientMeta = $params['client_meta'] ?? [];
             $entity = $vote->getEntity();
             $actor = $vote->getActor();
@@ -140,10 +139,6 @@ class Events
                     ->setClientMeta($clientMeta)
                     ->setAction("vote:{$direction}");
 
-                if ($experimentsManager->isOn("minds-3119-captcha-for-engagement")) {
-                    $event->setProofOfWork($proofOfWork);
-                }
-
                 if ($entity instanceof PaywallEntityInterface) {
                     $wireThreshold = $entity->getWireThreshold();
                     if ($wireThreshold['support_tier'] ?? null) {
@@ -174,10 +169,6 @@ class Events
 
             if ($entity->type == 'activity' && $entity->remind_object) {
                 $event->setIsRemind(true);
-            }
-
-            if ($experimentsManager->isOn("minds-3119-captcha-for-engagement")) {
-                $event->setProofOfWork($proofOfWork);
             }
 
             if ($entity instanceof PaywallEntityInterface) {
