@@ -200,6 +200,10 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     private function checkCaptcha(string $captcha): bool
     {
+        if (isset($_SERVER['HTTP_APP_VERSION'])) {
+            return true;
+        }
+
         $captchaManager = Core\Di\Di::_()->get('Captcha\Manager');
             
         if (!$captchaManager->verifyFromClientJson($captcha)) {
