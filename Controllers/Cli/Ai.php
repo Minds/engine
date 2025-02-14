@@ -6,6 +6,7 @@ use Minds\Cli;
 use Minds\Core\Ai\Ollama\OllamaClient;
 use Minds\Core\Ai\Ollama\OllamaMessage;
 use Minds\Core\Ai\Ollama\OllamaRoleEnum;
+use Minds\Core\Ai\Services\EntityIntelligenceService;
 use Minds\Core\Chat\Services\MessageService;
 use Minds\Core\Chat\Services\RoomService;
 use Minds\Core\Config\Config;
@@ -68,6 +69,7 @@ class Ai extends Cli\Controller implements Interfaces\CliControllerInterface
                     WHERE timestamp > subtractDays(now(), 30)
                     AND person.properties.guid IS NOT NULL
                     GROUP BY person.properties.guid
+                    ORDER BY person.properties.guid ASC
                     LIMIT 1000000";
 
         $response = $httpClient->post("api/projects/17449/query", [
@@ -94,7 +96,7 @@ class Ai extends Cli\Controller implements Interfaces\CliControllerInterface
 
             // Create a chat room, if one doesn't already exist#
             $roomEdge = $chatRoomService->createRoom(
-                user: $user,
+                user: $botUser,
                 otherMemberGuids: [
                     $user->getGuid(),
                 ]
@@ -114,5 +116,24 @@ class Ai extends Cli\Controller implements Interfaces\CliControllerInterface
 
             $this->out("$guid sent message");
         }
+    }
+
+    public function analyzeUser()
+    {
+        $username = $this->getOpt('username');
+
+        /** @var EntityIntelligenceService */
+        $service = Di::_()->get(EntityIntelligenceService::class);
+        /** @var EntitiesBuilder */
+        $entitiesBuilder = Di::_()->get(EntitiesBuilder::class);
+        
+        $user = $entitiesBuilder->getByUserByIndex($username);
+
+        if (!$user instanceof User) {
+            $this->out('User not found');
+            return;
+        }
+
+        $service->analyzeUser($user);
     }
 }

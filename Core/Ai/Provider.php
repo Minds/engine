@@ -6,10 +6,11 @@ namespace Minds\Core\Ai;
 use Minds\Core\Ai\Ollama\OllamaClient;
 use Minds\Core\Ai\Services\ChatProcessorService;
 use Minds\Core\Ai\Services\CommentProcessorService;
+use Minds\Core\Ai\Services\EntityIntelligenceService;
 use Minds\Core\Chat\Services\ChatImageStorageService;
 use Minds\Core\Chat\Services\MessageService;
 use Minds\Core\Chat\Services\RoomService;
-use Minds\Core\Comments\Manager as CommentManager;
+use Minds\Core\Feeds\Elastic\V2\Manager as FeedsService;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
@@ -56,6 +57,17 @@ class Provider extends DiProvider
             fn (Di $di): OllamaClient => new OllamaClient(
                 httpClient: $di->get(\GuzzleHttp\Client::class),
                 config: $di->get(Config::class),
+            )
+        );
+
+        $this->di->bind(
+            EntityIntelligenceService::class,
+            fn (Di $di): EntityIntelligenceService => new EntityIntelligenceService(
+                ollamaClient: $di->get(OllamaClient::class),
+                config: $di->get(Config::class),
+                entitiesBuilder: $di->get(EntitiesBuilder::class),
+                feedsService: $di->get(FeedsService::class),
+                logger: $di->get('Logger'),
             )
         );
     }
