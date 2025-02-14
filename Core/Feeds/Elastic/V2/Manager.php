@@ -163,7 +163,7 @@ class Manager
 
         $i = 0;
         foreach ($hits as $hit) {
-            $entity = $this->fetchActivity((int) $hit['_id']);
+            $entity = $this->fetchActivity((int) $hit['_id'], $queryOpts->user);
 
             if (!$entity) {
                 continue;
@@ -354,7 +354,7 @@ class Manager
 
         $i = 0;
         foreach ($hits as $hit) {
-            $entity = $this->fetchActivity((int) $hit['_id']);
+            $entity = $this->fetchActivity((int) $hit['_id'], $queryOpts->user);
 
             if (!$entity) {
                 continue;
@@ -426,7 +426,7 @@ class Manager
 
         $i = 0;
         foreach ($allResults as $scoredGuid) {
-            $entity = $this->fetchActivity((int) $scoredGuid->getGuid());
+            $entity = $this->fetchActivity((int) $scoredGuid->getGuid(), $queryOpts->user);
 
             if (!$entity) {
                 continue;
@@ -547,7 +547,7 @@ class Manager
 
         $i = 0;
         foreach ($hits as $hit) {
-            $entity = $this->fetchActivity((int) $hit['_id']);
+            $entity = $this->fetchActivity((int) $hit['_id'], $queryOpts->user);
 
             if (!$entity) {
                 continue;
@@ -840,7 +840,7 @@ class Manager
         $activities = [];
 
         foreach ($response['hits']['hits'] as $hit) {
-            $activity = $this->fetchActivity((int) $hit['_id']);
+            $activity = $this->fetchActivity((int) $hit['_id'], $queryOpts->user);
 
             if (!$activity) {
                 continue;
@@ -873,7 +873,7 @@ class Manager
      * Fetches activity from the entities builder and runs acl checks
      * @return Activity
      */
-    private function fetchActivity(int $guid): ?Activity
+    private function fetchActivity(int $guid, ?User $loggedInUser = null): ?Activity
     {
         $entity = $this->entitiesBuilder->single($guid);
 
@@ -881,7 +881,22 @@ class Manager
             return null;
         }
 
-        return $this->acl->read($entity) ? $entity : null;
+        if (!$this->acl->read($entity, $loggedInUser)) {
+            return null;
+        }
+
+        // Do not allow posts with links to be shown in search if the owner is not plus or verified.
+        if ($entity->getPermaURL() && !$this->isTenant() && !$loggedInUser) {
+            $entityOwner = $this->entitiesBuilder->single($entity->getOwnerGuid());
+            if (!$entityOwner instanceof User) {
+                return null;
+            }
+            if (!($entityOwner->isPlus() || $entityOwner->verified)) {
+                return null;
+            }
+        }
+
+        return $entity;
     }
 
     /**
