@@ -426,7 +426,7 @@ class Manager
 
         $i = 0;
         foreach ($allResults as $scoredGuid) {
-            $entity = $this->fetchActivity((int) $scoredGuid->getGuid(), $queryOpts->user);
+            $entity = $this->fetchActivity((int) $scoredGuid->getGuid(), $user);
 
             if (!$entity) {
                 continue;
@@ -840,7 +840,7 @@ class Manager
         $activities = [];
 
         foreach ($response['hits']['hits'] as $hit) {
-            $activity = $this->fetchActivity((int) $hit['_id'], $queryOpts->user);
+            $activity = $this->fetchActivity((int) $hit['_id']);
 
             if (!$activity) {
                 continue;
