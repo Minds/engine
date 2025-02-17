@@ -8,6 +8,7 @@ use Minds\Common\Cookie;
 use Minds\Core\Authentication\Oidc\Services\OidcAuthService;
 use Minds\Core\Authentication\Oidc\Services\OidcProvidersService;
 use Minds\Core\Authentication\Oidc\Services\OidcUserService;
+use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response;
 use Zend\Diactoros\Response\HtmlResponse;
@@ -128,7 +129,14 @@ HTML
         $sub = $request->getAttribute('parameters')['sub'];
         $providerId = (int) $request->getAttribute('parameters')['providerId'];
 
-        $this->oidcUserService->suspendUserFromSub($sub, $providerId);
+        try {
+            $this->oidcUserService->suspendUserFromSub($sub, $providerId);
+        } catch (NotFoundException $e) {
+            // If zapier, still return a 200 status code
+            if ($request->getHeader('User-Agent') !== 'Zapier') {
+                throw $e;
+            }
+        }
 
         return new JsonResponse([]);
     }
