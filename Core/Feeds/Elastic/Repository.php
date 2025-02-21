@@ -515,7 +515,7 @@ class Repository
         if ($opts['plus'] === true) {
             $body['query']['function_score']['query']['bool']['must'][] = [
                 'term' => [
-                    'wire_support_tier' => $this->plusSupportTierUrn,
+                    'plus' => true,
                 ],
             ];
         }
