@@ -181,6 +181,7 @@ class feeds implements Interfaces\Api
             'as_activities' => $asActivities,
             'wire_support_tier_only' => filter_var($_GET['wire_support_tier_only'] ?? false, FILTER_VALIDATE_BOOLEAN),
             'plus' => filter_var($_GET['plus'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            'unseen' => filter_var($_GET['plus'] ?? false, FILTER_VALIDATE_BOOLEAN) ? true : false,
         ];
 
         $nsfw = $_GET['nsfw'] ?? '';
