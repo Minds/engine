@@ -7,6 +7,7 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
+use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService;
 use Minds\Core\Security\ACL;
 use Minds\Core\Wire\WireWebhookService;
@@ -29,6 +30,7 @@ class WireWebhookServiceSpec extends ObjectBehavior
     private Collaborator $aclMock;
     private Collaborator $stripeApiKeyConfigMock;
     private Collaborator $giftCardsManagerMock;
+    private Collaborator $stripeClientMock;
 
     
     public function let(
@@ -39,6 +41,7 @@ class WireWebhookServiceSpec extends ObjectBehavior
         ACL $aclMock,
         StripeApiKeyConfig $stripeApiKeyConfigMock,
         GiftCardsManager $giftCardsManagerMock,
+        StripeClient $stripeClientMock,
     ) {
         $this->beConstructedWith(
             $stripeSubscriptionsServiceMock,
@@ -47,7 +50,8 @@ class WireWebhookServiceSpec extends ObjectBehavior
             $configMock,
             $aclMock,
             $stripeApiKeyConfigMock,
-            $giftCardsManagerMock
+            $giftCardsManagerMock,
+            $stripeClientMock,
         );
 
         $this->stripeSubscriptionsServiceMock = $stripeSubscriptionsServiceMock;
@@ -57,6 +61,7 @@ class WireWebhookServiceSpec extends ObjectBehavior
         $this->aclMock = $aclMock;
         $this->stripeApiKeyConfigMock = $stripeApiKeyConfigMock;
         $this->giftCardsManagerMock = $giftCardsManagerMock;
+        $this->stripeClientMock = $stripeClientMock;
     }
 
     public function it_is_initializable()
