@@ -18,6 +18,7 @@ use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
 use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService;
 use Minds\Entities\User;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
+use Minds\Core\Payments\Stripe\StripeClient;
 
 class Events
 {
@@ -97,7 +98,8 @@ class Events
                 Di::_()->get(Config::class),
                 Di::_()->get('Security\ACL'),
                 Di::_()->get(StripeApiKeyConfig::class),
-                Di::_()->get(GiftCardsManager::class)
+                Di::_()->get(GiftCardsManager::class),
+                Di::_()->get(StripeClient::class, ['stripe_version' => '2020-08-27']),
             );
             $service->onWebhookEvent($webhook);
         });

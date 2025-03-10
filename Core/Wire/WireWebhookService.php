@@ -9,6 +9,7 @@ use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService;
 use Minds\Core\Payments\Stripe\Webhooks\Enums\WebhookEventTypeEnum;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
 use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
+use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 use Stripe\Event;
@@ -25,6 +26,7 @@ class WireWebhookService
         private ACL $acl,
         private StripeApiKeyConfig $stripeApiKeyConfig,
         private GiftCardsManager $giftCardsManager,
+        private StripeClient $stripeClient,
     ) {
         
     }
@@ -56,8 +58,16 @@ class WireWebhookService
 
         $product = $plan->product;
 
+        $userGuid = $stripeSubscription->metadata->toArray()['user_guid'];
+
+        if (!$userGuid) {
+            // No user guid on the subscription?
+            $customer = $this->stripeClient->customers->retrieve($stripeSubscription->customer);
+            $userGuid = $customer->metadata->toArray()['user_guid'];
+        }
+
         /** @var User */
-        $user = $this->entitiesBuilder->single($stripeSubscription->metadata->toArray()['user_guid']);
+        $user = $this->entitiesBuilder->single($userGuid);
 
         // Is this a test account? If so we will use different product and price ids
         $isTestMode = false;
