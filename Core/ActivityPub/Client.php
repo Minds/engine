@@ -56,7 +56,7 @@ class Client
         $context = new Context([
             'keys' => $this->privateKeys,
             'algorithm' => 'rsa-sha256',
-            'headers' => ['(request-target)', 'Date', 'Accept'],
+            'headers' => ['(request-target)', 'Date', 'Accept', 'Host'],
         ]);
 
         $request = $context->signer()->signWithDigest($request);
