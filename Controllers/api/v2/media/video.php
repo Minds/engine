@@ -11,7 +11,10 @@ use Minds\Api\Factory;
 use Minds\Core\Di\Di;
 use Minds\Core\Media\Video\Manager;
 use Minds\Core\Media\Video\Transcoder\TranscodeStates;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\ACL;
+use Minds\Core\Session as CoreSession;
+use Minds\Core\Sessions\Session;
 use Minds\Interfaces;
 
 class video implements Interfaces\Api, Interfaces\ApiIgnorePam
@@ -23,6 +26,10 @@ class video implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     public function get($pages)
     {
+        if (!CoreSession::isLoggedin()) {
+            throw new ForbiddenException();
+        }
+
         /** @var Manager */
         $videoManager = Di::_()->get('Media\Video\Manager');
         /** @var TranscodeStates */
