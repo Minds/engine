@@ -44,5 +44,14 @@ class ServicesProvider extends Provider
                 );
             }
         );
+
+        $this->di->bind(
+            UsersService::class,
+            function (Di $di): UsersService {
+                return new UsersService(
+                    rolesService: $di->get(RolesService::class),
+                );
+            }
+        );
     }
 }

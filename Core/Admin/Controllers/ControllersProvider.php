@@ -9,6 +9,7 @@ use Minds\Core\Di\Provider;
 use Minds\Core\Admin\Manager;
 use Minds\Core\Admin\Services\HashtagExclusionService;
 use Minds\Core\Admin\Services\ModerationService;
+use Minds\Core\Admin\Services\UsersService;
 
 class ControllersProvider extends Provider
 {
@@ -34,6 +35,12 @@ class ControllersProvider extends Provider
         $this->di->bind(HashtagExclusionController::class, function (Di $di): HashtagExclusionController {
             return new HashtagExclusionController(
                 $di->get(HashtagExclusionService::class)
+            );
+        });
+
+        $this->di->bind(UsersPsrController::class, function (Di $di): UsersPsrController {
+            return new UsersPsrController(
+                $di->get(UsersService::class)
             );
         });
     }
