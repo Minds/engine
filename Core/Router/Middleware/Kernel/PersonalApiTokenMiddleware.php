@@ -8,6 +8,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Router\Enums\RequestAttributeEnum;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Router\RegistryEntry;
+use Minds\Core\Session;
 use Minds\Entities\User;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -42,6 +43,8 @@ class PersonalApiTokenMiddleware implements MiddlewareInterface
             if (!$this->personalApiKeyAuthService->validateKey($personalApiKey)) {
                 throw new UnauthorizedException("Personal Api Key is no longer valid");
             }
+
+            Session::setUser($user);
 
             return $handler->handle(
                 $request
