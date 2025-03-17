@@ -141,6 +141,44 @@ class Manager
     }
 
     /**
+     * Returns the a url to the source file
+     */
+    public function download(Video $video)
+    {
+        $guid = $video->getGuid();
+        if (($legacyGuid = $video->get('cinemr_guid')) && $legacyGuid != $guid) {
+            $guid = $legacyGuid;
+        }
+
+        $key = $this->config->get('transcoder')['dir'] . "/$guid/source";
+
+        try {
+            $response = $this->osClient->createPreauthenticatedRequest([
+                'namespaceName' => $this->config->get('oci')['api_auth']['bucket_namespace'],
+                'bucketName' => $this->config->get('transcoder')['oci_bucket_name'] ?? 'cinemr',
+                'createPreauthenticatedRequestDetails' => [
+                    'name' => $key,
+                    'objectName' => $key,
+                    'accessType' => 'ObjectRead',
+                    'timeExpires' => date('c', strtotime('+20 minutes')),
+                ],
+                'httpResponseContentDisposition' => "attachment; filename=$guid.mp4",
+            ]);
+
+            $url = $response->getJson()->fullPath;
+        } catch (\Exception $e) {
+            $cmd = $this->s3->getCommand('GetObject', [
+                'Bucket' => 'cinemr',
+                'Key' => $key,
+                'ResponseContentDisposition' => "attachment; filename=$guid.mp4",
+            ]);
+            $url = (string) $this->s3->createPresignedRequest($cmd, '+48 hours')->getUri();
+        }
+
+        return $url;
+    }
+
+    /**
      * Return transcodes
      * @param Video $video
      * @return Source[]

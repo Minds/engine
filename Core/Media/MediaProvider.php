@@ -18,6 +18,7 @@ use Minds\Core\GuidBuilder;
 use Minds\Core\Media\Audio\AudioService;
 use Minds\Core\Media\MediaDownloader\ImageDownloader;
 use Minds\Core\Media\Video\Manager;
+use Minds\Core\Media\Video\VideoController;
 use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 use Minds\Core\Storage\Quotas\Manager as StorageQuotasManager;
 use Oracle\Oci\Common\Auth\UserAuthProvider;
@@ -206,6 +207,10 @@ class MediaProvider extends Provider
                 client: $di->get(GuzzleClient::class),
                 logger: $di->get('Logger'),
             );
+        });
+
+        $this->di->bind(VideoController::class, function (Di $di) {
+            return new VideoController($di->get('Media\Video\Manager'));
         });
     }
 }

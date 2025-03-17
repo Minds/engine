@@ -95,6 +95,7 @@ class Minds extends base
         Chat\Module::class,
         SEO\Robots\Module::class,
         DeepLink\Module::class,
+        Media\Module::class,
         Media\Audio\Module::class,
         Ai\Module::class,
         // Integrations
@@ -160,7 +161,6 @@ class Minds extends base
         (new Monetization\MonetizationProvider())->register();
         (new Wire\WireProvider())->register();
         (new Trending\TrendingProvider())->register();
-        (new Media\MediaProvider())->register();
         (new Notification\NotificationProvider())->register();
         (new Groups\GroupsProvider())->register();
         (new Comments\Provider())->register();
