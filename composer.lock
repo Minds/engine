@@ -4424,12 +4424,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Minds/oci-php-sdk.git",
-                "reference": "6b66d635ed73b47108b6f03624307ed82f288b15"
+                "reference": "feb25d2c616242f60915233e5f1d4146fea5eadb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Minds/oci-php-sdk/zipball/6b66d635ed73b47108b6f03624307ed82f288b15",
-                "reference": "6b66d635ed73b47108b6f03624307ed82f288b15",
+                "url": "https://api.github.com/repos/Minds/oci-php-sdk/zipball/feb25d2c616242f60915233e5f1d4146fea5eadb",
+                "reference": "feb25d2c616242f60915233e5f1d4146fea5eadb",
                 "shasum": ""
             },
             "require": {
@@ -4479,7 +4479,7 @@
                 "issues": "https://community.oracle.com/mosc/",
                 "source": "https://github.com/Minds/oci-php-sdk/tree/minds-fixes"
             },
-            "time": "2023-06-14T07:19:16+00:00"
+            "time": "2025-03-18T11:47:23+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",
