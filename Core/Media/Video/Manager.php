@@ -165,7 +165,7 @@ class Manager
                 'httpResponseContentDisposition' => "attachment; filename=$guid.mp4",
             ]);
 
-            $url = $response->getJson()->fullPath;
+            $url = $response->getJson()->fullPath . '?httpResponseContentDisposition=' . urlencode("attachment; filename=$guid.mp4");
         } catch (\Exception $e) {
             $cmd = $this->s3->getCommand('GetObject', [
                 'Bucket' => 'cinemr',
