@@ -1251,3 +1251,7 @@ ALTER TABLE `minds_tenant_configs`
 ALTER TABLE `minds_tenant_configs`
     ADD delete_account_disclaimer MEDIUMTEXT DEFAULT NULL
     AFTER disable_account_disclaimer;
+
+ALTER TABLE `minds_entities_user`
+	ADD `bot` boolean
+	AFTER `ip`;
