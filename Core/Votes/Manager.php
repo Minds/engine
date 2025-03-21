@@ -230,8 +230,8 @@ class Manager
     ): iterable {
         foreach (
             $this->getMySqlRepository()->getList(
-                (int) $user->getGuid(),
-                VoteEnum::UP
+                userGuid: (int) $user->getGuid(),
+                direction: VoteEnum::UP
             ) as $item
         ) {
             yield $item;
