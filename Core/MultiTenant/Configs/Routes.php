@@ -5,6 +5,7 @@ namespace Minds\Core\MultiTenant\Configs;
 use Minds\Core\Di\Ref;
 use Minds\Core\MultiTenant\Configs\Controllers\CustomScriptPsrController;
 use Minds\Core\Router\Middleware\AdminMiddleware;
+use Minds\Core\Router\Middleware\MultiTenantOnlyMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 
@@ -17,6 +18,9 @@ class Routes extends ModuleRoutes
     {
         $this->route
             ->withPrefix('api/v3/multi-tenant/configs')
+            ->withMiddleware([
+                MultiTenantOnlyMiddleware::class,
+            ])
             ->do(function (Route $route) {
                 // logged-out routes.
                 $route->get(
