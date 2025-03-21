@@ -59,6 +59,9 @@ class Events
             if ($group instanceof GroupEntity) {
                 if ($entity instanceof Activity && $entity->getPending()) {
                     try {
+                        if (!$user) {
+                            throw new NotFoundException();
+                        }
                         $membership = $this->getGroupMembershipManager()->getMembership($group, $user);
                         $e->setResponse($membership->isModerator());
                     } catch (NotFoundException $ex) {
