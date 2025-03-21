@@ -153,7 +153,7 @@ class ProcessObjectService
                         $comment->setAttachment('thumbnail_src', $richEmbed['links']['thumbnail'][0]['href']);
                     } catch (\GuzzleHttp\Exception\ClientException $e) {
                     } catch (\Exception $e) {
-                        $this->logger->error($logPrefix . $e->getMessage());
+                        $this->logger->info($logPrefix . $e->getMessage());
                     }
                 }
 
