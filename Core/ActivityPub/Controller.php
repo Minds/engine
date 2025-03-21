@@ -137,6 +137,9 @@ class Controller
         $items = [];
 
         foreach ($users as $user) {
+            if (!$user instanceof User) {
+                continue;
+            }
             $person = $this->actorFactory->fromEntity($user);
             $items[] = $person->getId();
         }
