@@ -48,9 +48,9 @@ class MobileConfigManagementController
         ?MobileSplashScreenTypeEnum      $mobileSplashScreenType = null,
         ?MobileWelcomeScreenLogoTypeEnum $mobileWelcomeScreenLogoType = null,
         ?MobilePreviewStatusEnum         $mobilePreviewStatus = null,
-        ?bool                            $appTrackingMessageEnabled,
-        ?string                          $appTrackingMessage,
-        ?string                          $productionAppVersion,
+        ?bool                            $appTrackingMessageEnabled = false,
+        ?string                          $appTrackingMessage = null,
+        ?string                          $productionAppVersion = null,
     ): MobileConfig {
         try {
             return $this->mobileConfigManagementService->storeMobileConfig(
