@@ -124,13 +124,13 @@ HTML
     /**
      * Will disable a user
      */
-    public function suspendUser(ServerRequest $request): Response
+    public function deactivateUser(ServerRequest $request): Response
     {
         $sub = $request->getAttribute('parameters')['sub'];
         $providerId = (int) $request->getAttribute('parameters')['providerId'];
 
         try {
-            $this->oidcUserService->suspendUserFromSub($sub, $providerId);
+            $this->oidcUserService->deactivateUserFromSub($sub, $providerId);
         } catch (NotFoundException $e) {
             // If zapier, still return a 200 status code
             if ($request->getHeader('User-Agent') !== 'Zapier') {

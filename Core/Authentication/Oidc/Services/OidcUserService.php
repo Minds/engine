@@ -9,8 +9,10 @@ use Minds\Core\Log\Logger;
 use Minds\Core\Queue\LegacyClient;
 use Minds\Core\Security\ACL;
 use Minds\Core\Channels\Ban as ChannelBanService;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
+use Minds\Core\Sessions\CommonSessions\Manager as CommonSessions;
 use RegistrationException;
 
 class OidcUserService
@@ -23,7 +25,8 @@ class OidcUserService
         private TenantUserWelcomeEmailer $tenantUserWelcomeEmailer,
         private Config $config,
         private Logger $logger,
-        private ChannelBanService $channelBanService,
+        private Save $saveAction,
+        private CommonSessions $commonSessions,
     ) {
         
     }
@@ -96,9 +99,9 @@ class OidcUserService
     }
 
     /**
-     * Suspends a user from their oidc id
+     * Deactivate a user from their oidc id
      */
-    public function suspendUserFromSub(string $sub, int $providerId): bool
+    public function deactivateUserFromSub(string $sub, int $providerId): bool
     {
         $user = $this->getUserFromSub($sub, $providerId);
 
@@ -107,9 +110,19 @@ class OidcUserService
         }
 
         $ia = $this->acl->setIgnore(true);
-        $success =  $this->channelBanService->setUser($user)->ban();
+
+        $user->enabled = 'no';
+
+        $success = $this->saveAction
+            ->setEntity($user)
+            ->withMutatedAttributes(['enabled'])
+            ->save();
+
+        $this->commonSessions->deleteAll($user);
+
         $this->acl->setIgnore($ia);
 
         return $success;
     }
+
 }
