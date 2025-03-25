@@ -7,7 +7,6 @@ use Minds\Core\Authentication\Oidc\Services\OidcUserService;
 use Minds\Core\Channels\Ban as ChannelBanService;
 use Minds\Core\Config\Config;
 use Minds\Core\Email\V2\Campaigns\Recurring\TenantUserWelcome\TenantUserWelcomeEmailer;
-use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
 use Minds\Core\Queue\LegacyClient;
@@ -15,7 +14,6 @@ use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
-use Minds\Core\Sessions\CommonSessions\Manager as CommonSessions;
 
 class OidcUserServiceSpec extends ObjectBehavior
 {
@@ -25,7 +23,7 @@ class OidcUserServiceSpec extends ObjectBehavior
     private Collaborator $tenantUserWelcomeEmailer;
     private Collaborator $config;
     private Collaborator $logger;
-    private Collaborator $saveActionMock;
+    private Collaborator $channelBanService;
 
     public function let(
         OidcUserRepository $oidcUserRepositoryMock,
@@ -34,8 +32,7 @@ class OidcUserServiceSpec extends ObjectBehavior
         TenantUserWelcomeEmailer $tenantUserWelcomeEmailer,
         Config $config,
         Logger $logger,
-        Save $saveActionMock,
-        CommonSessions $commonSessionsMock,
+        ChannelBanService $channelBanService,
     ) {
         $this->beConstructedWith(
             $oidcUserRepositoryMock,
@@ -45,8 +42,7 @@ class OidcUserServiceSpec extends ObjectBehavior
             $tenantUserWelcomeEmailer,
             $config,
             $logger,
-            $saveActionMock,
-            $commonSessionsMock,
+            $channelBanService,
         );
 
         $this->oidcUserRepositoryMock = $oidcUserRepositoryMock;
@@ -55,7 +51,7 @@ class OidcUserServiceSpec extends ObjectBehavior
         $this->tenantUserWelcomeEmailer = $tenantUserWelcomeEmailer;
         $this->config = $config;
         $this->logger = $logger;
-        $this->saveActionMock = $saveActionMock;
+        $this->channelBanService = $channelBanService;
     }
 
     public function it_is_initializable()
@@ -76,7 +72,7 @@ class OidcUserServiceSpec extends ObjectBehavior
             ->shouldBeAnInstanceOf(User::class);
     }
 
-    public function it_should_deactivate_user_from_their_sub()
+    public function it_should_ban_user_from_their_sub()
     {
         $this->oidcUserRepositoryMock->getUserGuidFromSub('abc1', 1)
         ->shouldBeCalled()
@@ -86,17 +82,14 @@ class OidcUserServiceSpec extends ObjectBehavior
         $this->entitiesBuilderMock->single(123)
             ->willReturn($user);
 
-        $this->saveActionMock->setEntity($user)
+        $this->channelBanService->setUser($user)
             ->shouldBeCalled()
-            ->willReturn($this->saveActionMock);
-        $this->saveActionMock->withMutatedAttributes(['enabled'])
-            ->shouldBeCalled()
-            ->willReturn($this->saveActionMock);
-        $this->saveActionMock->save()
+            ->willReturn($this->channelBanService);
+        $this->channelBanService->ban()
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->deactivateUserFromSub('abc1', 1)
+        $this->suspendUserFromSub('abc1', 1)
             ->shouldBe(true);
     }
 }

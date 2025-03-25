@@ -17,7 +17,6 @@ use Minds\Core\Queue;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Email\V2\Campaigns\Recurring\TenantUserWelcome\TenantUserWelcomeEmailer;
-use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Security\Vault\VaultTransitService;
 
@@ -79,8 +78,7 @@ class Provider extends DiProvider
                 tenantUserWelcomeEmailer: $di->get(TenantUserWelcomeEmailer::class),
                 config: $di->get(Config::class),
                 logger: $di->get('Logger'),
-                saveAction: new Save(),
-                commonSessions: $di->get('Sessions\CommonSessions\Manager'),
+                channelBanService: $di->get('Channels\Ban'),
             );
         });
 

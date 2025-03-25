@@ -114,18 +114,18 @@ class OidcPsr7ControllerSpec extends ObjectBehavior
         $this->shouldThrow(UserErrorException::class)->duringOidcCallback($requestMock);
     }
 
-    public function it_should_deactivate_user_when_called(ServerRequest $requestMock)
+    public function it_should_ban_user_when_called(ServerRequest $requestMock)
     {
         $requestMock->getAttribute('parameters')->willReturn([
             'sub' => 'sub',
             'providerId' => 1,
         ]);
 
-        $this->oidcUserServiceMock->deactivateUserFromSub('sub', 1)
+        $this->oidcUserServiceMock->suspendUserFromSub('sub', 1)
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $response = $this->deactivateUser($requestMock);
+        $response = $this->suspendUser($requestMock);
         $response->shouldBeAnInstanceOf(JsonResponse::class);
     }
 }
