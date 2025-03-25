@@ -112,4 +112,22 @@ class OidcUserService
 
         return $success;
     }
+
+    /**
+     * Unbans a user from their oidc id
+     */
+    public function unbanUserFromSub(string $sub, int $providerId): bool
+    {
+        $user = $this->getUserFromSub($sub, $providerId);
+
+        if (!$user instanceof User) {
+            throw new NotFoundException();
+        }
+
+        $ia = $this->acl->setIgnore(true);
+        $success =  $this->channelBanService->setUser($user)->unban();
+        $this->acl->setIgnore($ia);
+
+        return $success;
+    }
 }

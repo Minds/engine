@@ -141,4 +141,24 @@ HTML
         return new JsonResponse([]);
     }
 
+    /**
+     * Will unban a user
+     */
+    public function unbanUser(ServerRequest $request): Response
+    {
+        $sub = $request->getAttribute('parameters')['sub'];
+        $providerId = (int) $request->getAttribute('parameters')['providerId'];
+
+        try {
+            $this->oidcUserService->unbanUserFromSub($sub, $providerId);
+        } catch (NotFoundException $e) {
+            // If zapier, still return a 200 status code
+            if ($request->getHeader('User-Agent') !== 'Zapier') {
+                throw $e;
+            }
+        }
+
+        return new JsonResponse([]);
+    }
+
 }

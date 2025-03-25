@@ -39,6 +39,15 @@ class Routes extends \Minds\Core\Router\ModuleRoutes
                         'suspend/:providerId/:sub',
                         Ref::_(OidcPsr7Controller::class, 'suspendUser')
                     );
+                $route
+                    ->withMiddleware([
+                        AdminMiddleware::class,
+                    ])
+                    ->withScope(ApiScopeEnum::OIDC_MANAGE_USERS)
+                    ->post(
+                        'unban/:providerId/:sub',
+                        Ref::_(OidcPsr7Controller::class, 'unbanUser')
+                    );
             });
     }
 }

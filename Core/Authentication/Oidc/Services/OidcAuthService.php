@@ -130,6 +130,11 @@ class OidcAuthService
             );
         }
 
+        // For Confessionals only, if banned and trying to login, unban
+        if ($this->config->get('tenant_id') === 47 && $user->isBanned()) {
+            $this->oidcUserService->unbanUserFromSub($sub, $provider->id);
+        }
+
         // Now do the login
 
         $this->sessionsManager->setUser($user);
