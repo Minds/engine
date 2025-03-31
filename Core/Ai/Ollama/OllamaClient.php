@@ -61,6 +61,7 @@ class OllamaClient
         }
 
         $body = [
+            'index_id' => implode('/', [$this->config->get('tenant_id') ?: -1, 0]),
             'model' => $this->model,
             'stream' => false,
             'messages' => $messages,

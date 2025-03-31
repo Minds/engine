@@ -101,6 +101,7 @@ class Minds extends base
         // Integrations
         Integrations\Bloomerang\Module::class,
         Integrations\MemberSpace\Module::class,
+        Integrations\Seco\Module::class,
     ];
 
     /**

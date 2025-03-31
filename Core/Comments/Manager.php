@@ -194,7 +194,7 @@ class Manager
      * @throws \Minds\Core\Router\Exceptions\UnverifiedEmailException
      * @throws \Minds\Core\Wire\Paywall\PaywallUserNotPaid
      */
-    public function add(Comment $comment)
+    public function add(Comment $comment, bool $rateLimit = true)
     {
         // Check RBAC
         $this->rbacGatekeeperService->isAllowed(PermissionsEnum::CAN_COMMENT);
@@ -209,12 +209,14 @@ class Manager
         //}
 
         // Can throw RateLimitException.
-        $this->kvLimiter
-            ->setKey('comment-limit')
-            ->setValue($owner->getGuid())
-            ->setSeconds(self::RATE_LIMIT_TIMESPAN)
-            ->setMax(self::RATE_LIMIT_MAX)
-            ->checkAndIncrement();
+        if ($rateLimit) {
+            $this->kvLimiter
+                ->setKey('comment-limit')
+                ->setValue($owner->getGuid())
+                ->setSeconds(self::RATE_LIMIT_TIMESPAN)
+                ->setMax(self::RATE_LIMIT_MAX)
+                ->checkAndIncrement();
+        }
 
         $this->spam->check($comment);
         $this->spam->check($entity);
