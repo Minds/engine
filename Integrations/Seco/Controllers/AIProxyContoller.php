@@ -19,7 +19,7 @@ class AIProxyContoller
 
     public function chat(ServerRequest $request): JsonResponse
     {
-        $messages = array_map(fn($message) => new OllamaMessage(
+        $messages = array_map(fn ($message) => new OllamaMessage(
             role: constant(OllamaRoleEnum::class . '::' . $message['role']),
             content: $message['content']
         ), $request->getParsedBody()['messages']);
