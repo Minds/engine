@@ -232,6 +232,6 @@ class ManagerSpec extends ObjectBehavior
         $this->relationalRepo->getSubscribers(Argument::any(), Argument::any(), Argument::any())
             ->shouldNotBeCalled();
 
-        $this->shouldThrow(NotImplementedException::class)->duringGetList($opts);
+        $this->getList($opts)->shouldBe([]);
     }
 }

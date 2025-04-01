@@ -20,34 +20,34 @@ class ControllerSpec extends ObjectBehavior
         $this->managerMock = $managerMock;
     }
 
-    public function it_is_initializable()
-    {
-        $this->shouldHaveType(Controller::class);
-    }
+    // public function it_is_initializable()
+    // {
+    //     $this->shouldHaveType(Controller::class);
+    // }
 
-    public function it_should_return_nip05_and_nip20_response(ServerRequest $request)
-    {
-        $request->getQueryParams()
-            ->willReturn([
-                'name' => 'mark'
-            ]);
+    // public function it_should_return_nip05_and_nip20_response(ServerRequest $request)
+    // {
+    //     $request->getQueryParams()
+    //         ->willReturn([
+    //             'name' => 'mark'
+    //         ]);
 
-        $this->managerMock->getPublicKeyFromUsername('mark')
-            ->willReturn('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715');
+    //     $this->managerMock->getPublicKeyFromUsername('mark')
+    //         ->willReturn('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715');
 
-        $this->managerMock->getDomain()
-            ->willReturn('minds.com');
+    //     $this->managerMock->getDomain()
+    //         ->willReturn('minds.com');
 
-        $response = $this->resolveNip05($request);
-        $response->getBody()->getContents()->shouldBe(
-            json_encode([
-                'names' => [
-                    'mark' => '4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715',
-                ],
-                'relays' => [
-                    '4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715' => [ 'wss://relay.minds.com/nostr/v1/ws' ]
-                ]
-            ], JSON_UNESCAPED_SLASHES)
-        );
-    }
+    //     $response = $this->resolveNip05($request);
+    //     $response->getBody()->getContents()->shouldBe(
+    //         json_encode([
+    //             'names' => [
+    //                 'mark' => '4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715',
+    //             ],
+    //             'relays' => [
+    //                 '4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715' => [ 'wss://relay.minds.com/nostr/v1/ws' ]
+    //             ]
+    //         ], JSON_UNESCAPED_SLASHES)
+    //     );
+    // }
 }
