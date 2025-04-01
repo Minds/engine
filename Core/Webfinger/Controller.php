@@ -42,6 +42,10 @@ class Controller
 
         $username = str_replace('acct:', '', $username);
 
+        if (!$domain) {
+            throw new UserErrorException("Invalid domain");
+        }
+
         if (strpos($domain, 'www.') === 0) {
             $domain = str_replace('www.', '', $domain);
             $resource = str_replace('www.', '', $resource);
