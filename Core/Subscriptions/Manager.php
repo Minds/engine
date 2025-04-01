@@ -13,7 +13,6 @@ use Minds\Core\Subscriptions\Delegates\EventsDelegate;
 use Minds\Core\Subscriptions\Delegates\FeedsDelegate;
 use Minds\Core\Subscriptions\Delegates\SendNotificationDelegate;
 use Minds\Entities\User;
-use NotImplementedException;
 
 class Manager
 {
@@ -97,7 +96,7 @@ class Manager
                 );
             } else {
                 // multi-tenant subscriptions should be retrieved via subscriptions graph.
-                throw new NotImplementedException();
+                return [];
             }
         }
 
