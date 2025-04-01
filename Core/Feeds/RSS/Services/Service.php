@@ -189,10 +189,10 @@ class Service
             }
         } catch (RssFeedFailedFetchException $e) {
             $status = RssFeedLastFetchStatusEnum::FAILED_TO_CONNECT;
-            $this->logger->error($e->getMessage());
+            $this->logger->info($e->getMessage());
         } catch (Exception $e) {
             $status = RssFeedLastFetchStatusEnum::FAILED_TO_PARSE;
-            $this->logger->error($e->getMessage());
+            $this->logger->info($e->getMessage());
         } finally {
             $this->logger->info('Finished processing RSS feed', [
                 'feed_id' => $rssFeed->feedId,
