@@ -90,7 +90,7 @@ class BoostPartnerViewEventStreamSubscription implements BatchSubscriptionInterf
             );
 
             // Bad data, skip
-            if ($messageData->cm_served_by_guid === 'undefined') {
+            if ($messageData->cm_served_by_guid === 'undefined' || !$messageData->cm_served_by_guid) {
                 $this->getTopic()->markMessageAsProcessed($message);
                 continue;
             }
