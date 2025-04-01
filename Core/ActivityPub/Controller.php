@@ -126,6 +126,9 @@ class Controller
     public function getUserFollowers(ServerRequestInterface $request): JsonActivityResponse
     {
         $user = $this->buildUser($request);
+        if (!$user instanceof User) {
+            throw new NotFoundException();
+        }
 
         $subscriptionsManager = new \Minds\Core\Subscriptions\Manager();
         $users = $subscriptionsManager->getList([
@@ -161,6 +164,9 @@ class Controller
     public function getUserFollowing(ServerRequestInterface $request): JsonActivityResponse
     {
         $user = $this->buildUser($request);
+        if (!$user instanceof User) {
+            throw new NotFoundException();
+        }
 
         $subscriptionsManager = new \Minds\Core\Subscriptions\Manager();
         $users = $subscriptionsManager->getList([
