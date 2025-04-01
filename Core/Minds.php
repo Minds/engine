@@ -66,7 +66,7 @@ class Minds extends base
         AccountQuality\Module::class,
         Recommendations\Module::class,
         DID\Module::class,
-        Nostr\Module::class,
+        // Nostr\Module::class,
         Entities\Ops\Module::class,
         FeedNotices\Module::class,
         Metrics\Module::class,
