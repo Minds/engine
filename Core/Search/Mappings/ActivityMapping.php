@@ -21,6 +21,7 @@ class ActivityMapping extends EntityMapping implements MappingInterface
     public function __construct()
     {
         $this->mappings = array_merge($this->mappings, [
+            'message' => [ 'type' => 'text', '$exportField' => 'message' ],
             'rating' => ['type' => 'integer', '$exportField' => 'rating'],
             'custom_type' => ['type' => 'text', '$exportField' => 'custom_type'],
             'entity_guid' => ['type' => 'text', '$exportField' => 'entity_guid'],
@@ -84,6 +85,9 @@ class ActivityMapping extends EntityMapping implements MappingInterface
         if ($container instanceof User) {
             $map['plus'] = $container->isPlus();
         }
+
+        // Some entities have bad data where a subtype has been set, do not map this
+        unset($map['subtype']);
 
         return $map;
     }

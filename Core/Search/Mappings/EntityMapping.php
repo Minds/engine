@@ -28,7 +28,6 @@ class EntityMapping implements MappingInterface
         'owner_guid' => [ 'type' => 'text', 'fielddata' => true, '$exportField' => 'owner_guid' ],
         'container_guid' => [ 'type' => 'text', 'fielddata' => true, '$exportField' => 'container_guid' ],
         'mature' => [ 'type' => 'boolean', '$exportField' => 'mature' ],
-        'message' => [ 'type' => 'text', '$exportField' => 'message' ],
         'name' => [ 'type' => 'text', '$exportField' => 'name' ],
         'title' => [ 'type' => 'text', '$exportField' => 'title' ],
         'blurb' => [ 'type' => 'text', '$exportField' => 'blurb' ],

@@ -125,7 +125,6 @@ class EntityMappingSpec extends ObjectBehavior
                 'owner_guid' => '1000',
                 'container_guid' => '1000',
                 'mature' => false,
-                'message' => 'PHPSpec Message #test #hashtag',
                 'name' => 'PHPSpec Name',
                 'title' => 'PHPSpec Title',
                 'blurb' => 'PHPSpec Blurb',
@@ -137,7 +136,7 @@ class EntityMappingSpec extends ObjectBehavior
                 'public' => true,
                 // 'wire_support_tier' => 'urn:support-tier:123456',
                 // '@wire_support_tier_expire' => 1000000,
-                'tags' => [ 'hashtag', 'spaceiscool', 'test' ],
+                'tags' => [ 'hashtag', 'spaceiscool', ],
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',
                 '@moderated' => $now * 1000

@@ -29,7 +29,6 @@ class UserMappingSpec extends ObjectBehavior
         $user->get('owner_guid')->willReturn(false);
         $user->get('container_guid')->willReturn(1000);
         $user->get('mature')->willReturn(false);
-        $user->get('message')->willReturn('PHPSpec Message #test #hashtag');
         $user->getName()->willReturn('PHPSpec Name');
         $user->get('name')->willReturn('PHPSpec Name');
         $user->get('title')->willReturn('PHPSpec Title');
@@ -72,7 +71,6 @@ class UserMappingSpec extends ObjectBehavior
                 'access_id' => '2',
                 'container_guid' => '1000',
                 'mature' => false,
-                'message' => 'PHPSpec Message #test #hashtag',
                 'name' => 'PHPSpec Name',
                 'title' => 'PHPSpec Title',
                 'blurb' => 'PHPSpec Blurb',
