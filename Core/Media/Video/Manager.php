@@ -17,6 +17,7 @@ use Minds\Core\Storage\Quotas\Manager as StorageQuotasManager;
 use Minds\Entities\Activity;
 use Minds\Entities\Entity;
 use Minds\Entities\Video;
+use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\StopEventException;
 use Oracle\Oci\ObjectStorage\ObjectStorageClient;
 
@@ -150,12 +151,24 @@ class Manager
             $guid = $legacyGuid;
         }
 
-        $key = $this->config->get('transcoder')['dir'] . "/$guid/source";
+        $prefix = $this->config->get('transcoder')['dir'] . "/$guid/";
+        $key = $prefix . "source";
 
         try {
+            $bucket = $this->config->get('transcoder')['oci_bucket_name'] ?? 'cinemr';
+            $objectsList = $this->osClient->listObjects([
+                'namespaceName' => $this->config->get('oci')['api_auth']['bucket_namespace'],
+                'bucketName' => $bucket,
+                'prefix' => $prefix,
+            ])->getJson()->objects;
+
+            if (empty($objectsList)) {
+                throw new NotFoundException();
+            }
+
             $response = $this->osClient->createPreauthenticatedRequest([
                 'namespaceName' => $this->config->get('oci')['api_auth']['bucket_namespace'],
-                'bucketName' => $this->config->get('transcoder')['oci_bucket_name'] ?? 'cinemr',
+                'bucketName' => $bucket,
                 'createPreauthenticatedRequestDetails' => [
                     'name' => $key,
                     'objectName' => $key,
@@ -167,6 +180,24 @@ class Manager
 
             $url = $response->getJson()->fullPath . '?httpResponseContentDisposition=' . urlencode("attachment; filename=$guid.mp4");
         } catch (\Exception $e) {
+
+            // As above, check the correct file exists
+            $objects = $this->s3->listObjectsV2([
+                'Bucket' => 'cinemr',
+                'Prefix' => $prefix,
+            ]);
+            $availableSources = array_map(fn ($object) => $object['Key'], $objects['Contents']);
+
+            // If the 'source' was not found, iterate through to find a video file
+            if (!in_array($key, $availableSources, true)) {
+                foreach ($availableSources as $availableSource) {
+                    if (substr($availableSource, -4) === '.mp4') {
+                        $key = $availableSource;
+                        break;
+                    }
+                }
+            }
+
             $cmd = $this->s3->getCommand('GetObject', [
                 'Bucket' => 'cinemr',
                 'Key' => $key,
