@@ -240,7 +240,7 @@ class Repository
 
                 if (($row['tenant_id'] ?? null) !== $this->getTenantId()) {
                     // This is the wrong tenant, should not allow
-                    $this->logger->error("Comment found for wrong tenant_id", [
+                    $this->logger->info("Comment found for wrong tenant_id", [
                         'tenant_id' => $this->getTenantId(),
                         'comment_urn' => $comment->getUrn(),
                     ]);
