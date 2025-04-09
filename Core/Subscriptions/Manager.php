@@ -4,6 +4,7 @@
  */
 namespace Minds\Core\Subscriptions;
 
+use Minds\Common\Repository\Response;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
@@ -77,7 +78,7 @@ class Manager
     public function getList($opts)
     {
         if (!$opts['guid']) {
-            return [];
+            return new Response([]);
         }
 
         $opts = array_merge([
@@ -96,7 +97,7 @@ class Manager
                 );
             } else {
                 // multi-tenant subscriptions should be retrieved via subscriptions graph.
-                return [];
+                return new Response([]);
             }
         }
 
