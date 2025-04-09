@@ -51,6 +51,11 @@ class Header
             libxml_use_internal_errors(true);
             $dom = new \DOMDocument();
             $dom->strictErrorChecking = false;
+
+            if (!$blog->getBody()) {
+                return '';
+            }
+
             $dom->loadHTML($blog->getBody());
 
             $nodes = $dom->getElementsByTagName('img');
