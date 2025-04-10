@@ -32,6 +32,14 @@ class ActivityMapping extends EntityMapping implements MappingInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function getType()
+    {
+        return 'activity';
+    }
+
+    /**
      * Map
      */
     public function map(array $defaultValues = [])
