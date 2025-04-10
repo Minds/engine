@@ -4,6 +4,7 @@ namespace Minds\Core\ActivityPub\Factories;
 
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ServerException;
 use Minds\Core\ActivityPub\Client;
 use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
@@ -75,7 +76,7 @@ class ActorFactory
         try {
             $response = $this->client->request('GET', $uri);
             $json = json_decode($response->getBody()->getContents(), true);
-        } catch (ConnectException $e) {
+        } catch (ConnectException|RequestException $e) {
             throw new UserErrorException("Could not connect to $uri");
         } catch (ServerException $e) {
             throw new UserErrorException("Server returned an error ({$e->getMessage()}) at $uri");
