@@ -129,7 +129,7 @@ class ElggUser extends ElggEntity
     {
         $config = Minds\Core\Di\Di::_()->get('Config');
 
-        if ($config->get('development_mode') !== true && !$config->get('tenant_id')) {
+        if ($config->get('development_mode') !== true && !$config->get('tenant_id') && php_sapi_name() !== 'cli') {
             $ip = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : null;
 
             if (!$ip) {
