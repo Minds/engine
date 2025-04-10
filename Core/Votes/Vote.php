@@ -8,6 +8,7 @@ namespace Minds\Core\Votes;
 use Minds\Entities\ExportableInterface;
 use Minds\Entities\Factory;
 use Minds\Entities\User;
+use Minds\Exceptions\NotFoundException;
 
 class Vote implements ExportableInterface
 {
@@ -24,14 +25,14 @@ class Vote implements ExportableInterface
      * Sets the entity of the vote
      * @param mixed $entity
      * @return $this
-     * @throws \Exception
+     * @throws NotFoundException
      */
     public function setEntity($entity)
     {
         $this->entity = is_object($entity) ? $entity : Factory::build($entity);
 
         if (!$this->entity || !$this->entity->guid) {
-            throw new \Exception('Entity not found');
+            throw new NotFoundException('Entity not found');
         }
 
         return $this;
@@ -50,14 +51,14 @@ class Vote implements ExportableInterface
      * Set the actor of the vote
      * @param User $actor
      * @return $this
-     * @throws \Exception
+     * @throws NotFoundException
      */
     public function setActor($actor)
     {
         $this->actor = $actor;
 
         if (!$this->actor || !$this->actor->guid) {
-            throw new \Exception('Actor not found');
+            throw new NotFoundException('Actor not found');
         }
 
         return $this;
