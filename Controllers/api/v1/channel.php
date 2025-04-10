@@ -54,6 +54,14 @@ class channel implements Interfaces\Api
      */
     public function get($pages)
     {
+        if (!isset($pages[0])) {
+            return Factory::response([
+                'status'=>'error',
+                'message'=>'Sorry, this user could not be found',
+                'type'=>'ChannelNotFoundException',
+            ]);
+        }
+
         if ($pages[0] == 'me') {
             $pages[0] = elgg_get_logged_in_user_guid();
         }
