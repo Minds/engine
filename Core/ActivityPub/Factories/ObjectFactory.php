@@ -338,6 +338,9 @@ class ObjectFactory
         }
 
         if (isset($json['to'])) {
+            if (is_string($json['to'])) {
+                $json['to'] = [$json['to']];
+            }
             $object->to = $json['to'];
         }
 
