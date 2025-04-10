@@ -68,7 +68,7 @@ class Manager
     public function verify(Captcha $captcha): bool
     {
         if (isset($_COOKIE['captcha_bypass'])) {
-            return $this->bypassManager->verify($captcha->getClientText());
+            return $this->bypassManager->verify($captcha->getClientText() ?: '');
         }
 
         $jwtToken = $captcha->getJwtToken();
