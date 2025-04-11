@@ -14,6 +14,7 @@ use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
 use Minds\Core\Media\Audio\AudioEntity;
 use Minds\Core\Media\Audio\AudioService;
+use Minds\Core\Media\Audio\Exceptions\BadRemoteAudioFileException;
 
 class AudioUploadEventStreamsSubscription implements SubscriptionInterface
 {
@@ -70,12 +71,18 @@ class AudioUploadEventStreamsSubscription implements SubscriptionInterface
         }
 
         // Process the audio
-        $success = $this->audioService->processAudio($audioEntity);
-
-        if ($success) {
-            $this->logger->info($audioEntity->guid . ' was processed');
-        } else {
-            $this->logger->error($audioEntity->guid . ' failed to process');
+        try {
+            $success = $this->audioService->processAudio($audioEntity);
+            if ($success) {
+                $this->logger->info($audioEntity->guid . ' was processed');
+            } else {
+                $this->logger->info($audioEntity->guid . ' failed to process');
+            }
+        } catch (BadRemoteAudioFileException $e) {
+            $this->logger->info($audioEntity->guid . ' failed to process', [
+                'exception' => $e
+            ]);
+            return true; // Do not try again.
         }
 
         return $success;

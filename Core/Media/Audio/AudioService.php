@@ -9,6 +9,7 @@ use Minds\Common\Access;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\GuidBuilder;
+use Minds\Core\Media\Audio\Exceptions\BadRemoteAudioFileException;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Entities\User;
 use Psr\SimpleCache\CacheInterface;
@@ -144,7 +145,12 @@ class AudioService
     public function processAudio(AudioEntity $audioEntity): bool
     {
         // Download the source file from s3 bucket
-        $audioSrc = $this->audioAssetStorageService->downloadToTmpfile($audioEntity);
+        try {
+            $audioSrc = $this->audioAssetStorageService->downloadToTmpfile($audioEntity);
+        } catch (\Exception $e) {
+            // Issue downloading the asset, so couldn't process
+            throw new BadRemoteAudioFileException($e->getMessage());
+        }
 
         // Output to tmp directory (need .mp3 suffix)
         $resampledMp3Filename = sys_get_temp_dir() . "/$audioEntity->guid.mp3";
