@@ -63,7 +63,7 @@ class AudioDownloaderSpec extends ObjectBehavior
         $responseMock->getHeader('Content-Type')
             ->willReturn(['text/plain']);
 
-        $this->loggerMock->error(Argument::type('string'))
+        $this->loggerMock->info(Argument::type('string'))
             ->shouldBeCalled();
 
         $this->shouldThrow(\Exception::class)
@@ -78,7 +78,7 @@ class AudioDownloaderSpec extends ObjectBehavior
         $this->clientMock->get($url, Argument::any())
             ->willThrow($exception);
 
-        $this->loggerMock->error($exception->getMessage())
+        $this->loggerMock->info($exception->getMessage())
             ->shouldBeCalled();
 
         $this->shouldThrow(\Exception::class)
@@ -96,7 +96,7 @@ class AudioDownloaderSpec extends ObjectBehavior
         $responseMock->getHeader('Content-Type')
             ->willReturn([]);
 
-        $this->loggerMock->error(Argument::type('string'))
+        $this->loggerMock->info(Argument::type('string'))
             ->shouldBeCalled();
 
         $this->shouldThrow(\Exception::class)
