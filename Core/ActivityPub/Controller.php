@@ -131,7 +131,7 @@ class Controller
         }
 
         $subscriptionsManager = new \Minds\Core\Subscriptions\Manager();
-        $users = $subscriptionsManager->getList([
+        $subscribers = $subscriptionsManager->getList([
             'limit' => 12,
             'guid' => $user->getGuid(),
             'type' => 'subscribers'
@@ -139,11 +139,11 @@ class Controller
 
         $items = [];
 
-        foreach ($users as $user) {
-            if (!$user instanceof User) {
+        foreach ($subscribers as $subscriber) {
+            if (!$subscriber instanceof User) {
                 continue;
             }
-            $person = $this->actorFactory->fromEntity($user);
+            $person = $this->actorFactory->fromEntity($subscriber);
             $items[] = $person->getId();
         }
     
@@ -169,7 +169,7 @@ class Controller
         }
 
         $subscriptionsManager = new \Minds\Core\Subscriptions\Manager();
-        $users = $subscriptionsManager->getList([
+        $subscriptions = $subscriptionsManager->getList([
             'limit' => 12,
             'guid' => $user->getGuid(),
             'type' => 'subscribed'
@@ -177,11 +177,11 @@ class Controller
 
         $items = [];
 
-        foreach ($users as $user) {
-            if (!$user instanceof User) {
+        foreach ($subscriptions as $subscription) {
+            if (!$subscription instanceof User) {
                 continue;
             }
-            $person = $this->actorFactory->fromEntity($user);
+            $person = $this->actorFactory->fromEntity($subscription);
             $items[] = $person->getId();
         }
         
