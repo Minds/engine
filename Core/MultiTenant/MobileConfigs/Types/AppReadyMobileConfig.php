@@ -16,7 +16,6 @@ class AppReadyMobileConfig
     public function __construct(
         #[Field(name: "APP_NAME")] public readonly string                $appName,
         #[Field(name: "TENANT_ID")] public readonly int                  $tenantId,
-        #[Field(name: "PRODUCTION_APP_VERSION")] public readonly ?string $productionAppVersion = null, // This is the production app version
         #[Field(name: "APP_HOST")] public readonly string                $appHost, // this is the tenant's domain
         #[Field(name: "APP_SPLASH_RESIZE")] public readonly string       $appSplashResize,
         #[Field(name: "ACCENT_COLOR_LIGHT")] public readonly string      $accentColorLight,
@@ -25,6 +24,7 @@ class AppReadyMobileConfig
         #[Field(name: "THEME")] public readonly string                   $theme,
         #[Field(name: "API_URL")] public readonly string                 $apiUrl, // this is the tenant's domain
         private readonly array                                           $assets,
+        #[Field(name: "PRODUCTION_APP_VERSION")] public readonly ?string $productionAppVersion = null, // This is the production app version
         #[Field(name: "EAS_PROJECT_ID")] public readonly ?string         $easProjectId = null,
         #[Field(name: "APP_SLUG")] public readonly ?string               $appSlug = null, // The app slug in expo.dev
         #[Field(name: "APP_SCHEME")] public readonly ?string             $appScheme = null,
