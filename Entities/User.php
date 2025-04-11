@@ -1120,7 +1120,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
         $export['toaster_notifications'] = $this->getToasterNotifications();
         $export['mode'] = $this->getMode();
 
-        $export['briefdescription'] = (new BriefDescriptionLengthValidator())->validateMaxAndTrim($export['briefdescription']);
+        $export['briefdescription'] = (new BriefDescriptionLengthValidator())->validateMaxAndTrim((string) $export['briefdescription']);
 
         if (is_string($export['social_profiles'])) {
             $export['social_profiles'] = json_decode($export['social_profiles']);
