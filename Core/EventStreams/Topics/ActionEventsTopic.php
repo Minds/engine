@@ -162,7 +162,12 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
                 }
             } catch (\Exception $e) {
                 $consumer->negativeAcknowledge($message);
-                $this->logger->error("Topic(Consume): Uncaught error: " . $e->getMessage());
+                $this->logger->error(
+                    "Topic(Consume): Uncaught error: " . $e->getMessage(),
+                    [
+                    'exception' => $e
+                ]
+                );
                 if ($e instanceof PDOException && $e->getCode() === 2006) {
                     throw $e;
                 }
