@@ -5,6 +5,7 @@ namespace Minds\Core\Events\Hooks;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Referrals\Referral;
 use Minds\Entities;
@@ -31,7 +32,7 @@ class Register
 
             if ($referrer) {
                 try {
-                    $user = new Entities\User(strtolower(ltrim($referrer, '@')));
+                    $user = Di::_()->get(EntitiesBuilder::class)->getByUserByIndex(strtolower(ltrim($referrer, '@')));
                     if ($user->guid) {
                         $user->referrer = (string)$user->guid;
 
