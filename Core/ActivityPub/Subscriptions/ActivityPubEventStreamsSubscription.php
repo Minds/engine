@@ -7,6 +7,7 @@
 namespace Minds\Core\ActivityPub\Subscriptions;
 
 use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
+use Minds\Core\ActivityPub\Exceptions\RemoteFetchException;
 use Minds\Core\ActivityPub\Exceptions\RemoteGoneException;
 use Minds\Core\ActivityPub\Exceptions\RemoteRateLimitedException;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
@@ -174,7 +175,7 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
                     $this->logger->info('Skipping as not a supported action');
                     return true; // Noop (nothing to do)
             }
-        } catch (NotFoundException|ForbiddenException|UserErrorException|RemoteGoneException $e) {
+        } catch (NotFoundException|ForbiddenException|UserErrorException|RemoteGoneException|RemoteFetchException $e) {
             $this->logger->info("Skipping: {$entity->getGuid()}: {$e->getCode()} - {$e->getMessage()}");
             return true;
         } catch (RemoteRateLimitedException) {

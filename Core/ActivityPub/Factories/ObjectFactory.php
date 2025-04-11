@@ -26,10 +26,10 @@ use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
 use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
+use Minds\Core\ActivityPub\Exceptions\RemoteFetchException;
 use Minds\Core\ActivityPub\Exceptions\RemoteGoneException;
 use Minds\Core\ActivityPub\Exceptions\RemoteRateLimitedException;
 use Minds\Core\Router\Exceptions\ForbiddenException;
-use Minds\Exceptions\ServerErrorException;
 
 class ObjectFactory
 {
@@ -77,7 +77,7 @@ class ObjectFactory
                     throw new RemoteRateLimitedException();
                     break;
                 default:
-                    throw new ServerErrorException("Unable to fetch $uri. " . $e->getMessage(), $code);
+                    throw new RemoteFetchException("Unable to fetch $uri. " . $e->getMessage(), $code);
             }
         }
 
@@ -90,7 +90,7 @@ class ObjectFactory
      * @throws NotFoundException
      * @throws NotImplementedException
      * @throws UserErrorException
-     * @throws \Minds\Exceptions\ServerErrorException
+     * @throws RemoteFetchException
      */
     public function fromEntity(EntityInterface $entity): ObjectType
     {
