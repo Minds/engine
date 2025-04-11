@@ -239,8 +239,10 @@ class Save
 
         if (method_exists($this->entity, 'getContainerGuid') && $this->entity->getContainerGuid()) {
             $container = $this->entitiesBuilder->single($this->entity->getContainerGuid());
-            $nsfwReasons = array_merge($nsfwReasons, $container->getNSFW());
-            $nsfwReasons = array_merge($nsfwReasons, $container->getNSFWLock());
+            if ($container) {
+                $nsfwReasons = array_merge($nsfwReasons, $container->getNSFW());
+                $nsfwReasons = array_merge($nsfwReasons, $container->getNSFWLock());
+            }
         }
 
         $this->entity->setNSFW($nsfwReasons);
