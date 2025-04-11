@@ -50,7 +50,9 @@ class Events
 
     private function sendCampaign(SenderInterface $sender, $params)
     {
-        $user = $this->getEntitiesBuilder()->single($params['user_guid'], $params['cache'] ?? true);
+        $user = $this->getEntitiesBuilder()->single($params['user_guid'], [
+            'cache' => $params['cache'] ?? true,
+        ]);
         if ($user instanceof User) {
             $sender->send($user);
         }
