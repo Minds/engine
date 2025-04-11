@@ -13,6 +13,8 @@ use Minds\Core\Di\Di;
 use Minds\Exceptions\BannedException;
 use Minds\Helpers\Flags;
 
+use function PHPSTORM_META\map;
+
 class UserMapping extends EntityMapping implements MappingInterface
 {
     /**
@@ -38,9 +40,17 @@ class UserMapping extends EntityMapping implements MappingInterface
     {
         $map = parent::map($defaultValues);
 
-        if (isset($map['description'])) {
-            // Users should not have this mapping
-            unset($map['description']);
+        $badFields = [
+            'description',
+            'title',
+            'blurb',
+        ];
+
+        foreach ($badFields as $badField) {
+            if (isset($map[$badField])) {
+                // Users should not have this mapping
+                unset($map[$badField]);
+            }
         }
 
         //if (isset($map['tags'])) {
