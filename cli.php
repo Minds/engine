@@ -27,21 +27,10 @@ Sentry\init([
     'error_types' => E_ERROR,
     'attach_stacktrace' => true,
     'send_default_pii' => false,
-    'before_send' => function (Event $event, ?EventHint $hint): ?Event {
-        $exclusions = [
-            RateLimitException::class,
-            SentryExceptionExclusionInterface::class
-        ];
-
-        if ($hint !== null) {
-            if (array_filter($exclusions, function (string $value, int $key) use ($hint) {
-                return $hint->exception instanceof $value;
-            }, ARRAY_FILTER_USE_BOTH)) {
-                return null;
-            }
-        }
-        return $event;
-    },
+    'ignore_exceptions' => [
+        RateLimitException::class,
+        SentryExceptionExclusionInterface::class
+    ],
 ]);
 
 if (!isset($argv) || !is_array($argv)) {

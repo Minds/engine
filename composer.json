@@ -56,7 +56,6 @@
         "google/cloud-pubsub": "^1.43",
         "oracle/oci-php-sdk": "dev-minds-fixes",
         "thecodingmachine/graphqlite": "6.2.3",
-        "sentry/sdk": "^3.5",
         "symfony/psr-http-message-bridge": "^2.3",
         "liamdennehy/http-signatures-php": "dev-use-upstream-phpseclib",
         "nojimage/twitter-text-php": "^3.3",
@@ -68,7 +67,8 @@
         "posthog/posthog-php": "dev-chore/ff-fetch-optional",
         "zircote/swagger-php": "^4.9",
         "openai-php/client": "^0.4.2",
-        "opensearch-project/opensearch-php": "^2.3"
+        "opensearch-project/opensearch-php": "^2.3",
+        "sentry/sentry": "^4.10"
     },
     "repositories": [
         {
