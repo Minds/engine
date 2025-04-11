@@ -345,6 +345,9 @@ class ObjectFactory
         }
 
         if (isset($json['cc'])) {
+            if (is_string($json['cc'])) {
+                $json['cc'] = [$json['cc']];
+            }
             $object->cc = $json['cc'];
         }
 
