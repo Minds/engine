@@ -208,7 +208,7 @@ class EntityMapping implements MappingInterface
         $map['tags'] = array_slice(array_values(array_unique($tags)), 0, static::MAX_HASHTAGS);
 
         if ($this->entity->getNsfw()) {
-            $map['nsfw'] = array_unique($this->entity->getNsfw());
+            $map['nsfw'] = array_values(array_unique($this->entity->getNsfw()));
         }
 
         if (isset($this->entity->moderator_guid) && !empty($this->entity->moderator_guid)) {
