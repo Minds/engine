@@ -31,6 +31,14 @@ class UserMapping extends EntityMapping implements MappingInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function getType()
+    {
+        return 'user';
+    }
+
+    /**
      * @param array $defaultValues
      * @return array
      */
