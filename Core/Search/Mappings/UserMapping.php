@@ -13,8 +13,6 @@ use Minds\Core\Di\Di;
 use Minds\Exceptions\BannedException;
 use Minds\Helpers\Flags;
 
-use function PHPSTORM_META\map;
-
 class UserMapping extends EntityMapping implements MappingInterface
 {
     /**
