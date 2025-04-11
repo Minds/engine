@@ -43,7 +43,7 @@ class AudioDownloader implements MediaDownloaderInterface
 
             return $response;
         } catch (\Exception $e) {
-            $this->logger->error($e->getMessage());
+            $this->logger->info($e->getMessage());
             throw $e;
         }
     }
