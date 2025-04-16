@@ -469,7 +469,14 @@ class Manager
      */
     private function getTokenBalance(UniqueOnChainAddress $uniqueOnChainAddress, int $blockNumber, int $chainId): string
     {
-        return $this->token->fromTokenUnit($this->token->balanceOf($uniqueOnChainAddress->getAddress(), $blockNumber, $chainId));
+        return $this->token->fromTokenUnit(
+            $this->token->balanceOf(
+                account: $uniqueOnChainAddress->getAddress(),
+                // Historicals aren't working with ETH so just use the latest block
+                blockNumber: $chainId === Util::ETHEREUM_CHAIN_ID ? null : $blockNumber,
+                chainId: $chainId
+            )
+        );
     }
 
     public function setFrom($argument1)

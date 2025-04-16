@@ -169,7 +169,9 @@ class ManagerSpec extends ObjectBehavior
         
         $this->token->fromTokenUnit("10")
                 ->willReturn(10);
-        $this->token->balanceOf('0xAddresss', 1, Argument::type('integer'))
+        $this->token->balanceOf('0xAddresss', null, Util::ETHEREUM_CHAIN_ID)
+                ->willReturn("10");
+        $this->token->balanceOf('0xAddresss', 1, Util::BASE_CHAIN_ID)
                 ->willReturn("10");
 
         $this->repository->add(Argument::that(function ($rewardEntry) {
@@ -266,9 +268,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(10);
 
-        $this->token->balanceOf('0xAddresss', 1, Argument::type('integer'))
-            ->shouldBeCalled()
-            ->willReturn('10');
+        $this->token->balanceOf('0xAddresss', null, Util::ETHEREUM_CHAIN_ID)
+            ->willReturn("10");
+        $this->token->balanceOf('0xAddresss', 1, Util::BASE_CHAIN_ID)
+            ->willReturn("10");
 
         $this->repository->add(Argument::that(function ($rewardEntry) {
             return (string) $rewardEntry->getUserGuid() === '123'
