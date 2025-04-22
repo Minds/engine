@@ -36,6 +36,11 @@ class ChatProcessorService
         /** @var User */
         $senderUser = $this->entitiesBuilder->single($message->senderGuid);
 
+        if (!$senderUser instanceof User) {
+            $this->logger->info("Skipping. Bad sender.", [ 'urn' => $message->getUrn() ]);
+            return true;
+        }
+
         // Determine if this chat room is a chat with a bot
         $botUser = $this->getBotUserFromRoomGuid(roomGuid: $message->roomGuid, sender: $senderUser);
 
