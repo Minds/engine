@@ -37,12 +37,20 @@ class CommentProcessorService
         $this->acl->setIgnore(true);
 
         $entity = $this->entitiesBuilder->single($comment->getEntityGuid());
+
+        if (!$entity instanceof Activity) {
+            // If we're not commenting on an Activity post, we don't want to continue processing.
+            $this->logger->info("Bad entity. Skipping.", [
+                'comment_urn' => $comment->getUrn(),
+            ]);
+            return true;
+        }
+    
         $entityOwner = $this->entitiesBuilder->single($entity->getOwnerGuid());
         
-        if (!$entity instanceof Activity || !$entityOwner instanceof User) {
-            // If we're not commenting on an Activity post, we don't want to continue processing.
+        if (!$entityOwner instanceof User) {
             // If the entityOwner is invalid, we don't want to continue processing.
-            $this->logger->info("Bad entity or bad user. Skipping.", [
+            $this->logger->info("Bad user. Skipping.", [
                 'comment_urn' => $comment->getUrn(),
             ]);
             return true;
