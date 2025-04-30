@@ -352,6 +352,9 @@ class ObjectFactory
         }
 
         if (isset($json['tag'])) {
+            if (!isset($json['tag'][0])) {
+                $json['tag'] = [$json['tag']];
+            }
             $tag = [];
             foreach ($json['tag'] as $t) {
                 if ($t['type'] !== 'Mention') {
