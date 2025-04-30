@@ -11,6 +11,7 @@ namespace Minds\Controllers\api\v1;
 use Minds\Api\Factory;
 use Minds\Common\PseudonymousIdentifier;
 use Minds\Core;
+use Minds\Core\Authentication\Oidc\Services\OidcProvidersService;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Security\ACL;
@@ -47,6 +48,10 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     public function post($pages)
     {
+        if (count(Di::_()->get(OidcProvidersService::class)->getProviders()) > 0) {
+            return Factory::response(['status' => 'error', 'message' => 'Registration is disabled']);
+        }
+
         if (!isset($_POST['username']) || !isset($_POST['password']) || !isset($_POST['username']) || !isset($_POST['email'])) {
             return Factory::response(['status' => 'error', 'message' => 'Please fill out all the fields']);
         }
