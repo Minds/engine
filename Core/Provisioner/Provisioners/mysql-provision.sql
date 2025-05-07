@@ -1255,3 +1255,18 @@ ALTER TABLE `minds_tenant_configs`
 ALTER TABLE `minds_entities_user`
 	ADD `bot` boolean
 	AFTER `ip`;
+
+CREATE TABLE IF NOT EXISTS minds_audit_log
+(
+    tenant_id  int,
+    event_id   int NOT NULL AUTO_INCREMENT,
+    event      varchar(256),
+    user_guid  bigint,
+    properties JSON,
+    ip_address text,
+    user_agent text,
+    referrer text,
+    created_at  timestamp DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (event_id),
+    INDEX (tenant_id)
+);

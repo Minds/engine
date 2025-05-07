@@ -8,6 +8,7 @@ use Minds\Core\Authentication\PersonalApiKeys\Services\PersonalApiKeyHashingServ
 use Minds\Core\Authentication\PersonalApiKeys\Services\PersonalApiKeyManagementService;
 use Minds\Core\Guid;
 use Minds\Core\Router\Enums\ApiScopeEnum;
+use Minds\Core\Security\Audit\Services\AuditService;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
@@ -17,14 +18,17 @@ class PersonalApiKeyManagementServiceSpec extends ObjectBehavior
 {
     private Collaborator $repositoryMock;
     private Collaborator $hashingServiceMock;
+    private Collaborator $auditServiceMock;
 
     public function let(
         PersonalApiKeyRepository $repositoryMock,
         PersonalApiKeyHashingService $hashingServiceMock,
+        AuditService $auditServiceMock,
     ) {
-        $this->beConstructedWith($repositoryMock, $hashingServiceMock);
+        $this->beConstructedWith($repositoryMock, $hashingServiceMock, $auditServiceMock);
         $this->repositoryMock = $repositoryMock;
         $this->hashingServiceMock = $hashingServiceMock;
+        $this->auditServiceMock = $auditServiceMock;
     }
 
     public function it_is_initializable()
@@ -71,6 +75,9 @@ class PersonalApiKeyManagementServiceSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $this->auditServiceMock->log('personal_api_key_create', Argument::any(), $user)
+            ->shouldBeCalled();
+
         $key = $this->create($user, 'test key', [ ApiScopeEnum::SITE_MEMBERSHIP_WRITE ]);
         $key->secret->shouldBe($secret);
     }
@@ -101,6 +108,9 @@ class PersonalApiKeyManagementServiceSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $this->auditServiceMock->log('personal_api_key_create', Argument::any(), $user)
+            ->shouldBeCalled();
+
         $key = $this->create($user, 'test key', [ ApiScopeEnum::SITE_MEMBERSHIP_WRITE ], 30);
         $key->secret->shouldBe($secret);
     }
@@ -128,6 +138,9 @@ class PersonalApiKeyManagementServiceSpec extends ObjectBehavior
         $this->repositoryMock->delete('pak_f40505a9f8b4b46fe84176f7e9e894ca1ea724f7052e9cc1da769ceb0bd9d063', $guid)
             ->shouldBeCalledOnce()
             ->willReturn(true);
+
+        $this->auditServiceMock->log('personal_api_key_delete', Argument::any(), $user)
+            ->shouldBeCalled();
 
         $this->deleteById('pak_f40505a9f8b4b46fe84176f7e9e894ca1ea724f7052e9cc1da769ceb0bd9d063', $user)
             ->shouldBe(true);

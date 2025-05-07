@@ -3,6 +3,7 @@ namespace Minds\Core\Security\Rbac\Services;
 
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Security\Audit\Services\AuditService;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Enums\RolesEnum;
 use Minds\Core\Security\Rbac\Exceptions\RbacNotConfigured;
@@ -17,6 +18,7 @@ class RolesService
         private readonly Config $config,
         private readonly Repository $repository,
         private readonly EntitiesBuilder $entitiesBuilder,
+        private readonly AuditService $auditService,
     ) {
 
     }
@@ -203,10 +205,22 @@ class RolesService
             return false;
         }
 
-        return $this->repository->assignUserToRole(
+        $success = $this->repository->assignUserToRole(
             userGuid: (int) $user->getGuid(),
             roleId: $role->id,
         );
+
+        if ($success) {
+            $this->auditService->log(
+                event: 'rbac_assign_role',
+                properties: [
+                    'user_guid' => $user->getGuid(),
+                    'rbac_role' => $role->id,
+                ],
+            );
+        }
+
+        return $success;
     }
 
     /**
@@ -218,10 +232,22 @@ class RolesService
             return false;
         }
 
-        return $this->repository->unassignUserFromRole(
+        $success = $this->repository->unassignUserFromRole(
             userGuid: (int) $user->getGuid(),
             roleId: $role->id,
         );
+
+        if ($success) {
+            $this->auditService->log(
+                event: 'rbac_unassign_role',
+                properties: [
+                    'user_guid' => $user->getGuid(),
+                    'rbac_role' => $role->id,
+                ],
+            );
+        }
+
+        return $success;
     }
 
     /**
@@ -234,7 +260,19 @@ class RolesService
             return false;
         }
 
-        return $this->repository->setRolePermissions($permissionsMap, $role->id);
+        $success = $this->repository->setRolePermissions($permissionsMap, $role->id);
+
+        if ($success) {
+            $this->auditService->log(
+                event: 'rbac_set_permissions',
+                properties: [
+                    'rbac_role' => $role->id,
+                    'rbac_permissions' => $permissionsMap,
+                ],
+            );
+        }
+
+        return $success;
     }
 
     /**

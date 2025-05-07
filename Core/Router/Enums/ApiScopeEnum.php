@@ -14,4 +14,7 @@ enum ApiScopeEnum
 
     /** The route will allow an admin to manage oidc user */
     case OIDC_MANAGE_USERS;
+
+    /** The route will be allowed to consume access audit logs */
+    case AUDIT_READ;
 }

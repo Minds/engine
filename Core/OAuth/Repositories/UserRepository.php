@@ -102,6 +102,10 @@ class UserRepository implements UserRepositoryInterface
             ->setAction('login')
             ->push();
 
+        if (!$this->mockUser) {
+            set_last_login($user);
+        }
+
         return $entity;
     }
 }

@@ -5,6 +5,7 @@ use DateTimeImmutable;
 use Minds\Core\Authentication\PersonalApiKeys\PersonalApiKey;
 use Minds\Core\Authentication\PersonalApiKeys\Repositories\PersonalApiKeyRepository;
 use Minds\Core\Router\Enums\ApiScopeEnum;
+use Minds\Core\Security\Audit\Services\AuditService;
 use Minds\Entities\User;
 
 class PersonalApiKeyManagementService
@@ -12,6 +13,7 @@ class PersonalApiKeyManagementService
     public function __construct(
         private PersonalApiKeyRepository $repository,
         private PersonalApiKeyHashingService $hashingService,
+        private AuditService $auditService,
     ) {
     }
     
@@ -34,7 +36,7 @@ class PersonalApiKeyManagementService
         string $name,
         /** @var ApiScopeEnum[] */
         array $scopes,
-        int $expireInDays = null,
+        ?int $expireInDays = null,
     ): PersonalApiKey {
         $secret = $this->hashingService->generateSecret();
 
@@ -53,6 +55,16 @@ class PersonalApiKeyManagementService
 
         $this->repository->add($personalApiKey);
 
+        $this->auditService->log(
+            event: 'personal_api_key_create',
+            properties: [
+                'pak_id' => $personalApiKey->id,
+                'pak_scopes' => array_map(fn (ApiScopeEnum $scope) => $scope->name, $scopes),
+                'pak_expires' => $personalApiKey->timeExpires?->format('c'),
+            ],
+            user: $user
+        );
+
         return $personalApiKey;
     }
 
@@ -69,6 +81,18 @@ class PersonalApiKeyManagementService
      */
     public function deleteById(string $id, User $user): bool
     {
-        return $this->repository->delete($id, $user->getGuid());
+        $deleted = $this->repository->delete($id, $user->getGuid());
+
+        if ($deleted) {
+            $this->auditService->log(
+                event: 'personal_api_key_delete',
+                properties: [
+                    'pak_id' => $id,
+                ],
+                user: $user
+            );
+        }
+
+        return $deleted;
     }
 }

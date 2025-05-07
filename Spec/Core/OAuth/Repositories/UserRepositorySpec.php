@@ -11,9 +11,19 @@ use League\OAuth2\Server\Entities\ClientEntityInterface;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Security\TwoFactor;
 use Minds\Entities\Activity;
+use PhpSpec\Wrapper\Collaborator;
 
 class UserRepositorySpec extends ObjectBehavior
 {
+    private Collaborator $twoFactorManager;
+    
+    public function let(
+        TwoFactor\Manager $twoFactorManager
+    ) {
+        $this->beConstructedWith(null, null, $twoFactorManager);
+        $this->twoFactorManager = $twoFactorManager;
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType(UserRepository::class);
@@ -77,7 +87,7 @@ class UserRepositorySpec extends ObjectBehavior
         ClientEntityInterface $clientEntity,
         EntitiesBuilder $entitiesBuilder
     ) {
-        $this->beConstructedWith(null, null, null, null, $entitiesBuilder);
+        $this->beConstructedWith(null, null, $this->twoFactorManager, null, $entitiesBuilder);
 
         $userEntity = $this->getUserEntityByUserCredentials(
             'spec-user-test',
@@ -95,17 +105,14 @@ class UserRepositorySpec extends ObjectBehavior
 
     public function it_should_return_a_user_with_credentials_and_2fa(
         ClientEntityInterface $clientEntity,
-        TwoFactor\Manager $twoFactorManager
     ) {
-        $this->beConstructedWith(null, null, $twoFactorManager);
-
         $this->mockUser = new User;
         $this->mockUser->guid = 123;
         $this->mockUser->password = password_hash('testpassword', PASSWORD_BCRYPT);
 
         $_SERVER['HTTP_APP_VERSION'] = '4.10.0'; // temp requirement until build is widely available
 
-        $twoFactorManager->gatekeeper($this->mockUser, Argument::any(), enableEmail: false)
+        $this->twoFactorManager->gatekeeper($this->mockUser, Argument::any(), enableEmail: false)
             ->shouldBeCalled();
 
         $userEntity = $this->getUserEntityByUserCredentials(

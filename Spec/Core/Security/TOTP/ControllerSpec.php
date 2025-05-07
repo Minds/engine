@@ -8,12 +8,9 @@ use Minds\Core\Security\TOTP\Manager;
 use Minds\Core\Security\TOTP\TOTPSecret;
 use Minds\Core\Security\TOTP\TOTPSecretQueryOpts;
 use Minds\Core\Security\TwoFactor;
-use Exception;
-use Minds\Exceptions\UserErrorException;
+use Minds\Core\Security\TwoFactor\Manager as TwoFactorManager;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
-use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
 
 class ControllerSpec extends ObjectBehavior
@@ -24,9 +21,9 @@ class ControllerSpec extends ObjectBehavior
     /** @var TwoFactor */
     protected $twoFactor;
 
-    public function let(Manager $manager, TwoFactor $twoFactor)
+    public function let(Manager $manager, TwoFactor $twoFactor, TwoFactorManager $twoFactorManager)
     {
-        $this->beConstructedWith($manager, $twoFactor);
+        $this->beConstructedWith($manager, $twoFactor, $twoFactorManager);
         $this->manager = $manager;
         $this->twoFactor = $twoFactor;
     }

@@ -5,6 +5,7 @@ namespace Spec\Minds\Core\Security\Rbac\Services;
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\MultiTenant\Models\Tenant;
+use Minds\Core\Security\Audit\Services\AuditService;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Enums\RolesEnum;
 use Minds\Core\Security\Rbac\Models\Role;
@@ -20,13 +21,19 @@ class RolesServiceSpec extends ObjectBehavior
     private Collaborator $configMock;
     private Collaborator $repositoryMock;
     private Collaborator $entitiesBuilderMock;
+    private Collaborator $auditServiceMock;
 
-    public function let(Config $configMock, Repository $repositoryMock, EntitiesBuilder $entitiesBuilderMock)
-    {
-        $this->beConstructedWith($configMock, $repositoryMock, $entitiesBuilderMock);
+    public function let(
+        Config $configMock,
+        Repository $repositoryMock,
+        EntitiesBuilder $entitiesBuilderMock,
+        AuditService $auditServiceMock,
+    ) {
+        $this->beConstructedWith($configMock, $repositoryMock, $entitiesBuilderMock, $auditServiceMock);
         $this->configMock = $configMock;
         $this->repositoryMock = $repositoryMock;
         $this->entitiesBuilderMock = $entitiesBuilderMock;
+        $this->auditServiceMock = $auditServiceMock;
     }
 
     public function it_is_initializable()
@@ -290,6 +297,9 @@ class RolesServiceSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $this->auditServiceMock->log('rbac_assign_role', Argument::any())
+            ->shouldBeCalled();
+
         $this->assignUserToRole($subjectUser, $role)->shouldBe(true);
     }
 
@@ -306,6 +316,9 @@ class RolesServiceSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $this->auditServiceMock->log('rbac_unassign_role', Argument::any())
+            ->shouldBeCalled();
+
         $this->unassignUserFromRole($subjectUser, $role)->shouldBe(true);
     }
 
@@ -317,6 +330,10 @@ class RolesServiceSpec extends ObjectBehavior
         $this->repositoryMock->setRolePermissions([
             PermissionsEnum::CAN_BOOST
         ], RolesEnum::ADMIN->value)->willReturn(true);
+
+
+        $this->auditServiceMock->log('rbac_set_permissions', Argument::any())
+            ->shouldBeCalled();
 
         $this->setRolePermissions([
             PermissionsEnum::CAN_BOOST

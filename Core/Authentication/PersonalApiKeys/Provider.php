@@ -13,6 +13,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\Security\Audit\Services\AuditService;
 
 class Provider extends DiProvider
 {
@@ -31,6 +32,7 @@ class Provider extends DiProvider
         $this->di->bind(PersonalApiKeyManagementService::class, fn (Di $di) => new PersonalApiKeyManagementService(
             repository: $di->get(PersonalApiKeyRepository::class),
             hashingService: $di->get(PersonalApiKeyHashingService::class),
+            auditService: $di->get(AuditService::class),
         ));
         $this->di->bind(PersonalApiKeyAuthService::class, fn (Di $di) => new PersonalApiKeyAuthService(
             repository: $di->get(PersonalApiKeyRepository::class),

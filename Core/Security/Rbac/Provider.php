@@ -8,6 +8,7 @@ use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
+use Minds\Core\Security\Audit\Services\AuditService;
 use  Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Core\Security\Rbac\Controllers\PermissionsController;
 use Minds\Core\Security\Rbac\Controllers\PermissionIntentsController;
@@ -38,6 +39,7 @@ class Provider extends DiProvider
                 $di->get(Config::class),
                 $di->get(Repository::class),
                 $di->get(EntitiesBuilder::class),
+                $di->get(AuditService::class),
             );
         });
 

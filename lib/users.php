@@ -12,6 +12,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
 use Minds\Core\Entities\Services\EntitiesRepositoryService;
+use Minds\Core\Security\Audit\Services\AuditService;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 
 /// Map a username to a cached GUID
@@ -280,17 +281,30 @@ function register_user(
  */
 function set_last_login($user)
 {
+    if (php_sapi_name() === 'cli') {
+        return; // Do not call if cli
+    }
+
     $time = time();
 
     $user->last_login = $time;
-    $user->ip = $_SERVER['REMOTE_ADDR'];
+    $user->ip = $_SERVER['REMOTE_ADDR'] ?? '';
     
     $save = new Save();
-    
+
     $save->setEntity($user)
         ->withMutatedAttributes([
             'last_login',
             'ip',
         ])
         ->save();
+
+    /** @var AuditService */
+    $auditService = Di::_()->get(AuditService::class);
+
+    $auditService->log(
+        event: 'login',
+        properties: [],
+        user: $user,  
+    );
 }

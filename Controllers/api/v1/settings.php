@@ -13,6 +13,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Email\Confirmation\Manager as EmailConfirmation;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Security\Audit\Services\AuditService;
 use Minds\Core\Settings\Manager as SettingsManager;
 use Minds\Entities;
 use Minds\Entities\User;
@@ -213,6 +214,12 @@ class settings implements Interfaces\Api
                 $user->override_password = true;
 
                 Di::_()->get('Sessions\CommonSessions\Manager')->deleteAll($user);
+
+                Di::_()->get(AuditService::class)->log(
+                    event: 'password_change',
+                    properties: [],
+                    user: $user,
+                );
             }
 
             /** @var Core\I18n\Manager $i18n */

@@ -8,6 +8,7 @@ use Minds\Core\Security\ForgotPassword\Services\ForgotPasswordService;
 use Minds\Core\Email\V2\Campaigns\Recurring\ForgotPassword\ForgotPasswordEmailer;
 use Minds\Core\Entities\Actions\Save as SaveAction;
 use Minds\Core\Security\ACL;
+use Minds\Core\Security\Audit\Services\AuditService;
 use Minds\Core\Sessions\CommonSessions\Manager as CommonSessionsManager;
 use Minds\Core\Sessions\Manager as SessionsManager;
 use Minds\Entities\User;
@@ -23,6 +24,7 @@ class ForgotPasswordServiceSpec extends ObjectBehavior
     private Collaborator $sessionsManagerMock;
     private Collaborator $saveActionMock;
     private Collaborator $aclMock;
+    private Collaborator $auditServiceMock;
 
     public function let(
         ForgotPasswordCache $cacheMock,
@@ -30,7 +32,8 @@ class ForgotPasswordServiceSpec extends ObjectBehavior
         CommonSessionsManager $commonSessionsManagerMock,
         SessionsManager $sessionsManagerMock,
         SaveAction $saveActionMock,
-        ACL $aclMock
+        ACL $aclMock,
+        AuditService $auditServiceMock,
     ): void {
         $this->cacheMock = $cacheMock;
         $this->forgotPasswordEmailerMock = $forgotPasswordEmailerMock;
@@ -38,6 +41,7 @@ class ForgotPasswordServiceSpec extends ObjectBehavior
         $this->sessionsManagerMock = $sessionsManagerMock;
         $this->saveActionMock = $saveActionMock;
         $this->aclMock = $aclMock;
+        $this->auditServiceMock = $auditServiceMock;
 
         $this->beConstructedWith(
             $cacheMock,
@@ -45,7 +49,8 @@ class ForgotPasswordServiceSpec extends ObjectBehavior
             $commonSessionsManagerMock,
             $sessionsManagerMock,
             $saveActionMock,
-            $aclMock
+            $aclMock,
+            $auditServiceMock
         );
     }
 
