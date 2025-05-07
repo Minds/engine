@@ -13,7 +13,9 @@ use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
 use Exception;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Security\Audit\Services\AuditService;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
@@ -30,14 +32,22 @@ class ManagerSpec extends ObjectBehavior
     /** @var Delegates\EmailDelegate */
     private $emailDelegate;
 
-    public function let(Repository $repository, Password $password, EntitiesBuilder $entitiesBuilder, EmailDelegate $emailDelegate)
-    {
-        $this->beConstructedWith($repository, $password, $entitiesBuilder, $emailDelegate);
+    private Collaborator $auditServiceMock;
+
+    public function let(
+        Repository $repository,
+        Password $password,
+        EntitiesBuilder $entitiesBuilder,
+        EmailDelegate $emailDelegate,
+        AuditService $auditServiceMock,
+    ) {
+        $this->beConstructedWith($repository, $password, $entitiesBuilder, $emailDelegate, $auditServiceMock);
 
         $this->repository = $repository;
         $this->password = $password;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->emailDelegate = $emailDelegate;
+        $this->auditServiceMock = $auditServiceMock;
     }
 
     public function it_is_initializable()

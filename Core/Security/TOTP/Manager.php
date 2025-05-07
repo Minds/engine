@@ -10,6 +10,7 @@ use Minds\Core\Security\Password;
 use Minds\Exceptions\UserErrorException;
 use Exception;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Security\Audit\Services\AuditService;
 
 /**
  * TOTP Manager
@@ -34,15 +35,17 @@ class Manager
     private $emailDelegate;
 
     public function __construct(
-        Repository $repository = null,
-        Password $password = null,
-        EntitiesBuilder $entitiesBuilder = null,
-        Delegates\EmailDelegate $emailDelegate = null
+        ?Repository $repository = null,
+        ?Password $password = null,
+        ?EntitiesBuilder $entitiesBuilder = null,
+        ?Delegates\EmailDelegate $emailDelegate = null,
+        private ?AuditService $auditService = null,
     ) {
         $this->repository = $repository ?? new Repository();
         $this->password = $password ?? Di::_()->get('Security\Password');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->emailDelegate = $emailDelegate ?: new Delegates\EmailDelegate();
+        $this->auditService ??= Di::_()->get(AuditService::class);
     }
 
     /**
@@ -114,6 +117,14 @@ class Manager
         if (password_verify($recoveryCode, $recoveryHash)) {
             $success = $this->repository->delete($opts);
             if ($success) {
+                $this->auditService->log(
+                    event: 'totp_recover',
+                    properties: [
+                        'totp_device_id' => $opts->getDeviceId(),
+                    ],
+                    user: $user,
+                );
+
                 $this->emailDelegate->onRecover($user);
             }
             return $success;
@@ -131,6 +142,18 @@ class Manager
     {
         $added = $this->repository->add($totpSecret);
 
+        if ($added) {
+            /** @var User */
+            $user = $this->entitiesBuilder->single($totpSecret->getUserGuid());
+            $this->auditService->log(
+                event: 'totp_create',
+                properties: [
+                    'totp_device_id' => $totpSecret->getDeviceId(),
+                ],
+                user: $user,
+            );
+        }
+
         return $added;
     }
 
@@ -142,6 +165,18 @@ class Manager
     public function delete(TOTPSecretQueryOpts $opts): bool
     {
         $deleted = $this->repository->delete($opts);
+
+        if ($deleted) {
+            /** @var User */
+            $user = $this->entitiesBuilder->single($opts->getUserGuid());
+            $this->auditService->log(
+                event: 'totp_delete',
+                properties: [
+                    'totp_device_id' => $opts->getDeviceId(),
+                ],
+                user: $user,
+            );
+        }
 
         return $deleted;
     }

@@ -19,6 +19,7 @@ class Module implements ModuleInterface
         Rbac\Module::class,
         Vault\Module::class,
         ForgotPassword\Module::class,
+        Audit\Module::class,
     ];
 
     /**

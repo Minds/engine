@@ -7,6 +7,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Email\V2\Campaigns\Recurring\ForgotPassword\ForgotPasswordEmailer;
 use Minds\Core\Entities\Actions\Save as SaveAction;
 use Minds\Core\Security\ACL;
+use Minds\Core\Security\Audit\Services\AuditService;
 use Minds\Core\Security\ForgotPassword\Cache\ForgotPasswordCache;
 use Minds\Core\Security\Password;
 use Minds\Core\Sessions\CommonSessions\Manager as CommonSessionsManager;
@@ -25,7 +26,8 @@ class ForgotPasswordService
         private ?CommonSessionsManager $commonSessionsManager = null,
         private ?SessionsManager $sessionsManager = null,
         private ?SaveAction $saveAction = null,
-        private ?ACL $acl = null
+        private ?ACL $acl = null,
+        private ?AuditService $auditService = null,
     ) {
         $this->cache ??= Di::_()->get(ForgotPasswordCache::class);
         $this->forgotPasswordEmailer ??= new ForgotPasswordEmailer();
@@ -33,6 +35,7 @@ class ForgotPasswordService
         $this->sessionsManager ??= new SessionsManager();
         $this->saveAction ??= new SaveAction();
         $this->acl ??= Di::_()->get(ACL::class);
+        $this->auditService ??= Di::_()->get(AuditService::class);
     }
 
     /**
@@ -90,6 +93,12 @@ class ForgotPasswordService
 
         $this->createNewSession($user);
 
+        $this->auditService->log(
+            event: 'password_reset',
+            properties: [],
+            user: $user,
+        );
+
         return true;
     }
 
@@ -104,5 +113,7 @@ class ForgotPasswordService
         $this->sessionsManager->setUser($user);
         $this->sessionsManager->createSession()
             ->save();
+
+        set_last_login($user);
     }
 }

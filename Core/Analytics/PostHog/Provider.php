@@ -67,5 +67,11 @@ class Provider extends DiProvider
                 postHogPersonService: $di->get(PostHogPersonService::class),
             );
         });
+
+        $this->di->bind(PostHogQueryService::class, fn (Di $di) => new PostHogQueryService(
+            postHogConfig: $di->get(PostHogConfig::class),
+            httpClient: $di->get('PostHogHttpClient'),
+            config: $di->get(Config::class)
+        ));
     }
 }
