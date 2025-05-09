@@ -12,6 +12,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
 use Minds\Core\Entities\Services\EntitiesRepositoryService;
+use Minds\Core\Security\ACL;
 use Minds\Core\Security\Audit\Services\AuditService;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 
@@ -292,12 +293,14 @@ function set_last_login($user)
     
     $save = new Save();
 
+    $ia = ACL::_()->setIgnore(true);
     $save->setEntity($user)
         ->withMutatedAttributes([
             'last_login',
             'ip',
         ])
         ->save();
+    ACL::_()->setIgnore($ia);
 
     /** @var AuditService */
     $auditService = Di::_()->get(AuditService::class);
