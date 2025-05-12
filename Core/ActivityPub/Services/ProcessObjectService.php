@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\ActivityPub\Services;
 
+use GuzzleHttp\Exception\GuzzleException;
 use Minds\Common\Access;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
 use Minds\Core\ActivityPub\Types\Core\ObjectType;
@@ -160,10 +161,15 @@ class ProcessObjectService
                 /**
                  * If any images, then fetch them
                  */
-                $images = $this->processImages(
-                    owner: $owner,
-                    max: 1
-                );
+                try {
+                    $images = $this->processImages(
+                        owner: $owner,
+                        max: 1
+                    );
+                } catch (GuzzleException $e) {
+                    $this->logger->info($logPrefix . $e->getMessage());
+                    return;
+                }
                 
                 if (count($images)) {
                     $siteUrl = $this->config->get('site_url');
@@ -216,10 +222,15 @@ class ProcessObjectService
             $entity->setMessage($this->getContent());
 
             // If any images, then fetch them
-            $images = $this->processImages(
-                owner: $owner,
-                max: 4
-            );
+            try {
+                $images = $this->processImages(
+                    owner: $owner,
+                    max: 4
+                );
+            } catch (GuzzleException $e) {
+                $this->logger->info($logPrefix . $e->getMessage());
+                return;
+            }
 
             // Add the images as attachments
             $entity->setAttachments($images);
