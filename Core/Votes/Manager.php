@@ -13,6 +13,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\ACL;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
@@ -79,13 +80,13 @@ class Manager
      * @throws SolutionAlreadySeenException
      * @throws \SodiumException
      */
-    public function cast($vote, VoteOptions $options = null)
+    public function cast($vote, ?VoteOptions $options = null)
     {
         // Check RBAC
         $this->rbacGatekeeperService->isAllowed(PermissionsEnum::CAN_INTERACT);
 
         if (!$this->acl->interact($vote->getEntity(), $vote->getActor(), "vote{$vote->getDirection()}")) {
-            throw new \Exception('Actor cannot interact with entity');
+            throw new ForbiddenException('Actor cannot interact with entity');
         }
 
         $done = $this->eventsDispatcher->trigger('vote:action:cast', $vote->getEntity()->type, [
