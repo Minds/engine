@@ -3,9 +3,11 @@ declare(strict_types=1);
 
 namespace Minds\Core\Security\ForgotPassword\Services;
 
+use Minds\Core\Authentication\Oidc\Services\OidcUserService;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\V2\Campaigns\Recurring\ForgotPassword\ForgotPasswordEmailer;
 use Minds\Core\Entities\Actions\Save as SaveAction;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\ACL;
 use Minds\Core\Security\Audit\Services\AuditService;
 use Minds\Core\Security\ForgotPassword\Cache\ForgotPasswordCache;
@@ -28,6 +30,7 @@ class ForgotPasswordService
         private ?SaveAction $saveAction = null,
         private ?ACL $acl = null,
         private ?AuditService $auditService = null,
+        private ?OidcUserService $oidcUserService = null,
     ) {
         $this->cache ??= Di::_()->get(ForgotPasswordCache::class);
         $this->forgotPasswordEmailer ??= new ForgotPasswordEmailer();
@@ -36,6 +39,7 @@ class ForgotPasswordService
         $this->saveAction ??= new SaveAction();
         $this->acl ??= Di::_()->get(ACL::class);
         $this->auditService ??= Di::_()->get(AuditService::class);
+        $this->oidcUserService ??= Di::_()->get(OidcUserService::class);
     }
 
     /**
@@ -45,6 +49,10 @@ class ForgotPasswordService
      */
     public function request(User $user): bool
     {
+        if ($this->oidcUserService->isOidcUser($user)) {
+            throw new ForbiddenException('Can not reset password when linked to SSO login.');
+        }
+
         $code = $this->cache->get((int) $user->getGuid()) ?? Password::reset($user);
 
         $this->cache->set((int) $user->getGuid(), $code);
@@ -67,6 +75,10 @@ class ForgotPasswordService
      */
     public function reset(User $user, string $code, string $password): bool
     {
+        if ($this->oidcUserService->isOidcUser($user)) {
+            throw new ForbiddenException('Can not reset password when linked to SSO login.');
+        }
+
         $cachedCode = $this->cache->get((int) $user->getGuid());
 
         if ($code !== $user->password_reset_code || $cachedCode !== $code) {

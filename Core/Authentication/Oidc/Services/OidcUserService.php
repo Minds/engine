@@ -29,6 +29,14 @@ class OidcUserService
     }
 
     /**
+     * Returns true/false if the user is linked to an oidc provider
+     */
+    public function isOidcUser(User $user): bool
+    {
+        return !!$this->oidcUserRepository->getSubFromUserGuid($user->getGuid());
+    }
+
+    /**
      * Returns a user (if available) from their sub and provider id
      */
     public function getUserFromSub(

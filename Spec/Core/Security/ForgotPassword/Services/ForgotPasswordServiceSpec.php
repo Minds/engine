@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\Security\ForgotPassword\Services;
 
+use Minds\Core\Authentication\Oidc\Services\OidcUserService;
 use Minds\Core\Security\ForgotPassword\Cache\ForgotPasswordCache;
 use Minds\Core\Security\ForgotPassword\Services\ForgotPasswordService;
 use Minds\Core\Email\V2\Campaigns\Recurring\ForgotPassword\ForgotPasswordEmailer;
 use Minds\Core\Entities\Actions\Save as SaveAction;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\ACL;
 use Minds\Core\Security\Audit\Services\AuditService;
 use Minds\Core\Sessions\CommonSessions\Manager as CommonSessionsManager;
@@ -25,6 +27,7 @@ class ForgotPasswordServiceSpec extends ObjectBehavior
     private Collaborator $saveActionMock;
     private Collaborator $aclMock;
     private Collaborator $auditServiceMock;
+    private Collaborator $oidcUserServiceMock;
 
     public function let(
         ForgotPasswordCache $cacheMock,
@@ -34,6 +37,7 @@ class ForgotPasswordServiceSpec extends ObjectBehavior
         SaveAction $saveActionMock,
         ACL $aclMock,
         AuditService $auditServiceMock,
+        OidcUserService $oidcUserServiceMock,
     ): void {
         $this->cacheMock = $cacheMock;
         $this->forgotPasswordEmailerMock = $forgotPasswordEmailerMock;
@@ -42,6 +46,7 @@ class ForgotPasswordServiceSpec extends ObjectBehavior
         $this->saveActionMock = $saveActionMock;
         $this->aclMock = $aclMock;
         $this->auditServiceMock = $auditServiceMock;
+        $this->oidcUserServiceMock = $oidcUserServiceMock;
 
         $this->beConstructedWith(
             $cacheMock,
@@ -50,7 +55,8 @@ class ForgotPasswordServiceSpec extends ObjectBehavior
             $sessionsManagerMock,
             $saveActionMock,
             $aclMock,
-            $auditServiceMock
+            $auditServiceMock,
+            $oidcUserServiceMock,
         );
     }
 
@@ -68,6 +74,9 @@ class ForgotPasswordServiceSpec extends ObjectBehavior
         $code = 'code';
 
         $user->getGuid()->willReturn($userGuid);
+
+        $this->oidcUserServiceMock->isOidcUser($user)
+            ->willReturn(false);
 
         $this->cacheMock->get($userGuid)->willReturn($code);
 
@@ -97,6 +106,9 @@ class ForgotPasswordServiceSpec extends ObjectBehavior
         $user = new User();
         $user->set('guid', $userGuid);
         $user->set('password_reset_code', $code);
+
+        $this->oidcUserServiceMock->isOidcUser($user)
+            ->willReturn(false);
 
         $this->cacheMock->get($userGuid)
             ->shouldBeCalled()
@@ -145,6 +157,9 @@ class ForgotPasswordServiceSpec extends ObjectBehavior
         $user->set('guid', $userGuid);
         $user->set('password_reset_code', $invalidCode);
 
+        $this->oidcUserServiceMock->isOidcUser($user)
+            ->willReturn(false);
+
         $this->cacheMock->get($userGuid)
             ->shouldBeCalled()
             ->willReturn($code);
@@ -167,11 +182,34 @@ class ForgotPasswordServiceSpec extends ObjectBehavior
         $user->set('guid', $userGuid);
         $user->set('password_reset_code', $code);
 
+        $this->oidcUserServiceMock->isOidcUser($user)
+            ->willReturn(false);
+
         $this->cacheMock->get($userGuid)
             ->shouldBeCalled()
             ->willReturn($invalidCode);
 
         $this->shouldThrow(new UserErrorException("Invalid reset code"))
             ->during('reset', [$user, $invalidCode, $password]);
+    }
+
+    public function it_should_not_request_if_an_oidc_user()
+    {
+        $user = new User();
+
+        $this->oidcUserServiceMock->isOidcUser($user)
+            ->willReturn(true);
+
+        $this->shouldThrow(ForbiddenException::class)->duringRequest($user);
+    }
+
+    public function it_should_not_reset_if_an_oidc_user()
+    {
+        $user = new User();
+
+        $this->oidcUserServiceMock->isOidcUser($user)
+            ->willReturn(true);
+
+        $this->shouldThrow(ForbiddenException::class)->duringReset($user, 'code', 'password');
     }
 }

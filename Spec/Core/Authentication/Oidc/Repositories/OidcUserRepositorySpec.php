@@ -67,4 +67,33 @@ class OidcUserRepositorySpec extends ObjectBehavior
 
         $this->linkSubToUserGuid('my-oidc-sub', 1, 123)->shouldBe(true);
     }
+
+    public function it_should_return_object_for_matching_oidc_provider(PDOStatement $pdoStatementMock)
+    {
+        $this->mysqlReplicaMock->prepare(Argument::any())->willReturn($pdoStatementMock);
+
+        $pdoStatementMock->execute(Argument::any())->willReturn(true);
+        $pdoStatementMock->rowCount()->willReturn(1);
+        $pdoStatementMock->fetch(PDO::FETCH_ASSOC)->willReturn(
+            [
+                'provider_id' => 1,
+                'sub' => 'sub'
+            ]
+        );
+
+        $obj = $this->getSubFromUserGuid(1);
+        $obj->providerId->shouldBe(1);
+        $obj->sub->shouldBe('sub');
+    }
+
+    public function it_should_not_return_object_for_matching_oidc_provider(PDOStatement $pdoStatementMock)
+    {
+        $this->mysqlReplicaMock->prepare(Argument::any())->willReturn($pdoStatementMock);
+
+        $pdoStatementMock->execute(Argument::any())->willReturn(true);
+        $pdoStatementMock->rowCount()->willReturn(0);
+       
+        $this->getSubFromUserGuid(1)->shouldBe(null);
+    }
+
 }

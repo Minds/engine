@@ -71,4 +71,33 @@ class OidcUserRepository extends AbstractRepository
             'tenant_id' => $this->config->get('tenant_id'),
         ]);
     }
+
+    /**
+     * Returns the linked oidc provider for a user
+     */
+    public function getSubFromUserGuid(int $userGuid): ?object
+    {
+        $query = $this->mysqlClientReaderHandler->select()
+            ->from(self::TABLE_NAME)
+            ->where('user_guid', Operator::EQ, new RawExp(':user_guid'))
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
+
+        $stmt = $query->prepare();
+
+        $stmt->execute([
+            'user_guid' => $userGuid,
+            'tenant_id' => $this->config->get('tenant_id'),
+        ]);
+
+        if ($stmt->rowCount() < 1) {
+            return null;
+        }
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return (object) [
+            'providerId' => $row['provider_id'],
+            'sub' => $row['sub']
+        ];
+    }
 }

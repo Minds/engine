@@ -92,4 +92,29 @@ class OidcUserServiceSpec extends ObjectBehavior
         $this->suspendUserFromSub('abc1', 1)
             ->shouldBe(true);
     }
+
+    public function it_should_return_true_if_oidc_user()
+    {
+        $user = new User();
+        $user->set('guid', '123');
+
+        $this->oidcUserRepositoryMock->getSubFromUserGuid('123')
+            ->shouldBeCalled()
+            ->willReturn((object)[]);
+
+        $this->isOidcUser($user)->shouldBe(true);
+    }
+
+    public function it_should_return_false_if_oidc_user()
+    {
+        $user = new User();
+        $user->set('guid', '123');
+
+        $this->oidcUserRepositoryMock->getSubFromUserGuid('123')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->isOidcUser($user)->shouldBe(false);
+    }
+
 }
