@@ -156,11 +156,11 @@ class EntitiesBuilder
 
     private function getUrnResolver(): Entities\Resolver
     {
-        return $this->urnResolver ??= Di::_()->get(Entities\Resolver::class);
+        return $this->urnResolver ?: Di::_()->get(Entities\Resolver::class);
     }
 
     private function getEntitiesRepository(): EntitiesRepositoryInterface
     {
-        return $this->entitiesRepository ??= Di::_()->get(EntitiesRepositoryInterface::class);
+        return $this->entitiesRepository ?: Di::_()->get(EntitiesRepositoryInterface::class);
     }
 }
