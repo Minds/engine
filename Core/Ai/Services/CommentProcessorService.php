@@ -34,6 +34,10 @@ class CommentProcessorService
      */
     public function onComment(Comment $comment): bool
     {
+        if (!$comment->getBody()) {
+            return true; // No message in body. Skip.
+        }
+
         $this->acl->setIgnore(true);
 
         $entity = $this->entitiesBuilder->single($comment->getEntityGuid());
@@ -90,7 +94,7 @@ class CommentProcessorService
                 ]);
                 return true; // No bot user has been found
             }
-    
+
             $messages = [
                 new OllamaMessage(
                     role: OllamaRoleEnum::SYSTEM,
