@@ -210,7 +210,7 @@ class RolesService
             roleId: $role->id,
         );
 
-        if ($success) {
+        if ($success && php_sapi_name() !== 'cli') {
             $this->auditService->log(
                 event: 'rbac_assign_role',
                 properties: [
