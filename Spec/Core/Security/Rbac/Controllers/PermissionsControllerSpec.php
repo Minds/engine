@@ -186,7 +186,7 @@ class PermissionsControllerSpec extends ObjectBehavior
         $this->rolesServiceMock->getRoleById(RolesEnum::ADMIN->value)
             ->willReturn(new Role(RolesEnum::ADMIN->value, RolesEnum::ADMIN->name, []));
 
-        $this->rolesServiceMock->assignUserToRole($subjectUser, Argument::type(Role::class))->shouldBeCalled()->willReturn(true);
+        $this->rolesServiceMock->assignUserToRole($subjectUser, Argument::type(Role::class), $loggedInUser)->shouldBeCalled()->willReturn(true);
 
         $this->assignUserToRole(1, RolesEnum::ADMIN->value, $loggedInUser);
     }

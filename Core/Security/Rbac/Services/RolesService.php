@@ -199,7 +199,7 @@ class RolesService
     /**
      * Assigns a user to a role
      */
-    public function assignUserToRole(User $user, Role $role): bool
+    public function assignUserToRole(User $user, Role $role, User $adminUser): bool
     {
         if (!$this->isMultiTenant()) {
             return false;
@@ -210,13 +210,14 @@ class RolesService
             roleId: $role->id,
         );
 
-        if ($success && php_sapi_name() !== 'cli') {
+        if ($success) {
             $this->auditService->log(
                 event: 'rbac_assign_role',
                 properties: [
                     'user_guid' => $user->getGuid(),
                     'rbac_role' => $role->id,
                 ],
+                user: $adminUser,
             );
         }
 

@@ -289,6 +289,7 @@ class RolesServiceSpec extends ObjectBehavior
         $this->configMock->get('tenant_id')
             ->willReturn(1);
 
+        $adminUser = new User();
         $subjectUser = new User();
 
         $role = new Role(RolesEnum::ADMIN->value, RolesEnum::ADMIN->name, []);
@@ -297,10 +298,10 @@ class RolesServiceSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->auditServiceMock->log('rbac_assign_role', Argument::any())
+        $this->auditServiceMock->log('rbac_assign_role', Argument::any(), $adminUser)
             ->shouldBeCalled();
 
-        $this->assignUserToRole($subjectUser, $role)->shouldBe(true);
+        $this->assignUserToRole($subjectUser, $role, $adminUser)->shouldBe(true);
     }
 
     public function it_should_unassign_a_user_from_role()

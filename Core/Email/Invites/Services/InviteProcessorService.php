@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Email\Invites\Services;
 
+use Minds\Common\SystemUser;
 use Minds\Core\Email\Invites\Enums\InviteEmailStatusEnum;
 use Minds\Core\Email\Invites\Types\Invite;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
@@ -54,7 +55,7 @@ class InviteProcessorService
         }
 
         foreach ($invite->getRoles() as $role) {
-            $this->rolesService->assignUserToRole($user, $role);
+            $this->rolesService->assignUserToRole($user, $role, new SystemUser());
         }
     }
 

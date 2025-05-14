@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\Email\Invites\Services;
 
+use Minds\Common\SystemUser;
 use Minds\Core\Email\Invites\Enums\InviteEmailStatusEnum;
 use Minds\Core\Email\Invites\Services\InviteManagementService;
 use Minds\Core\Email\Invites\Services\InviteProcessorService;
@@ -18,6 +19,7 @@ use Minds\Entities\Group;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
+use Prophecy\Argument;
 use ReflectionClass;
 
 class InviteProcessorServiceSpec extends ObjectBehavior
@@ -95,7 +97,8 @@ class InviteProcessorServiceSpec extends ObjectBehavior
                 id: RolesEnum::from(1)->value,
                 name: RolesEnum::from(1)->name,
                 permissions: []
-            )
+            ),
+            adminUser: Argument::type(SystemUser::class),
         )
             ->shouldBeCalledOnce()
             ->willReturn(true);
@@ -106,7 +109,8 @@ class InviteProcessorServiceSpec extends ObjectBehavior
                 id: RolesEnum::from(2)->value,
                 name: RolesEnum::from(2)->name,
                 permissions: []
-            )
+            ),
+            adminUser: Argument::type(SystemUser::class),
         )
             ->shouldBeCalledOnce()
             ->willReturn(true);
@@ -180,7 +184,8 @@ class InviteProcessorServiceSpec extends ObjectBehavior
                 id: RolesEnum::from(1)->value,
                 name: RolesEnum::from(1)->name,
                 permissions: []
-            )
+            ),
+            adminUser: Argument::type(SystemUser::class),
         )
             ->shouldBeCalledOnce()
             ->willReturn(true);
@@ -191,7 +196,8 @@ class InviteProcessorServiceSpec extends ObjectBehavior
                 id: RolesEnum::from(2)->value,
                 name: RolesEnum::from(2)->name,
                 permissions: []
-            )
+            ),
+            adminUser: Argument::type(SystemUser::class),
         )
             ->shouldBeCalledOnce()
             ->willReturn(true);

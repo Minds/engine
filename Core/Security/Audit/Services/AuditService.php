@@ -39,7 +39,7 @@ class AuditService
         // Save the log to the database
         $this->auditRepository->log(
             event: $event,
-            userGuid: $user->getGuid(),
+            userGuid: $user?->getGuid(),
             properties: $properties,
             ipAddress: $this->ipAddress->get(),
             userAgent: $this->getServerRequestHeader('User-Agent') ? $this->getServerRequestHeader('User-Agent')[0]: '',
@@ -48,7 +48,7 @@ class AuditService
 
         // Output to server logs
         $this->logger->info('[Audit]: ' . $event, [
-            'user_guid' => $user->getGuid(),
+            'user_guid' => $user?->getGuid(),
             ...$properties,
         ]);
     }

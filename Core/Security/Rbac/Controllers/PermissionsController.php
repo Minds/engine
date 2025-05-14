@@ -144,7 +144,7 @@ class PermissionsController
         
         $role = $this->rolesService->getRoleById($roleId);
 
-        $this->rolesService->assignUserToRole($user, $role);
+        $this->rolesService->assignUserToRole($user, $role, $loggedInUser);
 
         return $role;
     }
