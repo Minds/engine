@@ -68,7 +68,7 @@ class EntitiesBuilder
         $entitiesRepository = $this->getEntitiesRepository();
         if ($entitiesRepository instanceof MySQLRepository) {
             if ($options['guids'] ?? null) {
-                return $this->entitiesRepository->loadFromGuid($options['guids']);
+                return $entitiesRepository->loadFromGuid($options['guids']);
             } else {
                 return [];
             }
