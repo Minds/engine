@@ -120,6 +120,14 @@ class OidcAuthService
         // Check the 'sub' to see if this account is already linked
         $user = $this->oidcUserService->getUserFromSub($sub, $provider->id);
 
+        if (!isset($jwtDecoded->name)) {
+            if (isset($jwtDecoded->given_name)) {
+                $jwtDecoded->name = $jwtDecoded->given_name;
+            } else {
+                $jwtDecoded->name = $preferredUsername;
+            }
+        }
+
         // If not user, create one
         if (!$user) {
             // Create a new account
@@ -127,7 +135,7 @@ class OidcAuthService
                 sub: $sub,
                 providerId: $provider->id,
                 preferredUsername: $preferredUsername,
-                displayName: $jwtDecoded->name ?: $preferredUsername,
+                displayName: $jwtDecoded->name,
                 email: $jwtDecoded->email,
             );
         }
