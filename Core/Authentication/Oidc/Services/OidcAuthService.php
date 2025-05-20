@@ -93,8 +93,9 @@ class OidcAuthService
             ]
         );
         
-        $data = json_decode($response->getBody()->getContents(), true);
-        error_log($data);
+        $body = $response->getBody()->getContents();
+        $data = json_decode($body, true);
+        error_log($body);
 
         // Decode the id_token field
 
