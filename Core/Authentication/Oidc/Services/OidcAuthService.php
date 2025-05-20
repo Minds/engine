@@ -127,7 +127,7 @@ class OidcAuthService
                 sub: $sub,
                 providerId: $provider->id,
                 preferredUsername: $preferredUsername,
-                displayName: $jwtDecoded->given_name ?: $preferredUsername,
+                displayName: $jwtDecoded->name ?: $preferredUsername,
                 email: $jwtDecoded->email,
             );
         }
