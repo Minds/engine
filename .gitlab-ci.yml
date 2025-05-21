@@ -370,7 +370,7 @@ integration_testing:staging:
 integration_testing:review:
   <<: *integration_testing
   needs:
-    - review:start
+    - { job: review:start, optional: true }
 # qa:manual:
 #   stage: qa
 #   script:
