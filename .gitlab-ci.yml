@@ -2,18 +2,18 @@ include:
   - template: Security/Dependency-Scanning.gitlab-ci.yml
   - template: Security/Container-Scanning.gitlab-ci.yml
 
-stages:
-  - baseimage
-  - build
-  - test
-  - prepare
-  - review
-  - integration_testing
-  - deploy:staging
-  - qa
-  - deploy:canary
-  - deploy:production
-  - scan
+# stages:
+#   - baseimage
+#   - build
+#   - test
+#   - prepare
+#   - review
+#   - integration_testing
+#   - deploy:staging
+#   - qa
+#   - deploy:canary
+#   - deploy:production
+#   - scan
 
 variables:
   default_php_image: registry.gitlab.com/minds/engine/php:8.2
@@ -73,12 +73,16 @@ test:
   image: "$default_php_image"
   script:
     - php -n -c Spec/php-test.ini bin/phpspec run
+  needs:
+    - build
 
 lint:
   stage: test
   image: "$default_php_image"
   script:
     - bin/php-cs-fixer fix --allow-risky=yes --verbose --dry-run
+  needs:
+    - build
 
 static-analysis:
   stage: test
@@ -87,6 +91,8 @@ static-analysis:
     - mv settings.example.php settings.php
     - bin/phpstan analyse --memory-limit=1G
   allow_failure: true
+  needs:
+    - build
 
 prepare:fpm:
   stage: prepare
@@ -100,19 +106,21 @@ prepare:fpm:
       --destination "${CI_REGISTRY_IMAGE}/fpm:${CI_PIPELINE_ID}"
       --build-arg MINDS_VERSION=$CI_PIPELINE_ID
       --build-arg SENTRY_DSN=$SENTRY_DSN
+  needs:
+    - build
 
-prepare:rr:
-  stage: prepare
-  image:
-    name: gcr.io/kaniko-project/executor:v1.14.0-debug
-    entrypoint: [""]
-  script:
-    - /kaniko/executor
-      --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/containers/php-rr/Dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}/rr:${CI_PIPELINE_ID}"
-      --build-arg MINDS_VERSION=$CI_PIPELINE_ID
-      --build-arg SENTRY_DSN=$SENTRY_DSN
+# prepare:rr:
+#   stage: prepare
+#   image:
+#     name: gcr.io/kaniko-project/executor:v1.14.0-debug
+#     entrypoint: [""]
+#   script:
+#     - /kaniko/executor
+#       --context "${CI_PROJECT_DIR}"
+#       --dockerfile "${CI_PROJECT_DIR}/containers/php-rr/Dockerfile"
+#       --destination "${CI_REGISTRY_IMAGE}/rr:${CI_PIPELINE_ID}"
+#       --build-arg MINDS_VERSION=$CI_PIPELINE_ID
+#       --build-arg SENTRY_DSN=$SENTRY_DSN
 
 prepare:runners:
   stage: prepare
@@ -126,6 +134,8 @@ prepare:runners:
       --destination "${CI_REGISTRY_IMAGE}/runners:${CI_PIPELINE_ID}"
       --build-arg MINDS_VERSION=$CI_PIPELINE_ID
       --build-arg SENTRY_DSN=$RUNNERS_SENTRY_DSN
+  needs:
+    - build
 
 prepare:all:sentry:
   stage: prepare
@@ -141,15 +151,21 @@ container_scanning:
   stage: scan
   variables:
     CS_IMAGE: $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
+  needs:
+    - prepare:fpm
 
 container_scanning_runners:
   extends: container_scanning
   stage: scan
   variables:
     CS_IMAGE: $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
+  needs:
+    - prepare:runners
 
 dependency_scanning:
   stage: scan
+  needs:
+    - build
 
 .oci_prepare: &oci_prepare
   - mkdir ~/.oci
@@ -207,6 +223,8 @@ review:start:
       - master
     variables:
       - $CI_COMMIT_REF_PROTECTED == "true"
+  needs:
+    - prepare:fpm
 
 review:stop:
   stage: review
@@ -226,8 +244,10 @@ review:stop:
       - master
     variables:
       - $CI_COMMIT_REF_PROTECTED == "true"
+  needs:
+    - review:start
 
-integration_testing:
+.integration_testing: &integration_testing
   stage: qa
   image: "$default_php_image"
   script:
@@ -245,6 +265,16 @@ integration_testing:
     paths:
       - integration_tests/tests/_output
   allow_failure: true
+
+integration_testing:staging:
+  <<: *deploy
+  needs:
+    - deploy:staging
+
+integration_testing:review:
+  <<: *deploy
+  needs:
+    - deploy:review
 
 # qa:manual:
 #   stage: qa
@@ -296,6 +326,8 @@ staging:fpm:
       allow_failure: false
     - when: never
   allow_failure: true
+  needs:
+    - prepare:fpm
 
 canary:fpm:
   <<: *deploy
@@ -310,6 +342,8 @@ canary:fpm:
     url: https://www.minds.com/?canary=1 # requires canary cookie
   when: manual
   allow_failure: true
+  needs:
+    - prepare:fpm
 
 production:fpm:
   <<: *deploy
@@ -323,6 +357,8 @@ production:fpm:
     name: production
     url: https://www.minds.com/
   when: manual
+  needs:
+    - prepare:fpm
 
 production:runners:
   stage: deploy:production
@@ -342,3 +378,5 @@ production:runners:
   environment:
     name: runners
     url: https://www.minds.com/
+  needs:
+    - prepare:runners
