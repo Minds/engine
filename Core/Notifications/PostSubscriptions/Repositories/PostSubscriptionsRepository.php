@@ -68,6 +68,8 @@ class PostSubscriptionsRepository extends AbstractRepository
                 ->where('u.tenant_id', Operator::EQ, new RawExp(':u_tenant_id'));
 
             $values['u_tenant_id'] = $values['tenant_id'];
+        } else {
+            $globalQuery = null;
         }
 
         $query->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
@@ -81,7 +83,7 @@ class PostSubscriptionsRepository extends AbstractRepository
             $query->where('entity_guid', Operator::EQ, new RawExp(':entity_guid'));
             $values['entity_guid'] = $entityGuid;
 
-            if ($globalMode) {
+            if ($globalQuery) {
                 $globalQuery->where('guid', Operator::EQ, new RawExp(':u_entity_guid'));
                 $values['u_entity_guid'] = $values['entity_guid'];
             }
@@ -92,7 +94,7 @@ class PostSubscriptionsRepository extends AbstractRepository
             $values['frequency'] = $frequency->name;
         }
 
-        if ($globalMode) {
+        if ($globalQuery) {
             $query = $query->union($globalQuery);
         }
 

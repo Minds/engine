@@ -233,7 +233,7 @@ integration_testing:
   script:
     - apk add --no-cache git
     - >
-      if [ "$CI_COMMIT_REF_NAME" == "master" ]; then
+      if [ "$CI_COMMIT_REF_PROTECTED" == "true" ]; then
         export MINDS_DOMAIN=https://www.minds.com
       else
         export MINDS_DOMAIN=https://$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
@@ -245,6 +245,10 @@ integration_testing:
     paths:
       - integration_tests/tests/_output
   allow_failure: true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: on_success
+    - when: never
 
 # qa:manual:
 #   stage: qa

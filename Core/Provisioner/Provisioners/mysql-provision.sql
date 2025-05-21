@@ -1270,3 +1270,7 @@ CREATE TABLE IF NOT EXISTS minds_audit_log
     PRIMARY KEY (event_id),
     INDEX (tenant_id)
 );
+
+ALTER TABLE `minds_tenant_configs`
+    ADD global_mode boolean DEFAULT FALSE
+    AFTER delete_account_disclaimer;
