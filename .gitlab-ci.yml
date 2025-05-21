@@ -73,12 +73,16 @@ test:
   image: "$default_php_image"
   script:
     - php -n -c Spec/php-test.ini bin/phpspec run
+  needs:
+    - build
 
 lint:
   stage: test
   image: "$default_php_image"
   script:
     - bin/php-cs-fixer fix --allow-risky=yes --verbose --dry-run
+  needs:
+    - build
 
 static-analysis:
   stage: test
@@ -87,6 +91,8 @@ static-analysis:
     - mv settings.example.php settings.php
     - bin/phpstan analyse --memory-limit=1G
   allow_failure: true
+  needs:
+    - build
 
 prepare:fpm:
   stage: prepare
@@ -100,19 +106,21 @@ prepare:fpm:
       --destination "${CI_REGISTRY_IMAGE}/fpm:${CI_PIPELINE_ID}"
       --build-arg MINDS_VERSION=$CI_PIPELINE_ID
       --build-arg SENTRY_DSN=$SENTRY_DSN
+  needs:
+    - build
 
-prepare:rr:
-  stage: prepare
-  image:
-    name: gcr.io/kaniko-project/executor:v1.14.0-debug
-    entrypoint: [""]
-  script:
-    - /kaniko/executor
-      --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/containers/php-rr/Dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}/rr:${CI_PIPELINE_ID}"
-      --build-arg MINDS_VERSION=$CI_PIPELINE_ID
-      --build-arg SENTRY_DSN=$SENTRY_DSN
+# prepare:rr:
+#   stage: prepare
+#   image:
+#     name: gcr.io/kaniko-project/executor:v1.14.0-debug
+#     entrypoint: [""]
+#   script:
+#     - /kaniko/executor
+#       --context "${CI_PROJECT_DIR}"
+#       --dockerfile "${CI_PROJECT_DIR}/containers/php-rr/Dockerfile"
+#       --destination "${CI_REGISTRY_IMAGE}/rr:${CI_PIPELINE_ID}"
+#       --build-arg MINDS_VERSION=$CI_PIPELINE_ID
+#       --build-arg SENTRY_DSN=$SENTRY_DSN
 
 prepare:runners:
   stage: prepare
@@ -126,6 +134,8 @@ prepare:runners:
       --destination "${CI_REGISTRY_IMAGE}/runners:${CI_PIPELINE_ID}"
       --build-arg MINDS_VERSION=$CI_PIPELINE_ID
       --build-arg SENTRY_DSN=$RUNNERS_SENTRY_DSN
+  needs:
+    - build
 
 prepare:all:sentry:
   stage: prepare
@@ -141,23 +151,28 @@ container_scanning:
   stage: scan
   variables:
     CS_IMAGE: $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
-
+  needs:
+    - prepare:fpm
 
 container_scanning_runners:
   extends: container_scanning
   stage: scan
   variables:
     CS_IMAGE: $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
+  needs:
+    - prepare:runners
 
 dependency_scanning:
   stage: scan
+  needs:
+    - build
 
 .oci_prepare: &oci_prepare
   - mkdir ~/.oci
   - cp $OCI_CONFIG ~/.oci/config
   - cp $OCI_KEY /tmp/oci-key.pem
   - export OCI_CLI_SUPPRESS_FILE_PERMISSIONS_WARNING=True
-  - | 
+  - |
     oci ce cluster create-kubeconfig \
       --cluster-id $OKE_CLUSTER_ID \
       --file $KUBECONFIG \
@@ -176,8 +191,8 @@ review:start:
     - BRANCH_EXISTS=$(git ls-remote --heads $HELM_GIT_REPO $CI_COMMIT_REF_NAME | wc -l)
     - cd ./helm-charts
     - if [ $BRANCH_EXISTS == "1" ] ; then
-    -    echo "Matching branch exists, checking out $CI_COMMIT_REF_NAME..."
-    -    git checkout $CI_COMMIT_REF_NAME 2>/dev/null
+    - echo "Matching branch exists, checking out $CI_COMMIT_REF_NAME..."
+    - git checkout $CI_COMMIT_REF_NAME 2>/dev/null
     - fi;
     #
     - echo "Upgrading helm for pipeline ${CI_PIPELINE_ID}"
@@ -206,6 +221,10 @@ review:start:
   except:
     refs:
       - master
+    variables:
+      - $CI_COMMIT_REF_PROTECTED == "true"
+  needs:
+    - prepare:fpm
 
 review:stop:
   stage: review
@@ -223,39 +242,10 @@ review:stop:
   except:
     refs:
       - master
-      - feat/ci-k8s
-
-
-integration_testing:
-  stage: qa
-  image: "$default_php_image"
-  script:
-    - apk add --no-cache git
-    - >
-      if [ "$CI_COMMIT_REF_NAME" == "master" ]; then
-        export MINDS_DOMAIN=https://www.minds.com
-      else
-        export MINDS_DOMAIN=https://$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
-      fi
-    - export BYPASS_SIGNING_KEY=$BYPASS_SIGNING_KEY
-    - sh integration_tests/setup_and_run.sh
-  artifacts:
-    when: always
-    paths:
-      - integration_tests/tests/_output
-  allow_failure: true
-
-# qa:manual:
-#   stage: qa
-#   script:
-#     - echo "Manually approved"
-#   when: manual
-#   only:
-#     refs:
-#       - master
-#       - production
-#       - test/gitlab-ci
-#   allow_failure: true
+    variables:
+      - $CI_COMMIT_REF_PROTECTED == "true"
+  needs:
+    - review:start
 
 ################
 # Deploy Stage #
@@ -269,31 +259,36 @@ integration_testing:
     - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - crane tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $IMAGE_LABEL
     # RoadRunner (rr)
-    - crane tag $CI_REGISTRY_IMAGE/rr:$CI_PIPELINE_ID $IMAGE_LABEL
+    # - crane tag $CI_REGISTRY_IMAGE/rr:$CI_PIPELINE_ID $IMAGE_LABEL
     # OKE: Rolling restart
     - *oci_prepare
     - kubectl -n default rollout restart deployment minds-engine-$IMAGE_LABEL
     # Update sentry
     - sentry-cli releases deploys $CI_PIPELINE_ID new -e $IMAGE_LABEL
 
-staging:fpm:
+deploy:staging:fpm:
   <<: *deploy
   after_script:
     - crane tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID latest
-    - crane tag $CI_REGISTRY_IMAGE/rr:$CI_PIPELINE_ID latest
+    # - crane tag $CI_REGISTRY_IMAGE/rr:$CI_PIPELINE_ID latest
   stage: deploy:staging
   variables:
     IMAGE_LABEL: "staging"
   environment:
     name: staging
     url: https://www.minds.com/?staging=1
-  only:
-    refs:
-      - master
-      - test/gitlab-ci
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - if: '$CI_COMMIT_REF_PROTECTED == "true"'
+      when: manual
+      allow_failure: false
+    - when: never
   allow_failure: true
+  needs:
+    - prepare:fpm
 
-canary:fpm:
+deploy:canary:fpm:
   <<: *deploy
   stage: deploy:canary
   variables:
@@ -306,8 +301,10 @@ canary:fpm:
     url: https://www.minds.com/?canary=1 # requires canary cookie
   when: manual
   allow_failure: true
+  needs:
+    - prepare:fpm
 
-production:fpm:
+deploy:production:fpm:
   <<: *deploy
   stage: deploy:production
   variables:
@@ -319,6 +316,8 @@ production:fpm:
     name: production
     url: https://www.minds.com/
   when: manual
+  needs:
+    - prepare:fpm
 
 production:runners:
   stage: deploy:production
@@ -331,10 +330,63 @@ production:runners:
     # OKE: Rolling restart
     - *oci_prepare
     - kubectl -n default get deployments | grep minds-runners- | awk '{print $1}' | xargs kubectl -n default rollout restart deployment
-  only:
-    refs:
-      - master
-      - test/gitlab-ci
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - if: '$CI_COMMIT_REF_PROTECTED == "true"'
+      when: manual
+      allow_failure: false
+    - when: never
   environment:
     name: runners
     url: https://www.minds.com/
+  needs:
+    - prepare:runners
+
+##############
+## QA Stage ##
+##############
+.integration_testing: &integration_testing
+  stage: qa
+  image: "$default_php_image"
+  script:
+    - apk add --no-cache git
+    - >
+      if [ "$CI_COMMIT_REF_PROTECTED" == "true" ]; then
+        export MINDS_DOMAIN=https://www.minds.com
+      else
+        export MINDS_DOMAIN=https://$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
+      fi
+    - export BYPASS_SIGNING_KEY=$BYPASS_SIGNING_KEY
+    - sh integration_tests/setup_and_run.sh
+  artifacts:
+    when: always
+    paths:
+      - integration_tests/tests/_output
+  allow_failure: true
+
+integration_testing:staging:
+  <<: *integration_testing
+  needs:
+    - deploy:staging:fpm
+
+integration_testing:review:
+  <<: *integration_testing
+  needs:
+    - review:start
+  except:
+    refs:
+      - master
+    variables:
+      - $CI_COMMIT_REF_PROTECTED == "true"
+# qa:manual:
+#   stage: qa
+#   script:
+#     - echo "Manually approved"
+#   when: manual
+#   only:
+#     refs:
+#       - master
+#       - production
+#       - test/gitlab-ci
+#   allow_failure: true

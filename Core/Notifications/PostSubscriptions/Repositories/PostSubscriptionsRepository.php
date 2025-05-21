@@ -2,6 +2,7 @@
 namespace Minds\Core\Notifications\PostSubscriptions\Repositories;
 
 use Minds\Core\Data\MySQL\AbstractRepository;
+use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\Notifications\PostSubscriptions\Enums\PostSubscriptionFrequencyEnum;
 use Minds\Core\Notifications\PostSubscriptions\Models\PostSubscription;
 use PDO;
@@ -31,35 +32,66 @@ class PostSubscriptionsRepository extends AbstractRepository
      * @return iterable<PostSubscription>
      */
     public function getList(
-        int $userGuid = null,
-        int $entityGuid = null,
-        PostSubscriptionFrequencyEnum $frequency = null,
+        ?int $userGuid = null,
+        ?int $entityGuid = null,
+        ?PostSubscriptionFrequencyEnum $frequency = null,
     ): iterable {
+        /** @var Tenant|null */
+        $tenant = $this->config->get('tenant');
+        $globalMode = $tenant?->config->globalMode ?: false;
+
         $query = $this->mysqlClientReaderHandler->select()
-            ->from(static::TABLE_NAME)
+            ->from(new RawExp(self::TABLE_NAME . ' as ps'))
             ->columns([
                 'user_guid',
                 'entity_guid',
                 'frequency',
-            ])
-            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
+            ]);
 
         $values = [
             'tenant_id' => $this->getTenantId(),
         ];
 
+        /**
+         * If global mode is on, we should do a join between
+         */
+        if ($globalMode) {
+            $query = $this->mysqlClientReaderHandler->select()
+                ->from(new RawExp('minds_entities_user as u'))
+                ->leftJoinRaw(['ps' => self::TABLE_NAME], 'u.tenant_id = ps.tenant_id AND u.guid = ps.user_guid AND ps.entity_guid = :entity_guid')
+                ->columns([
+                    'user_guid' => new RawExp('u.guid'),
+                    'entity_guid' => new RawExp("'" . (int) $entityGuid . "'"),
+                    'frequency' => new RawExp("COALESCE(ps.frequency, 'ALWAYS')"),
+                ])
+                ->where('u.tenant_id', Operator::EQ, new RawExp(':tenant_id'));
+        } else {
+            $query->where('ps.tenant_id', Operator::EQ, new RawExp(':tenant_id'));
+        }
+
         if ($userGuid) {
-            $query->where('user_guid', Operator::EQ, new RawExp(':user_guid'));
+            if ($globalMode) {
+                $query->where('u.guid', Operator::EQ, new RawExp(':user_guid'));
+            } else {
+                $query->where('user_guid', Operator::EQ, new RawExp(':user_guid'));
+            }
             $values['user_guid'] = $userGuid;
         }
 
         if ($entityGuid) {
-            $query->where('entity_guid', Operator::EQ, new RawExp(':entity_guid'));
+            if (!$globalMode) {
+                $query->where('entity_guid', Operator::EQ, new RawExp(':entity_guid'));
+            }
             $values['entity_guid'] = $entityGuid;
         }
 
+        // Global mode will post filter
         if ($frequency) {
-            $query->where('frequency', Operator::EQ, new RawExp(':frequency'));
+            if ($globalMode) {
+                $query->having('frequency', Operator::EQ, new RawExp(':frequency'));
+            } else {
+                $query->where('frequency', Operator::EQ, new RawExp(':frequency'));
+            }
             $values['frequency'] = $frequency->name;
         }
 
@@ -74,6 +106,9 @@ class PostSubscriptionsRepository extends AbstractRepository
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($rows as $row) {
+            if ($row['user_guid'] === (int) $row['entity_guid']) {
+                continue; // Do not allow post notifications to self
+            }
             yield new PostSubscription(
                 userGuid: $row['user_guid'],
                 entityGuid: $row['entity_guid'],
