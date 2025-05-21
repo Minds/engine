@@ -17,6 +17,10 @@ use TheCodingMachine\GraphQLite\Annotations\Type;
 #[Type]
 class MultiTenantConfig
 {
+    /**
+     * @param bool $globalMode - Global mode will make the newsfeed show all posts on the network and
+     * be auto enabled into post notifications
+     */
     public function __construct(
         #[Field] public readonly ?string $siteName = null,
         #[Field] public readonly ?string $siteEmail = null,
@@ -38,6 +42,7 @@ class MultiTenantConfig
         public readonly ?string $bloomerangApiKey = null,
         #[Field] public readonly ?string $disableAccountDisclaimer = null,
         #[Field] public readonly ?string $deleteAccountDisclaimer = null,
+        #[Field] public readonly ?bool $globalMode = false,
         #[Field] public readonly ?int $updatedTimestamp = null,
         #[Field] public readonly ?int $lastCacheTimestamp = null
     ) {

@@ -83,7 +83,7 @@ class PostSubscriptionsService
      * @return iterable<PostSubscription>
      */
     public function getAllForEntity(
-        PostSubscriptionFrequencyEnum $frequency = null
+        ?PostSubscriptionFrequencyEnum $frequency = null
     ): iterable {
         yield from $this->repository->getList(
             entityGuid: $this->entity->getGuid(),
