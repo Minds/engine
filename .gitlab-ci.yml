@@ -270,7 +270,7 @@ deploy:staging:fpm:
   <<: *deploy
   after_script:
     - crane tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID latest
-    - crane tag $CI_REGISTRY_IMAGE/rr:$CI_PIPELINE_ID latest
+    # - crane tag $CI_REGISTRY_IMAGE/rr:$CI_PIPELINE_ID latest
   stage: deploy:staging
   variables:
     IMAGE_LABEL: "staging"
@@ -330,10 +330,13 @@ production:runners:
     # OKE: Rolling restart
     - *oci_prepare
     - kubectl -n default get deployments | grep minds-runners- | awk '{print $1}' | xargs kubectl -n default rollout restart deployment
-  only:
-    refs:
-      - master
-      - test/gitlab-ci
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - if: '$CI_COMMIT_REF_PROTECTED == "true"'
+      when: manual
+      allow_failure: false
+    - when: never
   environment:
     name: runners
     url: https://www.minds.com/
