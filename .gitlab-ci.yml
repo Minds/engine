@@ -247,47 +247,6 @@ review:stop:
   needs:
     - review:start
 
-.integration_testing: &integration_testing
-  stage: qa
-  image: "$default_php_image"
-  script:
-    - apk add --no-cache git
-    - >
-      if [ "$CI_COMMIT_REF_PROTECTED" == "true" ]; then
-        export MINDS_DOMAIN=https://www.minds.com
-      else
-        export MINDS_DOMAIN=https://$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
-      fi
-    - export BYPASS_SIGNING_KEY=$BYPASS_SIGNING_KEY
-    - sh integration_tests/setup_and_run.sh
-  artifacts:
-    when: always
-    paths:
-      - integration_tests/tests/_output
-  allow_failure: true
-
-integration_testing:staging:
-  <<: *integration_testing
-  needs:
-    - deploy:staging
-
-integration_testing:review:
-  <<: *integration_testing
-  needs:
-    - deploy:review
-
-# qa:manual:
-#   stage: qa
-#   script:
-#     - echo "Manually approved"
-#   when: manual
-#   only:
-#     refs:
-#       - master
-#       - production
-#       - test/gitlab-ci
-#   allow_failure: true
-
 ################
 # Deploy Stage #
 ################
@@ -380,3 +339,46 @@ production:runners:
     url: https://www.minds.com/
   needs:
     - prepare:runners
+
+##############
+## QA Stage ##
+##############
+.integration_testing: &integration_testing
+  stage: qa
+  image: "$default_php_image"
+  script:
+    - apk add --no-cache git
+    - >
+      if [ "$CI_COMMIT_REF_PROTECTED" == "true" ]; then
+        export MINDS_DOMAIN=https://www.minds.com
+      else
+        export MINDS_DOMAIN=https://$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
+      fi
+    - export BYPASS_SIGNING_KEY=$BYPASS_SIGNING_KEY
+    - sh integration_tests/setup_and_run.sh
+  artifacts:
+    when: always
+    paths:
+      - integration_tests/tests/_output
+  allow_failure: true
+
+integration_testing:staging:
+  <<: *integration_testing
+  needs:
+    - deploy:staging
+
+integration_testing:review:
+  <<: *integration_testing
+  needs:
+    - deploy:review
+# qa:manual:
+#   stage: qa
+#   script:
+#     - echo "Manually approved"
+#   when: manual
+#   only:
+#     refs:
+#       - master
+#       - production
+#       - test/gitlab-ci
+#   allow_failure: true
