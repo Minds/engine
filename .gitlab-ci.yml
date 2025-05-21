@@ -2,18 +2,18 @@ include:
   - template: Security/Dependency-Scanning.gitlab-ci.yml
   - template: Security/Container-Scanning.gitlab-ci.yml
 
-# stages:
-#   - baseimage
-#   - build
-#   - test
-#   - prepare
-#   - review
-#   - integration_testing
-#   - deploy:staging
-#   - qa
-#   - deploy:canary
-#   - deploy:production
-#   - scan
+stages:
+  - baseimage
+  - build
+  - test
+  - prepare
+  - review
+  - integration_testing
+  - deploy:staging
+  - qa
+  - deploy:canary
+  - deploy:production
+  - scan
 
 variables:
   default_php_image: registry.gitlab.com/minds/engine/php:8.2
