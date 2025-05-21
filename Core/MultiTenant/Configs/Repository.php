@@ -65,6 +65,7 @@ class Repository extends AbstractRepository
             bloomerangApiKey: $row['bloomerang_api_key'] ?? null,
             disableAccountDisclaimer: $row['disable_account_disclaimer'] ?? '',
             deleteAccountDisclaimer: $row['delete_account_disclaimer'] ?? '',
+            globalMode: $row['global_mode'] ?? false,
             lastCacheTimestamp: isset($row['last_cache_timestamp']) ? strtotime($row['last_cache_timestamp']) : null,
             updatedTimestamp: isset($row['updated_timestamp']) ? strtotime($row['updated_timestamp']) : null
         );

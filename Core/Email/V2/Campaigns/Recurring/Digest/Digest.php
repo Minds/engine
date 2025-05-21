@@ -128,13 +128,16 @@ class Digest extends EmailCampaign
         // Get the timestamp of the last sent campaign
         $refUnixTimestamp = max(isset($campaigns[0]) ? $campaigns[0]->getTimeSent() : 0, strtotime('14 days ago'));
 
+        // If global mode, we will show posts from the entire network
+        $isGlobalMode = $this->config->get('tenant')?->config->globalMode;
+
         // Get trends (highlights) from discovery
         try {
             /** @var Activity[] */
             $activities = iterator_to_array($this->elasticFeedManager->getTop(
                 new QueryOpts(
                     user: $this->user,
-                    onlySubscribedAndGroups: true,
+                    onlySubscribedAndGroups: !$isGlobalMode,
                     olderThan: (new DateTime)->setTimestamp($refUnixTimestamp),
                 )
             ));

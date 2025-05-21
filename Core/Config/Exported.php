@@ -238,6 +238,7 @@ class Exported
                 'custom_script' => $tenant->config?->customScript ?? null,
                 'disable_account_disclaimer' => $tenant->config?->disableAccountDisclaimer,
                 'delete_account_disclaimer' => $tenant->config?->deleteAccountDisclaimer,
+                'global_mode' => $tenant->config?->globalMode,
             ];
 
             $exported['tenant']['max_memberships'] = $multiTenantConfig['plan_memberships'][$exported['tenant']['plan']] ?? 0;

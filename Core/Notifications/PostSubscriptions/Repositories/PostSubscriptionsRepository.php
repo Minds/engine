@@ -2,6 +2,7 @@
 namespace Minds\Core\Notifications\PostSubscriptions\Repositories;
 
 use Minds\Core\Data\MySQL\AbstractRepository;
+use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\Notifications\PostSubscriptions\Enums\PostSubscriptionFrequencyEnum;
 use Minds\Core\Notifications\PostSubscriptions\Models\PostSubscription;
 use PDO;
@@ -31,22 +32,45 @@ class PostSubscriptionsRepository extends AbstractRepository
      * @return iterable<PostSubscription>
      */
     public function getList(
-        int $userGuid = null,
-        int $entityGuid = null,
-        PostSubscriptionFrequencyEnum $frequency = null,
+        ?int $userGuid = null,
+        ?int $entityGuid = null,
+        ?PostSubscriptionFrequencyEnum $frequency = null,
     ): iterable {
+        /** @var Tenant|null */
+        $tenant = $this->config->get('tenant');
+        $globalMode = $tenant?->config->globalMode ?: false;
+
         $query = $this->mysqlClientReaderHandler->select()
-            ->from(static::TABLE_NAME)
+            ->from(self::TABLE_NAME)
             ->columns([
+                'tenant_id',
                 'user_guid',
                 'entity_guid',
                 'frequency',
-            ])
-            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
+            ]);
 
         $values = [
             'tenant_id' => $this->getTenantId(),
         ];
+
+        /**
+         * If global mode is on, we should do a join between
+         */
+        if ($globalMode) {
+            $globalQuery = $this->mysqlClientReaderHandler->select()
+                ->from(new RawExp('minds_entities_user as u'))
+                ->columns([
+                    'tenant_id',
+                    'user_guid' => new RawExp("'" . (int) $userGuid . "'"),
+                    'entity_guid' => new RawExp('u.guid'),
+                    'frequency' => new RawExp("'ALWAYS'"),
+                ])
+                ->where('u.tenant_id', Operator::EQ, new RawExp(':u_tenant_id'));
+
+            $values['u_tenant_id'] = $values['tenant_id'];
+        }
+
+        $query->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
 
         if ($userGuid) {
             $query->where('user_guid', Operator::EQ, new RawExp(':user_guid'));
@@ -56,11 +80,20 @@ class PostSubscriptionsRepository extends AbstractRepository
         if ($entityGuid) {
             $query->where('entity_guid', Operator::EQ, new RawExp(':entity_guid'));
             $values['entity_guid'] = $entityGuid;
+
+            if ($globalMode) {
+                $globalQuery->where('guid', Operator::EQ, new RawExp(':u_entity_guid'));
+                $values['u_entity_guid'] = $values['entity_guid'];
+            }
         }
 
         if ($frequency) {
             $query->where('frequency', Operator::EQ, new RawExp(':frequency'));
             $values['frequency'] = $frequency->name;
+        }
+
+        if ($globalMode) {
+            $query = $query->union($globalQuery);
         }
 
         $stmt = $query->prepare();

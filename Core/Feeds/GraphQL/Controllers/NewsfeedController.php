@@ -143,6 +143,9 @@ class NewsfeedController
 
         $edges = [];
 
+        // If global mode, show posts from the whole network
+        $isGlobalMode = $this->config->get('tenant')?->config->globalMode;
+
         /**
          * @var Iterator<Activity> $activities
          */
@@ -151,8 +154,8 @@ class NewsfeedController
                 queryOpts: new QueryOpts(
                     user: $loggedInUser,
                     limit: $limit,
-                    onlySubscribed: !$this->isTenant(),
-                    onlySubscribedAndGroups: $this->isTenant(),
+                    onlySubscribed: !$this->isTenant() && !$isGlobalMode,
+                    onlySubscribedAndGroups: $this->isTenant() && !$isGlobalMode,
                     accessId: Access::PUBLIC,
                     nsfw: $allowedNsfw,
                 ),
@@ -175,8 +178,8 @@ class NewsfeedController
                 queryOpts: new QueryOpts(
                     user: $loggedInUser,
                     limit: $limit,
-                    onlySubscribed: !$this->isTenant(),
-                    onlySubscribedAndGroups: $this->isTenant(),
+                    onlySubscribed: !$this->isTenant() && !$isGlobalMode,
+                    onlySubscribedAndGroups: $this->isTenant() && !$isGlobalMode,
                     accessId: Access::PUBLIC,
                     nsfw: $allowedNsfw,
                 ),

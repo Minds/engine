@@ -99,6 +99,7 @@ class Repository extends AbstractRepository
                 'bloomerang_api_key',
                 'disable_account_disclaimer',
                 'delete_account_disclaimer',
+                'global_mode',
             ])
             ->where('deleted_timestamp', Operator::IS, null);
     }
@@ -136,6 +137,7 @@ class Repository extends AbstractRepository
         $bloomerangApiKey = $row['bloomerang_api_key'] ?? null;
         $disableAccountDisclaimer = $row['disable_account_disclaimer'] ?? '';
         $deleteAccountDisclaimer = $row['delete_account_disclaimer'] ?? '';
+        $globalMode = $row['global_mode'] ?? false;
 
         return new Tenant(
             id: $tenantId,
@@ -165,6 +167,7 @@ class Repository extends AbstractRepository
                 bloomerangApiKey: $bloomerangApiKey,
                 disableAccountDisclaimer: $disableAccountDisclaimer,
                 deleteAccountDisclaimer: $deleteAccountDisclaimer,
+                globalMode: $globalMode,
             ),
             plan: TenantPlanEnum::fromString($plan),
             trialStartTimestamp: $trialStartTimestamp ? strtotime($trialStartTimestamp) : null,

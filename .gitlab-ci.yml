@@ -142,7 +142,6 @@ container_scanning:
   variables:
     CS_IMAGE: $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
 
-
 container_scanning_runners:
   extends: container_scanning
   stage: scan
@@ -157,7 +156,7 @@ dependency_scanning:
   - cp $OCI_CONFIG ~/.oci/config
   - cp $OCI_KEY /tmp/oci-key.pem
   - export OCI_CLI_SUPPRESS_FILE_PERMISSIONS_WARNING=True
-  - | 
+  - |
     oci ce cluster create-kubeconfig \
       --cluster-id $OKE_CLUSTER_ID \
       --file $KUBECONFIG \
@@ -176,8 +175,8 @@ review:start:
     - BRANCH_EXISTS=$(git ls-remote --heads $HELM_GIT_REPO $CI_COMMIT_REF_NAME | wc -l)
     - cd ./helm-charts
     - if [ $BRANCH_EXISTS == "1" ] ; then
-    -    echo "Matching branch exists, checking out $CI_COMMIT_REF_NAME..."
-    -    git checkout $CI_COMMIT_REF_NAME 2>/dev/null
+    - echo "Matching branch exists, checking out $CI_COMMIT_REF_NAME..."
+    - git checkout $CI_COMMIT_REF_NAME 2>/dev/null
     - fi;
     #
     - echo "Upgrading helm for pipeline ${CI_PIPELINE_ID}"
@@ -206,6 +205,8 @@ review:start:
   except:
     refs:
       - master
+    variables:
+      - $CI_COMMIT_REF_PROTECTED == "true"
 
 review:stop:
   stage: review
@@ -223,8 +224,8 @@ review:stop:
   except:
     refs:
       - master
-      - feat/ci-k8s
-
+    variables:
+      - $CI_COMMIT_REF_PROTECTED == "true"
 
 integration_testing:
   stage: qa
@@ -287,10 +288,13 @@ staging:fpm:
   environment:
     name: staging
     url: https://www.minds.com/?staging=1
-  only:
-    refs:
-      - master
-      - test/gitlab-ci
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - if: '$CI_COMMIT_REF_PROTECTED == "true"'
+      when: manual
+      allow_failure: true
+    - when: never
   allow_failure: true
 
 canary:fpm:
