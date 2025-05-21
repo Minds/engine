@@ -259,7 +259,7 @@ review:stop:
     - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - crane tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $IMAGE_LABEL
     # RoadRunner (rr)
-    - crane tag $CI_REGISTRY_IMAGE/rr:$CI_PIPELINE_ID $IMAGE_LABEL
+    # - crane tag $CI_REGISTRY_IMAGE/rr:$CI_PIPELINE_ID $IMAGE_LABEL
     # OKE: Rolling restart
     - *oci_prepare
     - kubectl -n default rollout restart deployment minds-engine-$IMAGE_LABEL
