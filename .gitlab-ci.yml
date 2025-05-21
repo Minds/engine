@@ -245,10 +245,6 @@ integration_testing:
     paths:
       - integration_tests/tests/_output
   allow_failure: true
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: on_success
-    - when: never
 
 # qa:manual:
 #   stage: qa
@@ -297,7 +293,7 @@ staging:fpm:
       when: on_success
     - if: '$CI_COMMIT_REF_PROTECTED == "true"'
       when: manual
-      allow_failure: true
+      allow_failure: false
     - when: never
   allow_failure: true
 
