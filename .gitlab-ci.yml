@@ -370,7 +370,12 @@ integration_testing:staging:
 integration_testing:review:
   <<: *integration_testing
   needs:
-    - { job: review:start, optional: true }
+    - review:start
+  except:
+    refs:
+      - master
+    variables:
+      - $CI_COMMIT_REF_PROTECTED == "true"
 # qa:manual:
 #   stage: qa
 #   script:
