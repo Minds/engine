@@ -267,12 +267,12 @@ review:stop:
   allow_failure: true
 
 integration_testing:staging:
-  <<: *deploy
+  <<: *integration_testing
   needs:
     - deploy:staging
 
 integration_testing:review:
-  <<: *deploy
+  <<: *integration_testing
   needs:
     - deploy:review
 
