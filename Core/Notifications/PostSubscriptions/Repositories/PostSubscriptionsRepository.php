@@ -106,7 +106,7 @@ class PostSubscriptionsRepository extends AbstractRepository
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($rows as $row) {
-            if ($row['user_guid'] === $row['entity_guid']) {
+            if ($row['user_guid'] === (int) $row['entity_guid']) {
                 continue; // Do not allow post notifications to self
             }
             yield new PostSubscription(
