@@ -41,9 +41,8 @@ class PostSubscriptionsRepository extends AbstractRepository
         $globalMode = $tenant?->config->globalMode ?: false;
 
         $query = $this->mysqlClientReaderHandler->select()
-            ->from(self::TABLE_NAME)
+            ->from(new RawExp(self::TABLE_NAME . ' as ps'))
             ->columns([
-                'tenant_id',
                 'user_guid',
                 'entity_guid',
                 'frequency',
@@ -57,45 +56,43 @@ class PostSubscriptionsRepository extends AbstractRepository
          * If global mode is on, we should do a join between
          */
         if ($globalMode) {
-            $globalQuery = $this->mysqlClientReaderHandler->select()
+            $query = $this->mysqlClientReaderHandler->select()
                 ->from(new RawExp('minds_entities_user as u'))
+                ->leftJoinRaw(['ps' => self::TABLE_NAME], 'u.tenant_id = ps.tenant_id AND u.guid = ps.user_guid AND ps.entity_guid = :entity_guid')
                 ->columns([
-                    'tenant_id',
-                    'user_guid' => new RawExp("'" . (int) $userGuid . "'"),
-                    'entity_guid' => new RawExp('u.guid'),
-                    'frequency' => new RawExp("'ALWAYS'"),
+                    'user_guid' => new RawExp('u.guid'),
+                    'entity_guid' => new RawExp("'" . (int) $entityGuid . "'"),
+                    'frequency' => new RawExp("COALESCE(ps.frequency, 'ALWAYS')"),
                 ])
-                ->where('u.tenant_id', Operator::EQ, new RawExp(':u_tenant_id'));
-
-            $values['u_tenant_id'] = $values['tenant_id'];
+                ->where('u.tenant_id', Operator::EQ, new RawExp(':tenant_id'));
         } else {
-            $globalQuery = null;
+            $query->where('ps.tenant_id', Operator::EQ, new RawExp(':tenant_id'));
         }
 
-        $query->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
-
         if ($userGuid) {
-            $query->where('user_guid', Operator::EQ, new RawExp(':user_guid'));
+            if ($globalMode) {
+                $query->where('u.guid', Operator::EQ, new RawExp(':user_guid'));
+            } else {
+                $query->where('user_guid', Operator::EQ, new RawExp(':user_guid'));
+            }
             $values['user_guid'] = $userGuid;
         }
 
         if ($entityGuid) {
-            $query->where('entity_guid', Operator::EQ, new RawExp(':entity_guid'));
-            $values['entity_guid'] = $entityGuid;
-
-            if ($globalQuery) {
-                $globalQuery->where('guid', Operator::EQ, new RawExp(':u_entity_guid'));
-                $values['u_entity_guid'] = $values['entity_guid'];
+            if (!$globalMode) {
+                $query->where('entity_guid', Operator::EQ, new RawExp(':entity_guid'));
             }
+            $values['entity_guid'] = $entityGuid;
         }
 
+        // Global mode will post filter
         if ($frequency) {
-            $query->where('frequency', Operator::EQ, new RawExp(':frequency'));
+            if ($globalMode) {
+                $query->having('frequency', Operator::EQ, new RawExp(':frequency'));
+            } else {
+                $query->where('frequency', Operator::EQ, new RawExp(':frequency'));
+            }
             $values['frequency'] = $frequency->name;
-        }
-
-        if ($globalQuery) {
-            $query = $query->union($globalQuery);
         }
 
         $stmt = $query->prepare();
