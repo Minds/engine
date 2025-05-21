@@ -137,7 +137,7 @@ class Repository extends AbstractRepository
         $bloomerangApiKey = $row['bloomerang_api_key'] ?? null;
         $disableAccountDisclaimer = $row['disable_account_disclaimer'] ?? '';
         $deleteAccountDisclaimer = $row['delete_account_disclaimer'] ?? '';
-        $globalMode = (bool) $row['global_mode'] ?? false;
+        $globalMode = (bool) ($row['global_mode'] ?? false);
 
         return new Tenant(
             id: $tenantId,
