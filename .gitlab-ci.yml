@@ -266,7 +266,7 @@ review:stop:
     # Update sentry
     - sentry-cli releases deploys $CI_PIPELINE_ID new -e $IMAGE_LABEL
 
-staging:fpm:
+deploy:staging:fpm:
   <<: *deploy
   after_script:
     - crane tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID latest
@@ -288,7 +288,7 @@ staging:fpm:
   needs:
     - prepare:fpm
 
-canary:fpm:
+deploy:canary:fpm:
   <<: *deploy
   stage: deploy:canary
   variables:
@@ -304,7 +304,7 @@ canary:fpm:
   needs:
     - prepare:fpm
 
-production:fpm:
+deploy:production:fpm:
   <<: *deploy
   stage: deploy:production
   variables:
@@ -365,12 +365,12 @@ production:runners:
 integration_testing:staging:
   <<: *integration_testing
   needs:
-    - deploy:staging
+    - deploy:staging:fpm
 
 integration_testing:review:
   <<: *integration_testing
   needs:
-    - deploy:review
+    - review:start
 # qa:manual:
 #   stage: qa
 #   script:
