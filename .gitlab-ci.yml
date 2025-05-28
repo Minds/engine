@@ -266,6 +266,7 @@ review:stop:
     # Update sentry
     - sentry-cli releases deploys $CI_PIPELINE_ID new -e $IMAGE_LABEL
   needs:
+    - prepare:fpm
     - prepare:all:sentry
 
 deploy:staging:fpm:
@@ -287,8 +288,6 @@ deploy:staging:fpm:
       allow_failure: false
     - when: never
   allow_failure: true
-  needs:
-    - prepare:fpm
 
 deploy:canary:fpm:
   <<: *deploy
@@ -303,8 +302,6 @@ deploy:canary:fpm:
     url: https://www.minds.com/?canary=1 # requires canary cookie
   when: manual
   allow_failure: true
-  needs:
-    - prepare:fpm
 
 deploy:production:fpm:
   <<: *deploy
@@ -318,8 +315,6 @@ deploy:production:fpm:
     name: production
     url: https://www.minds.com/
   when: manual
-  needs:
-    - prepare:fpm
 
 production:runners:
   stage: deploy:production
