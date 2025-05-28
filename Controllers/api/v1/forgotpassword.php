@@ -13,6 +13,7 @@ use Minds\Api\Factory;
 use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Security\ForgotPassword\Services\ForgotPasswordService;
+use Minds\Core\Security\RateLimits\RateLimitExceededException;
 use Zend\Diactoros\ServerRequestFactory;
 
 class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
@@ -57,23 +58,28 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
         switch ($pages[0]) {
             case "request":
 
-                // try {
-                //     $rateLimitCheck = Di::_()->get("Security\RateLimits\KeyValueLimiter")
-                //         ->setKey('forgot-password-ips')
-                //         ->setValue($_SERVER['HTTP_X_FORWARDED_FOR'])
-                //         ->setSeconds(86400) // Day
-                //         ->setMax(5)
-                //         ->checkAndIncrement();
-                // } catch (RateLimitExceededException $e) {
-                //     $response['status'] = "error";
-                //     $response['message'] = $e->getMessage();
-                //     break;
-                // }
+                try {
+                    Di::_()->get("Security\RateLimits\KeyValueLimiter")
+                        ->setKey('forgot-password-ips')
+                        ->setValue($_SERVER['HTTP_X_FORWARDED_FOR'])
+                        ->setSeconds(3600) // Per hour
+                        ->setMax(5)
+                        ->checkAndIncrement();
+
+                    Di::_()->get("Security\RateLimits\KeyValueLimiter")
+                        ->setKey('forgot-password-ips')
+                        ->setValue($_SERVER['HTTP_X_FORWARDED_FOR'])
+                        ->setSeconds(86400) // Per day
+                        ->setMax(20)
+                        ->checkAndIncrement();
+                } catch (RateLimitExceededException $e) {
+                    $response['status'] = "error";
+                    $response['message'] = $e->getMessage();
+                    break;
+                }
 
                 $user = $this->entitiesBuilder->getByUserByIndex(strtolower($_POST['username']));
                 if (!$user) {
-                    $response['status'] = "error";
-                    $response['message'] = "Could not find @" . $_POST['username'];
                     break;
                 }
 
