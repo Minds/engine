@@ -28,9 +28,8 @@ class Translations
         $cache = null,
         $service = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
-        private ?ACL $acl = null, 
-    )
-    {
+        private ?ACL $acl = null,
+    ) {
         $di = Core\Di\Di::_();
 
         $this->cache = $cache ?: $di->get('Cache');
