@@ -14,8 +14,8 @@ class GraphQLMappings extends AbstractGraphQLMappings
      */
     public function register(): void
     {
-        $this->schemaFactory->addControllerNamespace('Minds\Core\Notifications\PostSubscriptions\Controllers');
-        $this->schemaFactory->addTypeNamespace('Minds\\Core\\Notifications\\PostSubscriptions\\Enums');
+        $this->schemaFactory->addNamespace('Minds\Core\Notifications\PostSubscriptions\Controllers');
+        $this->schemaFactory->addNamespace('Minds\\Core\\Notifications\\PostSubscriptions\\Enums');
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
             PostSubscription::class,
         ]));

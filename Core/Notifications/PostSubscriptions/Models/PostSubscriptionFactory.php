@@ -3,7 +3,7 @@ namespace Minds\Core\Notifications\PostSubscriptions\Models;
 
 use Minds\Core\Notifications\PostSubscriptions\Enums\PostSubscriptionFrequencyEnum;
 
-class PostSubscription
+class PostSubscriptionFactory
 {
     public function __construct(
         public readonly int $userGuid,

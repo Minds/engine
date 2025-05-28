@@ -49,7 +49,7 @@ class DomainsController
     ): MultiTenantDomain {
 
         if (!filter_var($hostname, FILTER_VALIDATE_DOMAIN)) {
-            throw new GraphQLException("Invalid hostname provided", 400, null, "Validation", ['field' => 'hostname']);
+            throw new GraphQLException("Invalid hostname provided", 400, null, ['field' => 'hostname']);
         }
 
         try {

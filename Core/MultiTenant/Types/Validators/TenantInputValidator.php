@@ -30,7 +30,7 @@ class TenantInputValidator implements InputTypeValidatorInterface
         if ($input->domain) {
             // validate domain is valid.
             if (!filter_var($input->domain, FILTER_VALIDATE_DOMAIN)) {
-                throw new GraphQLException("Invalid domain provided", 400, null, "Validation", ['field' => 'domain']);
+                throw new GraphQLException("Invalid domain provided", 400, null, ['field' => 'domain']);
             }
         }
     }

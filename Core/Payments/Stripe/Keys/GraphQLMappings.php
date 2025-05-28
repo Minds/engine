@@ -10,7 +10,7 @@ class GraphQLMappings extends AbstractGraphQLMappings
 {
     public function register(): void
     {
-        $this->schemaFactory->addControllerNamespace('Minds\Core\Payments\Stripe\Keys\Controllers');
+        $this->schemaFactory->addNamespace('Minds\Core\Payments\Stripe\Keys\Controllers');
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
           Types\StripeKeysType::class,
         ]));

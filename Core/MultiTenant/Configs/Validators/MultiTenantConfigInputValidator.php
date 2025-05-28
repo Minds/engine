@@ -36,30 +36,30 @@ class MultiTenantConfigInputValidator implements InputTypeValidatorInterface
             mb_strlen($input->siteName) < 3 ||
             mb_strlen($input->siteName) > 50
         )) {
-            throw new GraphQLException("Network name must be between 3 and 50 characters", 400, null, "Validation", ['field' => 'networkName']);
+            throw new GraphQLException("Network name must be between 3 and 50 characters", 400, null, ['field' => 'networkName']);
         }
 
         if (isset($input->primaryColor)) {
             // validate hex colour starts with a #.
             if (!str_starts_with($input->primaryColor, '#')) {
-                throw new GraphQLException("Primary color must start with #", 400, null, "Validation", ['field' => 'primaryColor']);
+                throw new GraphQLException("Primary color must start with #", 400, null, ['field' => 'primaryColor']);
             }
             // validate length of hex colour is valid.
             if (!in_array(strlen($input->primaryColor), [4, 7, 9], true)) {
-                throw new GraphQLException("Invalid primary color length", 400, null, "Validation", ['field' => 'primaryColor']);
+                throw new GraphQLException("Invalid primary color length", 400, null, ['field' => 'primaryColor']);
             }
             // validate the value is valid hex.
             if (!ctype_xdigit(substr($input->primaryColor, 1))) {
-                throw new GraphQLException("Invalid hex value", 400, null, "Validation", ['field' => 'primaryColor']);
+                throw new GraphQLException("Invalid hex value", 400, null, ['field' => 'primaryColor']);
             }
         }
 
         if (isset($input->replyEmail) && $input->replyEmail !== '' && !Validation::isValidEmail($input->replyEmail)) {
-            throw new GraphQLException("Invalid reply-to email address", 400, null, "Validation", ['field' => 'replyEmail']);
+            throw new GraphQLException("Invalid reply-to email address", 400, null, ['field' => 'replyEmail']);
         }
 
         if (isset($input->customHomePageDescription) && mb_strlen($input->customHomePageDescription) > 160) {
-            throw new GraphQLException("Custom home page description must be less than 160 characters", 400, null, "Validation", ['field' => 'customHomePageDescription']);
+            throw new GraphQLException("Custom home page description must be less than 160 characters", 400, null, ['field' => 'customHomePageDescription']);
         }
 
         return;

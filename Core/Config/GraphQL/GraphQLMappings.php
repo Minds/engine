@@ -8,7 +8,7 @@ class GraphQLMappings extends AbstractGraphQLMappings
 {
     public function register(): void
     {
-        $this->schemaFactory->addControllerNamespace('Minds\Core\Config\GraphQL\Controllers');
+        $this->schemaFactory->addNamespace('Minds\Core\Config\GraphQL\Controllers');
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
 
         ]));

@@ -10,7 +10,7 @@ class GraphQLMappings extends AbstractGraphQLMappings
 {
     public function register(): void
     {
-        $this->schemaFactory->addTypeNamespace("Minds\\Core\\Router\\Enums");
+        $this->schemaFactory->addNamespace("Minds\\Core\\Router\\Enums");
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
             Types\KeyValuePair::class,
             Types\KeyValueType::class,

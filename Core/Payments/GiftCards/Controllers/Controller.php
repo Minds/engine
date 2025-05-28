@@ -83,7 +83,7 @@ class Controller
 
         $giftCard = $this->manager->createGiftCard(
             issuer: $loggedInUser,
-            productId: GiftCardProductIdEnum::tryFrom($productIdEnum) ?? throw new GraphQLException("An error occurred while validating the ", 400, null, "Validation", ['field' => 'productIdEnum']),
+            productId: GiftCardProductIdEnum::tryFrom($productIdEnum) ?? throw new GraphQLException("An error occurred while validating the ", 400, null, ['field' => 'productIdEnum']),
             amount: $amount,
             stripePaymentMethodId: $stripePaymentMethodId,
             expiresAt: $expiresAt

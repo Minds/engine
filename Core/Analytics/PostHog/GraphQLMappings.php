@@ -13,7 +13,7 @@ class GraphQLMappings extends AbstractGraphQLMappings
      */
     public function register(): void
     {
-        $this->schemaFactory->addControllerNamespace('Minds\Core\Analytics\PostHog\Controllers');
+        $this->schemaFactory->addNamespace('Minds\Core\Analytics\PostHog\Controllers');
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
             Models\PostHogPerson::class,
         ]));

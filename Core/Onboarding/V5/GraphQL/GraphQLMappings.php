@@ -10,7 +10,7 @@ class GraphQLMappings extends AbstractGraphQLMappings
 {
     public function register(): void
     {
-        $this->schemaFactory->addControllerNamespace('Minds\Core\Onboarding\V5\GraphQL\Controllers');
+        $this->schemaFactory->addNamespace('Minds\Core\Onboarding\V5\GraphQL\Controllers');
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
             Types\OnboardingState::class,
             Types\OnboardingStepProgressState::class

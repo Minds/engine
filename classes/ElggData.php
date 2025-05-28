@@ -12,7 +12,7 @@
 abstract class ElggData implements
 	Iterator,	// Override foreach behaviour
 	ArrayAccess, // Override for array access
-	Exportable
+	ElggExportable
 {
 
 	/**

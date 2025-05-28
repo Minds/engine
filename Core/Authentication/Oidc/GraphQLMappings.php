@@ -14,7 +14,7 @@ class GraphQLMappings extends AbstractGraphQLMappings
      */
     public function register(): void
     {
-        $this->schemaFactory->addControllerNamespace('Minds\Core\Authentication\Oidc\Controllers');
+        $this->schemaFactory->addNamespace('Minds\Core\Authentication\Oidc\Controllers');
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
             OidcProviderPublic::class,
         ]));

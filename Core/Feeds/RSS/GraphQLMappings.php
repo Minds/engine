@@ -14,9 +14,9 @@ class GraphQLMappings extends AbstractGraphQLMappings
      */
     public function register(): void
     {
-        $this->schemaFactory->addControllerNamespace('Minds\Core\Feeds\RSS\Controllers');
-        $this->schemaFactory->addTypeNamespace('Minds\Core\Feeds\RSS\Enums');
-        $this->schemaFactory->addTypeNamespace('Minds\Core\Feeds\RSS\Types\Factories');
+        $this->schemaFactory->addNamespace('Minds\Core\Feeds\RSS\Controllers');
+        $this->schemaFactory->addNamespace('Minds\Core\Feeds\RSS\Enums');
+        $this->schemaFactory->addNamespace('Minds\Core\Feeds\RSS\Types\Factories');
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
             RssFeed::class
         ]));

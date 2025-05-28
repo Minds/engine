@@ -13,7 +13,7 @@ class GraphQLMappings extends AbstractGraphQLMappings
      */
     public function register(): void
     {
-        $this->schemaFactory->addControllerNamespace('Minds\Core\Authentication\PersonalApiKeys\Controllers');
+        $this->schemaFactory->addNamespace('Minds\Core\Authentication\PersonalApiKeys\Controllers');
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
            PersonalApiKey::class,
         ]));

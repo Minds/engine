@@ -34,7 +34,7 @@ class ReportInputValidator implements InputTypeValidatorInterface
 
         // check URN is valid.
         if (!Urn::isValid($reportInput->entityUrn)) {
-            throw new GraphQLException("Invalid entityUrn provided", 400, null, "Validation", ['field' => 'entityUrn']);
+            throw new GraphQLException("Invalid entityUrn provided", 400, null, ['field' => 'entityUrn']);
         }
 
         // check a GUID can be parsed from URN.
@@ -42,7 +42,7 @@ class ReportInputValidator implements InputTypeValidatorInterface
         if (!is_numeric($guidSegments = $entityUrnSegments[array_key_last($entityUrnSegments)])) {
             if ($segments = explode('_', $guidSegments)) {
                 if (!is_numeric($segments[0]) || !is_numeric($segments[1] ?? null)) {
-                    throw new GraphQLException("entityGuid parsed from last URN segment is not numeric", 400, null, "Validation", ['field' => 'entityUrn']);
+                    throw new GraphQLException("entityGuid parsed from last URN segment is not numeric", 400, null, ['field' => 'entityUrn']);
                 }
             }
         }
@@ -50,45 +50,45 @@ class ReportInputValidator implements InputTypeValidatorInterface
         // check illegal reason has valid subreason.
         if ($reportInput->reason === ReportReasonEnum::ILLEGAL) {
             if (!$reportInput->illegalSubReason) {
-                throw new GraphQLException("illegalSubReason must be passed if reason is ILLEGAL", 400, null, "Validation", ['field' => 'illegalSubReason']);
+                throw new GraphQLException("illegalSubReason must be passed if reason is ILLEGAL", 400, null, ['field' => 'illegalSubReason']);
             }
 
             if ($reportInput->nsfwSubReason) {
-                throw new GraphQLException("nsfwSubReason enum passed for ILLEGAL reason", 400, null, "Validation", ['field' => 'nsfwSubReason']);
+                throw new GraphQLException("nsfwSubReason enum passed for ILLEGAL reason", 400, null, ['field' => 'nsfwSubReason']);
             }
 
             if ($reportInput->securitySubReason) {
-                throw new GraphQLException("securitySubReason enum passed for ILLEGAL reason", 400, null, "Validation", ['field' => 'securitySubReason']);
+                throw new GraphQLException("securitySubReason enum passed for ILLEGAL reason", 400, null, ['field' => 'securitySubReason']);
             }
         }
 
         // check nsfw reason has valid subreason.
         if ($reportInput->reason === ReportReasonEnum::NSFW) {
             if (!$reportInput->nsfwSubReason) {
-                throw new GraphQLException("nsfwSubReason must be passed if reason is NSFW", 400, null, "Validation", ['field' => 'nsfwSubReason']);
+                throw new GraphQLException("nsfwSubReason must be passed if reason is NSFW", 400, null, ['field' => 'nsfwSubReason']);
             }
 
             if ($reportInput->illegalSubReason) {
-                throw new GraphQLException("illegalSubReason enum passed for NSFW reason", 400, null, "Validation", ['field' => 'illegalSubReason']);
+                throw new GraphQLException("illegalSubReason enum passed for NSFW reason", 400, null, ['field' => 'illegalSubReason']);
             }
 
             if ($reportInput->securitySubReason) {
-                throw new GraphQLException("securitySubReason enum passed for NSFW reason", 400, null, "Validation", ['field' => 'securitySubReason']);
+                throw new GraphQLException("securitySubReason enum passed for NSFW reason", 400, null, ['field' => 'securitySubReason']);
             }
         }
 
         // check security reason has valid subreason.
         if ($reportInput->reason === ReportReasonEnum::SECURITY) {
             if (!$reportInput->securitySubReason) {
-                throw new GraphQLException("securitySubReason must be passed if reason is SECURITY", 400, null, "Validation", ['field' => 'securitySubReason']);
+                throw new GraphQLException("securitySubReason must be passed if reason is SECURITY", 400, null, ['field' => 'securitySubReason']);
             }
 
             if ($reportInput->illegalSubReason) {
-                throw new GraphQLException("illegalSubReason enum passed for SECURITY reason", 400, null, "Validation", ['field' => 'illegalSubReason']);
+                throw new GraphQLException("illegalSubReason enum passed for SECURITY reason", 400, null, ['field' => 'illegalSubReason']);
             }
 
             if ($reportInput->nsfwSubReason) {
-                throw new GraphQLException("nsfwSubReason enum passed for SECURITY reason", 400, null, "Validation", ['field' => 'nsfwSubReason']);
+                throw new GraphQLException("nsfwSubReason enum passed for SECURITY reason", 400, null, ['field' => 'nsfwSubReason']);
             }
         }
 

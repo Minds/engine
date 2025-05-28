@@ -5,7 +5,7 @@
  * @package    Elgg.Core
  * @subpackage ODD
  */
-interface Exportable {
+interface ElggExportable {
 	/**
 	 * This must take the contents of the object and convert it to exportable ODD
 	 *

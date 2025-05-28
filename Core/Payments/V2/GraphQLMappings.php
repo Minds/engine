@@ -11,8 +11,8 @@ class GraphQLMappings extends AbstractGraphQLMappings
 {
     public function register(): void
     {
-        $this->schemaFactory->addControllerNamespace('Minds\Core\Payments\V2\Controllers');
-        $this->schemaFactory->addTypeNamespace('Minds\Core\Payments\V2');
+        $this->schemaFactory->addNamespace('Minds\Core\Payments\V2\Controllers');
+        $this->schemaFactory->addNamespace('Minds\Core\Payments\V2');
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
             PaymentMethod::class
         ]));

@@ -13,9 +13,9 @@ class GraphQLMappings extends AbstractGraphQLMappings
      */
     public function register(): void
     {
-        $this->schemaFactory->addControllerNamespace('Minds\Core\MultiTenant\CustomPages\Controllers');
-        $this->schemaFactory->addTypeNamespace('Minds\Core\MultiTenant\CustomPages\Enums');
-        $this->schemaFactory->addTypeNamespace('Minds\Core\MultiTenant\CustomPages\Types');
+        $this->schemaFactory->addNamespace('Minds\Core\MultiTenant\CustomPages\Controllers');
+        $this->schemaFactory->addNamespace('Minds\Core\MultiTenant\CustomPages\Enums');
+        $this->schemaFactory->addNamespace('Minds\Core\MultiTenant\CustomPages\Types');
 
         $this->schemaFactory->setInputTypeValidator(new Validators\CustomPageInputValidator());
     }

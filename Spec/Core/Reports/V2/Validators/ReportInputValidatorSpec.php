@@ -71,7 +71,7 @@ class ReportInputValidatorSpec extends ObjectBehavior
         $securitySubReason = null;
 
         $this->shouldThrow(
-            new GraphQLException("Invalid entityUrn provided", 400, null, "Validation", ['field' => 'entityUrn'])
+            new GraphQLException("Invalid entityUrn provided", 400, null, ['field' => 'entityUrn'])
         )->duringValidate(new ReportInput(
             entityUrn: $entityUrn,
             reason: $reason,
@@ -90,7 +90,7 @@ class ReportInputValidatorSpec extends ObjectBehavior
         $securitySubReason = null;
 
         $this->shouldThrow(
-            new GraphQLException("entityGuid parsed from last URN segment is not numeric", 400, null, "Validation", ['field' => 'entityUrn'])
+            new GraphQLException("entityGuid parsed from last URN segment is not numeric", 400, null, ['field' => 'entityUrn'])
         )->duringValidate(new ReportInput(
             entityUrn: $entityUrn,
             reason: $reason,
@@ -111,7 +111,7 @@ class ReportInputValidatorSpec extends ObjectBehavior
         $securitySubReason = null;
 
         $this->shouldThrow(
-            new GraphQLException("illegalSubReason must be passed if reason is ILLEGAL", 400, null, "Validation", ['field' => 'illegalSubReason'])
+            new GraphQLException("illegalSubReason must be passed if reason is ILLEGAL", 400, null, ['field' => 'illegalSubReason'])
         )->duringValidate(new ReportInput(
             entityUrn: $entityUrn,
             reason: $reason,
@@ -130,7 +130,7 @@ class ReportInputValidatorSpec extends ObjectBehavior
         $securitySubReason = null;
 
         $this->shouldThrow(
-            new GraphQLException("nsfwSubReason enum passed for ILLEGAL reason", 400, null, "Validation", ['field' => 'nsfwSubReason'])
+            new GraphQLException("nsfwSubReason enum passed for ILLEGAL reason", 400, null, ['field' => 'nsfwSubReason'])
         )->duringValidate(new ReportInput(
             entityUrn: $entityUrn,
             reason: $reason,
@@ -149,7 +149,7 @@ class ReportInputValidatorSpec extends ObjectBehavior
         $securitySubReason = SecuritySubReasonEnum::HACKED_ACCOUNT;
 
         $this->shouldThrow(
-            new GraphQLException("securitySubReason enum passed for ILLEGAL reason", 400, null, "Validation", ['field' => 'securitySubReason'])
+            new GraphQLException("securitySubReason enum passed for ILLEGAL reason", 400, null, ['field' => 'securitySubReason'])
         )->duringValidate(new ReportInput(
             entityUrn: $entityUrn,
             reason: $reason,
@@ -170,7 +170,7 @@ class ReportInputValidatorSpec extends ObjectBehavior
         $securitySubReason = null;
 
         $this->shouldThrow(
-            new GraphQLException("nsfwSubReason must be passed if reason is NSFW", 400, null, "Validation", ['field' => 'nsfwSubReason'])
+            new GraphQLException("nsfwSubReason must be passed if reason is NSFW", 400, null, ['field' => 'nsfwSubReason'])
         )->duringValidate(new ReportInput(
             entityUrn: $entityUrn,
             reason: $reason,
@@ -189,7 +189,7 @@ class ReportInputValidatorSpec extends ObjectBehavior
         $securitySubReason = null;
 
         $this->shouldThrow(
-            new GraphQLException("illegalSubReason enum passed for NSFW reason", 400, null, "Validation", ['field' => 'illegalSubReason'])
+            new GraphQLException("illegalSubReason enum passed for NSFW reason", 400, null, ['field' => 'illegalSubReason'])
         )->duringValidate(new ReportInput(
             entityUrn: $entityUrn,
             reason: $reason,
@@ -208,7 +208,7 @@ class ReportInputValidatorSpec extends ObjectBehavior
         $securitySubReason = SecuritySubReasonEnum::HACKED_ACCOUNT;
 
         $this->shouldThrow(
-            new GraphQLException("securitySubReason enum passed for NSFW reason", 400, null, "Validation", ['field' => 'securitySubReason'])
+            new GraphQLException("securitySubReason enum passed for NSFW reason", 400, null, ['field' => 'securitySubReason'])
         )->duringValidate(new ReportInput(
             entityUrn: $entityUrn,
             reason: $reason,
@@ -229,7 +229,7 @@ class ReportInputValidatorSpec extends ObjectBehavior
         $securitySubReason = null;
 
         $this->shouldThrow(
-            new GraphQLException("securitySubReason must be passed if reason is SECURITY", 400, null, "Validation", ['field' => 'securitySubReason'])
+            new GraphQLException("securitySubReason must be passed if reason is SECURITY", 400, null, ['field' => 'securitySubReason'])
         )->duringValidate(new ReportInput(
             entityUrn: $entityUrn,
             reason: $reason,
@@ -248,7 +248,7 @@ class ReportInputValidatorSpec extends ObjectBehavior
         $securitySubReason = SecuritySubReasonEnum::HACKED_ACCOUNT;
 
         $this->shouldThrow(
-            new GraphQLException("illegalSubReason enum passed for SECURITY reason", 400, null, "Validation", ['field' => 'illegalSubReason'])
+            new GraphQLException("illegalSubReason enum passed for SECURITY reason", 400, null, ['field' => 'illegalSubReason'])
         )->duringValidate(new ReportInput(
             entityUrn: $entityUrn,
             reason: $reason,
@@ -267,7 +267,7 @@ class ReportInputValidatorSpec extends ObjectBehavior
         $securitySubReason = SecuritySubReasonEnum::HACKED_ACCOUNT;
 
         $this->shouldThrow(
-            new GraphQLException("nsfwSubReason enum passed for SECURITY reason", 400, null, "Validation", ['field' => 'nsfwSubReason'])
+            new GraphQLException("nsfwSubReason enum passed for SECURITY reason", 400, null, ['field' => 'nsfwSubReason'])
         )->duringValidate(new ReportInput(
             entityUrn: $entityUrn,
             reason: $reason,

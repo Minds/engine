@@ -8,8 +8,8 @@ class GraphQLMappings extends AbstractGraphQLMappings
 {
     public function register(): void
     {
-        $this->schemaFactory->addControllerNamespace('Minds\Core\Feeds\GraphQL\Controllers');
-        $this->schemaFactory->addTypeNamespace('Minds\\Core\\Feeds\\GraphQL\\Enums');
+        $this->schemaFactory->addNamespace('Minds\Core\Feeds\GraphQL\Controllers');
+        $this->schemaFactory->addNamespace('Minds\\Core\\Feeds\\GraphQL\\Enums');
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
             Types\ActivityNode::class,
             Types\NewsfeedConnection::class,

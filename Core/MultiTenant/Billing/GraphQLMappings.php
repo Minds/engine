@@ -16,8 +16,8 @@ class GraphQLMappings extends AbstractGraphQLMappings
      */
     public function register(): void
     {
-        $this->schemaFactory->addControllerNamespace('Minds\Core\MultiTenant\Billing\Controllers');
-        //$this->schemaFactory->addTypeNamespace('Minds\\Core\\MultiTenant\\Configs\\Enums');
+        $this->schemaFactory->addNamespace('Minds\Core\MultiTenant\Billing\Controllers');
+        //$this->schemaFactory->addNamespace('Minds\\Core\\MultiTenant\\Configs\\Enums');
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
             Types\TenantBillingType::class,
         ]));

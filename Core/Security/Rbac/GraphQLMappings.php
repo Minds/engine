@@ -17,8 +17,8 @@ class GraphQLMappings extends AbstractGraphQLMappings
      */
     public function register(): void
     {
-        $this->schemaFactory->addControllerNamespace('Minds\Core\Security\Rbac\Controllers');
-        $this->schemaFactory->addTypeNamespace('Minds\\Core\\Security\\Rbac\\Enums');
+        $this->schemaFactory->addNamespace('Minds\Core\Security\Rbac\Controllers');
+        $this->schemaFactory->addNamespace('Minds\\Core\\Security\\Rbac\\Enums');
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
             Role::class,
             PermissionIntent::class,

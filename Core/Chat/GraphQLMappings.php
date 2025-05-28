@@ -10,8 +10,8 @@ class GraphQLMappings extends AbstractGraphQLMappings
 {
     public function register(): void
     {
-        $this->schemaFactory->addControllerNamespace('Minds\Core\Chat\\Controllers');
-        $this->schemaFactory->addTypeNamespace('Minds\\Core\\Chat\\Enums');
+        $this->schemaFactory->addNamespace('Minds\Core\Chat\\Controllers');
+        $this->schemaFactory->addNamespace('Minds\\Core\\Chat\\Enums');
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
             // Messages
             Types\ChatMessageEdge::class,

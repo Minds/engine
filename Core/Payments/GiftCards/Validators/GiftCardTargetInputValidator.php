@@ -29,7 +29,7 @@ class GiftCardTargetInputValidator implements InputTypeValidatorInterface
         }
 
         if ($input->targetEmail && Validation::isValidEmail($input->targetEmail) === false) {
-            throw new GraphQLException("Invalid target email", 400, null, "Validation", ['field' => 'targetInput']);
+            throw new GraphQLException("Invalid target email", 400, null, ['field' => 'targetInput']);
         }
     }
 }

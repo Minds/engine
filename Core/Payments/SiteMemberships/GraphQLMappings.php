@@ -12,9 +12,9 @@ class GraphQLMappings extends AbstractGraphQLMappings
      */
     public function register(): void
     {
-        $this->schemaFactory->addControllerNamespace('Minds\Core\Payments\SiteMemberships\Controllers');
-        $this->schemaFactory->addTypeNamespace('Minds\Core\Payments\SiteMemberships\Enums');
-        $this->schemaFactory->addTypeNamespace('Minds\Core\Payments\SiteMemberships\Types');
-        $this->schemaFactory->addTypeNamespace('Minds\Core\Payments\SiteMemberships\Types\Factories');
+        $this->schemaFactory->addNamespace('Minds\Core\Payments\SiteMemberships\Controllers');
+        $this->schemaFactory->addNamespace('Minds\Core\Payments\SiteMemberships\Enums');
+        $this->schemaFactory->addNamespace('Minds\Core\Payments\SiteMemberships\Types');
+        $this->schemaFactory->addNamespace('Minds\Core\Payments\SiteMemberships\Types\Factories');
     }
 }

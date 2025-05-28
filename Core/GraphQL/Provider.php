@@ -3,6 +3,7 @@
 namespace Minds\Core\GraphQL;
 
 use GraphQL\Type\Schema;
+use Kcs\ClassFinder\Finder\ComposerFinder;
 use Minds\Core\Data\cache\WorkerCache;
 use Minds\Core\Di\Container;
 use Minds\Core\Di\Di;
@@ -42,8 +43,8 @@ class Provider extends DiProvider
             /**
              * The library requires some default namespaces
              */
-            $factory->addControllerNamespace('Minds\\Core\\GraphQL\\Controllers')
-                ->addTypeNamespace('Minds\\Core\\GraphQL\\Types');
+            $factory->addNamespace('Minds\\Core\\GraphQL\\Controllers')
+                ->addNamespace('Minds\\Core\\GraphQL\\Types');
 
             $factory->setAuthenticationService($di->get(AuthService::class));
 

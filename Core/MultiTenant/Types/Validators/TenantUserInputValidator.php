@@ -41,22 +41,22 @@ class TenantUserInputValidator implements InputTypeValidatorInterface
         try {
             $this->getUsernameLengthValidator()->validate($input->username);
         } catch(StringLengthException $e) {
-            throw new GraphQLException($e->getMessage(), 400, null, "Validation", ['field' => 'username']);
+            throw new GraphQLException($e->getMessage(), 400, null, ['field' => 'username']);
         }
 
         // Check for username collision.
         if (check_user_index_to_guid(strtolower($input->username))) {
-            throw new GraphQLException('Username already exists', 400, null, "Validation", ['field' => 'username']);
+            throw new GraphQLException('Username already exists', 400, null, ['field' => 'username']);
         }
 
         $tenant = $this->getMultiTenantDataService()->getTenantFromId($input->tenantId);
 
         if (!$tenant) {
-            throw new GraphQLException("Invalid tenant provided", 400, null, "Validation", ['field' => 'tenantId']);
+            throw new GraphQLException("Invalid tenant provided", 400, null, ['field' => 'tenantId']);
         }
 
         if ($tenant->ownerGuid !== Session::getLoggedInUserGuid() || !Session::isAdmin()) {
-            throw new GraphQLException("Logged in user is not owner of tenant", 400, null, "Validation", ['field' => 'tenantId']);
+            throw new GraphQLException("Logged in user is not owner of tenant", 400, null, ['field' => 'tenantId']);
         }
     }
 

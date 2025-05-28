@@ -18,8 +18,8 @@ class GraphQLMappings extends AbstractGraphQLMappings
      */
     public function register(): void
     {
-        $this->schemaFactory->addControllerNamespace('Minds\Core\Reports\V2\Controllers');
-        $this->schemaFactory->addTypeNamespace('Minds\\Core\\Reports\\Enums');
+        $this->schemaFactory->addNamespace('Minds\Core\Reports\V2\Controllers');
+        $this->schemaFactory->addNamespace('Minds\\Core\\Reports\\Enums');
 
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
             Report::class,
