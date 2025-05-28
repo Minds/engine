@@ -265,6 +265,8 @@ review:stop:
     - kubectl -n default rollout restart deployment minds-engine-$IMAGE_LABEL
     # Update sentry
     - sentry-cli releases deploys $CI_PIPELINE_ID new -e $IMAGE_LABEL
+  needs:
+    - prepare:all:sentry
 
 deploy:staging:fpm:
   <<: *deploy
