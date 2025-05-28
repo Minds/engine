@@ -10,6 +10,7 @@ use Minds\Core\Feeds\GraphQL\Types\ActivityEdge;
 use Minds\Core\MultiTenant\Enums\FeaturedEntityTypeEnum;
 use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Core\MultiTenant\Services\FeaturedEntityService;
+use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
 
 class TenantGuestModeFeedsService
@@ -18,7 +19,8 @@ class TenantGuestModeFeedsService
         private readonly FeaturedEntityService $featuredEntityService,
         private readonly TenantGuestModeFeedMySQLRepository $tenantGuestModeFeedMySQLRepository,
         private readonly EntitiesBuilder $entitiesBuilder,
-        private readonly Config $config
+        private readonly Config $config,
+        private readonly ACL $acl,
     ) {
     }
 
@@ -73,6 +75,10 @@ class TenantGuestModeFeedsService
     {
         $activity = $this->entitiesBuilder->single($guid);
         if (!($activity instanceof Activity)) {
+            return null;
+        }
+
+        if (!$this->acl->read($activity)) {
             return null;
         }
 

@@ -13,6 +13,7 @@ use Minds\Core\MultiTenant\Services\FeaturedEntityService;
 use Minds\Core\Recommendations\Algorithms\SuggestedChannels\SuggestedChannelsRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Algorithms\SuggestedGroups\SuggestedGroupsRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Injectors\BoostSuggestionInjector;
+use Minds\Core\Security\ACL;
 
 class Provider extends DiProvider
 {
@@ -54,7 +55,8 @@ class Provider extends DiProvider
                 featuredEntityService: $di->get(FeaturedEntityService::class),
                 tenantGuestModeFeedMySQLRepository: $di->get(TenantGuestModeFeedMySQLRepository::class),
                 entitiesBuilder: $di->get('EntitiesBuilder'),
-                config: $di->get('Config')
+                config: $di->get('Config'),
+                acl: $di->get(ACL::class),
             )
         );
     }
