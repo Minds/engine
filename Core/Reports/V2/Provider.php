@@ -16,6 +16,7 @@ use Minds\Core\Reports\V2\Controllers\VerdictController;
 use Minds\Core\Reports\V2\Repositories\ReportRepository;
 use Minds\Core\Reports\V2\Services\ActionService;
 use Minds\Core\Reports\V2\Services\ReportService;
+use Minds\Core\Security\ACL;
 
 class Provider extends DiProvider
 {
@@ -26,7 +27,9 @@ class Provider extends DiProvider
     {
         $this->di->bind(ReportController::class, function (Di $di): ReportController {
             return new ReportController(
-                service: $di->get(ReportService::class)
+                service: $di->get(ReportService::class),
+                entitiesResolver: $di->get(EntitiesResolver::class),
+                acl: $di->get(ACL::class),
             );
         }, ['factory' => true]);
 

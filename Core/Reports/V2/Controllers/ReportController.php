@@ -8,6 +8,10 @@ use Minds\Core\Reports\V2\Services\ReportService;
 use Minds\Core\Reports\V2\Types\ReportInput;
 use Minds\Core\Reports\V2\Types\ReportsConnection;
 use Minds\Entities\User;
+use Minds\Core\Entities\Resolver as EntitiesResolver;
+use Minds\Core\Router\Exceptions\ForbiddenException;
+use Minds\Core\Security\ACL;
+use Minds\Exceptions\NotFoundException;
 use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Mutation;
@@ -20,7 +24,9 @@ use TheCodingMachine\GraphQLite\Annotations\Security;
 class ReportController
 {
     public function __construct(
-        private readonly ReportService $service
+        private readonly ReportService $service,
+        private readonly EntitiesResolver $entitiesResolver,
+        private readonly ACL $acl,
     ) {
     }
 
@@ -60,6 +66,16 @@ class ReportController
         ReportInput $reportInput,
         #[InjectUser] User $loggedInUser // Do not add in docblock as it will break GraphQL
     ): bool {
+        $entity = $this->entitiesResolver->single($reportInput->entityUrn);
+
+        if (!$entity) {
+            throw new NotFoundException();
+        }
+
+        if (!$this->acl->read($entity, $loggedInUser)) {
+            throw new ForbiddenException();
+        }
+
         return $this->service->createNewReport(
             entityUrn: $reportInput->entityUrn,
             reason: $reportInput->reason,

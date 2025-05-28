@@ -104,6 +104,7 @@ class ReportService
         IllegalSubReasonEnum|NsfwSubReasonEnum|SecuritySubReasonEnum|null $subReason = null,
     ): bool {
         $tenantId = $this->getTenantId();
+
         return $this->repository->createNewReport(
             tenantId: $tenantId,
             entityGuid: $this->getEntityGuidFromUrn($entityUrn),
