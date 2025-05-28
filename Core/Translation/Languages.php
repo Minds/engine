@@ -30,7 +30,7 @@ class Languages
 
         $cached = $this->cache->get("translation:languages:{$target}");
         if ($cached !== false) {
-            return $this->sortAndPrependPreferred($cached, $preferred);
+            //return $this->sortAndPrependPreferred($cached, $preferred);
         }
 
         $languages = $this->service->languages($target);

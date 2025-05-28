@@ -8,8 +8,12 @@
 namespace Minds\Core\Translation;
 
 use Minds\Core;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Router\Exceptions\ForbiddenException;
+use Minds\Core\Security\ACL;
 use Minds\Core\Translation\Services\TranslationServiceInterface;
 use Minds\Entities;
+use Minds\Exceptions\NotFoundException;
 use Minds\Helpers\MagicAttributes;
 
 class Translations
@@ -20,12 +24,20 @@ class Translations
 
     const MAX_CONTENT_LENGTH = 5000;
 
-    public function __construct($cache = null, $service = null)
+    public function __construct(
+        $cache = null,
+        $service = null,
+        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?ACL $acl = null, 
+    )
     {
         $di = Core\Di\Di::_();
 
         $this->cache = $cache ?: $di->get('Cache');
         $this->service = $service ?: $di->get('Translation\Service');
+
+        $this->entitiesBuilder ??= $di->get(EntitiesBuilder::class);
+        $this->acl ??= $di->get(ACL::class);
     }
 
     public function translateEntity($guid, $target = null)
@@ -40,7 +52,16 @@ class Translations
             $target = 'en';
         }
 
-        $entity = null; // Lazily-loaded if needed
+        $entity = $this->entitiesBuilder->single($guid);
+
+        if (!$entity) {
+            throw new NotFoundException();
+        }
+        
+        if (!$this->acl->read($entity)) {
+            throw new ForbiddenException();
+        }
+
         $translation = [];
 
         foreach (['message', 'body', 'title', 'blurb', 'description'] as $field) {
@@ -52,14 +73,6 @@ class Translations
                     'content' => $stored['content'],
                     'source' => $stored['source_language'],
                 ];
-                continue;
-            }
-
-            if (!$entity) {
-                $entity = Entities\Factory::build($guid);
-            }
-
-            if (!$entity) {
                 continue;
             }
 
