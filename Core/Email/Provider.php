@@ -16,7 +16,7 @@ class Provider extends DiProvider
     public function register()
     {
         $this->di->bind('Mailer', function ($di) {
-            return new Mailer(new \PHPMailer());
+            return new Mailer(new \PHPMailer\PHPMailer\PHPMailer());
         }, ['useFactory' => true]);
         $this->di->bind('Email\SpamFilter', function ($di) {
             return new SpamFilter();

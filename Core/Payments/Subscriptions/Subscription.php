@@ -12,7 +12,7 @@ use Minds\Traits\MagicAttributes;
 
 /**
  * @method Subscription setTrialDays(int $days)
- * @method int getTrialDays
+ * @method int getTrialDays()
  */
 class Subscription
 {

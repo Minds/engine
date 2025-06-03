@@ -9,7 +9,7 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
 use Minds\Core\Queue\Client as Queue;
-use PHPMailer;
+use PHPMailer\PHPMailer\PHPMailer;
 
 class Mailer
 {

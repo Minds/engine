@@ -16,11 +16,11 @@ use Minds\Traits\MagicAttributes;
  * @method Referral setProspect()
  * @method User getProspect()
  * @method Referral setRegisterTimestamp(int $ts)
- * @method int getRegisterTimestamp
+ * @method int getRegisterTimestamp()
  * @method Referral setJoinTimestamp(int $ts)
- * @method int getJoinTimestamp
+ * @method int getJoinTimestamp()
  * @method Referral setPingTimestamp(int $ts)
- * @method int getPingTimestamp
+ * @method int getPingTimestamp()
 
  */
 class Referral

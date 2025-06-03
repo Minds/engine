@@ -12,7 +12,7 @@ use Minds\Traits\MagicAttributes;
  * @package Minds\Core\Rewards\Withdraw
  * @method string getTx()
  * @method Request setTx(string $tx)
- * @method string getCompletedTx
+ * @method string getCompletedTx()
  * @method Request setCompletedTx(string $completedTx)
  * @method string getAddress()
  * @method Request setAddress(string $address)
