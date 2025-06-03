@@ -11,7 +11,7 @@ use Minds\Traits\MagicAttributes;
  * @method int|string getOwnerGuid()
  * @method Report getReport()
  * @method Appeal setReport(Report $report)
- * @method int getTimestamp
+ * @method int getTimestamp()
  * @method string getNote()
  */
 class Appeal
