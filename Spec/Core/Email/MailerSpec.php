@@ -5,7 +5,7 @@ namespace Spec\Minds\Core\Email;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
-use PHPMailer;
+use PHPMailer\PHPMailer\PHPMailer;
 
 use Minds\Core\Queue\Client as Queue;
 use Minds\Core\Email\SpamFilter;

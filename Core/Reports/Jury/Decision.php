@@ -15,7 +15,7 @@ use Minds\Traits\MagicAttributes;
  * @method Report isAppeal(): boolean
  * @method Report getAction(): string
  * @method Report isUphold(): boolean
- * @method Report getTimestamp: int
+ * @method Report getTimestamp(): int
  * @method User getJuror()
  */
 class Decision

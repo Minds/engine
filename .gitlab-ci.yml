@@ -366,6 +366,9 @@ integration_testing:staging:
   <<: *integration_testing
   needs:
     - deploy:staging:fpm
+  only:
+    variables:
+      - $CI_COMMIT_REF_PROTECTED == "true"
 
 integration_testing:review:
   <<: *integration_testing

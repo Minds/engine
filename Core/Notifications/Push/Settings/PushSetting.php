@@ -8,7 +8,7 @@ use Minds\Traits\MagicAttributes;
 /**
  * @method self setUserGuid(string $userGuid)
  * @method string getUserGuid()
- * @method string getNotificationGroup
+ * @method string getNotificationGroup()
  * @method self setEnabled(bool $enabled)
  * @method bool getEnabled()
  */

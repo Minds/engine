@@ -16,7 +16,7 @@ use Minds\Traits\MagicAttributes;
  * @method string getRoute()
  * @method mixed getBinding()
  * @method RegistryEntry setBinding(mixed $binding)
- * @method string[] getMiddleware[]
+ * @method string[] getMiddleware()
  * @method RegistryEntry setMiddleware(string[] $middleware)
  */
 class RegistryEntry
