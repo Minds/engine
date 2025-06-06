@@ -128,7 +128,7 @@ class ACL
         }
 
         // If logged out and public and not container
-        if (!Core\Session::isLoggedIn()) {
+        if (!$user) {
             $isTenant = !!$this->config->get('tenant');
             $tenantWalledGardenEnabled = ($isTenant && $this->config->get('tenant')?->config?->walledGardenEnabled) ?? false;
 
