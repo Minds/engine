@@ -66,6 +66,7 @@ class Repository extends AbstractRepository
             disableAccountDisclaimer: $row['disable_account_disclaimer'] ?? '',
             deleteAccountDisclaimer: $row['delete_account_disclaimer'] ?? '',
             globalMode: (bool) ($row['global_mode'] ?? false),
+            sessionTimeoutSecs: (int) ($row['session_timeout_secs'] ?? -1),
             lastCacheTimestamp: isset($row['last_cache_timestamp']) ? strtotime($row['last_cache_timestamp']) : null,
             updatedTimestamp: isset($row['updated_timestamp']) ? strtotime($row['updated_timestamp']) : null
         );

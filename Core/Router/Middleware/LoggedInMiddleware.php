@@ -6,6 +6,7 @@
 
 namespace Minds\Core\Router\Middleware;
 
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Security\XSRF;
 use Psr\Http\Message\ResponseInterface;
@@ -37,12 +38,12 @@ class LoggedInMiddleware implements MiddlewareInterface
      * @param ServerRequestInterface $request
      * @param RequestHandlerInterface $handler
      * @return ResponseInterface
-     * @throws UnauthorizedException
+     * @throws ForbiddenException
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         if (!$request->getAttribute($this->attributeName)) {
-            throw new UnauthorizedException();
+            throw new ForbiddenException();
         }
 
         return $handler

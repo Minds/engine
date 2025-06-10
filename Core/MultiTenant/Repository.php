@@ -100,6 +100,7 @@ class Repository extends AbstractRepository
                 'disable_account_disclaimer',
                 'delete_account_disclaimer',
                 'global_mode',
+                'session_timeout_secs',
             ])
             ->where('deleted_timestamp', Operator::IS, null);
     }
@@ -138,6 +139,7 @@ class Repository extends AbstractRepository
         $disableAccountDisclaimer = $row['disable_account_disclaimer'] ?? '';
         $deleteAccountDisclaimer = $row['delete_account_disclaimer'] ?? '';
         $globalMode = (bool) ($row['global_mode'] ?? false);
+        $sessionTimeoutSecs = (int) ($row['session_timeout_secs'] ?? -1);
 
         return new Tenant(
             id: $tenantId,
@@ -168,6 +170,7 @@ class Repository extends AbstractRepository
                 disableAccountDisclaimer: $disableAccountDisclaimer,
                 deleteAccountDisclaimer: $deleteAccountDisclaimer,
                 globalMode: $globalMode,
+                sessionTimeoutSecs: $sessionTimeoutSecs,
             ),
             plan: TenantPlanEnum::fromString($plan),
             trialStartTimestamp: $trialStartTimestamp ? strtotime($trialStartTimestamp) : null,
