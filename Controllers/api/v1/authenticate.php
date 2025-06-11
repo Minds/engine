@@ -115,7 +115,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
             if (!$passwordSvc->check($user, $password)) {
                 $attempts->logFailure();
                 header('HTTP/1.1 401 Unauthorized', true, 401);
-                return Factory::response(['status' => 'failed']);
+                return Factory::response(['status' => 'failed', 'errorId' => 'Minds::Core::Authentication::InvalidCredentialsException']);
             }
         } catch (Core\Security\Exceptions\PasswordRequiresHashUpgradeException $e) {
             $user->password = Core\Security\Password::generate($user, $password);

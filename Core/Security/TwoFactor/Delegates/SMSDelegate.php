@@ -7,7 +7,6 @@ namespace Minds\Core\Security\TwoFactor\Delegates;
 use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
 use Minds\Core\Log;
-use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Security\TwoFactor as TwoFactorService;
 use Minds\Core\Security\TwoFactor\TwoFactorInvalidCodeException;
 use Minds\Core\Security\TwoFactor\TwoFactorRequiredException;

@@ -16,7 +16,6 @@ use Minds\Core\Media\Audio\AudioService;
 use Minds\Core\Monetization\Demonetization\Validators\DemonetizedPlusValidator;
 use Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services\CreatePaywalledEntityService;
 use Minds\Core\Router\Exceptions\ForbiddenException;
-use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\ACL;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
@@ -66,7 +65,7 @@ class Controller
      * @return JsonResponse
      * @throws CreateActivityFailedException
      * @throws ServerErrorException
-     * @throws UnauthorizedException
+     * @throws ForbiddenException
      * @throws UserErrorException
      * @throws LockFailedException
      * @throws UnverifiedEmailException
@@ -136,7 +135,7 @@ class Controller
             // throw and error return response if acl interaction check fails.
 
             if (!$this->acl->interact($remind, $user)) {
-                throw new UnauthorizedException();
+                throw new ForbiddenException();
             }
 
             $shouldBeQuotedPost = $payload['message'] || (

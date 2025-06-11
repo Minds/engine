@@ -20,6 +20,7 @@ class MultiTenantConfig
     /**
      * @param bool $globalMode - Global mode will make the newsfeed show all posts on the network and
      * be auto enabled into post notifications
+     * @param int $sessionTimeoutSecs - The time in seconds that a session should timeout after. -1 will use the application default.
      */
     public function __construct(
         #[Field] public readonly ?string $siteName = null,
@@ -43,6 +44,7 @@ class MultiTenantConfig
         #[Field] public readonly ?string $disableAccountDisclaimer = null,
         #[Field] public readonly ?string $deleteAccountDisclaimer = null,
         #[Field] public readonly ?bool $globalMode = false,
+        #[Field] public readonly ?int $sessionTimeoutSecs = -1,
         #[Field] public readonly ?int $updatedTimestamp = null,
         #[Field] public readonly ?int $lastCacheTimestamp = null
     ) {

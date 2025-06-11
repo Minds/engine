@@ -4,7 +4,7 @@ namespace Minds\Core\Router\Middleware;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
-use Minds\Core\Router\Exceptions\UnauthorizedException;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\XSRF;
 use Minds\Exceptions\InactiveFeatureFlagException;
 use Psr\Http\Message\ResponseInterface;
@@ -36,7 +36,7 @@ class FeatureFlagMiddleware implements MiddlewareInterface
      * @param RequestHandlerInterface $handler
      * @return ResponseInterface
      * @throws InactiveFeatureFlagException
-     * @throws UnauthorizedException
+     * @throws ForbiddenException
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -45,7 +45,7 @@ class FeatureFlagMiddleware implements MiddlewareInterface
             !$loggedInUser ||
             (!call_user_func($this->xsrfValidateRequest, $request) && !$request->getAttribute('oauth_user_id'))
         ) {
-            throw new UnauthorizedException();
+            throw new ForbiddenException();
         }
 
         $this->experimentsManager->setUser($loggedInUser);

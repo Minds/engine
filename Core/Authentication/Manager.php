@@ -14,7 +14,6 @@ use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Features\Canary;
-use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Security\Exceptions\PasswordRequiresHashUpgradeException;
 use Minds\Core\Security\Exceptions\UserNotSetupException;
 use Minds\Core\Security\LoginAttempts;
@@ -60,7 +59,7 @@ class Manager
      * @throws NotFoundException
      * @throws TwoFactorInvalidCodeException
      * @throws TwoFactorRequiredException
-     * @throws UnauthorizedException
+     * @throws InvalidCredentialsException
      * @throws UserNotSetupException
      * @throws RedisException
      */
@@ -97,7 +96,7 @@ class Manager
         try {
             if (!$this->getPasswordSecurityService()->check($user, $password)) {
                 $this->loginAttempts->logFailure();
-                throw new UnauthorizedException();
+                throw new InvalidCredentialsException();
             }
         } catch (PasswordRequiresHashUpgradeException $e) {
             $user->password = PasswordSecurityService::generate($user, $password);

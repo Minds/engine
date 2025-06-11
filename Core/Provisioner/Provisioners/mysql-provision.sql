@@ -1274,3 +1274,7 @@ CREATE TABLE IF NOT EXISTS minds_audit_log
 ALTER TABLE `minds_tenant_configs`
     ADD global_mode boolean DEFAULT FALSE
     AFTER delete_account_disclaimer;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD session_timeout_secs int DEFAULT -1
+    AFTER global_mode;
