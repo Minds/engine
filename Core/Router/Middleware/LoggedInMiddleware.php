@@ -7,7 +7,6 @@
 namespace Minds\Core\Router\Middleware;
 
 use Minds\Core\Router\Exceptions\ForbiddenException;
-use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Security\XSRF;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

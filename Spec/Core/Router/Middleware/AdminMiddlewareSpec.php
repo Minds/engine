@@ -3,7 +3,6 @@
 namespace Spec\Minds\Core\Router\Middleware;
 
 use Minds\Core\Router\Exceptions\ForbiddenException;
-use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Router\Middleware\AdminMiddleware;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -56,7 +55,7 @@ class AdminMiddlewareSpec extends ObjectBehavior
 
         $this
             ->setAttributeName('_phpspec_user')
-            ->shouldThrow(UnauthorizedException::class)
+            ->shouldThrow(ForbiddenException::class)
             ->duringProcess($request, $handler);
     }
 

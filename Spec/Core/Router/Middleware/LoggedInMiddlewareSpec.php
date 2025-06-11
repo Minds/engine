@@ -3,7 +3,6 @@
 namespace Spec\Minds\Core\Router\Middleware;
 
 use Minds\Core\Router\Exceptions\ForbiddenException;
-use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Router\Middleware\LoggedInMiddleware;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;

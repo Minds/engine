@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Router\Middleware;
 
 use Minds\Core\Di\Di;
-use Minds\Core\Router\Exceptions\UnauthorizedException;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Exceptions\RbacNotAllowed;
 use Minds\Core\Security\Rbac\Services\RolesService;
@@ -46,7 +46,7 @@ class PermissionsMiddleware implements MiddlewareInterface
         $loggedInUser = $request->getAttribute('_user');
 
         if (!$loggedInUser) {
-            throw new UnauthorizedException('User not logged in.');
+            throw new ForbiddenException('User not logged in.');
         }
 
         if (!$this->rolesService->hasPermission($loggedInUser, $this->permission)) {

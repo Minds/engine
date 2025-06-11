@@ -6,7 +6,6 @@ use Minds\Core\ActivityPub\Services\FederationEnabledService;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Router\Exceptions\ForbiddenException;
-use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;

@@ -5,7 +5,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Media\Imagick;
 use Minds\Core\Media\Thumbnails;
-use Minds\Core\Router\Exceptions\UnauthorizedException;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
 use Minds\Exceptions\NotFoundException;
@@ -54,7 +54,7 @@ class OgImagesController
             $owner = $this->entitiesBuilder->single($activity->getOwnerGuid());
 
             if (!$this->acl->read($activity)) {
-                throw new UnauthorizedException();
+                throw new ForbiddenException();
             }
 
             if ($activity->getSupermind() && $activity->getMessage()) {
