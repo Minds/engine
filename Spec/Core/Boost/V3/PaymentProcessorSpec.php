@@ -20,7 +20,7 @@ use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
 use Minds\Core\Payments\V2\Enums\FreePaymentMethodEnum;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
-use Minds\Core\Router\Exceptions\UnauthorizedException;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Prophecy\Argument;
 
 class PaymentProcessorSpec extends ObjectBehavior
@@ -182,6 +182,6 @@ class PaymentProcessorSpec extends ObjectBehavior
           ->shouldBeCalled()
           ->willReturn(false);
 
-        $this->shouldThrow(new UnauthorizedException('Only admins can create free admin Boosts'))->duringSetupBoostPayment($boost, $user, $paymentDetails);
+        $this->shouldThrow(new ForbiddenException('Only admins can create free admin Boosts'))->duringSetupBoostPayment($boost, $user, $paymentDetails);
     }
 }

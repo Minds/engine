@@ -102,7 +102,13 @@ class Router
             $session = Di::_()->get('Sessions\Manager');
             $session->withRouterRequest($request);
         } catch (UnauthorizedException $e) {
-            // Proceed with no session...
+            http_response_code(403);
+            header('HTTP/1.1 401 Unauthorized', true, 401);
+            echo json_encode([
+                'status' => 'error',
+                'logged_in' => false,
+            ]);
+            exit;
         }
 
         // OAuth Middleware

@@ -2,7 +2,7 @@
 
 namespace Spec\Minds\Core\Router\Middleware;
 
-use Minds\Core\Router\Exceptions\UnauthorizedException;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Middleware\LoggedInMiddleware;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -39,7 +39,7 @@ class LoggedInMiddlewareSpec extends ObjectBehavior
             ->shouldReturn($response);
     }
 
-    public function it_should_throw_unauthorized_if_no_user_during_process(
+    public function it_should_throw_forbidden_if_no_user_during_process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler
     ) {
@@ -52,7 +52,7 @@ class LoggedInMiddlewareSpec extends ObjectBehavior
 
         $this
             ->setAttributeName('_phpspec_user')
-            ->shouldThrow(UnauthorizedException::class)
+            ->shouldThrow(ForbiddenException::class)
             ->duringProcess($request, $handler);
     }
 

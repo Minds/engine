@@ -17,7 +17,6 @@ use Lcobucci\JWT\Signer\Key\LocalFileReference;
 use Lcobucci\JWT\Signer\Rsa\Sha512;
 use Lcobucci\JWT\Token\Plain;
 use Lcobucci\JWT\Validation\Constraint\SignedWith;
-use Minds\Common\Repository\Response;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Entities\User;
 use Psr\Http\Message\RequestInterface;
@@ -132,7 +131,12 @@ class Manager
             return $this;
         }
 
-        return $this->withString((string) $cookies['minds_sess']);
+        try {
+            return $this->withString((string) $cookies['minds_sess']);
+        } catch (UnauthorizedException $e) {
+            $this->removeFromClient();
+            throw $e;
+        }
     }
 
     /**
@@ -224,8 +228,15 @@ class Manager
             return false;
         }
 
-        // Update the last active and timestamp, if validated past 15 mins
-        if ($validated->getLastActive() < time() - 1500) {
+        // If the last active checkpoint was greater than the session timeout
+        // then the session has expired
+        if ($this->config->get('tenant')?->config->sessionTimeoutSecs > -1
+            && $validated->getLastActive() + $this->config->get('tenant')?->config->sessionTimeoutSecs < time()) {
+            return false;
+        }
+
+        // Update the last active and timestamp, if validated past 60 seconds
+        if ($validated->getLastActive() < time() - 60) {
             $session->setLastActive(time());
             $session->setIp($this->ipAddress->get());
             $this->repository->update($session, [ 'last_active', 'ip' ]);
@@ -291,7 +302,7 @@ class Manager
         $this->cookie
             ->setName('minds_sess')
             ->setValue($token)
-            ->setExpire($this->session->getExpires())
+            ->setExpire($this->config->get('tenant')?->config->sessionTimeoutSecs > -1 ? null : $this->session->getExpires()) // If session timeout is enabled, only use session cookies
             ->setSecure(true) //only via ssl
             ->setHttpOnly(true) //never by browser
             ->setSameSite('None')

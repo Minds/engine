@@ -5,8 +5,8 @@
 namespace Minds\Core\Security\TwoFactor\Delegates;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\TOTP;
-use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Security\TwoFactor as TwoFactorService;
 use Minds\Core\Security\TwoFactor\TwoFactorRequiredException;
 use Minds\Core\Security\TwoFactor\TwoFactorInvalidCodeException;
@@ -50,7 +50,7 @@ class TOTPDelegate implements TwoFactorDelegateInterface
         $totpSecret = $this->totpManager->get($opts);
 
         if (!$totpSecret) {
-            throw new UnauthorizedException("TOTP device not found for user");
+            throw new ForbiddenException("TOTP device not found for user");
         }
 
         if (!$this->twoFactorService->verifyCode($totpSecret->getSecret(), $code)) {

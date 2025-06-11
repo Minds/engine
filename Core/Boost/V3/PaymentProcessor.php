@@ -34,7 +34,7 @@ use Minds\Core\Payments\V2\Exceptions\InvalidPaymentMethodException;
 use Minds\Core\Payments\V2\Exceptions\PaymentNotFoundException;
 use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
-use Minds\Core\Router\Exceptions\UnauthorizedException;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -137,7 +137,7 @@ class PaymentProcessor
      * @throws BoostCashPaymentSetupFailedException
      * @throws GiftCardInsufficientFundsException
      * @throws ServerErrorException
-     * @throws UnauthorizedException
+     * @throws ForbiddenException
      * @throws GiftCardNotFoundException
      */
     private function setupCashPaymentIntent(Boost $boost, PaymentDetails $paymentDetails, User $user): bool
@@ -162,7 +162,7 @@ class PaymentProcessor
 
         if (FreePaymentMethodEnum::tryFrom($boost->getPaymentMethodId())) {
             if (!$user->isAdmin()) {
-                throw new UnauthorizedException('Only admins can create free admin Boosts');
+                throw new ForbiddenException('Only admins can create free admin Boosts');
             }
             $boost->setPaymentTxId(FreePaymentMethodEnum::FREE_ADMIN_BOOST->value);
             return true;
