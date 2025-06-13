@@ -80,7 +80,6 @@ class BoostViewEventStreamSubscription implements BatchSubscriptionInterface
             $tenantId = $messageData->tenant_id;
             $boostGuid = Urn::_($messageData->cm_campaign)->getNss();
 
-            $this->logger->info("--------------------");
             $this->logger->info(
                 "Start processing boost view event for boost $boostGuid and tenantId $tenantId",
                 (array) $messageData
@@ -100,7 +99,6 @@ class BoostViewEventStreamSubscription implements BatchSubscriptionInterface
 
             $this->getTopic()->markMessageAsProcessed($message);
             $this->logger->info("Marked boost  view event as processed", (array) $messageData);
-            $this->logger->info("--------------------");
         }
 
         return true;
