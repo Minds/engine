@@ -8,6 +8,10 @@ RUN apk update \
     && apk add aws-cli \
     && rm -rf /var/cache/apk/*
 
+# Stop pulsar cpp complaining¬
+ENV CFLAGS="-Wno-error=array-bounds" \
+    CXXFLAGS="-Wno-error=array-bounds"
+
 RUN apk add --virtual build-deps \
     libzip-dev \
     libpng-dev \
@@ -193,6 +197,7 @@ RUN apk add --virtual build-deps \
     && cd .. \
     # Pulsar CPP Client
     && export INSTALL_DIR=/usr/src/pulsar-client-cpp \
+    && apk add protobuf-dev \
     && git clone --depth 1 https://github.com/apache/pulsar-client-cpp.git $INSTALL_DIR \
     && echo "cloned" \
     && cd $INSTALL_DIR \
@@ -203,7 +208,6 @@ RUN apk add --virtual build-deps \
     && cd .. \
     # Pulsar PHP Client
     && export INSTALL_DIR=/usr/src/pulsar-php-client \
-    && apk add protobuf-dev \
     && git clone https://gitlab.com/minds/pulsar-php-client $INSTALL_DIR \
     && cd $INSTALL_DIR \
     && make -j4 \
