@@ -88,6 +88,9 @@ class Comment extends RepositoryEntity implements EntityInterface, FederatedEnti
     protected $ownerGuid;
 
     /** @var int */
+    protected $containerGuid;
+
+    /** @var int */
     protected $timeCreated;
 
     /** @var int */
