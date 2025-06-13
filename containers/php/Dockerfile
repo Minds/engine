@@ -1,4 +1,4 @@
-FROM php:8.2-fpm-alpine3.21
+FROM php:8.2-fpm-alpine3.22
 
 
 # Install AWS CLI
