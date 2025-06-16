@@ -117,7 +117,7 @@ class Manager
 
                 $ranking->setRank($targetAudience, $rank);
 
-                $this->logger->info("Setting {$boost->guid} rank to $rank", [
+                $this->logger->debug("Setting {$boost->guid} rank to $rank", [
                     'totalViews' => $totalViews,
                     'target' => $viewsTarget,
                     'actual' => $viewsActual,
