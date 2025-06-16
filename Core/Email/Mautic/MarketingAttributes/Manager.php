@@ -113,7 +113,7 @@ class Manager
                     $this->repository->add($contact->getUserGuid(), $k, $v);
                 }
 
-                $this->logger->info("$i: (" . get_class($list) . ") {$export['first_name']}");
+                $this->logger->debug("$i: (" . get_class($list) . ") {$export['first_name']}");
             }
         }
     }
