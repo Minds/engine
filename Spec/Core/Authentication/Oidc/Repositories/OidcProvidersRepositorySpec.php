@@ -61,6 +61,7 @@ class OidcProvidersRepositorySpec extends ObjectBehavior
                 'issuer' => 'https://phpspec.local',
                 'client_id' => 'phpspec',
                 'client_secret' => 'secrets',
+                'configs' => null,
             ],
             [
                 'provider_id' => 2,
@@ -68,6 +69,7 @@ class OidcProvidersRepositorySpec extends ObjectBehavior
                 'issuer' => 'https://phpspec.local',
                 'client_id' => 'phpspec',
                 'client_secret' => 'secrets',
+                'configs' => json_encode(['foo' => 'bar'])
             ]
         ]);
 
@@ -80,6 +82,7 @@ class OidcProvidersRepositorySpec extends ObjectBehavior
         $result[0]->issuer->shouldBe('https://phpspec.local');
         $result[0]->clientId->shouldBe('phpspec');
         $result[0]->clientSecretCipherText->shouldBe('secrets');
+        $result[0]->configs->shouldBe([]);
 
         $result[1]->shouldBeAnInstanceOf(OidcProvider::class);
         $result[1]->id->shouldBe(2);
@@ -87,5 +90,6 @@ class OidcProvidersRepositorySpec extends ObjectBehavior
         $result[1]->issuer->shouldBe('https://phpspec.local');
         $result[1]->clientId->shouldBe('phpspec');
         $result[1]->clientSecretCipherText->shouldBe('secrets');
+        $result[1]->configs->shouldBe([ 'foo' => 'bar' ]);
     }
 }

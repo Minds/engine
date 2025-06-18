@@ -1278,3 +1278,6 @@ ALTER TABLE `minds_tenant_configs`
 ALTER TABLE `minds_tenant_configs`
     ADD session_timeout_secs int DEFAULT -1
     AFTER global_mode;
+
+ALTER TABLE `minds_oidc_providers`
+    ADD configs json DEFAULT NULL;

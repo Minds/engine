@@ -40,13 +40,15 @@ class OidcProvidersService
         string $issuer,
         string $clientId,
         string $clientSecret,
+        array $configs,
     ): OidcProvider {
         $provider =  new OidcProvider(
             id: null,
             name: $name,
             issuer: $issuer,
             clientId: $clientId,
-            clientSecretCipherText: $this->vaultTransitService->encrypt($clientSecret)
+            clientSecretCipherText: $this->vaultTransitService->encrypt($clientSecret),
+            configs: $configs
         );
         return $this->oidcProvidersRepository->addProvider($provider);
     }
@@ -57,10 +59,11 @@ class OidcProvidersService
      */
     public function updateProvider(
         int $id,
-        string $name = null,
-        string $issuer = null,
-        string $clientId = null,
-        string $clientSecret = null,
+        ?string $name = null,
+        ?string $issuer = null,
+        ?string $clientId = null,
+        ?string $clientSecret = null,
+        ?array $configs = null,
     ): OidcProvider {
         return $this->oidcProvidersRepository->updateProvider(
             providerId: $id,
@@ -68,6 +71,7 @@ class OidcProvidersService
             issuer: $issuer,
             clientId: $clientId,
             clientSecret: $clientSecret ? $this->vaultTransitService->encrypt($clientSecret) : null,
+            configs: $configs,
         );
     }
 

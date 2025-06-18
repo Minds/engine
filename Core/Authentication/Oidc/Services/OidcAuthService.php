@@ -51,6 +51,10 @@ class OidcAuthService
 
         $authUrl = $openIdConfiguration['authorization_endpoint'];
 
+        $supportedScopes = $this->eventsDispatcher->trigger('oidc:getSupportedScopes', 'all', [
+            'provider' => $provider
+        ], []) ?: $openIdConfiguration['scopes_supported'];
+
         $scopes = array_intersect([
             'openid',
             'profile',
@@ -59,7 +63,7 @@ class OidcAuthService
             ... $this->eventsDispatcher->trigger('oidc:getScopes', 'all', [
                 'provider' => $provider
             ], []) ?: []
-        ], $openIdConfiguration['scopes_supported'] ?? []);
+        ], $supportedScopes);
 
         $queryParams = http_build_query([
             'response_type' => 'code',
@@ -95,36 +99,49 @@ class OidcAuthService
         
         $body = $response->getBody()->getContents();
         $data = json_decode($body, true);
-        error_log($body);
-
-        // Decode the id_token field
 
         // Tap into the OAuth integrations hook, if possible, instead of getting profile
-        // data from the id token
-        
+        // data from the id token or userinfo_endpoint
+
         if ($eventResponse = $this->eventsDispatcher->trigger('oidc:getRemoteUser', 'all', [
             'provider' => $provider,
+            'openid_configuration' => $openIdConfiguration,
             'oauth_token_response' => $data,
         ])) {
-            $jwtDecoded = $eventResponse;
+            $userInfo = $eventResponse;
         } else {
             $jwkKeySet = $this->getJwkKeySet($openIdConfiguration);
 
-            $jwtDecoded = JWT::decode($data['id_token'], $jwkKeySet);
+            $userInfo = JWT::decode($data['id_token'], $jwkKeySet);
+
+            // If a userinfo_endpoint is available, prefer this over the id_token
+            // as it contains more data
+            if (isset($openIdConfiguration['userinfo_endpoint'])) {
+                $userInfoResponse = $this->httpClient->get(
+                    uri: $openIdConfiguration['userinfo_endpoint'],
+                    options: [
+                        'headers' => [
+                            'Authorization' => 'Bearer ' . $data['access_token'],
+                        ]
+                    ]
+                );
+                $userInfoBody = $userInfoResponse->getBody()->getContents();
+                $userInfo = json_decode($userInfoBody);
+            }
         }
 
-        $sub = $jwtDecoded->sub;
+        $sub = $userInfo->sub;
 
-        $preferredUsername = $jwtDecoded->preferred_username ?? (str_replace(' ', '', $jwtDecoded->name));
+        $preferredUsername = $userInfo->preferred_username ?? (str_replace(' ', '', $userInfo->name));
 
         // Check the 'sub' to see if this account is already linked
         $user = $this->oidcUserService->getUserFromSub($sub, $provider->id);
 
-        if (!isset($jwtDecoded->name)) {
-            if (isset($jwtDecoded->given_name)) {
-                $jwtDecoded->name = $jwtDecoded->given_name;
+        if (!isset($userInfo->name)) {
+            if (isset($userInfo->given_name)) {
+                $userInfo->name = $userInfo->given_name;
             } else {
-                $jwtDecoded->name = $preferredUsername;
+                $userInfo->name = $preferredUsername;
             }
         }
 
@@ -135,8 +152,8 @@ class OidcAuthService
                 sub: $sub,
                 providerId: $provider->id,
                 preferredUsername: $preferredUsername,
-                displayName: $jwtDecoded->name,
-                email: $jwtDecoded->email,
+                displayName: $userInfo->name,
+                email: $userInfo->email,
             );
         }
 

@@ -32,7 +32,7 @@ class EventsSpec extends ObjectBehavior
     public function it_should_not_return_config_if_not_memberspace(Event $eventMock)
     {
         $eventMock->getParameters()->willReturn([
-            'provider' => new OidcProvider(1, 'not memberspace', 'https://minds.com', '1', 'cipherText')
+            'provider' => new OidcProvider(1, 'not memberspace', 'https://minds.com', '1', 'cipherText', [])
         ]);
 
         $eventMock->setResponse()->shouldNotBeCalled();
@@ -44,7 +44,7 @@ class EventsSpec extends ObjectBehavior
     public function it_should_return_config_if_memberspace(Event $eventMock)
     {
         $eventMock->getParameters()->willReturn([
-            'provider' => new OidcProvider(1, 'memberspace', 'https://minds.memberspace.com', '1', 'cipherText')
+            'provider' => new OidcProvider(1, 'memberspace', 'https://minds.memberspace.com', '1', 'cipherText', [])
         ]);
 
         $eventMock->setResponse([
@@ -59,7 +59,7 @@ class EventsSpec extends ObjectBehavior
     public function it_should_return_scopes(Event $eventMock)
     {
         $eventMock->getParameters()->willReturn([
-            'provider' => new OidcProvider(1, 'memberspace', 'https://minds.memberspace.com', '1', 'cipherText')
+            'provider' => new OidcProvider(1, 'memberspace', 'https://minds.memberspace.com', '1', 'cipherText', [])
         ]);
 
         $eventMock->setResponse(['read.account'])->shouldBeCalled();
@@ -70,7 +70,7 @@ class EventsSpec extends ObjectBehavior
     public function it_should_return_remote_user(Event $eventMock)
     {
         $eventMock->getParameters()->willReturn([
-            'provider' => new OidcProvider(1, 'memberspace', 'https://minds.memberspace.com', '1', 'cipherText'),
+            'provider' => new OidcProvider(1, 'memberspace', 'https://minds.memberspace.com', '1', 'cipherText', []),
             'oauth_token_response' => [
                 'access_token' => 'accessTokenHere'
             ]

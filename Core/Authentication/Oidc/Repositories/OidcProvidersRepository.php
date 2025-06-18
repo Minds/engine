@@ -27,6 +27,7 @@ class OidcProvidersRepository extends AbstractRepository
                 'issuer',
                 'client_id',
                 'client_secret',
+                'configs',
             ])
             ->from(self::TABLE_NAME);
 
@@ -71,6 +72,7 @@ class OidcProvidersRepository extends AbstractRepository
                 'issuer' => new RawExp(':issuer'),
                 'client_id' => new RawExp(':client_id'),
                 'client_secret' => new RawExp(':client_secret'),
+                'configs' => new RawExp(':configs'),
             ])
             ->prepare();
 
@@ -79,6 +81,7 @@ class OidcProvidersRepository extends AbstractRepository
             'issuer' => $provider->issuer,
             'client_id'  => $provider->clientId,
             'client_secret' => $provider->clientSecretCipherText,
+            'configs' => $provider->configs,
         ]);
 
         $providerId = $this->mysqlClientWriter->lastInsertId();
@@ -89,6 +92,7 @@ class OidcProvidersRepository extends AbstractRepository
             issuer: $provider->issuer,
             clientId: $provider->clientId,
             clientSecretCipherText: $provider->clientSecretCipherText,
+            configs: $provider->configs,
         );
     }
 
@@ -97,10 +101,11 @@ class OidcProvidersRepository extends AbstractRepository
      */
     public function updateProvider(
         int $providerId,
-        string $name = null,
-        string $issuer = null,
-        string $clientId = null,
-        string $clientSecret = null,
+        ?string $name = null,
+        ?string $issuer = null,
+        ?string $clientId = null,
+        ?string $clientSecret = null,
+        ?array $configs = null,
     ): OidcProvider {
         $this->beginTransaction();
 
@@ -120,6 +125,10 @@ class OidcProvidersRepository extends AbstractRepository
 
         if ($clientSecret) {
             $updatedFields['client_secret'] = $clientSecret;
+        }
+
+        if ($configs) {
+            $updatedFields['configs'] = json_encode($configs);
         }
 
         $set = [];
@@ -166,6 +175,7 @@ class OidcProvidersRepository extends AbstractRepository
             issuer: $row['issuer'],
             clientId: $row['client_id'],
             clientSecretCipherText: $row['client_secret'],
+            configs: json_decode($row['configs'], true) ?: [],
         );
     }
 }

@@ -9,6 +9,7 @@ class OidcProvider
         public readonly string $issuer,
         public readonly string $clientId,
         public readonly string $clientSecretCipherText,
+        public readonly array $configs,
     ) {
         
     }
