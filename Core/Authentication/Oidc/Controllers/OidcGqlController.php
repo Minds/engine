@@ -36,6 +36,7 @@ class OidcGqlController
 
     /**
      * Adds an oidc provider
+     * @param string[] $configs
      */
     #[Mutation]
     #[Logged]
@@ -53,7 +54,7 @@ class OidcGqlController
             issuer: $issuer,
             clientId: $clientId,
             clientSecret: $clientSecret,
-            configs: []
+            configs: $configs,
         );
 
         return new OidcProviderPublic($provider, $this->config);
@@ -62,6 +63,7 @@ class OidcGqlController
     
     /**
      * Update an oidc provider
+     * @param string[] $configs
      */
     #[Mutation]
     #[Logged]
