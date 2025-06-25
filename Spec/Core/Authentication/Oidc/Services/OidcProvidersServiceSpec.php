@@ -40,6 +40,7 @@ class OidcProvidersServiceSpec extends ObjectBehavior
                     issuer: 'https://phpspec.local',
                     clientId: 'phpspec',
                     clientSecretCipherText: '',
+                    configs: [],
                 ),
                 new OidcProvider(
                     id: 2,
@@ -47,6 +48,7 @@ class OidcProvidersServiceSpec extends ObjectBehavior
                     issuer: 'https://phpspec.local',
                     clientId: 'phpspec',
                     clientSecretCipherText: '',
+                    configs: [],
                 ),
             ]);
 
@@ -67,6 +69,7 @@ class OidcProvidersServiceSpec extends ObjectBehavior
                     issuer: 'https://phpspec.local',
                     clientId: 'phpspec',
                     clientSecretCipherText: '',
+                    configs: [],
                 ),
             ]);
 
@@ -94,9 +97,10 @@ class OidcProvidersServiceSpec extends ObjectBehavior
                 issuer: 'issuer',
                 clientId: 'client_id',
                 clientSecretCipherText: 'cipher_text',
+                configs: [],
             ));
     
-        $result = $this->addProvider('name', 'issuer', 'client_id', 'client_secret_raw');
+        $result = $this->addProvider('name', 'issuer', 'client_id', 'client_secret_raw', []);
         $result->shouldBeAnInstanceOf(OidcProvider::class);
     }
 
