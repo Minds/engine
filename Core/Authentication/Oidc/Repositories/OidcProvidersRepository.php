@@ -92,7 +92,7 @@ class OidcProvidersRepository extends AbstractRepository
             issuer: $provider->issuer,
             clientId: $provider->clientId,
             clientSecretCipherText: $provider->clientSecretCipherText,
-            configs: $provider->configs,
+            configs: json_encode($provider->configs),
         );
     }
 
