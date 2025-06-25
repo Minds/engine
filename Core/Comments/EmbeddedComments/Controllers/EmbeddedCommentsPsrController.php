@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Comments\EmbeddedComments\Controllers;
 
+use Minds\Core\Router\Enums\RequestAttributeEnum;
 use Zend\Diactoros\Response\HtmlResponse;
 use Zend\Diactoros\ServerRequest;
 
@@ -14,9 +15,10 @@ class EmbeddedCommentsPsrController
      */
     public function closeWindow(ServerRequest $request): HtmlResponse
     {
+        $cspNonce = $request->getAttribute(RequestAttributeEnum::CSP_NONCE);
         return new HtmlResponse(
             <<<HTML
-<script>window.close();</script>
+<script nonce="$cspNonce">window.close();</script>
 <p>Please close this window/tab.</p>
 HTML
         );

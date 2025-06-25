@@ -60,6 +60,7 @@ class Router
             ->pipe(new Kernel\CorsMiddleware())
             ->pipe(new Kernel\JsonPayloadMiddleware())
             ->pipe(new Kernel\FrameSecurityMiddleware())
+            ->pipe(new Kernel\ContentSecurityPolicyMiddleware())
             ->pipe(
                 (new Kernel\SessionMiddleware())
                     ->setAttributeName('_user')

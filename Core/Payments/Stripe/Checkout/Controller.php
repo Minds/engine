@@ -2,6 +2,7 @@
 namespace Minds\Core\Payments\Stripe\Checkout;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Router\Enums\RequestAttributeEnum;
 use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response\HtmlResponse;
@@ -39,9 +40,10 @@ class Controller
      */
     public function closeWindow(ServerRequest $request): HtmlResponse
     {
+        $cspNonce = $request->getAttribute(RequestAttributeEnum::CSP_NONCE);
         return new HtmlResponse(
             <<<HTML
-<script>window.close();</script>
+<script nonce="$cspNonce">window.close();</script>
 <p>Please close this window/tab.</p>
 HTML
         );

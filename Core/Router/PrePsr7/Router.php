@@ -12,7 +12,10 @@ use Zend\Diactoros\ServerRequestFactory;
 use Minds\Core\Security;
 use Minds\Core\page;
 use Minds\Core\Referrals\ReferralCookie;
+use Minds\Core\Router\Dispatcher;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
+use Minds\Core\Router\Middleware\Kernel\ContentSecurityPolicyMiddleware;
+use Minds\Core\Router\Middleware\Kernel\FrameSecurityMiddleware;
 use Minds\Core\Supermind\AutoSupermindRouterMiddleware;
 
 /**
@@ -33,7 +36,6 @@ class Router
         '/fs' => 'Minds\\Controllers\\fs\\fs',
         '/thumbProxy' => 'Minds\\Controllers\\thumbProxy',
         '/wall' => 'Minds\\Controllers\\Legacy\\wall',
-        '/not-supported' => "Minds\Controllers\\notSupported",
         //  "/app" => "minds\\pages\\app",
         '/emails/unsubscribe' => 'Minds\\Controllers\\emails\\unsubscribe',
         '/checkout' => '\\Minds\\Controllers\\checkout',
@@ -60,8 +62,6 @@ class Router
 
         $this->detectContentType();
 
-        header('X-Frame-Options: DENY');
-
         $route = rtrim($uri, '/');
         $segments = explode('/', $route);
         $method = $method ? $method : strtolower($_SERVER['REQUEST_METHOD']);
@@ -72,6 +72,23 @@ class Router
 
         $request = ServerRequestFactory::fromGlobals();
         $response = new JsonResponse([]);
+
+        /**
+         * Some PSR7 middlewares work
+         * We will use them to get the headers
+         */
+        $psr7Middleware = [
+            new FrameSecurityMiddleware(),
+            new ContentSecurityPolicyMiddleware(),
+        ];
+        $dispatcher = new Dispatcher();
+        foreach ($psr7Middleware as $middleware) {
+            $dispatcher->pipe($middleware);
+        }
+        $response = $dispatcher->handle($request, $dispatcher);
+        foreach ($response->getHeaders() as $k => $v) {
+            header("$k: {$v[0]}");
+        }
 
         /** @var RouterMiddleware[] $prePsr7Middleware */
         $prePsr7Middleware = [

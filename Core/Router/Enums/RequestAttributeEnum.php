@@ -10,4 +10,5 @@ class RequestAttributeEnum
     const SCOPES = 'scopes';
     const USER = '_user';
     const REQUEST_HANDLER = '_request-handler';
+    const CSP_NONCE = '_csp_nonce';
 }

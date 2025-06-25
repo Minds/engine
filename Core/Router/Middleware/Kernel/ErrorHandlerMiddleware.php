@@ -11,6 +11,7 @@ use Minds\Api\Exportable;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
+use Minds\Core\Router\Enums\RequestAttributeEnum;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
@@ -116,7 +117,9 @@ class ErrorHandlerMiddleware implements MiddlewareInterface
                         . http_build_query($request->getQueryParams());
 
         $authUrl = $this->config->get('site_url') . 'login?redirectUrl=' . urlencode($redirectUrl);
-        $indexHtml = "<script>window.location.href = \"$authUrl\";</script>";
+        $cspNonce = $request->getAttribute(RequestAttributeEnum::CSP_NONCE);
+
+        $indexHtml = "<script nonce=\"$cspNonce\">window.location.href = \"$authUrl\";</script>";
 
         return new HtmlResponse($indexHtml, 401);
     }

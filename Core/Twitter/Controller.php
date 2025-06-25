@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Minds\Core\Twitter;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Router\Enums\RequestAttributeEnum;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\SimpleCache\InvalidArgumentException;
 use Zend\Diactoros\Response\HtmlResponse;
@@ -70,9 +71,10 @@ class Controller
             // Oops, there was a problem
         }
 
+        $cspNonce = $request->getAttribute(RequestAttributeEnum::CSP_NONCE);
         return new HtmlResponse(
             <<<HTML
-<script>window.close();</script>
+<script nonce="$cspNonce">window.close();</script>
 <p>Please close this window/tab.</p>
 HTML
         );

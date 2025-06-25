@@ -4,6 +4,7 @@ namespace Minds\Core\MultiTenant\Billing\Controllers;
 use Minds\Core\MultiTenant\Billing\BillingService;
 use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
 use Minds\Core\Payments\Checkout\Enums\CheckoutTimePeriodEnum;
+use Minds\Core\Router\Enums\RequestAttributeEnum;
 use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\HtmlResponse;
@@ -125,9 +126,10 @@ class BillingPsrController
         $checkoutSessionId = $request->getQueryParams()['session_id'];
         $this->service->onSuccessfulUpgradeCheckout($checkoutSessionId, $loggedInUser);
 
+        $cspNonce = $request->getAttribute(RequestAttributeEnum::CSP_NONCE);
         return new HtmlResponse(
             <<<HTML
-<script>window.close();</script>
+<script nonce="$cspNonce">window.close();</script>
 <p>Please close this window/tab.</p>
 HTML
         );

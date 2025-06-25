@@ -8,6 +8,7 @@ use Minds\Common\Cookie;
 use Minds\Core\Authentication\Oidc\Services\OidcAuthService;
 use Minds\Core\Authentication\Oidc\Services\OidcProvidersService;
 use Minds\Core\Authentication\Oidc\Services\OidcUserService;
+use Minds\Core\Router\Enums\RequestAttributeEnum;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response;
@@ -113,9 +114,10 @@ class OidcPsr7Controller
             state: $state,
         );
 
+        $cspNonce = $request->getAttribute(RequestAttributeEnum::CSP_NONCE);
         return new HtmlResponse(
             <<<HTML
-<script>window.close();</script>
+<script nonce="$cspNonce">window.close();</script>
 <p>Please close this window/tab.</p>
 HTML
         );

@@ -7,6 +7,7 @@ use Minds\Core\Authentication\Oidc\Models\OidcProvider;
 use Minds\Core\Authentication\Oidc\Services\OidcAuthService;
 use Minds\Core\Authentication\Oidc\Services\OidcProvidersService;
 use Minds\Core\Authentication\Oidc\Services\OidcUserService;
+use Minds\Core\Router\Enums\RequestAttributeEnum;
 use Minds\Exceptions\UserErrorException;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
@@ -71,6 +72,9 @@ class OidcPsr7ControllerSpec extends ObjectBehavior
             'oidc_provider_id' => '1',
             'oidc_csrf_state' => 'csrf-token',
         ]);
+
+        $requestMock->getAttribute(RequestAttributeEnum::CSP_NONCE)
+            ->willReturn('nonce');
 
         $this->oidcProvidersServiceMock->getProviderById(1)
             ->willReturn(new OidcProvider(
