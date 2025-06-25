@@ -36,6 +36,7 @@ class OidcGqlController
 
     /**
      * Adds an oidc provider
+     * @param string[] $configs
      */
     #[Mutation]
     #[Logged]
@@ -45,13 +46,15 @@ class OidcGqlController
         string $issuer,
         string $clientId,
         string $clientSecret,
+        array $configs = [],
         #[InjectUser] ?User $loggedInUser = null,
     ): OidcProviderPublic {
         $provider = $this->oidcProvidersService->addProvider(
             name: $name,
             issuer: $issuer,
             clientId: $clientId,
-            clientSecret: $clientSecret
+            clientSecret: $clientSecret,
+            configs: $configs,
         );
 
         return new OidcProviderPublic($provider, $this->config);
@@ -60,16 +63,18 @@ class OidcGqlController
     
     /**
      * Update an oidc provider
+     * @param string[] $configs
      */
     #[Mutation]
     #[Logged]
     #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
     public function updateOidcProvider(
         int $id,
-        string $name = null,
-        string $issuer = null,
-        string $clientId = null,
-        string $clientSecret = null,
+        ?string $name = null,
+        ?string $issuer = null,
+        ?string $clientId = null,
+        ?string $clientSecret = null,
+        ?array $configs = null,
         #[InjectUser] ?User $loggedInUser = null,
     ): OidcProviderPublic {
         $provider = $this->oidcProvidersService->updateProvider(
@@ -77,7 +82,8 @@ class OidcGqlController
             name: $name,
             issuer: $issuer,
             clientId: $clientId,
-            clientSecret: $clientSecret
+            clientSecret: $clientSecret,
+            configs: $configs,
         );
 
         return new OidcProviderPublic($provider, $this->config);

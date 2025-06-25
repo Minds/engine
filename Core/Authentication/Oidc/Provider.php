@@ -32,6 +32,7 @@ class Provider extends DiProvider
             return new Events(
                 eventsDispatcher: $di->get('EventsDispatcher'),
                 config: $di->get(Config::class),
+                httpClient: $di->get(Client::class),
             );
         });
 
