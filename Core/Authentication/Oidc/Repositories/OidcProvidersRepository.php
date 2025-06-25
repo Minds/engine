@@ -81,7 +81,7 @@ class OidcProvidersRepository extends AbstractRepository
             'issuer' => $provider->issuer,
             'client_id'  => $provider->clientId,
             'client_secret' => $provider->clientSecretCipherText,
-            'configs' => $provider->configs,
+            'configs' => json_encode($provider->configs),
         ]);
 
         $providerId = $this->mysqlClientWriter->lastInsertId();
@@ -92,7 +92,7 @@ class OidcProvidersRepository extends AbstractRepository
             issuer: $provider->issuer,
             clientId: $provider->clientId,
             clientSecretCipherText: $provider->clientSecretCipherText,
-            configs: json_encode($provider->configs),
+            configs: $provider->configs,
         );
     }
 
