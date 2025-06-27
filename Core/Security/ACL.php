@@ -166,7 +166,7 @@ class ACL
             return true;
         }
 
-        if ($entity->container_guid && ($entity->container_guid == $user->guid)) {
+        if (property_exists($entity, 'container_guid') && $entity->container_guid && ($entity->container_guid == $user->guid)) {
             return true;
         }
 
@@ -176,11 +176,11 @@ class ACL
          */
         if (
             in_array($entity->getAccessId(), [ACCESS_LOGGED_IN, ACCESS_PUBLIC], false)
-            && ($entity->owner_guid == $entity->container_guid
-                || $entity->container_guid == 0)
             && !($entity instanceof SupermindRequest)
             && !($entity instanceof BoostV3)
             && !($entity instanceof ChatMessage)
+            && ($entity->owner_guid == $entity->container_guid
+                || $entity->container_guid == 0)
         ) {
             return true;
         }

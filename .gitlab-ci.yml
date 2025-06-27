@@ -49,7 +49,7 @@ baseimage:deploy:
       --destination "${CI_REGISTRY_IMAGE}/php:8.3"
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
-      changes:
+    changes:
         - containers/php/*
     - if: '$CI_COMMIT_REF_NAME != "master"'
       when: never
