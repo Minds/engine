@@ -74,7 +74,7 @@ class PostNotificationDispatchHelper implements PostNotificationDispatchHelperIn
             if (!$membership->isMember()) {
                 return false;
             }
-        } catch(NotFoundException $e) {
+        } catch (NotFoundException $e) {
             $this->logger->info("Skipping for user {$postSubscription->userGuid} as they are not a member of this group");
             return false;
         }

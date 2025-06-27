@@ -66,7 +66,7 @@ class ForgotPasswordEmailer extends EmailCampaign
 
         $this->template->setLocale($this->user->getLanguage());
 
-        if(!$siteName = $this->config->get('site_name')) {
+        if (!$siteName = $this->config->get('site_name')) {
             $siteName = 'Minds';
         }
 

@@ -235,7 +235,7 @@ class Manager
         try {
             // TODO: Check if this check is still needed when we remove legacy writes.
             $userMembership = $this->repository->get($group->getGuid(), $user->getGuid());
-        } catch(NotFoundException $e) {
+        } catch (NotFoundException $e) {
             // do nothing.
         }
 

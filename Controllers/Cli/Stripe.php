@@ -289,7 +289,7 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
                 if ($this->getOpt('sync_site_memberships')) {
                     Di::_()->get(SiteMembershipsRenewalsService::class)->syncSiteMemberships($tenantId);
                 }
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 $this->out($e->getMessage());
             }
         }

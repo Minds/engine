@@ -201,7 +201,7 @@ class TenantUserWelcomeEmailer extends EmailCampaign
     {
         $price = $siteMembership->membershipPriceInCents / 100;
 
-        switch($siteMembership->membershipPricingModel) {
+        switch ($siteMembership->membershipPricingModel) {
             case SiteMembershipPricingModelEnum::ONE_TIME:
                 return "$$price / one-time";
             case SiteMembershipPricingModelEnum::RECURRING:

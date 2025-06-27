@@ -63,7 +63,7 @@ class PersonalApiKeyRepository extends AbstractRepository
                 ]);
             }
             $this->commitTransaction();
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $this->rollbackTransaction();
             throw $e;
         }

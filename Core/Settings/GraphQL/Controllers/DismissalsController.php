@@ -38,7 +38,7 @@ class DismissalsController
                 $this->manager->setUser($loggedInUser)
                     ->getDismissals($loggedInUser)
             );
-        } catch(UserSettingsNotFoundException $e) {
+        } catch (UserSettingsNotFoundException $e) {
             return [];
         }
     }
@@ -57,7 +57,7 @@ class DismissalsController
         try {
             return $this->manager->setUser($loggedInUser)
                 ->getDismissalByKey($key);
-        } catch(UserSettingsNotFoundException $e) {
+        } catch (UserSettingsNotFoundException $e) {
             return null;
         }
     }

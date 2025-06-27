@@ -143,7 +143,7 @@ class ReportService
                 action: $action,
                 moderator: $moderator
             );
-        } catch(NotFoundException $e) {
+        } catch (NotFoundException $e) {
             // if the entity cannot be handled, ignore the report.
             $action = ReportActionEnum::IGNORE;
         }

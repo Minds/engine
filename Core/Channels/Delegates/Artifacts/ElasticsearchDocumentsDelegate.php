@@ -137,7 +137,7 @@ class ElasticsearchDocumentsDelegate implements ArtifactsDelegateInterface
 
         try {
             $this->elasticsearch->getClient()->delete($params);
-        } catch(Missing404Exception $e) {
+        } catch (Missing404Exception $e) {
             $this->logger->info($e->getMessage());
         }
 

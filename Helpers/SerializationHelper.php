@@ -58,7 +58,7 @@ class SerializationHelper
             }
 
             // if the property is promoted, we want to grab the param from the constructor to see whether it has a default value.
-            if($reflectedProperty->isPromoted()) {
+            if ($reflectedProperty->isPromoted()) {
                 $reflectedConstructorParams = $reflectedClass->getConstructor()->getParameters();
                 $constructorParam = array_values(array_filter($reflectedConstructorParams, function ($constructorParam) use ($propName) {
                     return $constructorParam->name === $propName;

@@ -72,7 +72,7 @@ class Report implements NodeInterface
     {
         $entity = Di::_()->get(EntitiesResolver::class)->single($this->entityUrn);
 
-        switch(true) {
+        switch (true) {
             case $entity instanceof Activity:
                 return new ActivityEdge($entity, $this->cursor, false);
             case $entity instanceof Comment:

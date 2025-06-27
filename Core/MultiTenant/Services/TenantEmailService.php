@@ -33,7 +33,7 @@ class TenantEmailService
             try {
                 $emailSender->send($user);
                 $this->logger->info('Ran for tenant: ' . $tenant?->id. ', user: ' . $user?->getGuid());
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 $this->logger->error($e);
             }
         }
@@ -66,7 +66,7 @@ class TenantEmailService
      */
     private function isEmailDisabled(SenderInterface $emailSender, Tenant $tenant)
     {
-        switch(true) {
+        switch (true) {
             case $emailSender instanceof DigestSender:
                 return !$tenant->config->digestEmailEnabled;
             default:

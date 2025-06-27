@@ -130,7 +130,7 @@ class Repository
                     $key = "$userGuid::$campaign::$topic";
 
                     if (!isset($notifications[$key])) {
-                        $notifications[$key] = ( new EmailSubscription())
+                        $notifications[$key] = (new EmailSubscription())
                             ->setCampaign($campaign)
                             ->setTopic($topic)
                             ->setUserGuid($userGuid)

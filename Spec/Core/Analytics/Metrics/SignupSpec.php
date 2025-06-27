@@ -18,7 +18,7 @@ class SignupSpec extends ObjectBehavior
     public function it_should_increment_the_metric(Call $db)
     {
         $this->beConstructedWith($db);
-        foreach (Timestamps::get(['day', 'month'])  as $p => $ts) {
+        foreach (Timestamps::get(['day', 'month']) as $p => $ts) {
             $db->insert("analytics:signup:$p:$ts", Argument::type('array'))->willReturn();
         }
         $this->setKey('foobar');

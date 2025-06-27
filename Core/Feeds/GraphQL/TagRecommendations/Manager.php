@@ -101,7 +101,7 @@ class Manager
             }
 
             return $edges;
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $this->logger->error($e);
             $edges = $unmodifiedEdges; // reset and log error.
             return $edges;

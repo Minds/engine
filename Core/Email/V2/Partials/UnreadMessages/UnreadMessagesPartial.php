@@ -115,7 +115,7 @@ class UnreadMessagesPartial extends Template
     private function getChatRoomAvatarUrls(
         ChatRoomListItem $chatRoomListItem
     ): array {
-        if(!$cdnUrl = $this->config->get('cdn_url')) {
+        if (!$cdnUrl = $this->config->get('cdn_url')) {
             $cdnUrl = 'http://www.minds.com/';
         }
 
@@ -170,7 +170,7 @@ class UnreadMessagesPartial extends Template
             usort($unreadChatRoomListItems, function ($a, $b) use ($sortOrder) {
                 return $sortOrder[$a->status->name] <=> $sortOrder[$b->status->name];
             });
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $this->logger->error($e);
         }
 
