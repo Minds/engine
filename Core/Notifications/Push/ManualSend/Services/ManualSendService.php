@@ -31,7 +31,7 @@ class ManualSendService implements ManualSendServiceInterface
      */
     public function send(ManualSendRequest $request): bool
     {
-        switch($request->platform) {
+        switch ($request->platform) {
             case PushNotificationPlatformEnum::ANDROID:
                 return $this->sendFcmRequest($request);
                 break;

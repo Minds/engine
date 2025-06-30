@@ -487,7 +487,7 @@ class Manager
 
         if ($reminds) {
             // Delete each remind
-            foreach($reminds as $remind) {
+            foreach ($reminds as $remind) {
                 if (!$this->delete($remind)) {
                     $success = false;
                 }
@@ -521,7 +521,7 @@ class Manager
             ]);
 
             // Cross-check if entityGuid has been reminded
-            if($entity->getEntityGuid()) {
+            if ($entity->getEntityGuid()) {
                 $count += $this->elasticManager->getCount([
                     'algorithm' => 'latest',
                     'type' => 'activity',

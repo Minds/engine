@@ -1,4 +1,4 @@
-FROM registry.gitlab.com/minds/engine/php:8.2
+FROM registry.gitlab.com/minds/engine/php:8.3
 
 ADD --chown=www-data . /var/www/Minds/engine
 

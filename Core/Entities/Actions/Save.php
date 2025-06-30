@@ -142,7 +142,7 @@ class Save
                     entity: $this->entity,
                     columns: $this->mutatedAttributes
                 );
-            } catch(\InvalidArgumentException $e) {
+            } catch (\InvalidArgumentException $e) {
                 $this->logger->warning($e);
                 $success = false;
             }

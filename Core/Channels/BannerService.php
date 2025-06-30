@@ -79,7 +79,7 @@ class BannerService
                 ->save(true);
 
             return true;
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $this->logger->error($e);
             return false;
         }

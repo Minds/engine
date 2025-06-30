@@ -59,7 +59,7 @@ class RichEmbedService
                 createdTimestamp: new DateTime('now'),
                 updatedTimestamp: new DateTime('now')
             );
-        } catch(ServerErrorException $e) {
+        } catch (ServerErrorException $e) {
             $this->logger->error($e);
             return null;
         }

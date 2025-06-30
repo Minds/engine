@@ -240,7 +240,7 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                         $notifications,
                         $this->buildGroupQueueReceivedNotifications($event)
                     );
-                } catch(\Exception $e) {
+                } catch (\Exception $e) {
                     $this->logger->error($e);
                     return false;
                 }

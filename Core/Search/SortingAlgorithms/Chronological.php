@@ -61,7 +61,7 @@ class Chronological implements SortingAlgorithm
      */
     public function fetchScore($doc)
     {
-        return $doc['_source']['time_created'];
+        return $doc['_source']['time_created'] ?? 0;
     }
 
     /**

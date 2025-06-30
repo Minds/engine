@@ -59,7 +59,7 @@ class ChatNotificationsTopic extends AbstractTopic implements TopicInterface
     ): void {
         $consumer = $this->getConsumer($subscriptionId);
 
-        while(true) {
+        while (true) {
             $message = $consumer->receive();
             try {
                 $data = json_decode($message->getDataAsString(), true);

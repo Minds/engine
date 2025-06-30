@@ -40,7 +40,7 @@ class TenantUserInputValidator implements InputTypeValidatorInterface
 
         try {
             $this->getUsernameLengthValidator()->validate($input->username);
-        } catch(StringLengthException $e) {
+        } catch (StringLengthException $e) {
             throw new GraphQLException($e->getMessage(), 400, null, "Validation", ['field' => 'username']);
         }
 

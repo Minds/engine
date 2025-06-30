@@ -86,12 +86,12 @@ class OidcUserService
         $this->oidcUserRepository->linkSubToUserGuid($sub, $providerId, (int) $user->getGuid());
 
         try {
-            if((bool) $this->config->get('tenant_id')) {
+            if ((bool) $this->config->get('tenant_id')) {
                 $this->tenantUserWelcomeEmailer
                     ->setUser($user)
                     ->queue($user);
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $this->logger->error($e);
         }
    

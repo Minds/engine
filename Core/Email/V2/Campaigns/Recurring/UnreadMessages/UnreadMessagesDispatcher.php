@@ -48,7 +48,7 @@ class UnreadMessagesDispatcher
 
         $this->logger->info("Sending for tenant_id: $tenantId ...");
 
-        foreach($unreadCountData as $data) {
+        foreach ($unreadCountData as $data) {
             $user = $this->entitiesBuilder->single($data['user_guid']);
 
             if (!$user || !($user instanceof User)) {

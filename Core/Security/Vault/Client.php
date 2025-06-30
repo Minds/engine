@@ -11,7 +11,7 @@ class Client
     protected int $cachedAuthTokenTs = 0;
 
     public function __construct(
-        protected  GuzzleHttp\Client $httpClient,
+        protected GuzzleHttp\Client $httpClient,
         protected Config $config
     ) {
     }

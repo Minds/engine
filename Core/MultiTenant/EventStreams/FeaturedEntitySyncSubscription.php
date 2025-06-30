@@ -122,7 +122,7 @@ class FeaturedEntitySyncSubscription implements SubscriptionInterface
 
                 $this->featuredEntityAutoSubscribeService->handleFeaturedUser($featuredUser, $user);
                 $this->logger->info('Handled user: ' . $user->getGuid() . ' for featured user: ' . $featuredUser->entityGuid);
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 $this->logger->error($e);
             }
         }
@@ -144,7 +144,7 @@ class FeaturedEntitySyncSubscription implements SubscriptionInterface
             try {
                 $this->featuredEntityAutoSubscribeService->handleFeaturedGroup($featuredGroup, $user);
                 $this->logger->info('Handled user: ' . $user->getGuid() . ' for featured group: ' . $featuredGroup->entityGuid);
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 $this->logger->error($e);
             }
         }

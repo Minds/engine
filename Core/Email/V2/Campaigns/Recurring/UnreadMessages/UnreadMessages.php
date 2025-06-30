@@ -83,7 +83,7 @@ class UnreadMessages extends EmailCampaign
 
         $trackingQuery = http_build_query($tracking);
 
-        if(!$siteName = $this->config->get('site_name')) {
+        if (!$siteName = $this->config->get('site_name')) {
             $siteName = 'Minds';
         }
     

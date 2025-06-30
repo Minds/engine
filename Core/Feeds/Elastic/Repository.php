@@ -82,11 +82,13 @@ class Repository
             foreach ($opts['pinned_guids'] as $pinned_guid) {
                 array_unshift($response['hits']['hits'], [
                     '_type' => 'activity',
+                    '_index' => $this->index,
                     '_source' => [
                         'guid' => $pinned_guid,
                         'owner_guid' => null,
                         'score' => 0,
                         'timestamp' => 0,
+                        '@timestamp' => 0,
                     ],
                 ]);
             }

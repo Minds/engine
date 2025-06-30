@@ -71,7 +71,7 @@ class Controller
 
         try {
             $this->manager->requireEmailTwoFactor($user);
-        } catch(TwoFactorRequiredException $e) {
+        } catch (TwoFactorRequiredException $e) {
             return new JsonResponse([
                 'status' => 'success',
                 'key' => $e->getKey()
@@ -106,17 +106,17 @@ class Controller
 
         try {
             $this->manager->authenticateEmailTwoFactor($user, $code);
-        } catch(TwoFactorInvalidCodeException $e) {
+        } catch (TwoFactorInvalidCodeException $e) {
             throw new EmailConfirmationInvalidCodeException();
         }
 
         try {
-            if((bool) $this->config->get('tenant_id')) {
+            if ((bool) $this->config->get('tenant_id')) {
                 $this->tenantUserWelcomeEmailer
                     ->setUser($user)
                     ->queue($user);
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $this->logger->error($e);
         }
 
