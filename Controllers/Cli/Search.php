@@ -133,7 +133,7 @@ class Search extends Cli\Controller implements Interfaces\CliControllerInterface
                     }
                 }
 
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 $this->out("Error reindexing for tenant_id: $tenant->id");
                 $this->out($e->getMessage());
             }

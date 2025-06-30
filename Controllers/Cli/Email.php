@@ -368,7 +368,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         if ($includeMinds) {
             try {
                 $this->unreadMessagesDispatcher->dispatchForTenant(-1, $createdAfterTimestamp);
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 $this->out("Error sending for tenant_id: -1");
                 $this->out($e->getMessage());
             }
@@ -377,7 +377,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         foreach ($this->multiTenantDataService->getTenants(limit: 9999999) as $tenant) {
             try {
                 $this->unreadMessagesDispatcher->dispatchForTenant($tenant->id, $createdAfterTimestamp);
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 $this->out("Error sending for tenant_id: $tenant->id");
                 $this->out($e->getMessage());
             }

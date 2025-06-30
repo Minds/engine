@@ -16,7 +16,7 @@ stages:
   - scan
 
 variables:
-  default_php_image: registry.gitlab.com/minds/engine/php:8.2
+  default_php_image: registry.gitlab.com/minds/engine/php:8.3
 
 baseimage:prepare:
   stage: baseimage
@@ -31,7 +31,7 @@ baseimage:prepare:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       when: never
-    - if: '$CI_COMMIT_REF_NAME != "master"'
+    - if: '$CI_COMMIT_REF_NAME != "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
         - containers/php/*
       when: manual
@@ -46,7 +46,7 @@ baseimage:deploy:
     - /kaniko/executor
       --context "${CI_PROJECT_DIR}/containers/php"
       --dockerfile "${CI_PROJECT_DIR}/containers/php/Dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}/php:8.2"
+      --destination "${CI_REGISTRY_IMAGE}/php:8.3"
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:

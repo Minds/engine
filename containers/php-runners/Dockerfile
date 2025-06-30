@@ -1,4 +1,4 @@
-FROM registry.gitlab.com/minds/engine/php:8.2
+FROM registry.gitlab.com/minds/engine/php:8.3
 
 # Copy our built the code
 

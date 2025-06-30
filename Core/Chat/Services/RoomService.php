@@ -665,7 +665,7 @@ class RoomService
 
             $this->roomRepository->commitTransaction();
 
-            switch($chatRoomInviteRequestAction) {
+            switch ($chatRoomInviteRequestAction) {
                 case ChatRoomInviteRequestActionEnum::ACCEPT:
                     $this->analyticsDelegate->onChatRequestAccept(
                         actor: $user,

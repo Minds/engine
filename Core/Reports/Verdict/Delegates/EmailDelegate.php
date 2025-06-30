@@ -79,7 +79,7 @@ class EmailDelegate
         $entity = $this->entitiesBuilder->single($entityGuid);
 
         // scope to only comments and chat messages to reduce regression scope.
-        if(!$entity && ($report->getEntity() instanceof Comment || $report->getEntity() instanceof ChatMessage)) {
+        if (!$entity && ($report->getEntity() instanceof Comment || $report->getEntity() instanceof ChatMessage)) {
             $entity = $report->getEntity();
         }
 

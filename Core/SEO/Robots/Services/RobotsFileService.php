@@ -25,7 +25,7 @@ class RobotsFileService
     {
         $tenant = $this->config->get('tenant');
 
-        if(
+        if (
             str_contains($host, 'minds.io') ||
             ($tenant && !isset($tenant?->domain))
         ) {

@@ -70,7 +70,7 @@ class TwoFactor extends EmailCampaign
 
         $translator = $this->template->getTranslator();
 
-        if(!$siteName = $this->config->get('site_name')) {
+        if (!$siteName = $this->config->get('site_name')) {
             $siteName = 'Minds';
         }
 

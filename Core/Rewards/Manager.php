@@ -231,8 +231,7 @@ class Manager
                 foreach ($this->liquidityPositionsManager
                             ->setDateTs($opts->getDateTs())
                             ->setChainId($chainId)
-                            ->getAllProvidersSummaries()
-                        as $i => $liquiditySummary
+                            ->getAllProvidersSummaries() as $i => $liquiditySummary
                 ) {
                     
                     if (!isset($liquidityScores[$liquiditySummary->getUserGuid()])) {

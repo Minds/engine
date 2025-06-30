@@ -8,7 +8,7 @@ use Psr\Http\Message\ResponseInterface;
 class Client
 {
     public function __construct(
-        protected  GuzzleHttp\Client $httpClient,
+        protected GuzzleHttp\Client $httpClient,
         protected Config $config
     ) {
     }

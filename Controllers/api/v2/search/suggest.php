@@ -87,7 +87,7 @@ class suggest implements Interfaces\Api, Interfaces\ApiIgnorePam
                         query: $query,
                         includeNsfw: $includeNsfw
                     );
-                } catch(\Exception $e) {
+                } catch (\Exception $e) {
                     $this->logger->error($e);
                 }
             }
