@@ -12,6 +12,7 @@ use Minds\Core\Notifications\PostSubscriptions\Enums\PostSubscriptionFrequencyEn
 use Minds\Core\Notifications\PostSubscriptions\Services\PostSubscriptionsService;
 use Minds\Entities\Group;
 use Minds\Entities\User;
+use Minds\Exceptions\NotFoundException;
 
 /**
  * Service for automatically subscribing a new user to a networks featured users
@@ -88,6 +89,18 @@ class FeaturedEntityAutoSubscribeService
 
         if (!$group instanceof Group) {
             return;
+        }
+
+        try {
+            $membership = $this->groupsMembershipManager->getMembership($group, $subject);
+            if ($membership->isBanned()) {
+                return; // Do not join banned members
+            }
+            if (!$membership->isAwaiting()) {
+                // The user is already in the group.
+            }
+        } catch (NotFoundException $e) {
+            // This is ok
         }
 
         $this->groupsMembershipManager->joinGroup(
