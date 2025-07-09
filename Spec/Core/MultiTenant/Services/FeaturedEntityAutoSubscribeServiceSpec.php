@@ -14,6 +14,7 @@ use Minds\Core\Notifications\PostSubscriptions\Enums\PostSubscriptionFrequencyEn
 use Minds\Core\Notifications\PostSubscriptions\Services\PostSubscriptionsService;
 use Minds\Entities\Group;
 use Minds\Entities\User;
+use Minds\Exceptions\NotFoundException;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
@@ -253,11 +254,19 @@ class FeaturedEntityAutoSubscribeServiceSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($group2);
 
+        $this->groupsMembershipManager->getMembership($group1, $subject)
+            ->shouldBeCalled()
+            ->willThrow(NotFoundException::class);
+
         $this->groupsMembershipManager->joinGroup(
             group: $group1,
             user: $subject,
             membershipLevel: GroupMembershipLevelEnum::MEMBER
         )->shouldBeCalled();
+
+        $this->groupsMembershipManager->getMembership($group2, $subject)
+            ->shouldBeCalled()
+            ->willThrow(NotFoundException::class);
 
         $this->groupsMembershipManager->joinGroup(
             group: $group2,
