@@ -82,8 +82,7 @@ class ChatProcessorService
             // The system message informs the bot how to behave
             new OllamaMessage(
                 role: OllamaRoleEnum::SYSTEM,
-                content: "You are an open source bot who is chatting with a user on the social media site " . $this->config->get('site_url') . "
-                    Give short and concise answers where appropriate.
+                content: "You are a bot who is chatting with a user on the social media site " . $this->config->get('site_url') . "
                     You are responding to {$senderUser->getName()} with a username of @{$senderUser->getUsername()}.
                 ",
             ),
