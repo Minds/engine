@@ -140,7 +140,7 @@ class ManagerSpec extends ObjectBehavior
         UniqueOnChainAddress $address2,
         UniqueOnChainAddress $address3
     ) {
-        $this->onchainBalancesServiceMock->getAll(null, Argument::type('integer'))
+        $this->onchainBalancesServiceMock->getAll(Argument::type('integer'))
             ->shouldBeCalled()
             ->willReturn([
                 [
@@ -193,7 +193,7 @@ class ManagerSpec extends ObjectBehavior
         UniqueOnChainAddress $address1,
         UniqueOnChainAddress $address3
     ) {
-        $this->onchainBalancesServiceMock->getAll(null, Argument::type('integer'))
+        $this->onchainBalancesServiceMock->getAll(Argument::type('integer'))
             ->shouldBeCalled()
             ->willReturn([
                 [

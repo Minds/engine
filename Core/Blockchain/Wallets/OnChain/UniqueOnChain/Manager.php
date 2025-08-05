@@ -124,12 +124,12 @@ class Manager
      * Gets all unique onchain addresses.
      * @return iterable<UniqueOnChainAddress>
      */
-    public function getAll(int $asOf = null): iterable
+    public function getAll(): iterable
     {
         $emittedAddresses = [];
 
         foreach ([Util::BASE_CHAIN_ID, Util::ETHEREUM_CHAIN_ID] as $chainId) {
-            foreach ($this->onchainBalancesService->getAll(asOf: $asOf, chainId: $chainId) as $account) {
+            foreach ($this->onchainBalancesService->getAll(chainId: $chainId) as $account) {
                 if (isset($emittedAddresses[$account['id']])) {
                     continue;
                 } else {
