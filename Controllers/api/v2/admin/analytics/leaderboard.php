@@ -71,7 +71,13 @@ class leaderboard implements Interfaces\Api, Interfaces\ApiAdminPam
         }
 
         $counts[$type] = array_map(function ($item) {
-            $item['user'] = (Di::_()->get(EntitiesBuilder::class)->single($item['user_guid']))->export();
+            $user = Di::_()->get(EntitiesBuilder::class)->single($item['user_guid']);
+
+            if (!$user) {
+                return [];
+            }
+
+            $item['user'] = ($user)->export();
             return $item;
         }, $result);
 
