@@ -216,6 +216,10 @@ class Report
     {
         $hydratedReportingUsers = [];
 
+        if (!$this->reports) {
+            return [];
+        }
+
         foreach (array_slice($this->reports, 0, $maxAmount) as $reportingUser) {
             $reportingUser = $this->entitiesBuilder->single(
                 $reportingUser->getReporterGuid()
