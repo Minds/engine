@@ -27,6 +27,9 @@ then
     exit 1
 fi
 
+php composer-setup.php --quiet
+php -r "unlink('composer-setup.php');"
+
 # Got back to current dir if changed
 cd $CURRENT_DIR
 
