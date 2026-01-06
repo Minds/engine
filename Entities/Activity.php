@@ -267,7 +267,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 $export['boosted_onchain'] = $this->boosted_onchain;
             }
 
-            $export['impressions'] = $this->getImpressions();
+            $export['impressions'] = 0;
             $export['reminds'] = $this->getRemindCount();
 
             // Thumbs:up exports moved to Core/Votes/Events
@@ -725,10 +725,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
      */
     public function getImpressions()
     {
-        $app = Analytics\App::_()
-            ->setMetric('impression')
-            ->setKey($this->guid);
-        return $app->total();
+        return 0;
     }
 
     /**
@@ -777,7 +774,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
      */
     public function getHideImpressions()
     {
-        return (bool) $this->hide_impressions;
+        return (bool) true;
     }
 
     /**
@@ -786,7 +783,6 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
      */
     public function setHideImpressions($value)
     {
-        $this->hide_impressions = (bool) $value;
         return $this;
     }
 

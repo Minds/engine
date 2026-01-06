@@ -206,7 +206,7 @@ class Video extends MindsObject implements CommentableEntityInterface
             '360.mp4' => $this->getSourceUrl('360.mp4'),
             '720.mp4' => $this->getSourceUrl('720.mp4'),
         ];
-        $export['play:count'] = Helpers\Counters::get($this->guid, 'plays');
+        $export['play:count'] = 0;
         $export['description'] = (new DescriptionLengthValidator())->validateMaxAndTrim($export['description']);
 
         $export['rating'] = $this->getRating();
