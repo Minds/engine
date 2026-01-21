@@ -57,7 +57,7 @@ class Repository extends AbstractRepository
             customHomePageEnabled: (bool) $row['custom_home_page_enabled'] ?? false,
             customHomePageDescription: $row['custom_home_page_description'] ?? null,
             walledGardenEnabled: (bool) $row['walled_garden_enabled'] ?? false,
-            digestEmailEnabled: (bool) $row['digest_email_enabled'] !== 0,
+            digestEmailEnabled: $row['digest_email_enabled'] !== 0,
             welcomeEmailEnabled: $row['welcome_email_enabled'] !== 0,
             loggedInLandingPageIdWeb: $row['logged_in_landing_page_id_web'] ?? null,
             loggedInLandingPageIdMobile: $row['logged_in_landing_page_id_mobile'] ?? null,
