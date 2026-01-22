@@ -1174,7 +1174,11 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
      */
     public function getImpressions()
     {
-        return 0;
+        $app = Core\Analytics\App::_()
+            ->setMetric('impression')
+            ->setKey($this->guid);
+
+        return $app->total();
     }
 
     /**
