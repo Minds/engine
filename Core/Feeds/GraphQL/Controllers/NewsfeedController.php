@@ -219,22 +219,6 @@ class NewsfeedController
                 break;
             }
 
-            if ($i === 0) {
-                // Priority notice is always at the top
-                $priorityNotices = $this->buildInFeedNotices(
-                    loggedInUser: $loggedInUser,
-                    cursor: $cursor,
-                    inFeedNoticesDelivered: $inFeedNoticesDelivered,
-                    algorithm: $algorithm,
-                    location: ($after ||$before) ? 'inline' : 'top',
-                    limit: 1
-                );
-                if ($priorityNotices && isset($priorityNotices[0])) {
-                    array_unshift($edges, $priorityNotices[0]);
-                    $inFeedNoticesDelivered[] = $priorityNotices[0]->getNode()->getKey();
-                }
-            }
-
             /**
              * Show top highlights on the first page load
              */
@@ -245,19 +229,6 @@ class NewsfeedController
                 }
             }
 
-            if ($i === 6) { // Show in the 6th spot
-                $inlineNotice = $this->buildInFeedNotices(
-                    loggedInUser: $loggedInUser,
-                    cursor: $cursor,
-                    inFeedNoticesDelivered: $inFeedNoticesDelivered,
-                    algorithm: $algorithm,
-                    location: 'inline',
-                    limit: 1
-                );
-                if ($inlineNotice && isset($inlineNotice[0])) {
-                    $edges[] = $inlineNotice[0];
-                }
-            }
             /**
              * Publisher recommendations
              * On first load, randomly show either channel/group recs
