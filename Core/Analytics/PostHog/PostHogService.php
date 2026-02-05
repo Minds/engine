@@ -50,6 +50,10 @@ class PostHogService
             return false;
         }
 
+        if (!$this->config->get('tenant_id')) {
+            return false; // Do not record events for non tenants
+        }
+
         // We only want to have events from real users (not activity pub)
         if ($user->getSource() !== FederatedEntitySourcesEnum::LOCAL) {
             return false;

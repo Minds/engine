@@ -19,6 +19,7 @@ class PostHogServiceSpec extends ObjectBehavior
     private Collaborator $postHogClientMock;
     private Collaborator $postHogConfigMock;
     private Collaborator $cacheMock;
+    private Collaborator $configMock;
 
     public function let(
         Client $postHogClientMock,
@@ -30,6 +31,7 @@ class PostHogServiceSpec extends ObjectBehavior
         $this->postHogClientMock = $postHogClientMock;
         $this->postHogConfigMock = $postHogConfigMock;
         $this->cacheMock = $cacheMock;
+        $this->configMock = $configMock;
 
         $this->cacheMock->withTenantPrefix(false)->willReturn($this->cacheMock);
     }
@@ -42,6 +44,8 @@ class PostHogServiceSpec extends ObjectBehavior
     public function it_should_capture_an_event(User $user)
     {
         $userGuid = (string) Guid::build();
+
+        $this->configMock->get('tenant_id')->willReturn(1);
 
         $user->getGuid()->shouldBeCalled()->willReturn($userGuid);
         $user->getUsername()->shouldBeCalled()->willReturn('phpspec');
@@ -61,6 +65,7 @@ class PostHogServiceSpec extends ObjectBehavior
                 'properties' => [
                     'entity_guid' => '123',
                     'environment' => 'development',
+                    'tenant_id' => 1,
                     '$set' => [
                         'guid' => $userGuid,
                         'username' => 'phpspec',
@@ -71,6 +76,7 @@ class PostHogServiceSpec extends ObjectBehavior
                     ],
                     '$set_once' => [
                         'joined_timestamp' => date('c', strtotime('midnight yesterday')),
+                        'tenant_id' => 1
                     ]
                 ],
             ]
