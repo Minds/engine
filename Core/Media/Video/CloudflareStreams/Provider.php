@@ -23,5 +23,12 @@ class Provider extends DiProvider
                 storageQuotasManager: $di->get(StorageQuotasManager::class)
             );
         });
+        $this->di->bind(PruneVideosService::class, function ($di) {
+            return new PruneVideosService(
+                cfClient: new Client(),
+                logger: $di->get('Logger'),
+                entitiesBuilder: $di->get(EntitiesBuilder::class),
+            );
+        });
     }
 }
