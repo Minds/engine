@@ -6,6 +6,7 @@ namespace Spec\Minds\Core\MultiTenant\Services;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Core\Groups\V2\Membership\Manager as GroupsMembershipManager;
+use Minds\Core\Groups\V2\Membership\Membership;
 use Minds\Core\MultiTenant\Services\FeaturedEntityAutoSubscribeService;
 use Minds\Core\MultiTenant\Services\FeaturedEntityService;
 use Minds\Core\MultiTenant\Types\FeaturedUser;
@@ -262,7 +263,7 @@ class FeaturedEntityAutoSubscribeServiceSpec extends ObjectBehavior
             group: $group1,
             user: $subject,
             membershipLevel: GroupMembershipLevelEnum::MEMBER
-        )->shouldBeCalled();
+        )->shouldBeCalled()->willReturn(true);
 
         $this->groupsMembershipManager->getMembership($group2, $subject)
             ->shouldBeCalled()
@@ -272,7 +273,7 @@ class FeaturedEntityAutoSubscribeServiceSpec extends ObjectBehavior
             group: $group2,
             user: $subject,
             membershipLevel: GroupMembershipLevelEnum::MEMBER
-        )->shouldBeCalled();
+        )->shouldBeCalled()->willReturn(true);
 
         $this->autoSubscribe(
             $subject,
@@ -319,5 +320,70 @@ class FeaturedEntityAutoSubscribeServiceSpec extends ObjectBehavior
             $subject,
             123
         );
+    }
+
+    public function it_should_not_change_existing_owners_of_featured_groups(
+        User $subject,
+        Group $group
+    ) {
+        $featuredGroup = new FeaturedGroup(
+            tenantId: 123,
+            entityGuid: 1234567891,
+            autoSubscribe: true,
+            recommended: true,
+            name: 'name1'
+        );
+
+        $this->entitiesBuilder->single($featuredGroup->entityGuid)
+            ->shouldBeCalled()
+            ->willReturn($group);
+
+        $this->groupsMembershipManager->getMembership($group, $subject)
+            ->shouldBeCalled()
+            ->willReturn(new Membership(
+                groupGuid: 1234567891,
+                userGuid: 1,
+                createdTimestamp: new \DateTime(),
+                membershipLevel: GroupMembershipLevelEnum::OWNER
+            ));
+
+        $this->groupsMembershipManager->joinGroup(Argument::cetera())
+            ->shouldNotBeCalled();
+
+        $this->handleFeaturedGroup($featuredGroup, $subject)->shouldBe(false);
+    }
+
+    public function it_should_accept_pending_requests_to_featured_groups(
+        User $subject,
+        Group $group
+    ) {
+        $featuredGroup = new FeaturedGroup(
+            tenantId: 123,
+            entityGuid: 1234567891,
+            autoSubscribe: true,
+            recommended: true,
+            name: 'name1'
+        );
+
+        $this->entitiesBuilder->single($featuredGroup->entityGuid)
+            ->shouldBeCalled()
+            ->willReturn($group);
+
+        $this->groupsMembershipManager->getMembership($group, $subject)
+            ->shouldBeCalled()
+            ->willReturn(new Membership(
+                groupGuid: 1234567891,
+                userGuid: 1,
+                createdTimestamp: new \DateTime(),
+                membershipLevel: GroupMembershipLevelEnum::REQUESTED
+            ));
+
+        $this->groupsMembershipManager->joinGroup(
+            group: $group,
+            user: $subject,
+            membershipLevel: GroupMembershipLevelEnum::MEMBER
+        )->shouldBeCalled()->willReturn(true);
+
+        $this->handleFeaturedGroup($featuredGroup, $subject)->shouldBe(true);
     }
 }
