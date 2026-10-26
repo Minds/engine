@@ -14,6 +14,7 @@ use Minds\Core\Security\ACL;
 use Minds\Entities\Group;
 use Minds\Entities\User;
 use Minds\Exceptions\GroupOperationException;
+use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -304,6 +305,8 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_join_group_as_member(Group $groupMock, User $userMock)
     {
+        $this->repositoryMock->get(123, 456)->willThrow(NotFoundException::class);
+
         $this->repositoryMock->add(Argument::that(function ($membership) {
             return $membership->membershipLevel === GroupMembershipLevelEnum::MEMBER;
         }))->willReturn(true);
@@ -323,6 +326,8 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_join_group_as_request(Group $groupMock, User $userMock)
     {
+        $this->repositoryMock->get(123, 456)->willThrow(NotFoundException::class);
+
         $this->repositoryMock->add(Argument::that(function ($membership) {
             return $membership->membershipLevel === GroupMembershipLevelEnum::REQUESTED;
         }))->willReturn(true);
@@ -338,6 +343,26 @@ class ManagerSpec extends ObjectBehavior
         $this->groupRecsAlgoMock->purgeCache()->shouldBeCalled();
 
         $this->joinGroup($groupMock, $userMock)->shouldBe(true);
+    }
+
+    public function it_should_not_let_a_banned_user_rejoin(Group $groupMock, User $userMock)
+    {
+        $this->repositoryMock->get(123, 456)->willReturn(new Membership(
+            groupGuid: 123,
+            userGuid: 456,
+            createdTimestamp: new DateTime(),
+            membershipLevel: GroupMembershipLevelEnum::BANNED,
+        ));
+        $this->repositoryMock->add(Argument::any())->shouldNotBeCalled();
+
+        $groupMock->getGuid()
+            ->willReturn(123);
+        $groupMock->isPublic()
+            ->willReturn(true);
+        $userMock->getGuid()
+            ->willReturn(456);
+
+        $this->shouldThrow(UserErrorException::class)->duringJoinGroup($groupMock, $userMock);
     }
 
     public function it_should_leave_group(Group $groupMock, User $userMock)
