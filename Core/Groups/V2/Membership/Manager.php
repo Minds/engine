@@ -192,6 +192,16 @@ class Manager
         GroupMembershipLevelEnum $membershipLevel = null,
         int $siteMembershipGuid = null,
     ): bool {
+        // A banned user must not rejoin: add() upserts, so it would overwrite the ban
+        try {
+            $existing = $this->repository->get($group->getGuid(), $user->getGuid());
+            if ($existing->membershipLevel === GroupMembershipLevelEnum::BANNED) {
+                throw new UserErrorException("You have been banned from this group");
+            }
+        } catch (NotFoundException $e) {
+            // Not a member yet
+        }
+
         $membership = new Membership(
             groupGuid: $group->getGuid(),
             userGuid: $user->getGuid(),
