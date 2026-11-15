@@ -13,6 +13,12 @@ use PHPMailer\PHPMailer\PHPMailer;
 
 class Mailer
 {
+    /**
+     * The address ActivityPub actor imports are given (ActivityPub\Services\ProcessActorService).
+     * No one reads it, and the Workspace catch-all hands it to a staff group, so nothing is sent to it.
+     */
+    public const IMPORTED_ACTOR_EMAIL = 'activitypub-imported@minds.com';
+
     private $mailer;
     private $queue;
     private $stats;
@@ -88,11 +94,21 @@ class Mailer
             $message->from['name'] ?? 'Minds'
         );
 
+        $recipients = 0;
         foreach ($message->to as $to) {
             if ($this->filter->isSpam($to['email'])) {
                 continue; //don't send to blacklisted domains
             }
+            if (strcasecmp(trim((string) $to['email']), self::IMPORTED_ACTOR_EMAIL) === 0) {
+                continue; // an imported ActivityPub actor has no mailbox
+            }
             $this->mailer->AddAddress($to['email'], $to['name']);
+            $recipients++;
+        }
+
+        if ($recipients === 0) {
+            $this->logger->info("Skipped email with no deliverable recipient");
+            return $this;
         }
 
         $this->mailer->MessageID = $message->messageId;
