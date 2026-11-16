@@ -47,6 +47,6 @@ class FeaturedGroup extends FeaturedEntity
     {
         /** @var Manager */
         $manager = Di::_()->get(Manager::class);
-        return $manager->getMembersCount((new Group())->set('guid', $this->entityGuid)) ?? 0;
+        return $manager->getMembersCount((new Group())->setGuid($this->entityGuid)) ?? 0;
     }
 }

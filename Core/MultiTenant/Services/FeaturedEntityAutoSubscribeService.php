@@ -75,35 +75,37 @@ class FeaturedEntityAutoSubscribeService
 
     /**
      * Handle a featured group - making the subject auto-join the featured group if appropriate.
-     * @param FeaturedUser $featuredUser - featured group.
+     * Existing members, moderators and owners are left untouched, so their level
+     * and any site membership link are never overwritten.
+     * @param FeaturedGroup $featuredGroup - featured group.
      * @param User $subject - subject user.
-     * @return void
+     * @return bool - true if the subject was added to the group.
      */
-    public function handleFeaturedGroup(FeaturedGroup $featuredGroup, User $subject): void
+    public function handleFeaturedGroup(FeaturedGroup $featuredGroup, User $subject): bool
     {
         if (!$featuredGroup->autoSubscribe) {
-            return;
+            return false;
         }
 
         $group = $this->entitiesBuilder->single($featuredGroup->entityGuid);
 
         if (!$group instanceof Group) {
-            return;
+            return false;
         }
 
         try {
             $membership = $this->groupsMembershipManager->getMembership($group, $subject);
             if ($membership->isBanned()) {
-                return; // Do not join banned members
+                return false; // Do not join banned members
             }
             if (!$membership->isAwaiting()) {
-                // The user is already in the group.
+                return false; // Already a member, moderator or owner.
             }
         } catch (NotFoundException $e) {
             // This is ok
         }
 
-        $this->groupsMembershipManager->joinGroup(
+        return $this->groupsMembershipManager->joinGroup(
             group: $group,
             user: $subject,
             membershipLevel: GroupMembershipLevelEnum::MEMBER

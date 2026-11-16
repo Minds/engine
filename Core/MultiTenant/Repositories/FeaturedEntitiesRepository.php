@@ -12,6 +12,7 @@ use Minds\Exceptions\ServerErrorException;
 use PDO;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
+use Selective\Database\SelectQuery;
 
 /**
  * Repository for featured entities.
@@ -55,9 +56,12 @@ class FeaturedEntitiesRepository extends AbstractRepository
             $query->leftJoin(['users' => 'minds_entities_user'], 'entities.guid', Operator::EQ, 'users.guid');
         }
 
+        // Keep the OR inside the tenant scope, or other tenants' recommended entities leak in.
         $query->where('minds_tenant_featured_entities.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
-            ->where('auto_subscribe', Operator::EQ, true)
-            ->orWhere('recommended', Operator::EQ, true)
+            ->where(function (SelectQuery $query) {
+                $query->where('auto_subscribe', Operator::EQ, true)
+                    ->orWhere('recommended', Operator::EQ, true);
+            })
             ->orderBy('updated_timestamp ASC');
 
         if ($withPagination) {
