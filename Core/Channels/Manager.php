@@ -56,6 +56,9 @@ class Manager
     /** @var Config */
     protected $config;
 
+    /** @var Delegates\CancelPaidPlans */
+    protected $cancelPaidPlansDelegate;
+
     /**
      * Manager constructor.
      * @param Delegates\Artifacts\Factory $artifactsDelegatesFactory
@@ -70,7 +73,8 @@ class Manager
         $logoutDelegate = null,
         $queueClient = null,
         $cache = null,
-        $config = null
+        $config = null,
+        $cancelPaidPlansDelegate = null
     ) {
         $this->artifactsDelegatesFactory = $artifactsDelegatesFactory ?: new Delegates\Artifacts\Factory();
         $this->metricsDelegate = $metricsDelegate ?: new MetricsDelegate();
@@ -78,6 +82,7 @@ class Manager
         $this->queueClient = $queueClient ?: Di::_()->get('Queue');
         $this->cache = $cache ?? Di::_()->get('Cache\PsrWrapper');
         $this->config = $config ?? Di::_()->get(Config::class);
+        $this->cancelPaidPlansDelegate = $cancelPaidPlansDelegate;
     }
 
     /**
@@ -152,7 +157,22 @@ class Manager
 
         $userGuid = $this->user->guid;
 
-        $delegateClassNames = (bool) $this->config->get('tenant_id') ?
+        $isTenant = (bool) $this->config->get('tenant_id');
+
+        // Stop Minds+ and Pro billing first. Best effort: a Stripe failure is logged
+        // loudly but does not hold back deleting the member's data.
+        if (!$isTenant) {
+            try {
+                $cancelled = $this->getCancelPaidPlansDelegate()->cancel($this->user);
+                if ($cancelled) {
+                    error_log("Channel deletion cancelled Stripe subscriptions for {$userGuid}: " . implode(',', $cancelled));
+                }
+            } catch (\Throwable $e) {
+                error_log("CHANNEL_DELETION_STRIPE_CANCEL_FAILED {$userGuid}: " . $e->getMessage());
+            }
+        }
+
+        $delegateClassNames = $isTenant ?
             static::TENANT_DELETION_DELEGATES :
             static::DELETION_DELEGATES;
 
@@ -175,6 +195,14 @@ class Manager
         $this->logoutDelegate->logout($this->user);
 
         return true;
+    }
+
+    /**
+     * Built lazily so constructing the manager does not need Stripe configured.
+     */
+    protected function getCancelPaidPlansDelegate(): Delegates\CancelPaidPlans
+    {
+        return $this->cancelPaidPlansDelegate ??= new Delegates\CancelPaidPlans();
     }
 
     /**
