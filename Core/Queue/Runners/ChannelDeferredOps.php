@@ -120,8 +120,8 @@ class ChannelDeferredOps implements Interfaces\QueueRunner
                     case CancelPaidPlans::RETRY_TYPE:
                         echo "Got paid plan cancel retry for " . ($data['user_guid'] ?? '?') . " attempt " . ($data['attempt'] ?? '?') . "\n";
 
-                        // Back off a little: retries come straight back on this queue.
-                        sleep(min(60, 10 * (int) ($data['attempt'] ?? 1)));
+                        // Back off a little (at most 15s, about 45s over a whole chain): retries come straight back on this shared queue.
+                        sleep(min(15, 5 * (int) ($data['attempt'] ?? 1)));
 
                         try {
                             $result = (new CancelPaidPlans())->retry($data);

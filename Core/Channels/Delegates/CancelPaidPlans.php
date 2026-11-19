@@ -10,6 +10,7 @@ use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
 use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Core\Queue\Interfaces\QueueClient;
 use Minds\Entities\User;
+use Stripe\Exception\InvalidRequestException;
 use Stripe\Service\SubscriptionService;
 
 /**
@@ -74,9 +75,12 @@ class CancelPaidPlans
         }
 
         $testMode = $this->stripeApiKeyConfig->shouldUseTestMode($user);
-        $customerId = $this->getCustomerId($userGuid);
+        [$customerId, $customerLookupFailed] = $this->getCustomerId($userGuid);
 
         $result = $this->run($userGuid, $customerId, $testMode, null);
+        if ($customerLookupFailed) {
+            $result['lookup_failed'] = true;
+        }
         $this->queueRetryIfNeeded($userGuid, $customerId, $testMode, $result, 1);
 
         return $result;
@@ -98,7 +102,16 @@ class CancelPaidPlans
         $attempt = (int) ($message['attempt'] ?? 1) + 1;
         $only = !empty($message['lookup_failed']) ? null : array_values($message['subscription_ids'] ?? []);
 
+        // A first run that could not read the customer id tries again (the lookup row survives the channel delete).
+        $customerLookupFailed = false;
+        if ($customerId === null && $only === null) {
+            [$customerId, $customerLookupFailed] = $this->getCustomerId($userGuid);
+        }
+
         $result = $this->run($userGuid, $customerId, $testMode, $only);
+        if ($customerLookupFailed) {
+            $result['lookup_failed'] = true;
+        }
         $this->queueRetryIfNeeded($userGuid, $customerId, $testMode, $result, $attempt);
 
         return $result;
@@ -118,7 +131,14 @@ class CancelPaidPlans
             return $result;
         }
 
-        $subscriptions = ($this->subscriptionsFactory)($testMode);
+        try {
+            $subscriptions = ($this->subscriptionsFactory)($testMode);
+        } catch (\Throwable $e) {
+            error_log("CHANNEL_DELETION_STRIPE_LOOKUP_FAILED {$userGuid} client: " . $e->getMessage());
+            $result['lookup_failed'] = true;
+            $result['failed'] = $only ?? [];
+            return $result;
+        }
 
         if ($only !== null) {
             $candidates = [];
@@ -168,6 +188,10 @@ class CancelPaidPlans
                 foreach ($list->autoPagingIterator() as $subscription) {
                     $found[$subscription->id] = $subscription;
                 }
+            } catch (InvalidRequestException $e) {
+                // The customer is not on this Stripe account (for example, it was made in the other mode). No retry
+                // can read it; the metadata search below still runs.
+                error_log("CHANNEL_DELETION_STRIPE_CUSTOMER_MISSING {$userGuid} {$customerId}: " . $e->getMessage());
             } catch (\Throwable $e) {
                 error_log("CHANNEL_DELETION_STRIPE_LOOKUP_FAILED {$userGuid} customer: " . $e->getMessage());
                 $result['lookup_failed'] = true;
@@ -230,15 +254,18 @@ class CancelPaidPlans
         return $customerId !== null && $subscriptionCustomerId === $customerId;
     }
 
-    private function getCustomerId(string $userGuid): ?string
+    /**
+     * @return array{0: ?string, 1: bool} the member's Stripe customer id, and whether the lookup could not be read
+     */
+    private function getCustomerId(string $userGuid): array
     {
         try {
             $row = $this->lookup->get("{$userGuid}:payments");
             $customerId = $row['customer_id'] ?? null;
-            return $customerId ? (string) $customerId : null;
+            return [$customerId ? (string) $customerId : null, false];
         } catch (\Throwable $e) {
             error_log("CHANNEL_DELETION_STRIPE_LOOKUP_FAILED {$userGuid} customer id: " . $e->getMessage());
-            return null;
+            return [null, true];
         }
     }
 

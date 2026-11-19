@@ -179,6 +179,66 @@ class CancelPaidPlansSpec extends ObjectBehavior
         $this->cancel($user)->shouldReturn(['cancelled' => [], 'failed' => [], 'lookup_failed' => true]);
     }
 
+    public function it_queues_a_full_retry_when_the_customer_id_cannot_be_read(User $user)
+    {
+        $user->getGuid()->willReturn('1000');
+        $this->lookup->get('1000:payments')->willThrow(new \Exception('cassandra down'));
+
+        $this->subscriptions->all(Argument::any())->shouldNotBeCalled();
+        $this->subscriptions->search(Argument::any())->willReturn($this->searchResult([]));
+
+        $this->queueClient->send(Argument::that(fn ($m) => $m['lookup_failed'] === true && $m['customer_id'] === null))
+            ->shouldBeCalled();
+
+        $this->cancel($user)->shouldReturn(['cancelled' => [], 'failed' => [], 'lookup_failed' => true]);
+    }
+
+    public function it_reads_the_customer_id_again_on_a_full_retry()
+    {
+        $this->subscriptions->all(['customer' => 'cus_1', 'status' => 'all', 'limit' => 100])
+            ->shouldBeCalled()
+            ->willReturn($this->collection([$this->sub('sub_nometa', 'active', 'prod_plus', null, 'cus_1')]));
+        $this->subscriptions->search(Argument::any())->willReturn($this->searchResult([]));
+        $this->subscriptions->cancel('sub_nometa')->shouldBeCalled()->willReturn(null);
+        $this->queueClient->send(Argument::any())->shouldNotBeCalled();
+
+        $this->retry([
+            'user_guid' => '1000',
+            'customer_id' => null,
+            'subscription_ids' => [],
+            'lookup_failed' => true,
+            'attempt' => 1,
+        ])->shouldReturn(['cancelled' => ['sub_nometa'], 'failed' => [], 'lookup_failed' => false]);
+    }
+
+    public function it_does_not_retry_for_ever_on_a_customer_this_stripe_does_not_have(User $user)
+    {
+        $user->getGuid()->willReturn('1000');
+        $this->subscriptions->all(Argument::any())
+            ->willThrow(new \Stripe\Exception\InvalidRequestException('No such customer'));
+        $this->subscriptions->search(Argument::any())->willReturn($this->searchResult([]));
+        $this->queueClient->send(Argument::any())->shouldNotBeCalled();
+
+        $this->cancel($user)->shouldReturn(['cancelled' => [], 'failed' => [], 'lookup_failed' => false]);
+    }
+
+    public function it_queues_a_retry_when_the_stripe_client_cannot_be_built(
+        StripeClient $stripeClient,
+        Config $config,
+        StripeApiKeyConfig $apiKeyConfig,
+        Lookup $lookup,
+        QueueClient $queueClient,
+        User $user
+    ) {
+        $this->beConstructedWith($stripeClient, $config, $apiKeyConfig, $lookup, $queueClient, function () {
+            throw new \Exception('no key');
+        });
+        $user->getGuid()->willReturn('1000');
+        $queueClient->send(Argument::that(fn ($m) => $m['lookup_failed'] === true))->shouldBeCalled();
+
+        $this->cancel($user)->shouldReturn(['cancelled' => [], 'failed' => [], 'lookup_failed' => true]);
+    }
+
     public function it_retries_only_the_failed_subscriptions(User $user)
     {
         $this->subscriptions->retrieve('sub_plus')
