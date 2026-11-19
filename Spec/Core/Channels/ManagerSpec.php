@@ -37,13 +37,17 @@ class ManagerSpec extends ObjectBehavior
     /** @var Config */
     protected $config;
 
+    /** @var Delegates\CancelPaidPlans */
+    protected $cancelPaidPlansDelegate;
+
     public function let(
         Delegates\Artifacts\Factory $artifactsDelegatesFactory,
         Delegates\MetricsDelegate $metricsDelegate,
         Delegates\Logout $logoutDelegate,
         QueueClient $queueClient,
         CacheInterface $cache,
-        Config $config
+        Config $config,
+        Delegates\CancelPaidPlans $cancelPaidPlansDelegate
     ) {
         $this->beConstructedWith(
             $artifactsDelegatesFactory,
@@ -51,8 +55,10 @@ class ManagerSpec extends ObjectBehavior
             $logoutDelegate,
             $queueClient,
             $cache,
-            $config
+            $config,
+            $cancelPaidPlansDelegate
         );
+        $this->cancelPaidPlansDelegate = $cancelPaidPlansDelegate;
 
         $this->artifactsDelegatesFactory = $artifactsDelegatesFactory;
         $this->metricsDelegate = $metricsDelegate;
@@ -159,12 +165,46 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledTimes(count($deletionDelegates))
             ->willReturn(true);
 
+        $this->cancelPaidPlansDelegate->cancel($user)
+            ->shouldBeCalled()
+            ->willReturn(['cancelled' => ['sub_123'], 'failed' => [], 'lookup_failed' => false]);
+
         $this->metricsDelegate->onDelete($user)
             ->shouldBeCalled();
 
         $this->logoutDelegate->logout($user)
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this
+            ->setUser($user)
+            ->deleteCleanup()
+            ->shouldReturn(true);
+    }
+
+    public function it_should_still_delete_data_when_cancelling_paid_plans_fails(
+        User $user,
+        ArtifactsDelegateInterface $artifactsDelegateMock
+    ) {
+        $user->get('guid')
+            ->willReturn(1000);
+
+        $this->cancelPaidPlansDelegate->cancel($user)
+            ->shouldBeCalled()
+            ->willThrow(new \Exception('stripe down'));
+
+        $this->artifactsDelegatesFactory->build(Argument::any())
+            ->willReturn($artifactsDelegateMock);
+
+        $artifactsDelegateMock->delete(1000)
+            ->shouldBeCalledTimes(count(Manager::DELETION_DELEGATES))
+            ->willReturn(true);
+
+        $this->metricsDelegate->onDelete($user)
+            ->shouldBeCalled();
+
+        $this->logoutDelegate->logout($user)
+            ->shouldBeCalled();
 
         $this
             ->setUser($user)
@@ -179,6 +219,9 @@ class ManagerSpec extends ObjectBehavior
         $this->config->get('tenant_id')
             ->shouldBeCalled()
             ->willReturn(1);
+
+        $this->cancelPaidPlansDelegate->cancel(Argument::any())
+            ->shouldNotBeCalled();
 
         $user->get('guid')
             ->shouldBeCalled()
