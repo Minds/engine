@@ -167,7 +167,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->cancelPaidPlansDelegate->cancel($user)
             ->shouldBeCalled()
-            ->willReturn(['sub_123']);
+            ->willReturn(['cancelled' => ['sub_123'], 'failed' => [], 'lookup_failed' => false]);
 
         $this->metricsDelegate->onDelete($user)
             ->shouldBeCalled();

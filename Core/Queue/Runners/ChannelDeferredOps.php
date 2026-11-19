@@ -3,6 +3,7 @@
 namespace Minds\Core\Queue\Runners;
 
 use Minds\Core\Channels\Ban;
+use Minds\Core\Channels\Delegates\CancelPaidPlans;
 use Minds\Core\Di\Di;
 use Minds\Core\Queue\Interfaces;
 use Minds\Core\Queue;
@@ -113,6 +114,24 @@ class ChannelDeferredOps implements Interfaces\QueueRunner
                         } else {
                             echo "ERROR...\n\n";
                         }
+
+                        break;
+
+                    case CancelPaidPlans::RETRY_TYPE:
+                        echo "Got paid plan cancel retry for " . ($data['user_guid'] ?? '?') . " attempt " . ($data['attempt'] ?? '?') . "\n";
+
+                        // Back off a little: retries come straight back on this queue.
+                        sleep(min(60, 10 * (int) ($data['attempt'] ?? 1)));
+
+                        try {
+                            $result = (new CancelPaidPlans())->retry($data);
+                            $done = !$result['failed'] && !$result['lookup_failed'];
+                        } catch (\Throwable $e) {
+                            echo (string) $e;
+                            $done = false;
+                        }
+
+                        echo $done ? "SUCCESS!\n\n" : "ERROR...\n\n";
 
                         break;
 

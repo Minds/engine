@@ -159,13 +159,13 @@ class Manager
 
         $isTenant = (bool) $this->config->get('tenant_id');
 
-        // Stop Minds+ and Pro billing first. Best effort: a Stripe failure is logged
-        // loudly but does not hold back deleting the member's data.
+        // Stop Minds+ and Pro billing first. Each cancel is tried on its own and failures
+        // are queued for retry by the delegate, so deleting the member's data goes ahead.
         if (!$isTenant) {
             try {
-                $cancelled = $this->getCancelPaidPlansDelegate()->cancel($this->user);
-                if ($cancelled) {
-                    error_log("Channel deletion cancelled Stripe subscriptions for {$userGuid}: " . implode(',', $cancelled));
+                $result = $this->getCancelPaidPlansDelegate()->cancel($this->user);
+                if ($result['cancelled']) {
+                    error_log("Channel deletion cancelled Stripe subscriptions for {$userGuid}: " . implode(',', $result['cancelled']));
                 }
             } catch (\Throwable $e) {
                 error_log("CHANNEL_DELETION_STRIPE_CANCEL_FAILED {$userGuid}: " . $e->getMessage());
