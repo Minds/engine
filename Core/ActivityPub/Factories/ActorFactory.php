@@ -88,6 +88,14 @@ class ActorFactory
             throw new NotFoundException();
         }
 
+        // The document must describe an actor on the host we fetched it from.
+        // Otherwise a remote server could claim any id, including a local member's.
+        $fetchedHost = strtolower((string) parse_url($uri, PHP_URL_HOST));
+        $claimedHost = strtolower((string) parse_url((string) ($json['id'] ?? ''), PHP_URL_HOST));
+        if (!$fetchedHost || $claimedHost !== $fetchedHost) {
+            throw new UserErrorException("Actor id host does not match $uri");
+        }
+
         return $this->fromJson($json);
     }
 

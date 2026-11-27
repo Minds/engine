@@ -147,4 +147,44 @@ class ProcessActorServiceSpec extends ObjectBehavior
         $this->withUsername('mark@hacker.com')
             ->process();
     }
+
+    public function it_should_not_update_a_local_member_from_an_actor_document(User $localUser)
+    {
+        $actor = new PersonType();
+        $actor->setId('https://www.minds.com/api/activitypub/users/123');
+        $actor->preferredUsername = 'mark';
+        $actor->name = 'Forged name';
+        $actor->summary = 'Forged bio';
+
+        $this->managerMock->getEntityFromUri('https://www.minds.com/api/activitypub/users/123')
+            ->willReturn($localUser);
+        $this->managerMock->isLocalUri('https://www.minds.com/api/activitypub/users/123')
+            ->willReturn(true);
+
+        $localUser->setName(Argument::any())->shouldNotBeCalled();
+        $localUser->setBriefDescription(Argument::any())->shouldNotBeCalled();
+        $this->saveMock->setEntity(Argument::any())->shouldNotBeCalled();
+
+        $this->withActor($actor)->process()->shouldBe($localUser);
+    }
+
+    public function it_should_still_update_a_remote_user(User $remoteUser)
+    {
+        $actor = new PersonType();
+        $actor->setId('https://remote.example/users/mark');
+        $actor->preferredUsername = 'mark';
+        $actor->name = 'Mark';
+
+        $this->managerMock->getEntityFromUri('https://remote.example/users/mark')
+            ->willReturn($remoteUser);
+        $this->managerMock->isLocalUri('https://remote.example/users/mark')
+            ->willReturn(false);
+
+        $remoteUser->setName('Mark')->shouldBeCalled();
+        $this->saveMock->setEntity($remoteUser)->shouldBeCalled()->willReturn($this->saveMock);
+        $this->saveMock->save()->shouldBeCalled()->willReturn(true);
+        $this->managerMock->addActor(Argument::cetera())->willReturn(true);
+
+        $this->withActor($actor)->process()->shouldBe($remoteUser);
+    }
 }
