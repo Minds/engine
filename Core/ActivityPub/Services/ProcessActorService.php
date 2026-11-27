@@ -81,9 +81,12 @@ class ProcessActorService
         switch ($className) {
             case PersonType::class:
             case ApplicationType::class:
-                $user = $this->manager->getEntityFromUri(JsonLdHelper::getValueOrId($this->actor));
+                $actorUri = JsonLdHelper::getValueOrId($this->actor);
+                $user = $this->manager->getEntityFromUri($actorUri);
                 if ($user) {
-                    if ($update) {
+                    // Never let a fetched or received actor document rewrite a local member.
+                    // A local URI belongs to this site, so its profile is only ever changed here.
+                    if ($update && !$this->manager->isLocalUri($actorUri)) {
                         // The user already exists, lets resync
                         $this->updateUser($user);
                     }
